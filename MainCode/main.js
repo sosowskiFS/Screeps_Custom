@@ -7,6 +7,7 @@ var roleBuilder = require('role.builder');
 var spawn_BuildCreeps = require('spawn.BuildCreeps')
 var previousEnergyCap = -1;
 var bestWorkerConfig = [WORK,CARRY,MOVE];
+var roomReference = Game.spawns['Spawn_Capital'].room;
 
 module.exports.loop = function () {
 
@@ -25,9 +26,11 @@ module.exports.loop = function () {
         }
     }*/
 
+    //TODO: Cycle creep role in memory if creep is unable to do job? If creep lands on upgrading they'll never leave, maybe pass that.
+
     //Update creep configs if energy cap has changed
-    if(Game.spawns['Spawn_Capital'].energyCapacity != previousEnergyCap){
-        previousEnergyCap = Game.spawns['Spawn_Capital'].energyCapacity;
+    if(roomReference.energyCapacityAvailable != previousEnergyCap){
+        previousEnergyCap = roomReference.energyCapacityAvailable;
         recalculateBestWorker();       
     }
 
