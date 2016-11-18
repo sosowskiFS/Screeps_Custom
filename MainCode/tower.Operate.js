@@ -11,7 +11,6 @@ var tower_Operate = {
         	if(closestHostile) {
             	tower.attack(closestHostile);
         	}
-    	}
 
     	var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
     		filter: (creep) => creep.hits < creep.hitsMax
@@ -19,5 +18,7 @@ var tower_Operate = {
     	if(closestDamagedCreep) {
     		tower.heal(closestDamagedCreep);
     	}
-	};
+	}
+};
+
 module.exports = tower_Operate;
