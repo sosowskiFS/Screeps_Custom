@@ -4,9 +4,12 @@ var spawn_BuildCreeps = {
 		var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
 		var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
 
-		if((harvesters.length < 2 || builders.length < 2 || upgraders.length < 2) && spawn.canCreateCreep([WORK,CARRY,MOVE]) == 'OK') {
+		if((harvesters.length < 2 || builders.length < 2 || upgraders.length < 2) && spawn.canCreateCreep([WORK,CARRY,MOVE]) == 0) {
 			var prioritizedRole = 'harvester';
-			if(builders.length < 2) {
+			if(harvesters.length < 2){
+				prioritizedRole = 'harvester';
+			}
+			else if(builders.length < 2) {
 				prioritizedRole = 'builder';
 			} 
 			else if (upgraders.length < 2) {
