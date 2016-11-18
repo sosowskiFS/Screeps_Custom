@@ -4,7 +4,7 @@ var roleHarvester = {
     run: function(creep) {
         if(creep.carry.energy < creep.carryCapacity) {
             var sources = creep.room.find(FIND_SOURCES);
-            if(creep.memory.targetSource == 'NO_TARGET'){
+            if(creep.memory.targetSource == 'NO_TARGET' || creep.memory.targetSource == undefined){
                 //Set a default source if none is set
                 creep.memory.targetSource = sources[0].id;
                 creep.memory.targetSourcePos = 0;
