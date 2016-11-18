@@ -16,4 +16,6 @@ var spawn_BuildCreeps = {
 			spawn.createCreep([WORK,CARRY,MOVE], undefined, {role: prioritizedRole});
 		}
 	}
-}
+};
+
+module.exports = spawn_BuildCreeps;
