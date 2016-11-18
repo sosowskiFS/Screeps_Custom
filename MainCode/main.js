@@ -53,20 +53,23 @@ module.exports.loop = function () {
     }
 
     //Find is moderately expensive, run it only every 100 ticks for new tower detection.
-    if ( currentTick == 100 ){
+    //Something's fucky with tick measuring. See if there's a better way to measure time.
+    //if ( currentTick == 100 ){
         var towers = roomReference.find(FIND_MY_STRUCTURES, {
             filter: { structureType: STRUCTURE_TOWER }
         });
-    }
+    //}
     
-    for(var thisTower in towers) {
-        tower_Operate.run(thisTower);
+    if(towers.length > 0) {
+        towers.forEach(function(thisTower) {
+            tower_Operate.run(thisTower);
+        });
     }
 
-    currentTick++;
+    /*currentTick++;
     if( currentTick >= 100 ) {
         currentTick = 0;
-    }
+    }*/
 }
 
 function recalculateBestWorker(){
