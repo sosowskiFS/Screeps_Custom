@@ -9,10 +9,10 @@ var spawn_BuildCreeps = {
 			if(harvesters.length < 2){
 				prioritizedRole = 'harvester';
 			}
-			else if(builders.length < 2) {
+			else if(upgraders.length < 2) {
 				prioritizedRole = 'upgrader';
 			} 
-			else if (upgraders.length < 2) {
+			else if (builders.length < 2) {
 				prioritizedRole = 'builder';
 			}
 
