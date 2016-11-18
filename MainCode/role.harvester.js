@@ -4,26 +4,26 @@ var roleHarvester = {
     run: function(creep) {
         if(creep.carry.energy < creep.carryCapacity) {
             var sources = creep.room.find(FIND_SOURCES);
-            if(creep.memory.targetSource == undefined){
+            if(creep.memory.targetSource == 'NO_TARGET'){
                 //Set a default source if none is set
-                creep.memory.targetSource = sources[0];
+                creep.memory.targetSource = sources[0].id;
                 creep.memory.targetSourcePos = 0;
             }
 
-            if(creep.harvest(creep.memory.targetSource) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(creep.memory.targetSource);
+            if(creep.harvest(Game.getObjectById(creep.memory.targetSource)) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(Game.getObjectById(creep.memory.targetSource));
             } 
-            else if(creep.harvest(creep.memory.targetSource) == ERR_NO_PATH) {
+            else if(creep.harvest(Game.getObjectById(creep.memory.targetSource)) == ERR_NO_PATH) {
                 //Change source
                 creep.memory.targetSourcePos = creep.memory.targetSourcePos + 1;
                 if (creep.memory.targetSourcePos > (sources.length - 1)){
                     creep.memory.targetSourcePos = 0;
                 }
-                creep.memory.targetSource = sources[creep.memory.targetSourcePos];
+                creep.memory.targetSource = sources[creep.memory.targetSourcePos].id;
             }
         }
         else {
-            creep.memory.targetSource = undefined;
+            creep.memory.targetSource = 'NO_TARGET';
             creep.memory.targetSourcePos = 0;
             var targets = creep.room.find(FIND_STRUCTURES, {
                     filter: (structure) => {
