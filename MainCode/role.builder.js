@@ -27,6 +27,7 @@ var roleBuilder = {
                 creep.say('storing');
             }
         }
+        
         else if(creep.memory.storing) {
             var targets = creep.room.find(FIND_STRUCTURES, {
                 filter: (structure) => {

@@ -3,28 +3,23 @@ var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleBuilder = require('role.builder');
 
-//Structures
-var spawn_BuildCreeps = require('spawn.BuildCreeps')
+//Spawning
+var spawn_BuildCreeps = require('spawn.BuildCreeps');
 var previousEnergyCap = -1;
 var bestWorkerConfig = [WORK,CARRY,MOVE];
 var roomReference = Game.spawns['Spawn_Capital'].room;
 
+//Expansion
+var spawn_AutoExpand = require('spawn.AutoExpand');
+var lastControllerLevel = 1;
+
+//Towers
+var tower_Operate = require('tower.Operate');
+var towers = [];
+
+var currentTick = 0;
+
 module.exports.loop = function () {
-
-    /*var tower = Game.getObjectById('TOWER_ID');
-    if(tower) {
-        var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => structure.hits < structure.hitsMax
-        });
-        if(closestDamagedStructure) {
-            tower.repair(closestDamagedStructure);
-        }
-
-        var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-        if(closestHostile) {
-            tower.attack(closestHostile);
-        }
-    }*/
 
     //TODO: Cycle creep role in memory if creep is unable to do job? If creep lands on upgrading they'll never leave, maybe pass that.
 
@@ -34,8 +29,16 @@ module.exports.loop = function () {
         recalculateBestWorker();       
     }
 
+    //Expansion not finished : Low priority. Can do manually for now.
+
+    /*if(lastControllerLevel != roomReference.controller.level){
+        spawn_AutoExpand.run(Game.spawns['Spawn_Capital'], roomReference.controller.level);
+        lastControllerLevel = roomReference.controller.level;
+    }*/
+
     spawn_BuildCreeps.run(Game.spawns['Spawn_Capital'], bestWorkerConfig);
 
+    //TODO : Rewrite creeps to write targets to memory instead of using .find every tick.
     for(var name in Game.creeps) {
         var creep = Game.creeps[name];
         if(creep.memory.role == 'harvester') {
@@ -47,6 +50,22 @@ module.exports.loop = function () {
         if(creep.memory.role == 'builder') {
             roleBuilder.run(creep);
         }
+    }
+
+    //Find is moderately expensive, run it only every 100 ticks for new tower detection.
+    if ( currentTick == 100 ){
+        var towers = roomReference.find(FIND_MY_STRUCTURES, {
+            filter: { structureType: STRUCTURE_TOWER }
+        });
+    }
+    
+    for(var thisTower in towers) {
+        tower_Operate.run(thisTower);
+    }
+
+    currentTick++;
+    if( currentTick >= 100 ) {
+        currentTick = 0;
     }
 }
 
