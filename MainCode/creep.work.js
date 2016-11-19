@@ -46,10 +46,10 @@ var creep_work = {
                 }
             } else {
                 var targets = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
-                if (targets.length) {
-                    creep.memory.structureTarget = targets[0].id;
-                    if (creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0]);
+                if (targets) {
+                    creep.memory.structureTarget = targets.id;
+                    if (creep.build(targets) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets);
                     }
                 } else {
                     //Store in container
@@ -86,11 +86,11 @@ var creep_work = {
                             structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
                     }
                 });
-                if (targets.length > 0) {
-                    creep.memory.structureTarget = targets[0].id;
+                if (targets) {
+                    creep.memory.structureTarget = targets.id;
                     
-                    if (creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0]);
+                    if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets);
                     }
                 } else {
                     //Nowhere to store. Change action.
@@ -133,11 +133,11 @@ var creep_work = {
                             structure.structureType == STRUCTURE_STORAGE) && structure.energy > 0;
                     }
                 });
-                if (targets.length > 0) {
+                if (targets) {
                     //Get from container
-                    creep.memory.structureTarget = targets[0].id;
-                    if (creep.withdraw(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[0]);
+                    creep.memory.structureTarget = targets.id;
+                    if (creep.withdraw(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets);
                     }
                 } else {
                     //Mine it yourself
@@ -149,8 +149,8 @@ var creep_work = {
                         sources = creep.pos.findClosestByRange(FIND_SOURCES);
                     }
                     creep.memory.structureTarget = sources.id;
-                    if (creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources[0]);
+                    if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(sources);
                     }
                 }
             }
