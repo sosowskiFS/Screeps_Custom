@@ -15,7 +15,6 @@ var lastControllerLevel = 1;
 
 //Towers
 var tower_Operate = require('tower.Operate');
-var towers = [];
 
 //Ctrl+Alt+f to autoformat documents.
 
@@ -61,15 +60,15 @@ module.exports.loop = function() {
     //TODO : Rewrite creeps to write targets to memory instead of using .find every tick.
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if (creep.memory.role == 'harvester') {
+        /*if (creep.memory.role == 'harvester') {
             roleHarvester.run(creep);
         }
         if (creep.memory.role == 'upgrader') {
             roleUpgrader.run(creep);
         }
-        if (creep.memory.role == 'builder') {
+        if (creep.memory.role == 'builder') {*/
             roleBuilder.run(creep);
-        }
+        //}
     }
 }
 

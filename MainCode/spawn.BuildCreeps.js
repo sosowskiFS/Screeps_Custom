@@ -8,16 +8,16 @@ var spawn_BuildCreeps = {
 		}
 
 		//TODO : Count creeps by room, not globally.
-		var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
-		var builders = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
-		var upgraders = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
+		var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
+		var builders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'builder');
+		var upgraders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'upgrader');
 
 		var bareMinConfig = [WORK, CARRY, MOVE];
 
 		if ((harvesters.length == 0 && builders.length == 0 && upgraders.length == 0) && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
 			spawn.createCreep(bareMinConfig, undefined, {
-				role: 'harvester'
+				priority: 'harvester'
 			});
 		}
 
@@ -32,7 +32,7 @@ var spawn_BuildCreeps = {
 			}
 
 			spawn.createCreep(bestWorker, undefined, {
-				role: prioritizedRole
+				priority: prioritizedRole
 			});
 		}
 	}

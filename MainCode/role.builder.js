@@ -11,9 +11,30 @@ var roleBuilder = {
             creep.say('harvesting');
         }
         if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
-            creep.memory.building = true;
-            creep.memory.structureTarget = undefined;
-            creep.say('building');
+            switch (creep.memory.priority) {
+                case 'builder':
+                    creep.memory.building = true;
+                    creep.memory.structureTarget = undefined;
+                    creep.say('building');
+                    break;
+                case 'harvester':
+                    creep.memory.storing = true;
+                    creep.memory.structureTarget = undefined;
+                    creep.say('storing');
+                    break;
+                case 'upgrader':
+                    creep.memory.upgrading = true;
+                    creep.memory.structureTarget = undefined;
+                    creep.say('upgrading');
+                    break;
+                default:
+                    //fucking what
+                    creep.memory.building = true;
+                    creep.memory.structureTarget = undefined;
+                    creep.say('building');
+                    break;
+            }
+
         }
 
         if (creep.memory.building) {
