@@ -21,13 +21,13 @@ var spawn_BuildCreeps = {
 			});
 		}
 
-		if ((harvesters.length < 3 || builders.length < 4 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
+		if ((harvesters.length < 2 || builders.length < 2 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
 			var prioritizedRole = 'harvester';
-			if (harvesters.length < 3) {
+			if (harvesters.length < 2) {
 				prioritizedRole = 'harvester';
 			} else if (upgraders.length < 2) {
 				prioritizedRole = 'upgrader';
-			} else if (builders.length < 4) {
+			} else if (builders.length < 2) {
 				prioritizedRole = 'builder';
 			}
 
