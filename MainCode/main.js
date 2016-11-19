@@ -17,8 +17,6 @@ var lastControllerLevel = 1;
 var tower_Operate = require('tower.Operate');
 var towers = [];
 
-var currentTick = 0;
-
 //Ctrl+Alt+f to autoformat documents.
 
 module.exports.loop = function() {
@@ -43,25 +41,20 @@ module.exports.loop = function() {
         spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig);
 
         //Find is moderately expensive, run it only every 100 ticks for new tower detection.
-        //Something's fucky with tick measuring. See if there's a better way to measure time.
-        //if ( currentTick == 100 ){
-        var towers = thisRoom.find(FIND_MY_STRUCTURES, {
-            filter: {
-                structureType: STRUCTURE_TOWER
-            }
-        });
-        //}
-
-        if (towers.length > 0) {
-            towers.forEach(function(thisTower) {
-                tower_Operate.run(thisTower);
+        if (Game.time % 100 == 0) {
+            Memory.towerList = thisRoom.find(FIND_MY_STRUCTURES, {
+                filter: {
+                    structureType: STRUCTURE_TOWER
+                }
             });
         }
-
-        /*currentTick++;
-        if( currentTick >= 100 ) {
-            currentTick = 0;
-        }*/
+        if (Memory.towerList) {
+            if (Memory.towerList.length > 0) {
+                Memory.towerList.forEach(function(thisTower) {
+                    tower_Operate.run(thisTower.id);
+                });
+            }
+        }
     }
 
     //Globally controlls all creeps in all rooms

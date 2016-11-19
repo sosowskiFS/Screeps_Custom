@@ -1,24 +1,28 @@
 var tower_Operate = {
-	run: function(tower) {
-        var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => structure.hits < structure.hitsMax
-        });
-        if(closestDamagedStructure) {
-            tower.repair(closestDamagedStructure);
+    run: function(tower) {
+        var thisTower = Game.getObjectById(tower);
+
+        var closestHostile = thisTower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+        if (closestHostile) {
+            thisTower.attack(closestHostile);
         }
 
-        var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-        	if(closestHostile) {
-            	tower.attack(closestHostile);
-        	}
+        var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
+            filter: (creep) => creep.hits < creep.hitsMax
+        });
+        if (closestDamagedCreep) {
+            thisTower.heal(closestDamagedCreep);
+        }
+        
+        var closestDamagedStructure = thisTower.pos.findClosestByRange(FIND_STRUCTURES, {
+            filter: (structure) => structure.hits < structure.hitsMax
+        });
+        if (closestDamagedStructure) {
+            thisTower.repair(closestDamagedStructure);
+        }
 
-    	var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
-    		filter: (creep) => creep.hits < creep.hitsMax
-    	});
-    	if(closestDamagedCreep) {
-    		tower.heal(closestDamagedCreep);
-    	}
-	}
+
+    }
 };
 
 module.exports = tower_Operate;
