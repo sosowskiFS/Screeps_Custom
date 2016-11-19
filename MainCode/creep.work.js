@@ -142,11 +142,11 @@ var creep_work = {
                 } else {
                     //Mine it yourself
                     var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
-                    if (!sources) {
-                        creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
+                    if (sources.length == 0) {
+                        sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
                     }
-                    if (!sources) {
-                        creep.pos.findClosestByRange(FIND_SOURCES);
+                    if (sources.length == 0) {
+                        sources = creep.pos.findClosestByRange(FIND_SOURCES);
                     }
                     creep.memory.structureTarget = sources[0];
                     if (creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
