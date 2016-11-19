@@ -87,17 +87,10 @@ var creep_work = {
                     }
                 });
                 if (targets.length > 0) {
-                    var targetForLoop = 0;
-                    if (targets[0].structureType == STRUCTURE_SPAWN && targets.length > 1) {
-                        //Prioritize other structures, the spawn regenerates.
-                        creep.memory.structureTarget = targets[1].id;
-                        targetForLoop = 1;
-                    } else {
-                        creep.memory.structureTarget = targets[0].id;
-                    }
-
-                    if (creep.transfer(targets[targetForLoop], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(targets[targetForLoop]);
+                    creep.memory.structureTarget = targets[0].id;
+                    
+                    if (creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(targets[0]);
                     }
                 } else {
                     //Nowhere to store. Change action.
