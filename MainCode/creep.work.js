@@ -10,7 +10,7 @@ var creep_work = {
             creep.memory.structureTarget = undefined;
             creep.say('harvesting');
         }
-        if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && creep.carry.energy == creep.carryCapacity) {
+        if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && _.sum(creep.carry) == creep.carryCapacity) {
             switch (creep.memory.priority) {
                 case 'builder':
                     creep.memory.building = true;
@@ -88,7 +88,7 @@ var creep_work = {
                 });
                 if (targets) {
                     creep.memory.structureTarget = targets.id;
-                    
+
                     if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(targets);
                     }
@@ -124,6 +124,10 @@ var creep_work = {
                 } else {
                     if (creep.harvest(savedTarget) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(savedTarget);
+                    } else if (creep.harvest(savedTarget) == ERR_INVALID_TARGET) {
+                        if (creep.pickup(savedTarget) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(savedTarget);
+                        }
                     }
                 }
             } else {
@@ -151,6 +155,10 @@ var creep_work = {
                     creep.memory.structureTarget = sources.id;
                     if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(sources);
+                    } else if (creep.harvest(sources) == ERR_INVALID_TARGET) {
+                        if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(sources);
+                        }
                     }
                 }
             }
