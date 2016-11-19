@@ -1,7 +1,5 @@
 //Creeps
-var roleHarvester = require('role.harvester');
-var roleUpgrader = require('role.upgrader');
-var roleBuilder = require('role.builder');
+var creep_work = require('creep.work');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -57,18 +55,9 @@ module.exports.loop = function() {
     }
 
     //Globally controlls all creeps in all rooms
-    //TODO : Rewrite creeps to write targets to memory instead of using .find every tick.
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        /*if (creep.memory.role == 'harvester') {
-            roleHarvester.run(creep);
-        }
-        if (creep.memory.role == 'upgrader') {
-            roleUpgrader.run(creep);
-        }
-        if (creep.memory.role == 'builder') {*/
-            roleBuilder.run(creep);
-        //}
+        creep_work.run(creep);
     }
 }
 

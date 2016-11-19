@@ -1,4 +1,4 @@
-var roleBuilder = {
+var creep_work = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -53,9 +53,16 @@ var roleBuilder = {
                     }
                 } else {
                     //Store in container
-                    creep.memory.building = false;
-                    creep.memory.storing = true;
-                    creep.say('storing');
+                    if (creep.memory.priority == 'harvester') {
+                        //Already tried to store, upgrade.
+                        creep.memory.building = false;
+                        creep.memory.upgrading = true;
+                        creep.say('upgrading');
+                    } else {
+                        creep.memory.building = false;
+                        creep.memory.storing = true;
+                        creep.say('storing');
+                    }
                 }
             }
         } else if (creep.memory.storing) {
@@ -93,10 +100,17 @@ var roleBuilder = {
                         creep.moveTo(targets[targetForLoop]);
                     }
                 } else {
-                    //Nowhere to store. Upgrade.
-                    creep.memory.storing = false;
-                    creep.memory.upgrading = true;
-                    creep.say('upgrading');
+                    //Nowhere to store. Change action.
+                    if (creep.memory.priority == 'harvester') {
+                        //Try to build first
+                        creep.memory.storing = false;
+                        creep.memory.building = true;
+                        creep.say('building');
+                    } else {
+                        creep.memory.storing = false;
+                        creep.memory.upgrading = true;
+                        creep.say('upgrading');
+                    }
                 }
             }
 
@@ -145,4 +159,4 @@ var roleBuilder = {
     }
 };
 
-module.exports = roleBuilder;
+module.exports = creep_work;
