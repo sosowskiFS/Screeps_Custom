@@ -45,7 +45,7 @@ var creep_work = {
                     creep.moveTo(savedTarget);
                 }
             } else {
-                var targets = creep.room.find(FIND_CONSTRUCTION_SITES);
+                var targets = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                 if (targets.length) {
                     creep.memory.structureTarget = targets[0].id;
                     if (creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
@@ -78,7 +78,7 @@ var creep_work = {
                     creep.memory.structureTarget = undefined;
                 }
             } else {
-                var targets = creep.room.find(FIND_STRUCTURES, {
+                var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_EXTENSION ||
                             structure.structureType == STRUCTURE_SPAWN ||
@@ -127,7 +127,7 @@ var creep_work = {
                     }
                 }
             } else {
-                var targets = creep.room.find(FIND_STRUCTURES, {
+                var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_CONTAINER ||
                             structure.structureType == STRUCTURE_STORAGE) && structure.energy > 0;
@@ -135,20 +135,20 @@ var creep_work = {
                 });
                 if (targets.length > 0) {
                     //Get from container
-                    creep.memory.structureTarget = targets[0];
+                    creep.memory.structureTarget = targets[0].id;
                     if (creep.withdraw(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(targets[0]);
                     }
                 } else {
                     //Mine it yourself
                     var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
-                    if (sources.length == 0) {
+                    if (!sources) {
                         sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
                     }
-                    if (sources.length == 0) {
+                    if (!sources) {
                         sources = creep.pos.findClosestByRange(FIND_SOURCES);
                     }
-                    creep.memory.structureTarget = sources[0];
+                    creep.memory.structureTarget = sources.id;
                     if (creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(sources[0]);
                     }
