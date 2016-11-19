@@ -22,54 +22,47 @@ var currentTick = 0;
 //Ctrl+Alt+f to autoformat documents.
 
 module.exports.loop = function() {
-    Game.rooms.forEach(function(thisRoom) {
-        //Only attempt to maintain owned rooms
-        if (thisRoom.controller.reservation.username == 'Montblanc') {
+    //Loop through all spawns
+    for (var i in Game.spawns) {
+        var thisRoom = Game.spawns[i].room;
 
-            //TODO: Cycle creep role in memory if creep is unable to do job? If creep lands on upgrading they'll never leave, maybe pass that.
-            //Update creep configs if energy cap has changed
-            if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
-                previousEnergyCap = thisRoom.energyCapacityAvailable;
-                recalculateBestWorker();
-            }
-
-            //Expansion not finished : Low priority. Can do manually for now.
-
-            /*if(lastControllerLevel != roomReference.controller.level){
-                spawn_AutoExpand.run(Game.spawns['Spawn_Capital'], roomReference.controller.level);
-                lastControllerLevel = roomReference.controller.level;
-            }*/
-
-            var roomSpawn = thisRoom.find(FIND_MY_STRUCTURES, {
-                filter: {
-                    structureType: STRUCTURE_SPAWN
-                }
-            });
-
-            spawn_BuildCreeps.run(roomSpawn, bestWorkerConfig);
-
-            //Find is moderately expensive, run it only every 100 ticks for new tower detection.
-            //Something's fucky with tick measuring. See if there's a better way to measure time.
-            //if ( currentTick == 100 ){
-            var towers = thisRoom.find(FIND_MY_STRUCTURES, {
-                filter: {
-                    structureType: STRUCTURE_TOWER
-                }
-            });
-            //}
-
-            if (towers.length > 0) {
-                towers.forEach(function(thisTower) {
-                    tower_Operate.run(thisTower);
-                });
-            }
-
-            /*currentTick++;
-            if( currentTick >= 100 ) {
-                currentTick = 0;
-            }*/
+        //TODO: Cycle creep role in memory if creep is unable to do job? If creep lands on upgrading they'll never leave, maybe pass that.
+        //Update creep configs if energy cap has changed
+        if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
+            previousEnergyCap = thisRoom.energyCapacityAvailable;
+            recalculateBestWorker();
         }
-    });
+
+        //Expansion not finished : Low priority. Can do manually for now.
+
+        /*if(lastControllerLevel != roomReference.controller.level){
+            spawn_AutoExpand.run(Game.spawns['Spawn_Capital'], roomReference.controller.level);
+            lastControllerLevel = roomReference.controller.level;
+        }*/
+
+        spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig);
+
+        //Find is moderately expensive, run it only every 100 ticks for new tower detection.
+        //Something's fucky with tick measuring. See if there's a better way to measure time.
+        //if ( currentTick == 100 ){
+        var towers = thisRoom.find(FIND_MY_STRUCTURES, {
+            filter: {
+                structureType: STRUCTURE_TOWER
+            }
+        });
+        //}
+
+        if (towers.length > 0) {
+            towers.forEach(function(thisTower) {
+                tower_Operate.run(thisTower);
+            });
+        }
+
+        /*currentTick++;
+        if( currentTick >= 100 ) {
+            currentTick = 0;
+        }*/
+    }
 
     //Globally controlls all creeps in all rooms
     //TODO : Rewrite creeps to write targets to memory instead of using .find every tick.
