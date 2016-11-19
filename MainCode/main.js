@@ -16,12 +16,14 @@ var tower_Operate = require('tower.Operate');
 
 //Ctrl+Alt+f to autoformat documents.
 
+//Constants : http://support.screeps.com/hc/en-us/articles/203084991-API-Reference
+
 module.exports.loop = function() {
     //Loop through all spawns
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
+        var controllerLevel = thisRoom.controller.level;
 
-        //TODO: Cycle creep role in memory if creep is unable to do job? If creep lands on upgrading they'll never leave, maybe pass that.
         //Update creep configs if energy cap has changed
         if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
             previousEnergyCap = thisRoom.energyCapacityAvailable;
@@ -47,7 +49,7 @@ module.exports.loop = function() {
         }
         if (Memory.towerList) {
             if (Memory.towerList.length > 0) {
-                Memory.towerList.forEach(function(thisTower) {
+                Memory.towerList.forEach(function(thisTower, RAMPART_HITS_MAX(controllerLevel)) {
                     tower_Operate.run(thisTower.id);
                 });
             }
