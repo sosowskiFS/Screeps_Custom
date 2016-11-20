@@ -1,11 +1,18 @@
 var tower_Operate = {
-    run: function(tower, improveMax) {
+    run: function(tower, improveMax, thisRoom) {
         var thisTower = Game.getObjectById(tower);
 
         var closestHostile = thisTower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if (closestHostile) {
+            if (Memory.roomsUnderAttack.indexOf(thisRoom) === -1) {
+                Memory.roomsUnderAttack.push(thisRoom);
+            }
             thisTower.attack(closestHostile);
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.75)) {
+            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom);
+            if (UnderAttackPos >= 0) {
+                Memory.roomsUnderAttack.splice(UnderATtackPos, 1);
+            }
             //Save 75% of the tower's energy to use on repelling attackers
             var closestDamagedStructure = thisTower.pos.findClosestByRange(FIND_STRUCTURES, {
                 filter: (structure) => (structure.hits < structure.hitsMax) && (structure.hits < improveMax)
@@ -20,6 +27,11 @@ var tower_Operate = {
                 if (closestDamagedCreep) {
                     thisTower.heal(closestDamagedCreep);
                 }*/
+            }
+        } else {
+            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom);
+            if (UnderAttackPos >= 0) {
+                Memory.roomsUnderAttack.splice(UnderATtackPos, 1);
             }
         }
 
