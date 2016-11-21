@@ -11,7 +11,7 @@ var tower_Operate = {
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.75)) {
             var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom);
             if (UnderAttackPos >= 0) {
-                Memory.roomsUnderAttack.splice(UnderATtackPos, 1);
+                Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
             }
             //Save 75% of the tower's energy to use on repelling attackers
             var closestDamagedStructure = thisTower.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -31,7 +31,7 @@ var tower_Operate = {
         } else {
             var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom);
             if (UnderAttackPos >= 0) {
-                Memory.roomsUnderAttack.splice(UnderATtackPos, 1);
+                Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
             }
         }
 
