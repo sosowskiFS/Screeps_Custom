@@ -1,10 +1,28 @@
 var spawn_BuildCreeps = {
-	run: function(spawn, bestWorker) {
+	run: function(spawn, bestWorker, thisRoom) {
 		for (var name in Memory.creeps) {
 			if (!Game.creeps[name]) {
 				delete Memory.creeps[name];
 				console.log('Clearing non-existing creep memory:', name);
 			}
+		}
+
+		if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+			//Try to produce millitary units
+
+			//TODO : Calculate best millitary unit, maybe slightly less than max cap.
+			//Consider using only what's currently available?
+			//Possible to get data on invaders parts?
+
+			/*
+			var targets = creep.room.find(FIND_HOSTILE_CREEPS, {
+    			filter: function(object) {
+        			return object.getActiveBodyparts(ATTACK) == 0;
+    			}		
+			}); */
+
+			//Determine if possible to overpower invader by body part, if not build best.
+			//Copy invader's part count?
 		}
 
 		//TODO : Count creeps by room, not globally.

@@ -40,7 +40,7 @@ module.exports.loop = function() {
             lastControllerLevel = roomReference.controller.level;
         }*/
 
-        spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig);
+        spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
 
         //Find is moderately expensive, run it only every 100 ticks for new tower detection.
         if (Game.time % 100 == 0) {

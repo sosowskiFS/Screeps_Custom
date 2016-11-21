@@ -145,7 +145,7 @@ var creep_work = {
                     }
                 } else {
                     //Mine it yourself
-                    var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+                    var sources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 20);
                     if (!sources) {
                         sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
                     }
