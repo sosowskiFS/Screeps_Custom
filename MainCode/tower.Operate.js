@@ -4,12 +4,12 @@ var tower_Operate = {
 
         var closestHostile = thisTower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
         if (closestHostile) {
-            if (Memory.roomsUnderAttack.indexOf(thisRoom) === -1) {
-                Memory.roomsUnderAttack.push(thisRoom);
+            if (Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
+                Memory.roomsUnderAttack.push(thisRoom.name);
             }
             thisTower.attack(closestHostile);
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.75)) {
-            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom);
+            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
             if (UnderAttackPos >= 0) {
                 Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
             }
@@ -29,7 +29,7 @@ var tower_Operate = {
                 }*/
             }
         } else {
-            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom);
+            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
             if (UnderAttackPos >= 0) {
                 Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
             }

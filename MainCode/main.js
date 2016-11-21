@@ -14,6 +14,9 @@ var lastControllerLevel = 1;
 //Towers
 var tower_Operate = require('tower.Operate');
 
+//Initalize Memory vars
+Memory.roomsUnderAttack = [];
+
 //Ctrl+Alt+f to autoformat documents.
 
 //Constants : http://support.screeps.com/hc/en-us/articles/203084991-API-Reference
