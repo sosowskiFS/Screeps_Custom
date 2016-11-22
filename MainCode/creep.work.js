@@ -118,10 +118,8 @@ var creep_work = {
                         if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(containers);
                         }
-                    }
-                    //Nowhere to store. Change action.
-                    if (creep.memory.priority == 'harvester') {
-                        //Try to build first
+                    } else if (creep.memory.priority == 'harvester') {
+                        //Try to build first      
                         creep.memory.storing = false;
                         creep.memory.building = true;
                         creep.say('building');
