@@ -63,7 +63,7 @@ module.exports.loop = function() {
     //Globally controlls all creeps in all rooms
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if (creep.memory.priority = 'melee' || creep.memory.priority = 'ranged') {
+        if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
             creep_combat.run(creep, thisRoom);
         } else {
             creep_work.run(creep);

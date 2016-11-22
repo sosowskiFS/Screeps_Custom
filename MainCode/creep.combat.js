@@ -8,7 +8,7 @@ var creep_combat = {
 		if (creep.memory.priority == 'melee' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 			var friendlyRanged = creep.room.find(FIND_MY_CREEPS, {
 				filter: function(object) {
-					return object.getActiveBodyparts(RANGED_ATTACK) > 0;
+					return object.getActiveBodyparts(RANGED_ATTACK) == 0;
 				}
 			});
 
@@ -34,7 +34,7 @@ var creep_combat = {
 		} else if (creep.memory.priority == 'ranged' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 			var friendlyMelee = creep.room.find(FIND_MY_CREEPS, {
 				filter: function(object) {
-					return object.getActiveBodyparts(ATTACK) > 0;
+					return object.getActiveBodyparts(ATTACK) == 0;
 				}
 			});
 

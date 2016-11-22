@@ -40,8 +40,8 @@ var spawn_BuildCreeps = {
 				//Melee unit set: MOVE MOVE ATTACK TOUGH TOUGH - 200
 				//Ranged unit set: RANGED_ATTACK MOVE - 200
 
-				var MeleeSet = [MOVE, MOVE, ATTACK, TOUGH, TOUGH];
-				var RangedSet = [RANGED_ATTACK, MOVE];
+				var MeleeSet = [TOUGH, TOUGH, MOVE, MOVE, ATTACK];
+				var RangedSet = [MOVE, RANGED_ATTACK];
 
 				var meleeUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'melee');
 				var rangedUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'ranged');
