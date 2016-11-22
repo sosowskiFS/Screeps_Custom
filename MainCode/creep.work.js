@@ -69,14 +69,26 @@ var creep_work = {
             var savedTarget = Game.getObjectById(creep.memory.structureTarget)
                 //If target is destroyed, this will prevent creep from locking up
             if (savedTarget) {
-                if (savedTarget.energy < savedTarget.energyCapacity) {
-                    if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(savedTarget);
+                if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE) {
+                    if (savedTarget.energy < savedTarget.energyCapacity) {
+                        if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(savedTarget);
+                        }
+                    } else {
+                        //Target is invalid, clear from memory.
+                        creep.memory.structureTarget = undefined;
                     }
                 } else {
-                    //Target is invalid, clear from memory.
-                    creep.memory.structureTarget = undefined;
+                    if (savedTarget.store[RESOURCE_ENERGY] < savedTarget.storeCapacity) {
+                        if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(savedTarget);
+                        }
+                    } else {
+                        //Target is invalid, clear from memory.
+                        creep.memory.structureTarget = undefined;
+                    }
                 }
+
             } else {
                 var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
@@ -96,7 +108,8 @@ var creep_work = {
                     //(WHYYYYY)
                     var containers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
+                            return (structure.structureType == STRUCTURE_CONTAINER ||
+                                structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
                         }
                     });
                     if (containers) {
