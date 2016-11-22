@@ -3,7 +3,7 @@ var tower_Operate = {
         var thisTower = Game.getObjectById(tower);
 
         var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, 40);
-        if (closestHostile[0]) {
+        if (closestHostile.length > 0) {
             if (Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
             }
@@ -19,8 +19,8 @@ var tower_Operate = {
             var closestDamagedStructure = thisTower.pos.findInRange(FIND_STRUCTURES, 40, {
                 filter: (structure) => (structure.hits < structure.hitsMax) && (structure.hits < improveMax)
             });
-            if (closestDamagedStructure) {
-                thisTower.repair(closestDamagedStructure);
+            if (closestDamagedStructure.length > 0) {
+                thisTower.repair(closestDamagedStructure[0]);
             } else {
                 //Renable this later if it becomes needed
                 var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {

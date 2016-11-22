@@ -84,7 +84,6 @@ var spawn_BuildCreeps = {
 					while (ChosenCreepSet.length > 50) {
 						ChosenCreepSet.splice(0, 1)
 					}
-					break;
 				}
 
 				spawn.createCreep(ChosenCreepSet, undefined, {
