@@ -82,7 +82,6 @@ var creep_work = {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_EXTENSION ||
                             structure.structureType == STRUCTURE_SPAWN ||
-                            structure.structureType == STRUCTURE_CONTAINER ||
                             structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
                     }
                 });
@@ -93,6 +92,20 @@ var creep_work = {
                         creep.moveTo(targets);
                     }
                 } else {
+                    //Containers call a different function to check contents
+                    //(WHYYYYY)
+                    var containers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: (structure) => {
+                            return (structure.structureType == STRUCTURE_CONTAINER) && structure.store < structure.storeCapacity;
+                        }
+                    });
+                    if (containers) {
+                        creep.memory.structureTarget = containers.id;
+
+                        if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(containers);
+                        }
+                    }
                     //Nowhere to store. Change action.
                     if (creep.memory.priority == 'harvester') {
                         //Try to build first
