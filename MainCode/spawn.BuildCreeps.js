@@ -91,13 +91,13 @@ var spawn_BuildCreeps = {
 				});
 			}
 
-		} else if ((harvesters.length < 2 || builders.length < 2 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
+		} else if ((harvesters.length < 3 || builders.length < 1 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
 			var prioritizedRole = 'harvester';
-			if (harvesters.length < 2) {
+			if (harvesters.length < 3) {
 				prioritizedRole = 'harvester';
 			} else if (upgraders.length < 2) {
 				prioritizedRole = 'upgrader';
-			} else if (builders.length < 2) {
+			} else if (builders.length < 1) {
 				prioritizedRole = 'builder';
 			}
 

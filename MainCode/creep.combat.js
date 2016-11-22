@@ -6,7 +6,7 @@ var creep_combat = {
 		//Only run this code if the room is being invaded, remain offline otherwise.
 		//(Saves running excess finds in peacetime)
 		if (creep.memory.priority == 'melee' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			var friendlyRanged = creep.room.findInRange(FIND_MY_CREEPS, 5, {
+			var friendlyRanged = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
 				filter: function(object) {
 					return object.getActiveBodyparts(RANGED_ATTACK) > 0;
 				}
@@ -40,7 +40,7 @@ var creep_combat = {
 				}
 			}
 		} else if (creep.memory.priority == 'ranged' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			var friendlyMelee = creep.room.findInRange(FIND_MY_CREEPS, 5, {
+			var friendlyMelee = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
 				filter: function(object) {
 					return object.getActiveBodyparts(ATTACK) > 0;
 				}
@@ -73,7 +73,7 @@ var creep_combat = {
 				} else {
 					var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 					if (Foe) {
-						if (creep.attack(Foe) == ERR_NOT_IN_RANGE) {
+						if (creep.rangedAttack(Foe) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(Foe);
 							creep.rangedMassAttack();
 						}
