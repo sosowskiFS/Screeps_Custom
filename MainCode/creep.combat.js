@@ -1,12 +1,12 @@
 var creep_combat = {
 
 	/** @param {Creep} creep **/
-	run: function(creep, thisRoom) {
+	run: function(creep, thisRoom, thisSpawn) {
 		//Defensive-focused attack
 		//Only run this code if the room is being invaded, remain offline otherwise.
 		//(Saves running excess finds in peacetime)
 		if (creep.memory.priority == 'melee' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			var friendlyRanged = creep.room.find(FIND_MY_CREEPS, {
+			var friendlyRanged = creep.room.findInRange(FIND_MY_CREEPS, 5, {
 				filter: function(object) {
 					return object.getActiveBodyparts(RANGED_ATTACK) > 0;
 				}
@@ -20,6 +20,8 @@ var creep_combat = {
 						creep.moveTo(Foe);
 						creep.attack(Foe);
 					}
+				} else {
+					creep.moveTo(thisSpawn);
 				}
 			} else {
 				//Have ranged partner. Go on the offense.
@@ -29,10 +31,16 @@ var creep_combat = {
 						creep.moveTo(Foe);
 						creep.attack(Foe);
 					}
+				} else {
+					//There is no threat, stand down.
+					var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+					if (UnderAttackPos >= 0) {
+						Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+					}
 				}
 			}
 		} else if (creep.memory.priority == 'ranged' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			var friendlyMelee = creep.room.find(FIND_MY_CREEPS, {
+			var friendlyMelee = creep.room.findInRange(FIND_MY_CREEPS, 5, {
 				filter: function(object) {
 					return object.getActiveBodyparts(ATTACK) > 0;
 				}
@@ -51,6 +59,8 @@ var creep_combat = {
 						if (creep.rangedAttack(Foe) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(Foe);
 						}
+					} else {
+						creep.moveTo(thisSpawn);
 					}
 				}
 			} else {
@@ -66,6 +76,12 @@ var creep_combat = {
 						if (creep.attack(Foe) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(Foe);
 							creep.rangedMassAttack();
+						}
+					} else {
+						//There is no threat, stand down.
+						var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+						if (UnderAttackPos >= 0) {
+							Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
 						}
 					}
 				}

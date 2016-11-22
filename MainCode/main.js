@@ -64,7 +64,7 @@ module.exports.loop = function() {
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
-            creep_combat.run(creep, thisRoom);
+            creep_combat.run(creep, thisRoom, Game.spawns[i]);
         } else {
             creep_work.run(creep);
         }

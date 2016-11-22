@@ -20,28 +20,13 @@ var spawn_BuildCreeps = {
 				priority: 'harvester'
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			if (thisRoom.energyAvailable >= 600) {
+			if (thisRoom.energyAvailable >= 500) {
 				//Try to produce millitary units
 
-				//TODO : Calculate best millitary unit, maybe slightly less than max cap.
-				//Consider using only what's currently available?
-				//Possible to get data on invaders parts?
+				//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
+				//Ranged unit set: MOVE, MOVE, RANGED_ATTACK - 250
 
-				/*
-			var targets = creep.room.find(FIND_HOSTILE_CREEPS, {
-    			filter: function(object) {
-        			return object.getActiveBodyparts(ATTACK) == 0;
-    			}		
-			}); */
-
-				//Determine if possible to overpower invader by body part, if not build best.
-				//Copy invader's part count?
-
-				//Melee unit set: MOVE MOVE ATTACK TOUGH TOUGH - 200
-				//Ranged unit set: RANGED_ATTACK MOVE - 200
-
-				//var MeleeSet = [TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK];
-				//var RangedSet = [MOVE, MOVE, RANGED_ATTACK];
+				//Damaged modules do not work, put padding first.
 
 				var meleeUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'melee');
 				var rangedUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'ranged');
@@ -53,8 +38,6 @@ var spawn_BuildCreeps = {
 					ChosenPriority = 'ranged';
 				}
 
-				//Duplicate array contents into new one by using ARRAY.SLICE(0);
-				//Then use ARRAY.CONCAT(newArray) to combine them
 				var ToughCount = 0;
 				var MoveCount = 0;
 				var AttackCount = 0;
@@ -77,21 +60,31 @@ var spawn_BuildCreeps = {
 				}
 
 				var ChosenCreepSet = [];
-				while(ToughCount > 0){
+				while (ToughCount > 0) {
 					ChosenCreepSet.push(TOUGH);
 					ToughCount--;
 				}
-				while(MoveCount > 0){
+				while (MoveCount > 1) {
 					ChosenCreepSet.push(MOVE);
 					MoveCount--;
 				}
-				while(AttackCount > 0){
+				while (AttackCount > 0) {
 					ChosenCreepSet.push(ATTACK);
 					AttackCount--;
 				}
-				while(RangedCount > 0){
+				while (RangedCount > 0) {
 					ChosenCreepSet.push(RANGED_ATTACK);
 					RangedCount--;
+				}
+
+				//Insert one move module last so the creep can still run
+				ChosenCreepSet.push(MOVE);
+
+				if (ChosenCreepSet.length > 50) {
+					while (ChosenCreepSet.length > 50) {
+						ChosenCreepSet.splice(0, 1)
+					}
+					break;
 				}
 
 				spawn.createCreep(ChosenCreepSet, undefined, {
