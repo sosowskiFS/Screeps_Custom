@@ -112,7 +112,7 @@ var creep_work = {
                                 structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
                         }
                     });
-                    if (containers) {
+                    if (containers && creep.memory.priority == 'harvester') {
                         creep.memory.structureTarget = containers.id;
 
                         if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -142,7 +142,7 @@ var creep_work = {
             var savedTarget = Game.getObjectById(creep.memory.structureTarget)
             if (savedTarget) {
                 if (savedTarget.structureType == STRUCTURE_CONTAINER || savedTarget.structureType == STRUCTURE_STORAGE) {
-                    if (savedTarget.energy > 0) {
+                    if (savedTarget.store[RESOURCE_ENERGY] > 0) {
                         if (creep.withdraw(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(savedTarget);
                         }
