@@ -12,7 +12,7 @@ var creep_combat = {
 				}
 			});
 
-			if (!friendlyRanged) {
+			if (friendlyRanged.length == 0) {
 				//Do not have a ranged partner. Play defensively.
 				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 				if (Foe[0]) {
@@ -38,7 +38,7 @@ var creep_combat = {
 				}
 			});
 
-			if (!friendlyMelee) {
+			if (friendlyMelee.length == 0) {
 				//Do not have a melee partner. Play defensively.
 				var FoeTooClose = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2);
 				if (FoeTooClose[0]) {
@@ -48,9 +48,8 @@ var creep_combat = {
 				} else {
 					var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 					if (Foe[0]) {
-						if (creep.attack(Foe) == ERR_NOT_IN_RANGE) {
+						if (creep.rangedAttack(Foe) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(Foe);
-							creep.rangedMassAttack();
 						}
 					}
 				}

@@ -2,13 +2,13 @@ var tower_Operate = {
     run: function(tower, improveMax, thisRoom) {
         var thisTower = Game.getObjectById(tower);
 
-        var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, 20);
-        if (closestHostile) {
+        var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, 40);
+        if (closestHostile[0]) {
             if (Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
             }
             if (thisTower.energy > 0) {
-                thisTower.attack(closestHostile);
+                thisTower.attack(closestHostile[0]);
             }
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.75)) {
             var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);

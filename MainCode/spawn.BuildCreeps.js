@@ -20,7 +20,7 @@ var spawn_BuildCreeps = {
 				priority: 'harvester'
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			if (thisRoom.energyAvailable >= 400) {
+			if (thisRoom.energyAvailable >= 600) {
 				//Try to produce millitary units
 
 				//TODO : Calculate best millitary unit, maybe slightly less than max cap.
@@ -40,30 +40,58 @@ var spawn_BuildCreeps = {
 				//Melee unit set: MOVE MOVE ATTACK TOUGH TOUGH - 200
 				//Ranged unit set: RANGED_ATTACK MOVE - 200
 
-				var MeleeSet = [TOUGH, TOUGH, MOVE, MOVE, ATTACK];
-				var RangedSet = [MOVE, RANGED_ATTACK];
+				//var MeleeSet = [TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK];
+				//var RangedSet = [MOVE, MOVE, RANGED_ATTACK];
 
 				var meleeUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'melee');
 				var rangedUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'ranged');
 
-				var ChosenCreepSet;
 				var ChosenPriority = '';
 				if (meleeUnits <= rangedUnits) {
-					ChosenCreepSet = MeleeSet;
 					ChosenPriority = 'melee';
 				} else {
-					ChosenCreepSet = RangedSet;
 					ChosenPriority = 'ranged';
 				}
 
 				//Duplicate array contents into new one by using ARRAY.SLICE(0);
 				//Then use ARRAY.CONCAT(newArray) to combine them
+				var ToughCount = 0;
+				var MoveCount = 0;
+				var AttackCount = 0;
+				var RangedCount = 0;
 
 				var remainingEnergy = thisRoom.energyAvailable;
-				while ((remainingEnergy / 200) >= 1) {
-					var ArrayHolder = ChosenCreepSet.slice(0);
-					ChosenCreepSet.concat(ArrayHolder);
-					remainingEnergy = remainingEnergy - 200;
+				while ((remainingEnergy / 250) >= 1) {
+					switch (ChosenPriority) {
+						case 'melee':
+							ToughCount = ToughCount + 2
+							MoveCount++;
+							AttackCount++;
+							break;
+						case 'ranged':
+							MoveCount++;
+							RangedCount++;
+							break;
+					}
+					remainingEnergy = remainingEnergy - 250;
+				}
+
+				var ChosenCreepSet = [];
+				while(ToughCount > 0){
+					ChosenCreepSet.push(TOUGH);
+					ToughCount--;
+				}
+				while(MoveCount > 0){
+					ChosenCreepSet.push(MOVE);
+					MoveCount--;
+				}
+				while(AttackCount > 0){
+					ChosenCreepSet.push(ATTACK);
+					AttackCount--;
+				}
+				while(RangedCount > 0){
+					ChosenCreepSet.push(RANGED_ATTACK);
+					RangedCount--;
 				}
 
 				spawn.createCreep(ChosenCreepSet, undefined, {
