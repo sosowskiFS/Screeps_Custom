@@ -48,11 +48,11 @@ var spawn_BuildCreeps = {
 					switch (ChosenPriority) {
 						case 'melee':
 							ToughCount = ToughCount + 2
-							MoveCount++;
+							MoveCount = MoveCount + 3;
 							AttackCount++;
 							break;
 						case 'ranged':
-							MoveCount++;
+							MoveCount = MoveCount + 2;
 							RangedCount++;
 							break;
 					}
