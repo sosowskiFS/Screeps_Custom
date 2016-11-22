@@ -122,10 +122,12 @@ var creep_work = {
                         //Try to build first      
                         creep.memory.storing = false;
                         creep.memory.building = true;
+                        creep.memory.structureTarget = undefined;
                         creep.say('building');
                     } else {
                         creep.memory.storing = false;
                         creep.memory.upgrading = true;
+                        creep.memory.structureTarget = undefined;
                         creep.say('upgrading');
                     }
                 }
@@ -161,7 +163,7 @@ var creep_work = {
                             structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 0;
                     }
                 });
-                if (targets) {
+                if (targets && creep.memory.priority != 'harvester') {
                     //Get from container
                     creep.memory.structureTarget = targets.id;
                     if (creep.withdraw(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
