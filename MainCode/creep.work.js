@@ -96,7 +96,7 @@ var creep_work = {
                     //(WHYYYYY)
                     var containers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_CONTAINER) && structure.store < structure.storeCapacity;
+                            return (structure.structureType == STRUCTURE_CONTAINER) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
                         }
                     });
                     if (containers) {
@@ -147,7 +147,7 @@ var creep_work = {
                 var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_CONTAINER ||
-                            structure.structureType == STRUCTURE_STORAGE) && structure.energy > 0;
+                            structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 0;
                     }
                 });
                 if (targets) {
