@@ -1,5 +1,6 @@
 //Creeps
 var creep_work = require('creep.work');
+var creep_combat = require('creep.combat');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -62,7 +63,11 @@ module.exports.loop = function() {
     //Globally controlls all creeps in all rooms
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        creep_work.run(creep);
+        if (creep.memory.priority = 'melee' || creep.memory.priority = 'ranged') {
+            creep_combat.run(creep, thisRoom);
+        } else {
+            creep_work.run(creep);
+        }
     }
 }
 
@@ -79,7 +84,7 @@ function recalculateBestWorker() {
     //1 Full balanced worker module : MOVE, CARRY, WORK - 200pts
     var EnergyRemaining = previousEnergyCap;
     bestWorkerConfig = [];
-    while ((EnergyRemaining / 200) >= 1) {
+    while ((EnergyRemaining / 200) >= 1 || bestWorkerConfig.length >= 50) {
         bestWorkerConfig.push(MOVE, CARRY, WORK);
         if (bestWorkerConfig.length > 50) {
             while (bestWorkerConfig.length > 50) {

@@ -7,24 +7,6 @@ var spawn_BuildCreeps = {
 			}
 		}
 
-		if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			//Try to produce millitary units
-
-			//TODO : Calculate best millitary unit, maybe slightly less than max cap.
-			//Consider using only what's currently available?
-			//Possible to get data on invaders parts?
-
-			/*
-			var targets = creep.room.find(FIND_HOSTILE_CREEPS, {
-    			filter: function(object) {
-        			return object.getActiveBodyparts(ATTACK) == 0;
-    			}		
-			}); */
-
-			//Determine if possible to overpower invader by body part, if not build best.
-			//Copy invader's part count?
-		}
-
 		//TODO : Count creeps by room, not globally.
 		var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
 		var builders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'builder');
@@ -37,9 +19,59 @@ var spawn_BuildCreeps = {
 			spawn.createCreep(bareMinConfig, undefined, {
 				priority: 'harvester'
 			});
-		}
+		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+			if (thisRoom.energyAvailable >= 400) {
+				//Try to produce millitary units
 
-		if ((harvesters.length < 2 || builders.length < 2 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
+				//TODO : Calculate best millitary unit, maybe slightly less than max cap.
+				//Consider using only what's currently available?
+				//Possible to get data on invaders parts?
+
+				/*
+			var targets = creep.room.find(FIND_HOSTILE_CREEPS, {
+    			filter: function(object) {
+        			return object.getActiveBodyparts(ATTACK) == 0;
+    			}		
+			}); */
+
+				//Determine if possible to overpower invader by body part, if not build best.
+				//Copy invader's part count?
+
+				//Melee unit set: MOVE MOVE ATTACK TOUGH TOUGH - 200
+				//Ranged unit set: RANGED_ATTACK MOVE - 200
+
+				var MeleeSet = [MOVE, MOVE, ATTACK, TOUGH, TOUGH];
+				var RangedSet = [RANGED_ATTACK, MOVE];
+
+				var meleeUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'melee');
+				var rangedUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'ranged');
+
+				var ChosenCreepSet;
+				var ChosenPriority = '';
+				if (meleeUnits <= rangedUnits) {
+					ChosenCreepSet = MeleeSet;
+					ChosenPriority = 'melee';
+				} else {
+					ChosenCreepSet = RangedSet;
+					ChosenPriority = 'ranged';
+				}
+
+				//Duplicate array contents into new one by using ARRAY.SLICE(0);
+				//Then use ARRAY.CONCAT(newArray) to combine them
+
+				var remainingEnergy = thisRoom.energyAvailable;
+				while ((remainingEnergy / 200) >= 1) {
+					var ArrayHolder = ChosenCreepSet.slice(0);
+					ChosenCreepSet.concat(ArrayHolder);
+					remainingEnergy = remainingEnergy - 200;
+				}
+
+				spawn.createCreep(ChosenCreepSet, undefined, {
+					priority: ChosenPriority
+				});
+			}
+
+		} else if ((harvesters.length < 2 || builders.length < 2 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
 			var prioritizedRole = 'harvester';
 			if (harvesters.length < 2) {
 				prioritizedRole = 'harvester';

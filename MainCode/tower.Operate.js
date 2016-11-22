@@ -7,7 +7,9 @@ var tower_Operate = {
             if (Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
             }
-            thisTower.attack(closestHostile);
+            if (thisTower.energy > 0) {
+                thisTower.attack(closestHostile);
+            }
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.75)) {
             var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
             if (UnderAttackPos >= 0) {
