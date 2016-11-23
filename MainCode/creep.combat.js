@@ -16,10 +16,12 @@ var creep_combat = {
 				//Do not have a ranged partner. Play defensively.
 				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 				if (Foe[0]) {
-					if (creep.attack(Foe) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(Foe);
-						creep.attack(Foe);
-					}
+					if (creep.pos.getRangeTo(Foe) > 1) {
+							creep.moveTo(Foe);
+							creep.attack(Foe);
+						} else{
+							creep.attack(Foe);
+						}
 				} else {
 					creep.moveTo(thisSpawn);
 				}
@@ -27,10 +29,12 @@ var creep_combat = {
 				//Have ranged partner. Go on the offense.
 				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 				if (Foe) {
-					if (creep.attack(Foe) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(Foe);
-						creep.attack(Foe);
-					}
+					if (creep.pos.getRangeTo(Foe) > 1) {
+							creep.moveTo(Foe);
+							creep.attack(Foe);
+						} else{
+							creep.attack(Foe);
+						}
 				} else {
 					//There is no threat, stand down.
 					var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
@@ -56,8 +60,11 @@ var creep_combat = {
 				} else {
 					var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 					if (Foe[0]) {
-						if (creep.rangedAttack(Foe) == ERR_NOT_IN_RANGE) {
+						if (creep.pos.getRangeTo(Foe) > 3) {
 							creep.moveTo(Foe);
+							creep.rangedAttack(Foe);
+						} else{
+							creep.rangedAttack(Foe);
 						}
 					} else {
 						creep.moveTo(thisSpawn);
@@ -73,8 +80,11 @@ var creep_combat = {
 				} else {
 					var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 					if (Foe) {
-						if (creep.rangedAttack(Foe) == ERR_NOT_IN_RANGE) {
+						if (creep.pos.getRangeTo(Foe) > 3) {
 							creep.moveTo(Foe);
+							creep.rangedAttack(Foe);
+						} else{
+							creep.rangedAttack(Foe);
 						}
 					} else {
 						//There is no threat, stand down.
