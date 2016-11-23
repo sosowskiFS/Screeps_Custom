@@ -176,6 +176,12 @@ var creep_work = {
                 } else {
                     //Mine it yourself
                     var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+                    if (sources) {
+                        //If it ain't worth pickin' up, fuck it.
+                        if (sources.amount < 50) {
+                            sources = undefined;
+                        }
+                    }
                     if (!sources) {
                         sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
                     }

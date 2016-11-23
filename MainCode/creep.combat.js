@@ -69,13 +69,12 @@ var creep_combat = {
 				if (FoeTooClose[0]) {
 					//Target getting into melee range, kite it.
 					creep.moveTo(thisRoom.controller);
-					creep.rangedMassAttack();
+					creep.rangedAttack(FoeTooClose[0]);
 				} else {
 					var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 					if (Foe) {
 						if (creep.rangedAttack(Foe) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(Foe);
-							creep.rangedMassAttack();
 						}
 					} else {
 						//There is no threat, stand down.
