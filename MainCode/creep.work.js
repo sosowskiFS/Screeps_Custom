@@ -156,6 +156,8 @@ var creep_work = {
                         if (creep.pickup(savedTarget) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(savedTarget);
                         }
+                    } else {
+                        creep.memory.structureTarget = undefined;
                     }
                 }
             } else {
