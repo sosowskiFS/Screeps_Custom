@@ -43,6 +43,8 @@ var creep_work = {
             if (savedTarget) {
                 if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(savedTarget);
+                } else {
+                    creep.memory.structureTarget = undefined;
                 }
             } else {
                 var targets = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
@@ -74,6 +76,9 @@ var creep_work = {
                         if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(savedTarget);
                         }
+                        if (savedTarget.energy == savedTarget.energyCapacity) {
+                            creep.memory.structureTarget = undefined;
+                        }
                     } else {
                         //Target is invalid, clear from memory.
                         creep.memory.structureTarget = undefined;
@@ -82,6 +87,9 @@ var creep_work = {
                     if (savedTarget.store[RESOURCE_ENERGY] < savedTarget.storeCapacity) {
                         if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(savedTarget);
+                        }
+                        if (savedTarget.store[RESOURCE_ENERGY] == savedTarget.storeCapacity) {
+                            creep.memory.structureTarget = undefined;
                         }
                     } else {
                         //Target is invalid, clear from memory.
@@ -188,7 +196,8 @@ var creep_work = {
                     if (!sources) {
                         sources = creep.pos.findClosestByRange(FIND_SOURCES);
                     }
-                    creep.memory.structureTarget = sources.id;
+                    //creep.memory.structureTarget = sources.id;
+                    
                     if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(sources);
                     } else if (creep.harvest(sources) == ERR_INVALID_TARGET) {
