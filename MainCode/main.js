@@ -87,8 +87,8 @@ function recalculateBestWorker() {
     bestWorkerConfig = [];
     while ((EnergyRemaining / 200) >= 1 || bestWorkerConfig.length >= 50) {
         bestWorkerConfig.push(MOVE, CARRY, WORK);
-        if (bestWorkerConfig.length > 50) {
-            while (bestWorkerConfig.length > 50) {
+        if (bestWorkerConfig.length > 21) {
+            while (bestWorkerConfig.length > 21) {
                 bestWorkerConfig.splice(-1, 1)
             }
             break;

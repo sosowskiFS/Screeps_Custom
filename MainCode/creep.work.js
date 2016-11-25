@@ -97,7 +97,7 @@ var creep_work = {
                         creep.memory.structureTarget = undefined;
                     }
                 } else {
-                    var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => {
                             return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
                         }

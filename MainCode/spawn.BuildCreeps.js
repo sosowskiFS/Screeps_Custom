@@ -42,6 +42,7 @@ var spawn_BuildCreeps = {
 				var MoveCount = 0;
 				var AttackCount = 0;
 				var RangedCount = 0;
+				var totalParts = 0;
 
 				var remainingEnergy = thisRoom.energyAvailable;
 				while ((remainingEnergy / 250) >= 1) {
@@ -50,13 +51,18 @@ var spawn_BuildCreeps = {
 							ToughCount = ToughCount + 2
 							MoveCount = MoveCount + 3;
 							AttackCount++;
+							totalParts = totalParts + 6;
 							break;
 						case 'ranged':
 							MoveCount = MoveCount + 2;
 							RangedCount++;
+							totalParts = totalParts + 3;
 							break;
 					}
 					remainingEnergy = remainingEnergy - 250;
+					if (totalParts >= 50){
+						break;
+					}
 				}
 
 				var ChosenCreepSet = [];
