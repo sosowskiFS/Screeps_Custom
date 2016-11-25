@@ -8,30 +8,25 @@ var creep_work = {
             creep.memory.storing = false;
             creep.memory.upgrading = false;
             creep.memory.structureTarget = undefined;
-            creep.say('harvesting');
         }
         if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && _.sum(creep.carry) == creep.carryCapacity) {
             switch (creep.memory.priority) {
                 case 'builder':
                     creep.memory.building = true;
                     creep.memory.structureTarget = undefined;
-                    creep.say('building');
                     break;
                 case 'harvester':
                     creep.memory.storing = true;
                     creep.memory.structureTarget = undefined;
-                    creep.say('storing');
                     break;
                 case 'upgrader':
                     creep.memory.upgrading = true;
                     creep.memory.structureTarget = undefined;
-                    creep.say('upgrading');
                     break;
                 default:
                     //fucking what
                     creep.memory.building = true;
                     creep.memory.structureTarget = undefined;
-                    creep.say('building');
                     break;
             }
 
@@ -59,11 +54,9 @@ var creep_work = {
                         //Already tried to store, upgrade.
                         creep.memory.building = false;
                         creep.memory.upgrading = true;
-                        creep.say('upgrading');
                     } else {
                         creep.memory.building = false;
                         creep.memory.storing = true;
-                        creep.say('storing');
                     }
                 }
             }
@@ -72,27 +65,17 @@ var creep_work = {
                 //If target is destroyed, this will prevent creep from locking up
             if (savedTarget) {
                 if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE) {
-                    if (savedTarget.energy < savedTarget.energyCapacity) {
-                        if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(savedTarget);
-                        }
-                        if (savedTarget.energy == savedTarget.energyCapacity) {
-                            creep.memory.structureTarget = undefined;
-                        }
-                    } else {
-                        //Target is invalid, clear from memory.
+                    if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(savedTarget);
+                    }
+                    if (savedTarget.energy == savedTarget.energyCapacity) {
                         creep.memory.structureTarget = undefined;
                     }
                 } else {
-                    if (savedTarget.store[RESOURCE_ENERGY] < savedTarget.storeCapacity) {
-                        if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(savedTarget);
-                        }
-                        if (savedTarget.store[RESOURCE_ENERGY] == savedTarget.storeCapacity) {
-                            creep.memory.structureTarget = undefined;
-                        }
-                    } else {
-                        //Target is invalid, clear from memory.
+                    if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(savedTarget);
+                    }
+                    if (savedTarget.store[RESOURCE_ENERGY] == savedTarget.storeCapacity) {
                         creep.memory.structureTarget = undefined;
                     }
                 }
@@ -107,9 +90,12 @@ var creep_work = {
                 });
                 if (targets) {
                     creep.memory.structureTarget = targets.id;
-
                     if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(targets);
+                    }
+                    if (targets.energy == targets.energyCapacity) {
+                        //If container fills up on this tick, forget it.
+                        creep.memory.structureTarget = undefined;
                     }
                 } else {
                     //Containers call a different function to check contents
@@ -122,21 +108,22 @@ var creep_work = {
                     });
                     if (containers && creep.memory.priority == 'harvester') {
                         creep.memory.structureTarget = containers.id;
-
                         if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(containers);
+                        }
+                        if (savedTarget.store[RESOURCE_ENERGY] == savedTarget.storeCapacity) {
+                            //If container fills up on this tick, forget it.
+                            creep.memory.structureTarget = undefined;
                         }
                     } else if (creep.memory.priority == 'harvester') {
                         //Try to build first      
                         creep.memory.storing = false;
                         creep.memory.building = true;
                         creep.memory.structureTarget = undefined;
-                        creep.say('building');
                     } else {
                         creep.memory.storing = false;
                         creep.memory.upgrading = true;
                         creep.memory.structureTarget = undefined;
-                        creep.say('upgrading');
                     }
                 }
             }
@@ -158,9 +145,10 @@ var creep_work = {
                         creep.memory.structureTarget = undefined;
                     }
                 } else {
-                    if (creep.harvest(savedTarget) == ERR_NOT_IN_RANGE) {
+                    var harvestResult = creep.harvest(savedTarget);
+                    if (harvestResult == ERR_NOT_IN_RANGE) {
                         creep.moveTo(savedTarget);
-                    } else if (creep.harvest(savedTarget) == ERR_INVALID_TARGET) {
+                    } else if (harvestResult == ERR_INVALID_TARGET) {
                         if (creep.pickup(savedTarget) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(savedTarget);
                         }
@@ -193,14 +181,36 @@ var creep_work = {
                     if (!sources) {
                         sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
                     }
-                    if (!sources) {
-                        sources = creep.pos.findClosestByRange(FIND_SOURCES);
+                    if (!sources && creep.carry.energy > 0) {
+                        //At this point there is nothing to gather. Start creeps on their jobs.
+                        switch (creep.memory.priority) {
+                            case 'builder':
+                                creep.memory.building = true;
+                                break;
+                            case 'harvester':
+                                creep.memory.storing = true;
+                                break;
+                            case 'upgrader':
+                                creep.memory.upgrading = true;
+                                break;
+                            default:
+                                //fucking what
+                                creep.memory.building = true;
+                                break;
+                        }
+                    } else {
+                        if (!sources) {
+                            //There is absolutely nothing to be done, idle.
+                            sources = creep.pos.findClosestByRange(FIND_SOURCES);
+                            creep.memory.structureTarget = sources.id;
+                        } else {
+                            creep.memory.structureTarget = sources.id;
+                        }
                     }
-                    //creep.memory.structureTarget = sources.id;
-                    
-                    if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+                    var harvestResult = creep.harvest(sources);
+                    if (harvestResult == ERR_NOT_IN_RANGE) {
                         creep.moveTo(sources);
-                    } else if (creep.harvest(sources) == ERR_INVALID_TARGET) {
+                    } else if (harvestResult == ERR_INVALID_TARGET) {
                         if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(sources);
                         }

@@ -16,6 +16,7 @@ var creep_combat = {
 				//Do not have a ranged partner. Play defensively.
 				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 				if (Foe[0]) {
+					creep.say('REEEEEEEEE', true);
 					if (creep.pos.getRangeTo(Foe) > 1) {
 							creep.moveTo(Foe);
 							creep.attack(Foe);
@@ -29,6 +30,7 @@ var creep_combat = {
 				//Have ranged partner. Go on the offense.
 				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 				if (Foe) {
+					creep.say('REEEEEEEEE', true);
 					if (creep.pos.getRangeTo(Foe) > 1) {
 							creep.moveTo(Foe);
 							creep.attack(Foe);
@@ -60,6 +62,7 @@ var creep_combat = {
 				} else {
 					var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 					if (Foe[0]) {
+						creep.say('REEEEEEEEE', true);
 						if (creep.pos.getRangeTo(Foe) > 3) {
 							creep.moveTo(Foe);
 							creep.rangedAttack(Foe);
@@ -80,6 +83,7 @@ var creep_combat = {
 				} else {
 					var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 					if (Foe) {
+						creep.say('REEEEEEEEE', true);
 						if (creep.pos.getRangeTo(Foe) > 3) {
 							creep.moveTo(Foe);
 							creep.rangedAttack(Foe);

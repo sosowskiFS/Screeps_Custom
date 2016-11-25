@@ -17,9 +17,11 @@ var tower_Operate = {
             }
             //Save 50% of the tower's energy to use on repelling attackers
             var closestDamagedStructure = thisTower.pos.findInRange(FIND_STRUCTURES, 40, {
-                filter: (structure) => (structure.hits < structure.hitsMax) && (structure.hits < improveMax)
+                filter: (structure) => (structure.hits < structure.hitsMax) && (structure.hits < improveMax) && (structure.hitsMax - structure.hits >= 200)
             });
             if (closestDamagedStructure.length > 0) {
+                //Sort so lowest hitpoints is on top
+                closestDamagedStructure.sort(towerDamageCompare);
                 thisTower.repair(closestDamagedStructure[0]);
             } else {
                 //Renable this later if it becomes needed
@@ -41,3 +43,11 @@ var tower_Operate = {
 };
 
 module.exports = tower_Operate;
+
+function towerDamageCompare(a, b){
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
