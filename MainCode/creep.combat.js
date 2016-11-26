@@ -37,12 +37,6 @@ var creep_combat = {
 						} else{
 							creep.attack(Foe);
 						}
-				} else {
-					//There is no threat, stand down.
-					var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
-					if (UnderAttackPos >= 0) {
-						Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
-					}
 				}
 			}
 		} else if (creep.memory.priority == 'ranged' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
@@ -89,12 +83,6 @@ var creep_combat = {
 							creep.rangedAttack(Foe);
 						} else{
 							creep.rangedAttack(Foe);
-						}
-					} else {
-						//There is no threat, stand down.
-						var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
-						if (UnderAttackPos >= 0) {
-							Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
 						}
 					}
 				}

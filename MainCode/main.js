@@ -28,6 +28,17 @@ module.exports.loop = function() {
         var thisRoom = Game.spawns[i].room;
         var controllerLevel = thisRoom.controller.level;
 
+        //Check for hostiles in this room
+        var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
+        if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
+            Memory.roomsUnderAttack.push(thisRoom.name);
+        } else {
+            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+            if (UnderAttackPos >= 0) {
+                Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+            }
+        }
+
         //Update creep configs if energy cap has changed
         if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
             previousEnergyCap = thisRoom.energyCapacityAvailable;
@@ -41,6 +52,7 @@ module.exports.loop = function() {
             lastControllerLevel = roomReference.controller.level;
         }*/
 
+        var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
         spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
 
         //Find is moderately expensive, run it only every 100 ticks for new tower detection.

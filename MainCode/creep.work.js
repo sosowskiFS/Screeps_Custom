@@ -125,7 +125,7 @@ var creep_work = {
                             if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(containers);
                             }
-                            if (savedTarget.store[RESOURCE_ENERGY] == savedTarget.storeCapacity) {
+                            if (containers.store[RESOURCE_ENERGY] == containers.storeCapacity) {
                                 //If container fills up on this tick, forget it.
                                 creep.memory.structureTarget = undefined;
                             }
