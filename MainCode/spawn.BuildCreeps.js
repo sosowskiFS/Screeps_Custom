@@ -7,14 +7,19 @@ var spawn_BuildCreeps = {
 			}
 		}
 
+		var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
+
+		var harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
+		var builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
+		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
 		//TODO : Count creeps by room, not globally.
-		var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
-		var builders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'builder');
-		var upgraders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'upgrader');
+		//var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
+		//var builders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'builder');
+		//var upgraders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'upgrader');
 
 		var bareMinConfig = [WORK, CARRY, MOVE];
 
-		if ((harvesters.length == 0 && builders.length == 0 && upgraders.length == 0) && spawn.canCreateCreep(bareMinConfig) == OK) {
+		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
 			spawn.createCreep(bareMinConfig, undefined, {
 				priority: 'harvester'
@@ -28,8 +33,8 @@ var spawn_BuildCreeps = {
 
 				//Damaged modules do not work, put padding first.
 
-				var meleeUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'melee');
-				var rangedUnits = _.filter(Game.creeps, (creep) => creep.memory.priority == 'ranged');
+				var meleeUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'melee');
+				var rangedUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'ranged');
 
 				var ChosenPriority = '';
 				if (meleeUnits <= rangedUnits) {
@@ -97,9 +102,9 @@ var spawn_BuildCreeps = {
 				});
 			}
 
-		} else if ((harvesters.length < 2 || builders.length < 1 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
+		} else if ((harvesters.length < 3 || builders.length < 1 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
 			var prioritizedRole = 'harvester';
-			if (harvesters.length < 2) {
+			if (harvesters.length < 3) {
 				prioritizedRole = 'harvester';
 			} else if (upgraders.length < 2) {
 				prioritizedRole = 'upgrader';
