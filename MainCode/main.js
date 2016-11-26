@@ -21,6 +21,7 @@ Memory.roomsUnderAttack = [];
 //Ctrl+Alt+f to autoformat documents.
 
 //Constants : http://support.screeps.com/hc/en-us/articles/203084991-API-Reference
+//Creep calculator : http://codepen.io/findoff/full/RPmqOd/
 
 module.exports.loop = function() {
     //Loop through all spawns
@@ -32,7 +33,7 @@ module.exports.loop = function() {
         var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
         if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
             Memory.roomsUnderAttack.push(thisRoom.name);
-        } else {
+        } else if(hostiles.length == 0) {
             var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
             if (UnderAttackPos >= 0) {
                 Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
