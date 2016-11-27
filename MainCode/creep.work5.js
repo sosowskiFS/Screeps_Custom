@@ -81,7 +81,10 @@ var creep_work5 = {
                             creep.moveTo(storageTarget);
                         }
                     } else {
-                        creep.moveTo(thisSpawn);
+                        if (!creep.pos.isNearTo(thisSpawn)) {
+                            creep.moveTo(thisSpawn);
+                        }
+                        
                     }
                 }
             } else if (_.sum(creep.carry) > 0) {
