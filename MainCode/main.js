@@ -1,9 +1,11 @@
 //Creeps
 var creep_work = require('creep.work');
+var creep_work5 = require('creep.work5');
 var creep_combat = require('creep.combat');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
+var spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
 var previousEnergyCap = -1;
 var bestWorkerConfig = [WORK, CARRY, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
@@ -17,6 +19,10 @@ var tower_Operate = require('tower.Operate');
 
 //Initalize Memory vars
 Memory.roomsUnderAttack = [];
+//Manually add room names to this array when links have been constructed
+//Remember to update creeps5+ with link/storage/source IDs
+Memory.roomsReadyFor5 = [];
+Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a'];
 
 //Ctrl+Alt+f to autoformat documents.
 
@@ -33,7 +39,7 @@ module.exports.loop = function() {
         var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
         if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
             Memory.roomsUnderAttack.push(thisRoom.name);
-        } else if(hostiles.length == 0) {
+        } else if (hostiles.length == 0) {
             var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
             if (UnderAttackPos >= 0) {
                 Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
@@ -41,7 +47,7 @@ module.exports.loop = function() {
         }
 
         //Update creep configs if energy cap has changed
-        if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
+        if (thisRoom.energyCapacityAvailable != previousEnergyCap && Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
             previousEnergyCap = thisRoom.energyCapacityAvailable;
             recalculateBestWorker();
         }
@@ -53,34 +59,53 @@ module.exports.loop = function() {
             lastControllerLevel = roomReference.controller.level;
         }*/
 
-        var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
-        spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
+        if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+            spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
+        } else {
+            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
+        }
 
         //Find is moderately expensive, run it only every 100 ticks for new tower detection.
-        if (Game.time % 100 == 0) {
+        /*if (Game.time % 100 == 0) {
             Memory.towerList = thisRoom.find(FIND_MY_STRUCTURES, {
                 filter: {
                     structureType: STRUCTURE_TOWER
                 }
             });
+        }*/
+        var towerList;
+        switch (thisRoom.name) {
+            case 'E3N61':
+                towerList = E3N61Towers;
+                break;
         }
-        if (Memory.towerList) {
-            if (Memory.towerList.length > 0) {
-                Memory.towerList.forEach(function(thisTower) {
+        if (towerList) {
+            if (towerList.length > 0) {
+                towerList.forEach(function(thisTower) {
                     //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                    tower_Operate.run(thisTower.id, 100000, thisRoom);
+                    tower_Operate.run(thisTower, 100000, thisRoom);
                 });
             }
         }
     }
 
     //Globally controlls all creeps in all rooms
+
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
             creep_combat.run(creep, thisRoom, Game.spawns[i]);
         } else {
-            creep_work.run(creep);
+            if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+                creep_work.run(creep);
+            } else {
+                if (creep.memory.priority == 'harvester') {
+                    //In case of emergency
+                    creep_work.run(creep);
+                } else {
+                    creep_work5.run(creep);
+                }
+            }
         }
     }
 }

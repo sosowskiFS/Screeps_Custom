@@ -1,5 +1,5 @@
-var spawn_BuildCreeps = {
-	run: function(spawn, bestWorker, thisRoom) {
+var spawn_BuildCreeps5 = {
+	run: function(spawn, thisRoom) {
 		for (var name in Memory.creeps) {
 			if (!Game.creeps[name]) {
 				delete Memory.creeps[name];
@@ -10,7 +10,7 @@ var spawn_BuildCreeps = {
 		var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
 		var miners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source
-		var mules = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mule'); //Stores in spawn/towers, builds, stores in storage, upgrades
+		var mules = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mule'); //Stores in spawn/towers, builds, upgrades
 		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader'); //Kinda important, and stuff.
 		//TODO : Count creeps by room, not globally.
 		//var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
@@ -76,21 +76,23 @@ var spawn_BuildCreeps = {
 				var totalParts = 0;
 
 				var remainingEnergy = thisRoom.energyAvailable;
-				while ((remainingEnergy / 250) >= 1) {
+				while ((remainingEnergy / 400) >= 1) {
 					switch (ChosenPriority) {
 						case 'melee':
 							ToughCount = ToughCount + 2
 							MoveCount = MoveCount + 3;
 							AttackCount++;
 							totalParts = totalParts + 6;
+							remainingEnergy = remainingEnergy - 250;
 							break;
 						case 'ranged':
 							MoveCount = MoveCount + 2;
-							RangedCount++;
-							totalParts = totalParts + 3;
+							RangedCount = RangedCount + 2;
+							totalParts = totalParts + 4;
+							remainingEnergy = remainingEnergy - 400;
 							break;
 					}
-					remainingEnergy = remainingEnergy - 250;
+					
 					if (totalParts >= 50) {
 						break;
 					}
@@ -142,7 +144,7 @@ var spawn_BuildCreeps = {
 						break;
 					case 2:
 						creepSource = strSources[1];
-						connectedLink = strLinks[1];
+						connectedLink = strStorage[0];
 						break;
 				}
 			} else if (upgraders.length < upgraderMax) {
@@ -173,4 +175,4 @@ var spawn_BuildCreeps = {
 	}
 };
 
-module.exports = spawn_BuildCreeps;
+module.exports = spawn_BuildCreeps5;
