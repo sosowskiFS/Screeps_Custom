@@ -40,7 +40,7 @@ var creep_work5 = {
             if (_.sum(creep.carry) == 0) {
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
                 if (linkTarget) {
-                    if (linkTarget.energy >= 150) {
+                    if (linkTarget.energy > 0) {
                         if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(linkTarget);
                         }
