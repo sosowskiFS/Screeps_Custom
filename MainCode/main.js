@@ -76,7 +76,7 @@ module.exports.loop = function() {
         var towerList;
         switch (thisRoom.name) {
             case 'E3N61':
-                towerList = E3N61Towers;
+                towerList = Memory.E3N61Towers;
                 break;
         }
         if (towerList) {
