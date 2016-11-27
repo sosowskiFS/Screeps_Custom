@@ -37,8 +37,9 @@ var spawn_BuildCreeps5 = {
 		}
 
 
+		//900 Points
+		var minerConfig = [CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
 		//950 Points
-		var minerConfig = [CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
 		var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
 		//Upgrader to use muleConfig
 
@@ -130,7 +131,7 @@ var spawn_BuildCreeps5 = {
 				});
 			}
 
-		} else if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax) && spawn.canCreateCreep(minerConfig) == OK) {
+		} else if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax) && spawn.canCreateCreep(muleConfig) == OK) {
 			var prioritizedRole = 'miner';
 			var creepSource = '';
 			var connectedLink = '';

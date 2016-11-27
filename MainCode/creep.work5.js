@@ -2,8 +2,17 @@ var creep_work5 = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+
+        //wew lad
+        /*if (!creep.room.controller.sign) {
+            if(creep.pos.isNearTo(creep.room.controller)) {
+                creep.signController(creep.room.controller, 'This is, by far, the most kupo room I\'ve ever seen!');
+            }
+        }*/
+
         if (creep.memory.priority == 'miner') {
-            if (_.sum(creep.carry) < creep.carryCapacity) {
+            //React at 120 so that the creep doesn't drop any resources on the ground
+            if (_.sum(creep.carry) < 120) {
                 var savedTarget = Game.getObjectById(creep.memory.mineSource);
                 if (savedTarget) {
                     if (creep.harvest(savedTarget) == ERR_NOT_IN_RANGE) {
@@ -18,7 +27,7 @@ var creep_work5 = {
                         }
                     }
                 }
-            } else if (_.sum(creep.carry) == creep.carryCapacity) {
+            } else if (_.sum(creep.carry) >= 120) {
                 var savedTarget = Game.getObjectById(linkSource);
                 if (savedTarget) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -137,29 +146,29 @@ var creep_work5 = {
                                 creep.memory.structureTarget = undefined;
                             }
                         } else {
-                            //Containers call a different function to check contents
-                            var containers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_CONTAINER ||
-                                        structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
-                                }
-                            });
-                            if (containers) {
-                                creep.memory.structureTarget = containers.id;
-                                if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(containers);
-                                }
-                                if (containers.store[RESOURCE_ENERGY] == containers.storeCapacity) {
-                                    //If container fills up on this tick, forget it.
-                                    creep.memory.structureTarget = undefined;
+                            //Build
+                            var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                            if (targets2) {
+                                creep.memory.structureTarget = targets2.id;
+                                if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(targets2);
                                 }
                             } else {
-                                //Build
-                                var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
-                                if (targets2) {
-                                    creep.memory.structureTarget = targets2.id;
-                                    if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
-                                        creep.moveTo(targets2);
+                                //Containers call a different function to check contents
+                                var containers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_CONTAINER ||
+                                            structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
+                                    }
+                                });
+                                if (containers) {
+                                    creep.memory.structureTarget = containers.id;
+                                    if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                        creep.moveTo(containers);
+                                    }
+                                    if (containers.store[RESOURCE_ENERGY] == containers.storeCapacity) {
+                                        //If container fills up on this tick, forget it.
+                                        creep.memory.structureTarget = undefined;
                                     }
                                 } else {
                                     //Upgrade

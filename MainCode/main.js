@@ -87,6 +87,8 @@ module.exports.loop = function() {
                 });
             }
         }
+
+        //Create hardcoded list of links that have to send energy in each room, and handle them
     }
 
     //Globally controlls all creeps in all rooms

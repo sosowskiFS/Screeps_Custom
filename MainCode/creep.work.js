@@ -32,6 +32,13 @@ var creep_work = {
 
         }
 
+        //wew lad
+        /*if (!creep.room.controller.sign) {
+            if(creep.pos.isNearTo(creep.room.controller)) {
+                creep.signController(creep.room.controller, 'This is, by far, the most kupo room I\'ve ever seen!');
+            }
+        }*/
+
         if (creep.memory.building) {
             var savedTarget = Game.getObjectById(creep.memory.structureTarget)
                 //site ID changes when construction is complete, simply check if valid.
