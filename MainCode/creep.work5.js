@@ -84,7 +84,7 @@ var creep_work5 = {
                         if (!creep.pos.isNearTo(thisSpawn)) {
                             creep.moveTo(thisSpawn);
                         }
-                        
+
                     }
                 }
             } else if (_.sum(creep.carry) > 0) {
@@ -151,28 +151,10 @@ var creep_work5 = {
                                     creep.moveTo(targets2);
                                 }
                             } else {
-                                //Containers call a different function to check contents
-                                var containers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                    filter: (structure) => {
-                                        return (structure.structureType == STRUCTURE_CONTAINER ||
-                                            structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
-                                    }
-                                });
-                                if (containers) {
-                                    creep.memory.structureTarget = containers.id;
-                                    if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                        creep.moveTo(containers);
-                                    }
-                                    if (containers.store[RESOURCE_ENERGY] == containers.storeCapacity) {
-                                        //If container fills up on this tick, forget it.
-                                        creep.memory.structureTarget = undefined;
-                                    }
-                                } else {
-                                    //Upgrade
-                                    creep.memory.structureTarget = creep.room.controller.id;
-                                    if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                                        creep.moveTo(creep.room.controller);
-                                    }
+                                //Upgrade
+                                creep.memory.structureTarget = creep.room.controller.id;
+                                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(creep.room.controller);
                                 }
                             }
                         }
