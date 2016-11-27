@@ -40,7 +40,7 @@ var creep_work5 = {
             if (_.sum(creep.carry) == 0) {
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
                 if (linkTarget) {
-                    if (linkTarget.energy >= 300) {
+                    if (linkTarget.energy >= 150) {
                         if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(linkTarget);
                         }
@@ -48,7 +48,7 @@ var creep_work5 = {
                         //Get from storage instead
                         var storageTarget = Game.getobjectById(creep.memory.storageSource);
                         if (storageTarget) {
-                            if (storageTarget.store[RESOURCE_ENERGY] >= 300) {
+                            if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
                                 if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(storageTarget);
                                 }
@@ -58,7 +58,7 @@ var creep_work5 = {
                 } else {
                     var storageTarget = Game.getobjectById(creep.memory.storageSource);
                     if (storageTarget) {
-                        if (storageTarget.store[RESOURCE_ENERGY] >= 300) {
+                        if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(storageTarget);
                             }

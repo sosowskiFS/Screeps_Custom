@@ -23,6 +23,7 @@ Memory.roomsUnderAttack = [];
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = [];
 Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a'];
+Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', 'PLACEHOLDER'];
 
 //Ctrl+Alt+f to autoformat documents.
 
@@ -77,6 +78,11 @@ module.exports.loop = function() {
         switch (thisRoom.name) {
             case 'E3N61':
                 towerList = Memory.E3N61Towers;
+                /*var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
+                var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
+                if (sendLink.energy >= 150 && sendLink.cooldown == 0){
+                    sendLink.transferEnergy(receiveLink);
+                }*/
                 break;
         }
         if (towerList) {

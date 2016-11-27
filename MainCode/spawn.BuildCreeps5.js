@@ -29,7 +29,7 @@ var spawn_BuildCreeps5 = {
 				//two sources
 				minerMax = 2;
 				strSources.push('57ef9db786f108ae6e60e2a5', '57ef9db786f108ae6e60e2a7');
-				strLinks.push('PLACEHOLDER', 'PLACEHOLDER');
+				strLinks.push('583adab41b9ba6bd6923fc74', 'PLACEHOLDER');
 				muleMax = 2;
 				strStorage.push('58388a3dac3bed8a51188517');
 				UpgraderMax = 2;
@@ -41,7 +41,7 @@ var spawn_BuildCreeps5 = {
 		var minerConfig = [CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
 		//950 Points
 		var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
-		//Upgrader to use muleConfig
+		//Upgrader to use minerConfig
 
 		var bareMinConfig = [WORK, CARRY, MOVE];
 
@@ -93,7 +93,7 @@ var spawn_BuildCreeps5 = {
 							remainingEnergy = remainingEnergy - 400;
 							break;
 					}
-					
+
 					if (totalParts >= 50) {
 						break;
 					}
@@ -164,8 +164,14 @@ var spawn_BuildCreeps5 = {
 					mineSource: creepSource,
 					linkSource: connectedLink
 				});
-			} else {
+			} else if (prioritizedRole == 'mule') {
 				spawn.createCreep(muleConfig, undefined, {
+					priority: prioritizedRole,
+					linkSource: connectedLink,
+					storageSource: storageID
+				});
+			} else {
+				spawn.createCreep(minerConfig, undefined, {
 					priority: prioritizedRole,
 					linkSource: connectedLink,
 					storageSource: storageID
