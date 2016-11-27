@@ -139,11 +139,11 @@ var spawn_BuildCreeps5 = {
 			if (miners.length < minerMax) {
 				prioritizedRole = 'miner';
 				switch (miners.length) {
-					case 1:
+					case 0:
 						creepSource = strSources[0];
 						connectedLink = strLinks[0];
 						break;
-					case 2:
+					case 1:
 						creepSource = strSources[1];
 						connectedLink = strStorage[0];
 						break;

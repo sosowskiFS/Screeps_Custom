@@ -28,7 +28,7 @@ var creep_work5 = {
                     }
                 }
             } else if (_.sum(creep.carry) >= 120) {
-                var savedTarget = Game.getObjectById(linkSource);
+                var savedTarget = Game.getObjectById(creep.memory.linkSource);
                 if (savedTarget) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         //This should never actually fire, if ideal.
