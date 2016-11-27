@@ -1,7 +1,7 @@
 var creep_work5 = {
 
     /** @param {Creep} creep **/
-    run: function(creep) {
+    run: function(creep, thisSpawn) {
 
         //wew lad
         /*if (!creep.room.controller.sign) {
@@ -19,7 +19,7 @@ var creep_work5 = {
                         creep.moveTo(savedTarget);
                     } else if (creep.harvest(savedTarget, RESOURCE_ENERGY) == ERR_NOT_ENOUGH_RESOURCES && _.sum(creep.carry) > 0) {
                         //Source is dry, store what you have.
-                        var savedTarget2 = Game.getObjectById(linkSource);
+                        var savedTarget2 = Game.getObjectById(creep.memory.linkSource);
                         if (savedTarget2) {
                             if (creep.transfer(savedTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(targets);
@@ -72,14 +72,16 @@ var creep_work5 = {
             }
         } else if (creep.memory.priority == 'mule') {
             if (_.sum(creep.carry) == 0) {
+                creep.memory.structureTarget = undefined;
                 var storageTarget = Game.getObjectById(creep.memory.storageSource);
                 if (storageTarget) {
                     if (storageTarget.store[RESOURCE_ENERGY] > 0) {
                         //Get from container
-                        creep.memory.structureTarget = storageTarget.id;
-                        if (creep.withdraw(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(targets);
+                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(storageTarget);
                         }
+                    } else {
+                        creep.moveTo(thisSpawn);
                     }
                 }
             } else if (_.sum(creep.carry) > 0) {
@@ -93,14 +95,6 @@ var creep_work5 = {
                                 creep.moveTo(savedTarget);
                             }
                             if (savedTarget.energy == savedTarget.energyCapacity) {
-                                creep.memory.structureTarget = undefined;
-                            }
-                        } else if (savedTarget.structureType == STRUCTURE_CONTAINER || savedTarget.structureType == STRUCTURE_STORAGE) {
-                            //Storing in storage
-                            if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(savedTarget);
-                            }
-                            if (savedTarget.store[RESOURCE_ENERGY] == savedTarget.storeCapacity) {
                                 creep.memory.structureTarget = undefined;
                             }
                         } else {

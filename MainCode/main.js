@@ -113,7 +113,7 @@ module.exports.loop = function() {
                     //In case of emergency
                     creep_work.run(creep);
                 } else {
-                    creep_work5.run(creep);
+                    creep_work5.run(creep, Game.spawns[i]);
                 }
             }
         }
