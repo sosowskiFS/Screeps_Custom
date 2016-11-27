@@ -76,7 +76,7 @@ var creep_work5 = {
                 if (storageTarget) {
                     if (storageTarget.store[RESOURCE_ENERGY] > 0) {
                         //Get from container
-                        creep.memory.structureTarget = targets.id;
+                        creep.memory.structureTarget = storageTarget.id;
                         if (creep.withdraw(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(targets);
                         }
