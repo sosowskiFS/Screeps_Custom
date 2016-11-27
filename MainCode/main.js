@@ -21,9 +21,9 @@ var tower_Operate = require('tower.Operate');
 Memory.roomsUnderAttack = [];
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
-Memory.roomsReadyFor5 = [];
-Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a'];
-Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', 'PLACEHOLDER'];
+Memory.roomsReadyFor5 = ['E3N61'];
+Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
+Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 
 //Ctrl+Alt+f to autoformat documents.
 
@@ -78,11 +78,13 @@ module.exports.loop = function() {
         switch (thisRoom.name) {
             case 'E3N61':
                 towerList = Memory.E3N61Towers;
-                /*var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
+                var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                 var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
-                if (sendLink.energy >= 150 && sendLink.cooldown == 0){
-                    sendLink.transferEnergy(receiveLink);
-                }*/
+                if (sendLink) {
+                    if (sendLink.energy >= 150 && sendLink.cooldown == 0) {
+                        sendLink.transferEnergy(receiveLink);
+                    }
+                }
                 break;
         }
         if (towerList) {
@@ -107,7 +109,7 @@ module.exports.loop = function() {
             if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
                 creep_work.run(creep);
             } else {
-                if (creep.memory.priority == 'harvester') {
+                if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
                     //In case of emergency
                     creep_work.run(creep);
                 } else {

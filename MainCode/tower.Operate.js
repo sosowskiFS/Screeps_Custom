@@ -10,7 +10,7 @@ var tower_Operate = {
             }
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
             //Save 50% of the tower's energy to use on repelling attackers
-            var closestDamagedStructure = thisTower.pos.findInRange(FIND_STRUCTURES, 40, {
+            var closestDamagedStructure = thisTower.pos.findInRange(FIND_STRUCTURES, 20, {
                 filter: (structure) => (structure.hits < structure.hitsMax) && (structure.hits < improveMax) && (structure.hitsMax - structure.hits >= 200)
             });
             if (closestDamagedStructure.length > 0) {
