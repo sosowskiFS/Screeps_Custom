@@ -175,7 +175,6 @@ var creep_work5 = {
             }
         }
     }
-}
 };
 
 module.exports = creep_work5;
