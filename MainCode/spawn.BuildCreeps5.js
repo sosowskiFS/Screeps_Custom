@@ -148,12 +148,12 @@ var spawn_BuildCreeps5 = {
 						connectedLink = strStorage[0];
 						break;
 				}
-			} else if (upgraders.length < upgraderMax) {
-				prioritizedRole = 'upgrader';
-				storageID = strStorage[0];
-				connectedLink = strLinks[1];
 			} else if (mules.length < muleMax) {
 				prioritizedRole = 'mule';
+				storageID = strStorage[0];
+				connectedLink = strLinks[1];
+			} else if (upgraders.length < upgraderMax) {
+				prioritizedRole = 'upgrader';
 				storageID = strStorage[0];
 				connectedLink = strLinks[1];
 			}
