@@ -31,6 +31,13 @@ Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 //Creep calculator : http://codepen.io/findoff/full/RPmqOd/
 
 module.exports.loop = function() {
+    for (var name in Memory.creeps) {
+        if (!Game.creeps[name]) {
+            delete Memory.creeps[name];
+            console.log('Clearing non-existing creep memory:', name);
+        }
+    }
+
     //Loop through all spawns
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
