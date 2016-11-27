@@ -88,7 +88,7 @@ module.exports.loop = function() {
                 var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                 var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
                 if (sendLink) {
-                    if (sendLink.energy >= 150 && sendLink.cooldown == 0) {
+                    if (sendLink.energy >= 120 && sendLink.cooldown == 0) {
                         sendLink.transferEnergy(receiveLink);
                     }
                 }

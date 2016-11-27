@@ -81,8 +81,8 @@ var creep_work5 = {
                             creep.moveTo(storageTarget);
                         }
                     } else {
-                        if (!creep.pos.isNearTo(thisSpawn)) {
-                            creep.moveTo(thisSpawn);
+                        if (!creep.pos.isNearTo(storageTarget)) {
+                            creep.moveTo(storageTarget);
                         }
 
                     }

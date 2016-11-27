@@ -3,8 +3,8 @@ var spawn_BuildCreeps5 = {
 		var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
 		var miners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source
-		var upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner'); 
-		var storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner'); 
+		var upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
+		var storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
 
 		var mules = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mule'); //Stores in spawn/towers, builds, upgrades
 		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader'); //Kinda important, and stuff.
@@ -32,6 +32,14 @@ var spawn_BuildCreeps5 = {
 				break;
 		}
 
+		if (storageMiners.length == 0 && upgradeMiners.length > 0) {
+			//reassign upgrade miner
+			upgradeMiner[0].memory.jobSpecific = 'storageMiner';
+			upgradeMiner[0].memory.linkSource = strStorage[0];
+			upgradeMiner[0].memory.mineSource = strSources[0];
+			upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
+			storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
+		}
 
 		//900 Points
 		var minerConfig = [CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
@@ -136,7 +144,7 @@ var spawn_BuildCreeps5 = {
 			if (miners.length < minerMax) {
 				prioritizedRole = 'miner';
 				switch (storageMiners.length) {
-					case 0:			
+					case 0:
 						creepSource = strSources[0];
 						connectedLink = strStorage[0];
 						jobSpecificPri = 'storageMiner';
