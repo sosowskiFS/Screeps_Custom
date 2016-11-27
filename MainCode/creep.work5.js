@@ -32,7 +32,7 @@ var creep_work5 = {
                 if (savedTarget) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         //This should never actually fire, if ideal.
-                        creep.moveTo(targets);
+                        creep.moveTo(savedTarget);
                     }
                 }
             }
