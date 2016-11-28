@@ -98,7 +98,7 @@ module.exports.loop = function() {
             if (towerList.length > 0) {
                 towerList.forEach(function(thisTower) {
                     //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                    tower_Operate.run(thisTower, 100000, thisRoom);
+                    tower_Operate.run(thisTower, 200000, thisRoom);
                 });
             }
         }
@@ -111,16 +111,24 @@ module.exports.loop = function() {
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
-            creep_combat.run(creep, thisRoom, Game.spawns[i]);
+            if (creep.memory.fromSpawn) {
+                creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
+            } else {
+                creep_combat.run(creep, thisRoom, Game.spawns[i]);
+            }
         } else {
-            if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+            if (Memory.roomsReadyFor5.indexOf(creep.room.name) === -1) {
                 creep_work.run(creep);
             } else {
                 if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
                     //In case of emergency
                     creep_work.run(creep);
                 } else {
-                    creep_work5.run(creep, Game.spawns[i]);
+                    if (creep.memory.fromSpawn) {
+                        creep_work5.run(creep, creep.memory.fromSpawn);
+                    } else {
+                        creep_work5.run(creep, Game.spawns[i]);
+                    }
                 }
             }
         }

@@ -171,19 +171,22 @@ var spawn_BuildCreeps5 = {
 					priority: prioritizedRole,
 					mineSource: creepSource,
 					linkSource: connectedLink,
-					jobSpecific: jobSpecificPri
+					jobSpecific: jobSpecificPri,
+					fromSpawn: spawn
 				});
 			} else if (prioritizedRole == 'mule') {
 				spawn.createCreep(muleConfig, undefined, {
 					priority: prioritizedRole,
 					linkSource: connectedLink,
-					storageSource: storageID
+					storageSource: storageID,
+					fromSpawn: spawn
 				});
 			} else {
 				spawn.createCreep(minerConfig, undefined, {
 					priority: prioritizedRole,
 					linkSource: connectedLink,
-					storageSource: storageID
+					storageSource: storageID,
+					fromSpawn: spawn
 				});
 			}
 
