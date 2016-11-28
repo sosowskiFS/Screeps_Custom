@@ -34,6 +34,7 @@ var spawn_BuildCreeps5 = {
 
 		if (storageMiners.length == 0 && upgradeMiners.length > 0) {
 			//reassign upgrade miner
+			upgradeMiners[0].drop(RESOURCE_ENERGY);
 			upgradeMiners[0].memory.jobSpecific = 'storageMiner';
 			upgradeMiners[0].memory.linkSource = strStorage[0];
 			upgradeMiners[0].memory.mineSource = strSources[0];
