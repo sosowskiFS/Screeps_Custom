@@ -1,12 +1,5 @@
 var spawn_BuildCreeps = {
 	run: function(spawn, bestWorker, thisRoom) {
-		for (var name in Memory.creeps) {
-			if (!Game.creeps[name]) {
-				delete Memory.creeps[name];
-				console.log('Clearing non-existing creep memory:', name);
-			}
-		}
-
 		var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
 		var harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');

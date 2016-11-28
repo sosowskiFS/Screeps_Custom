@@ -2,10 +2,12 @@
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
 var creep_combat = require('creep.combat');
+var creep_claimer = require('creep.claimer');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
 var spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
+var spawn_BuildInstruction = require('spawn.BuildInstruction');
 var previousEnergyCap = -1;
 var bestWorkerConfig = [WORK, CARRY, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
@@ -42,6 +44,17 @@ module.exports.loop = function() {
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         var controllerLevel = thisRoom.controller.level;
+
+        //Execute special instruction written into console
+        if (Memory.Instruction) {
+            switch (Memory.Instruction) {
+                case 'claim':
+                    spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
+                    delete Memory.Instruction;
+                    delete Memory.InstructionOps;
+                    break;
+            }
+        }
 
         //Check for hostiles in this room
         var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
@@ -110,7 +123,9 @@ module.exports.loop = function() {
 
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
+        if (creep.memory.priority == 'claimer') {
+
+        } else if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
             if (creep.memory.fromSpawn) {
                 creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
             } else {
@@ -132,6 +147,17 @@ module.exports.loop = function() {
                 }
             }
         }
+    }
+}
+
+function specialInstruction(instruction, param1) {
+    //Special calls, call this function from the console.
+    switch (instruction) {
+        case 'claim':
+            Memory.Instruction = 'claim';
+            Memory.InstructionOps = param1;
+            console.log('Claim instruction set, target: ' & param1);
+            break;
     }
 }
 
