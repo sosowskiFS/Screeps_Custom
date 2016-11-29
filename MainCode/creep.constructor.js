@@ -4,7 +4,7 @@ var creep_constructor = {
     run: function(creep) {
         if (creep.carry.energy < creep.carryCapacity && !creep.memory.harvesting) {
             if (creep.room.name != creep.memory.targetRoom) {
-                creep.moveTo(new RoomPosition(20, 46, creep.memory.targetRoom));
+                creep.moveTo(new RoomPosition(28, 48, creep.memory.targetRoom));
             } else {
                 if (creep.carry.energy == creep.carryCapacity) {
                     creep.memory.harvesting == false;
@@ -16,7 +16,7 @@ var creep_constructor = {
             }
         } else {
             if (creep.room.name != creep.memory.targetRoom) {
-                creep.moveTo(new RoomPosition(20, 46, creep.memory.targetRoom));
+                creep.moveTo(new RoomPosition(28, 48, creep.memory.targetRoom));
             } else {
                 if (creep.carry.energy <= 20) {
                     //Upgrade the controller
