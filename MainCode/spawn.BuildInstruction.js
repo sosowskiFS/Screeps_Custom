@@ -7,6 +7,7 @@ var spawn_BuildInstruction = {
 						priority: 'claimer',
 						destination: params
 					});
+					console.log('Claim executed');
 				} else {
 					console.log('Could not execute claim. Spawn cannot create creep.');
 				}
@@ -18,12 +19,26 @@ var spawn_BuildInstruction = {
 						destinations: params,
 						message: params2
 					});
+					console.log('Vandalize executed');
 				} else {
 					console.log('Could not execute vandalize. Spawn cannot create creep.');
 				}
 				break;
+			case 'construct':
+				if (spawn.canCreateCreep([MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY]) == OK) {
+					spawn.createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY], undefined, {
+						priority: 'constructor',
+						siteID: params,
+						targetRoom: params2
+					});
+					console.log('Construct executed');
+				} else {
+					console.log('Could not execute constructor. Spawn cannot create creep.');
+				}
+				break;
 		}
 	}
+}
 };
 
 module.exports = spawn_BuildInstruction;

@@ -1,6 +1,7 @@
 //Instructions:
 //require('special').specialInstruction('claim', 'RoomName');
 //require('special').specialInstruction('vandalize', [ArrayOfRooms], 'message');
+//require('special').specialInstruction('construct', 'constructionID', 'RoomName');
 
 //Creeps
 var creep_work = require('creep.work');
@@ -8,6 +9,7 @@ var creep_work5 = require('creep.work5');
 var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
+var creep_constructor = require('creep.constructor');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -59,6 +61,12 @@ module.exports.loop = function() {
                     delete Memory.InstructionOps;
                     break;
                 case 'vandalize':
+                    spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                    delete Memory.Instruction;
+                    delete Memory.InstructionOps;
+                    delete Memory.InstructionOps2;
+                    break;
+                case 'construct':
                     spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
                     delete Memory.Instruction;
                     delete Memory.InstructionOps;
@@ -138,6 +146,8 @@ module.exports.loop = function() {
             creep_claimer.run(creep);
         } else if (creep.memory.priority == 'vandal') {
             creep_vandal.run(creep);
+        } else if (creep.memory.priority == 'constructor') {
+            creep_constructor.run(creep);
         } else if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
             if (creep.memory.fromSpawn) {
                 creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
