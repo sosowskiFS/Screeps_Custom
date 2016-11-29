@@ -38,7 +38,6 @@ var spawn_BuildInstruction = {
 				break;
 		}
 	}
-}
 };
 
 module.exports = spawn_BuildInstruction;
