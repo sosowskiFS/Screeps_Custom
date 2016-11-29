@@ -11,7 +11,7 @@ var creep_vandal = {
                     creep.moveTo(creep.room.controller);
                 } else if (signResult == OK) {
                     //Controller signed, remove destination and proceed
-                    creep.memory.destinations = creep.memory.destinations.splice(0, 1);
+                    creep.memory.destinations.splice(0, 1);
                     if (creep.memory.destinations == 0) {
                         //You're fuckin' done, kiddo.
                         creep.suicide();

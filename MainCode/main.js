@@ -1,7 +1,6 @@
 //Instructions:
-//specialInstruction('claim', 'RoomName');
-//specialInstruction('vandalize', [ArrayOfRooms], 'message');
-var specialInst = require('special');
+//require('special').specialInstruction('claim', 'RoomName');
+//require('special').specialInstruction('vandalize', [ArrayOfRooms], 'message');
 
 //Creeps
 var creep_work = require('creep.work');

@@ -15,10 +15,6 @@ var special = {
                 break;
         }
     }
-
-    doTest: function(){
-        console.log('Success');
-    }
 };
 
 module.exports = special;
