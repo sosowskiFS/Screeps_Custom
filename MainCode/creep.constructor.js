@@ -2,7 +2,13 @@ var creep_constructor = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (creep.carry.energy < creep.carryCapacity && !creep.memory.harvesting) {
+        if (creep.memory.building && creep.carry.energy == 0) {
+            delete creep.memory.building;
+        } else if ( _.sum(creep.carry) == creep.carryCapacity && !creep.memory.building) {
+            creep.memory.building == true;
+        }
+        
+        if (!creep.memory.building) {
             if (creep.room.name != creep.memory.targetRoom) {
                 creep.moveTo(new RoomPosition(28, 48, creep.memory.targetRoom));
             } else {
