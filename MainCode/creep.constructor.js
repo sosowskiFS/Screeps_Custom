@@ -3,15 +3,15 @@ var creep_constructor = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (creep.carry.energy < creep.carryCapacity && !creep.memory.harvesting) {
-            if (creep.room.name != 'E3N61') {
-                creep.moveTo(new RoomPosition(17, 46, 'E3N61'));
+            if (creep.room.name != creep.memory.targetRoom) {
+                creep.moveTo(new RoomPosition(20, 46, creep.memory.targetRoom));
             } else {
                 if (creep.carry.energy == creep.carryCapacity) {
                     creep.memory.harvesting == false;
                 }
 
-                if (creep.harvest(Game.getObjectById('57ef9db786f108ae6e60e2a7')) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(Game.getObjectById('57ef9db786f108ae6e60e2a7'));
+                if (creep.harvest(Game.getObjectById('57ef9dba86f108ae6e60e2f8')) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(Game.getObjectById('57ef9dba86f108ae6e60e2f8'));
                 }
             }
         } else {
