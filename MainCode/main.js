@@ -1,8 +1,13 @@
+//Instructions:
+//specialInstruction('claim', 'RoomName');
+//specialInstruction('vandalize', [ArrayOfRooms], 'message');
+
 //Creeps
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
 var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
+var creep_vandal = require('creep.vandal');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -52,6 +57,12 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
                     delete Memory.Instruction;
                     delete Memory.InstructionOps;
+                    break;
+                case 'vandalize':
+                    spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                    delete Memory.Instruction;
+                    delete Memory.InstructionOps;
+                    delete Memory.InstructionOps2;
                     break;
             }
         }
@@ -125,6 +136,8 @@ module.exports.loop = function() {
         var creep = Game.creeps[name];
         if (creep.memory.priority == 'claimer') {
             creep_claimer.run(creep);
+        } else if (creep.memory.priority == 'vandal') {
+            creep_vandal.run(creep);
         } else if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
             if (creep.memory.fromSpawn) {
                 creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
@@ -150,13 +163,19 @@ module.exports.loop = function() {
     }
 }
 
-function specialInstruction(instruction, param1) {
+function specialInstruction(instruction, param1, param2 = '') {
     //Special calls, call this function from the console.
     switch (instruction) {
         case 'claim':
             Memory.Instruction = 'claim';
             Memory.InstructionOps = param1;
             console.log('Claim instruction set, target: ' & param1);
+            break;
+        case 'vandalize':
+            Memory.Instruction = 'vandalize';
+            Memory.InstructionOps = param1;
+            Memory.InstructionOps2 = param2;
+            console.log('Vandalize instruction set, targets: ' & param1 & ', message: ' & param2);
             break;
     }
 }
