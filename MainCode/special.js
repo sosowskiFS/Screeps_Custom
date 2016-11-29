@@ -1,5 +1,5 @@
 var special = {
-    function specialInstruction(instruction, param1, param2 = '') {
+    specialInstruction : function(instruction, param1, param2 = '') {
         //Special calls, call this function from the console.
         switch (instruction) {
             case 'claim':
@@ -16,7 +16,7 @@ var special = {
         }
     }
 
-    function doTest(){
+    doTest: function(){
         console.log('Success');
     }
 };
