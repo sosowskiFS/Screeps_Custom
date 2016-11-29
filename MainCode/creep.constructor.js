@@ -16,7 +16,7 @@ var creep_constructor = {
             }
         } else {
             if (creep.room.name != creep.memory.targetRoom) {
-                creep.moveTo(new RoomPosition(20, 46, creep.memory.destination));
+                creep.moveTo(new RoomPosition(20, 46, creep.memory.targetRoom));
             } else {
                 if (creep.carry.energy <= 20) {
                     //Upgrade the controller
