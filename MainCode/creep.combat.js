@@ -30,6 +30,8 @@ var creep_combat = {
 					while (Game.flags[flagName + flagCounter]) {
 						if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
 							creep.moveTo(Game.flags[flagName + flagCounter]);
+						} else {
+							flagCounter++;
 						}
 					}
 				}
@@ -78,6 +80,8 @@ var creep_combat = {
 							if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
 								creep.moveTo(Game.flags[flagName + flagCounter]);
 							}
+						} else {
+							flagCounter++;
 						}
 					}
 				}
@@ -108,12 +112,12 @@ var creep_combat = {
 			while (Game.flags[flagName + flagCounter]) {
 				if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
 					creep.moveTo(Game.flags[flagName + flagCounter]);
+				} else {
+					flagCounter++;
 				}
 			}
 		}
 	}
-
-}
 };
 
 module.exports = creep_combat;
