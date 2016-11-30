@@ -20,10 +20,12 @@ var spawn_BuildCreeps = {
 		var assignedSlot1;
 
 		switch (thisRoom.name) {
+			case 'E3N61':
 				//two sources
 				harvesterMax = 2;
 				//Source[1] is more accessable
 				strSources.push('57ef9db786f108ae6e60e2a5', '57ef9db786f108ae6e60e2a7');
+				mineSpots.push(4, 2);
 				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 				builderMax = 1;
 				UpgraderMax = 2;
@@ -33,6 +35,7 @@ var spawn_BuildCreeps = {
 				harvesterMax = 2;
 				//Source[1] is more accessable
 				strSources.push('57ef9dba86f108ae6e60e2f8', '57ef9dba86f108ae6e60e2fa');
+				mineSpots.push(1, 5);
 				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 				builderMax = 1;
 				UpgraderMax = 2;
