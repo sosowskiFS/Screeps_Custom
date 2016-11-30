@@ -24,7 +24,7 @@ var creep_combat = {
 						creep.attack(Foe);
 					}
 				} else {
-					//Move to flag
+					//Move towards rampart
 					var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
 					if (roomFlags) {
 						roomFlags.some(function(thisFlag) {
@@ -73,6 +73,7 @@ var creep_combat = {
 							creep.rangedAttack(Foe);
 						}
 					} else {
+						//Move towards rampart
 						var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
 						if (roomFlags) {
 							roomFlags.some(function(thisFlag) {
@@ -103,6 +104,17 @@ var creep_combat = {
 						}
 					}
 				}
+			}
+		} else {
+			//Not under attack, move to red flags marking ramparts
+			var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
+			if (roomFlags) {
+				roomFlags.some(function(thisFlag) {
+					if (!thisFlag.pos.lookFor(LOOK_CREEPS)) {
+						creep.moveTo(thisFlag);
+						return true;
+					}
+				});
 			}
 		}
 
