@@ -34,143 +34,148 @@ Memory.roomsReadyFor5 = ['E3N61'];
 Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 
+const profiler = require('screeps-profiler');
+
 //Ctrl+Alt+f to autoformat documents.
 
 //Constants : http://support.screeps.com/hc/en-us/articles/203084991-API-Reference
 //Creep calculator : http://codepen.io/findoff/full/RPmqOd/
 
+profiler.enable();
 module.exports.loop = function() {
-    for (var name in Memory.creeps) {
-        if (!Game.creeps[name]) {
-            delete Memory.creeps[name];
-            console.log('Clearing non-existing creep memory:', name);
-        }
-    }
-
-    //Loop through all spawns
-    for (var i in Game.spawns) {
-        var thisRoom = Game.spawns[i].room;
-        var controllerLevel = thisRoom.controller.level;
-
-        //Execute special instruction written into console
-        if (Memory.Instruction) {
-            switch (Memory.Instruction) {
-                case 'claim':
-                    spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
-                    delete Memory.Instruction;
-                    delete Memory.InstructionOps;
-                    break;
-                case 'vandalize':
-                    spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                    delete Memory.Instruction;
-                    delete Memory.InstructionOps;
-                    delete Memory.InstructionOps2;
-                    break;
-                case 'construct':
-                    spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                    delete Memory.Instruction;
-                    delete Memory.InstructionOps;
-                    delete Memory.InstructionOps2;
-                    break;
+    profiler.wrap(function() {
+        for (var name in Memory.creeps) {
+            if (!Game.creeps[name]) {
+                delete Memory.creeps[name];
+                console.log('Clearing non-existing creep memory:', name);
             }
         }
 
-        //Check for hostiles in this room
-        var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
-        if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
-            Memory.roomsUnderAttack.push(thisRoom.name);
-        } else if (hostiles.length == 0) {
-            var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
-            if (UnderAttackPos >= 0) {
-                Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
-            }
-        }
+        //Loop through all spawns
+        for (var i in Game.spawns) {
+            var thisRoom = Game.spawns[i].room;
+            var controllerLevel = thisRoom.controller.level;
 
-        //Update creep configs if energy cap has changed
-        if (thisRoom.energyCapacityAvailable != previousEnergyCap && Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
-            previousEnergyCap = thisRoom.energyCapacityAvailable;
-            recalculateBestWorker();
-        }
-
-        //Expansion not finished : Low priority. Can do manually for now.
-
-        /*if(lastControllerLevel != roomReference.controller.level){
-            spawn_AutoExpand.run(Game.spawns['Spawn_Capital'], roomReference.controller.level);
-            lastControllerLevel = roomReference.controller.level;
-        }*/
-
-        if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
-            spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
-        } else {
-            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
-        }
-
-        //Find is moderately expensive, run it only every 100 ticks for new tower detection.
-        /*if (Game.time % 100 == 0) {
-            Memory.towerList = thisRoom.find(FIND_MY_STRUCTURES, {
-                filter: {
-                    structureType: STRUCTURE_TOWER
+            //Execute special instruction written into console
+            if (Memory.Instruction) {
+                switch (Memory.Instruction) {
+                    case 'claim':
+                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
+                        delete Memory.Instruction;
+                        delete Memory.InstructionOps;
+                        break;
+                    case 'vandalize':
+                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                        delete Memory.Instruction;
+                        delete Memory.InstructionOps;
+                        delete Memory.InstructionOps2;
+                        break;
+                    case 'construct':
+                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                        delete Memory.Instruction;
+                        delete Memory.InstructionOps;
+                        delete Memory.InstructionOps2;
+                        break;
                 }
-            });
-        }*/
-        var towerList;
-        switch (thisRoom.name) {
-            case 'E3N61':
-                towerList = Memory.E3N61Towers;
-                var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
-                var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
-                if (sendLink) {
-                    if (sendLink.energy >= 120 && sendLink.cooldown == 0) {
-                        sendLink.transferEnergy(receiveLink);
+            }
+
+            //Check for hostiles in this room
+            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
+            if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
+                Memory.roomsUnderAttack.push(thisRoom.name);
+            } else if (hostiles.length == 0) {
+                var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+                if (UnderAttackPos >= 0) {
+                    Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+                }
+            }
+
+            //Update creep configs if energy cap has changed
+            if (thisRoom.energyCapacityAvailable != previousEnergyCap && Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+                previousEnergyCap = thisRoom.energyCapacityAvailable;
+                recalculateBestWorker();
+            }
+
+            //Expansion not finished : Low priority. Can do manually for now.
+
+            /*if(lastControllerLevel != roomReference.controller.level){
+                spawn_AutoExpand.run(Game.spawns['Spawn_Capital'], roomReference.controller.level);
+                lastControllerLevel = roomReference.controller.level;
+            }*/
+
+            if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+                spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
+            } else {
+                spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
+            }
+
+            //Find is moderately expensive, run it only every 100 ticks for new tower detection.
+            /*if (Game.time % 100 == 0) {
+                Memory.towerList = thisRoom.find(FIND_MY_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_TOWER
                     }
-                }
-                break;
-        }
-        if (towerList) {
-            if (towerList.length > 0) {
-                towerList.forEach(function(thisTower) {
-                    //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                    tower_Operate.run(thisTower, 300000, thisRoom);
                 });
+            }*/
+            var towerList;
+            switch (thisRoom.name) {
+                case 'E3N61':
+                    towerList = Memory.E3N61Towers;
+                    var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
+                    var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
+                    if (sendLink) {
+                        if (sendLink.energy >= 120 && sendLink.cooldown == 0) {
+                            sendLink.transferEnergy(receiveLink);
+                        }
+                    }
+                    break;
             }
+            if (towerList) {
+                if (towerList.length > 0) {
+                    towerList.forEach(function(thisTower) {
+                        //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
+                        tower_Operate.run(thisTower, 300000, thisRoom);
+                    });
+                }
+            }
+
+            //Create hardcoded list of links that have to send energy in each room, and handle them
         }
 
-        //Create hardcoded list of links that have to send energy in each room, and handle them
-    }
+        //Globally controlls all creeps in all rooms
 
-    //Globally controlls all creeps in all rooms
-
-    for (var name in Game.creeps) {
-        var creep = Game.creeps[name];
-        if (creep.memory.priority == 'claimer') {
-            creep_claimer.run(creep);
-        } else if (creep.memory.priority == 'vandal') {
-            creep_vandal.run(creep);
-        } else if (creep.memory.priority == 'constructor') {
-            creep_constructor.run(creep);
-        } else if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
-            if (creep.memory.fromSpawn) {
-                creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
+        for (var name in Game.creeps) {
+            var creep = Game.creeps[name];
+            if (creep.memory.priority == 'claimer') {
+                creep_claimer.run(creep);
+            } else if (creep.memory.priority == 'vandal') {
+                creep_vandal.run(creep);
+            } else if (creep.memory.priority == 'constructor') {
+                creep_constructor.run(creep);
+            } else if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
+                if (creep.memory.fromSpawn) {
+                    creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
+                } else {
+                    creep_combat.run(creep, thisRoom, Game.spawns[i]);
+                }
             } else {
-                creep_combat.run(creep, thisRoom, Game.spawns[i]);
-            }
-        } else {
-            if (Memory.roomsReadyFor5.indexOf(creep.room.name) === -1) {
-                creep_work.run(creep);
-            } else {
-                if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
-                    //In case of emergency
+                if (Memory.roomsReadyFor5.indexOf(creep.room.name) === -1) {
                     creep_work.run(creep);
                 } else {
-                    if (creep.memory.fromSpawn) {
-                        creep_work5.run(creep, creep.memory.fromSpawn);
+                    if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
+                        //In case of emergency
+                        creep_work.run(creep);
                     } else {
-                        creep_work5.run(creep, Game.spawns[i]);
+                        if (creep.memory.fromSpawn) {
+                            creep_work5.run(creep, creep.memory.fromSpawn);
+                        } else {
+                            creep_work5.run(creep, Game.spawns[i]);
+                        }
                     }
                 }
             }
         }
-    }
+    });
 }
 
 function recalculateBestWorker() {
