@@ -75,17 +75,10 @@ var creep_work5 = {
                 creep.memory.structureTarget = undefined;
                 var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
                 if (sources) {
-                    //If it ain't worth pickin' up, fuck it.
-                    if (sources.amount < 50) {
-                        sources = undefined;
-                    } else {
-                        if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(sources);
-                        }
+                    if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(sources);
                     }
-                }
-
-                if (!sources) {
+                } else {
                     var storageTarget = Game.getObjectById(creep.memory.storageSource);
                     if (storageTarget) {
                         if (storageTarget.store[RESOURCE_ENERGY] > 0) {
