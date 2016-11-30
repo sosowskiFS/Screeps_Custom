@@ -50,7 +50,7 @@ var spawn_BuildCreeps = {
 				priority: 'harvester'
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			if (thisRoom.energyAvailable >= 500) {
+			if (thisRoom.energyAvailable >= 400) {
 				//Try to produce millitary units
 
 				//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -75,21 +75,23 @@ var spawn_BuildCreeps = {
 				var totalParts = 0;
 
 				var remainingEnergy = thisRoom.energyAvailable;
-				while ((remainingEnergy / 250) >= 1) {
+				while ((remainingEnergy / 400) >= 1) {
 					switch (ChosenPriority) {
 						case 'melee':
-							ToughCount = ToughCount + 2
-							MoveCount = MoveCount + 3;
-							AttackCount++;
+							ToughCount = ToughCount + 1;
+							MoveCount = MoveCount + 2;
+							AttackCount = AttackCount + 3;
 							totalParts = totalParts + 6;
+							remainingEnergy = remainingEnergy - 350;
 							break;
 						case 'ranged':
 							MoveCount = MoveCount + 2;
-							RangedCount++;
-							totalParts = totalParts + 3;
+							RangedCount = RangedCount + 2;
+							totalParts = totalParts + 4;
+							remainingEnergy = remainingEnergy - 400;
 							break;
 					}
-					remainingEnergy = remainingEnergy - 250;
+
 					if (totalParts >= 50) {
 						break;
 					}
