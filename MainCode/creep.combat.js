@@ -27,9 +27,9 @@ var creep_combat = {
 					//Move towards rampart
 					var flagName = creep.room.name + 'Rampart';
 					var flagCounter = 1;
-					while (Game.flags[flagName + flagCounter]) {
-						if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
-							creep.moveTo(Game.flags[flagName + flagCounter]);
+					while (Game.flags[flagName + flagCounter.toString()]) {
+						if (!Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS)) {
+							creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
 						} else {
 							flagCounter++;
 						}
@@ -76,9 +76,9 @@ var creep_combat = {
 						//Move towards rampart
 						var flagName = creep.room.name + 'Rampart';
 						var flagCounter = 1;
-						while (Game.flags[flagName + flagCounter]) {
-							if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
-								creep.moveTo(Game.flags[flagName + flagCounter]);
+						while (Game.flags[flagName + flagCounter.toString()]) {
+							if (!Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS)) {
+								creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
 							} else {
 								flagCounter++;
 							}
@@ -109,9 +109,9 @@ var creep_combat = {
 			//Not under attack, move to red flags marking ramparts
 			var flagName = creep.room.name + 'Rampart';
 			var flagCounter = 1;
-			while (Game.flags[flagName + flagCounter]) {
-				if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
-					creep.moveTo(Game.flags[flagName + flagCounter]);
+			while (Game.flags[flagName + flagCounter.toString()]) {
+				if (!Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS)) {
+					creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
 				} else {
 					flagCounter++;
 				}
