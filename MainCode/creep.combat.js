@@ -25,14 +25,12 @@ var creep_combat = {
 					}
 				} else {
 					//Move towards rampart
-					var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
-					if (roomFlags) {
-						roomFlags.some(function(thisFlag) {
-							if (!thisFlag.pos.lookFor(LOOK_CREEPS)) {
-								creep.moveTo(thisFlag);
-								return true;
-							}
-						});
+					var flagName = creep.room.name + 'Rampart';
+					var flagCounter = 1;
+					while (Game.flags[flagName + flagCounter]) {
+						if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
+							creep.moveTo(Game.flags[flagName + flagCounter]);
+						}
 					}
 				}
 			} else {
@@ -74,14 +72,12 @@ var creep_combat = {
 						}
 					} else {
 						//Move towards rampart
-						var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
-						if (roomFlags) {
-							roomFlags.some(function(thisFlag) {
-								if (!thisFlag.pos.lookFor(LOOK_CREEPS)) {
-									creep.moveTo(thisFlag);
-									return true;
-								}
-							});
+						var flagName = creep.room.name + 'Rampart';
+						var flagCounter = 1;
+						while (Game.flags[flagName + flagCounter]) {
+							if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
+								creep.moveTo(Game.flags[flagName + flagCounter]);
+							}
 						}
 					}
 				}
@@ -107,18 +103,17 @@ var creep_combat = {
 			}
 		} else {
 			//Not under attack, move to red flags marking ramparts
-			var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
-			if (roomFlags) {
-				roomFlags.some(function(thisFlag) {
-					if (!thisFlag.pos.lookFor(LOOK_CREEPS)) {
-						creep.moveTo(thisFlag);
-						return true;
-					}
-				});
+			var flagName = creep.room.name + 'Rampart';
+			var flagCounter = 1;
+			while (Game.flags[flagName + flagCounter]) {
+				if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
+					creep.moveTo(Game.flags[flagName + flagCounter]);
+				}
 			}
 		}
-
 	}
+
+}
 };
 
 module.exports = creep_combat;
