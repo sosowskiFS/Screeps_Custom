@@ -78,6 +78,10 @@ var creep_work5 = {
                     //If it ain't worth pickin' up, fuck it.
                     if (sources.amount < 50) {
                         sources = undefined;
+                    } else {
+                        if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(sources);
+                        }
                     }
                 } else {
                     var storageTarget = Game.getObjectById(creep.memory.storageSource);
