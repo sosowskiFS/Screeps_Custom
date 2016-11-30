@@ -18,13 +18,22 @@ var creep_combat = {
 				if (Foe[0]) {
 					creep.say('REEEEEEEEE', true);
 					if (creep.pos.getRangeTo(Foe) > 1) {
-							creep.moveTo(Foe);
-							creep.attack(Foe);
-						} else{
-							creep.attack(Foe);
-						}
+						creep.moveTo(Foe);
+						creep.attack(Foe);
+					} else {
+						creep.attack(Foe);
+					}
 				} else {
-					creep.moveTo(thisSpawn);
+					//Move to flag
+					var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
+					if (roomFlags) {
+						roomFlags.some(function(thisFlag) {
+							if (!thisFlag.pos.lookFor(LOOK_CREEPS)) {
+								creep.moveTo(thisFlag);
+								return true;
+							}
+						});
+					}
 				}
 			} else {
 				//Have ranged partner. Go on the offense.
@@ -32,11 +41,11 @@ var creep_combat = {
 				if (Foe) {
 					creep.say('REEEEEEEEE', true);
 					if (creep.pos.getRangeTo(Foe) > 1) {
-							creep.moveTo(Foe);
-							creep.attack(Foe);
-						} else{
-							creep.attack(Foe);
-						}
+						creep.moveTo(Foe);
+						creep.attack(Foe);
+					} else {
+						creep.attack(Foe);
+					}
 				}
 			}
 		} else if (creep.memory.priority == 'ranged' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
@@ -60,11 +69,19 @@ var creep_combat = {
 						if (creep.pos.getRangeTo(Foe) > 3) {
 							creep.moveTo(Foe);
 							creep.rangedAttack(Foe);
-						} else{
+						} else {
 							creep.rangedAttack(Foe);
 						}
 					} else {
-						creep.moveTo(thisSpawn);
+						var roomFlags = _.filter(Game.flags, (flag) => (flag.room.name == thisRoom.name && flag.color == COLOR_RED));
+						if (roomFlags) {
+							roomFlags.some(function(thisFlag) {
+								if (!thisFlag.pos.lookFor(LOOK_CREEPS)) {
+									creep.moveTo(thisFlag);
+									return true;
+								}
+							});
+						}
 					}
 				}
 			} else {
@@ -81,7 +98,7 @@ var creep_combat = {
 						if (creep.pos.getRangeTo(Foe) > 3) {
 							creep.moveTo(Foe);
 							creep.rangedAttack(Foe);
-						} else{
+						} else {
 							creep.rangedAttack(Foe);
 						}
 					}

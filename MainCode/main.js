@@ -130,7 +130,7 @@ module.exports.loop = function() {
             if (towerList.length > 0) {
                 towerList.forEach(function(thisTower) {
                     //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                    tower_Operate.run(thisTower, 200000, thisRoom);
+                    tower_Operate.run(thisTower, 300000, thisRoom);
                 });
             }
         }
