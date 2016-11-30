@@ -28,8 +28,11 @@ var creep_combat = {
 					var flagName = creep.room.name + 'Rampart';
 					var flagCounter = 1;
 					while (Game.flags[flagName + flagCounter.toString()]) {
-						if (!Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS)) {
+						if (Game.flags[flagName + flagCounter.toString()].pos == creep.pos) {
+							break;
+						} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
 							creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
+							break;
 						} else {
 							flagCounter++;
 						}
@@ -77,8 +80,11 @@ var creep_combat = {
 						var flagName = creep.room.name + 'Rampart';
 						var flagCounter = 1;
 						while (Game.flags[flagName + flagCounter.toString()]) {
-							if (!Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS)) {
+							if (Game.flags[flagName + flagCounter.toString()].pos == creep.pos) {
+								break;
+							} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
 								creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
+								break;
 							} else {
 								flagCounter++;
 							}
@@ -110,8 +116,11 @@ var creep_combat = {
 			var flagName = creep.room.name + 'Rampart';
 			var flagCounter = 1;
 			while (Game.flags[flagName + flagCounter.toString()]) {
-				if (!Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS)) {
+				if (Game.flags[flagName + flagCounter.toString()].pos == creep.pos) {
+					break;
+				} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
 					creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
+					break;
 				} else {
 					flagCounter++;
 				}
