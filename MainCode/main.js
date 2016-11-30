@@ -40,6 +40,7 @@ const profiler = require('screeps-profiler');
 
 //Constants : http://support.screeps.com/hc/en-us/articles/203084991-API-Reference
 //Creep calculator : http://codepen.io/findoff/full/RPmqOd/
+//Profiler commands : https://github.com/gdborton/screeps-profiler
 
 profiler.enable();
 module.exports.loop = function() {
