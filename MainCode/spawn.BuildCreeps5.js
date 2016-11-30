@@ -85,11 +85,11 @@ var spawn_BuildCreeps5 = {
 				while ((remainingEnergy / 400) >= 1) {
 					switch (ChosenPriority) {
 						case 'melee':
-							ToughCount = ToughCount + 2
-							MoveCount = MoveCount + 3;
-							AttackCount++;
+							ToughCount = ToughCount + 1;
+							MoveCount = MoveCount + 2;
+							AttackCount = AttackCount + 3;
 							totalParts = totalParts + 6;
-							remainingEnergy = remainingEnergy - 250;
+							remainingEnergy = remainingEnergy - 350;
 							break;
 						case 'ranged':
 							MoveCount = MoveCount + 2;
