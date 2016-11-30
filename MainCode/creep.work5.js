@@ -83,7 +83,9 @@ var creep_work5 = {
                             creep.moveTo(sources);
                         }
                     }
-                } else {
+                }
+
+                if (!sources) {
                     var storageTarget = Game.getObjectById(creep.memory.storageSource);
                     if (storageTarget) {
                         if (storageTarget.store[RESOURCE_ENERGY] > 0) {
