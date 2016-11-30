@@ -79,9 +79,9 @@ var creep_combat = {
 						while (Game.flags[flagName + flagCounter]) {
 							if (!Game.flags[flagName + flagCounter].pos.lookFor(LOOK_CREEPS)) {
 								creep.moveTo(Game.flags[flagName + flagCounter]);
+							} else {
+								flagCounter++;
 							}
-						} else {
-							flagCounter++;
 						}
 					}
 				}
