@@ -10,6 +10,35 @@ var spawn_BuildCreeps = {
 		//var builders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'builder');
 		//var upgraders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'upgrader');
 
+		var harvesterMax = 2;
+		var builderMax = 1;
+		var upgraderMax = 2;
+		//How many creeps can mine at once
+		var mineSpots = [];
+		//Add sources from N to S
+		var strSources = [];
+		var assignedSlot1;
+
+		switch (thisRoom.name) {
+				//two sources
+				harvesterMax = 2;
+				//Source[1] is more accessable
+				strSources.push('57ef9db786f108ae6e60e2a5', '57ef9db786f108ae6e60e2a7');
+				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+				builderMax = 1;
+				UpgraderMax = 2;
+				break;
+			case 'E4N61':
+				//two sources
+				harvesterMax = 2;
+				//Source[1] is more accessable
+				strSources.push('57ef9dba86f108ae6e60e2f8', '57ef9dba86f108ae6e60e2fa');
+				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+				builderMax = 1;
+				UpgraderMax = 2;
+				break;
+		}
+
 		var bareMinConfig = [WORK, CARRY, MOVE];
 
 		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
@@ -58,7 +87,7 @@ var spawn_BuildCreeps = {
 							break;
 					}
 					remainingEnergy = remainingEnergy - 250;
-					if (totalParts >= 50){
+					if (totalParts >= 50) {
 						break;
 					}
 				}
@@ -95,19 +124,28 @@ var spawn_BuildCreeps = {
 				});
 			}
 
-		} else if ((harvesters.length < 3 || builders.length < 1 || upgraders.length < 2) && spawn.canCreateCreep(bestWorker) == OK) {
+		} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax) && spawn.canCreateCreep(bestWorker) == OK) {
 			var prioritizedRole = 'harvester';
-			if (harvesters.length < 3) {
+			if (harvesters.length < harvesterMax) {
 				prioritizedRole = 'harvester';
-			} else if (upgraders.length < 2) {
+			} else if (upgraders.length < upgraderMax) {
 				prioritizedRole = 'upgrader';
-			} else if (builders.length < 1) {
+			} else if (builders.length < builderMax) {
 				prioritizedRole = 'builder';
 			}
 
+			var creepSourceID = '';
+			if ((assignedSlot1.length) > Math.ceil(mineSpots[0] * 1.2)) {
+				//Assign spot 2
+				creepSourceID = strSources[1];
+			} else {
+				//Assign spot 1
+				creepSourceID = strSources[0];
+			}
 			spawn.createCreep(bestWorker, undefined, {
 				priority: prioritizedRole,
-				fromSpawn: spawn
+				fromSpawn: spawn,
+				sourceLocation: creepSourceID
 			});
 		}
 	}
