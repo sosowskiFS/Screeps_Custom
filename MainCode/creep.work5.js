@@ -73,25 +73,18 @@ var creep_work5 = {
         } else if (creep.memory.priority == 'mule') {
             if (_.sum(creep.carry) == 0) {
                 creep.memory.structureTarget = undefined;
-                var sources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 10);
-                if (sources.length > 0) {
-                    if (creep.pickup(sources[0]) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources[0]);
-                    }
-                } else {
-                    var storageTarget = Game.getObjectById(creep.memory.storageSource);
-                    if (storageTarget) {
-                        if (storageTarget.store[RESOURCE_ENERGY] > 0) {
-                            //Get from container
-                            if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(storageTarget);
-                            }
-                        } else {
-                            if (!creep.pos.isNearTo(storageTarget)) {
-                                creep.moveTo(storageTarget);
-                            }
-
+                var storageTarget = Game.getObjectById(creep.memory.storageSource);
+                if (storageTarget) {
+                    if (storageTarget.store[RESOURCE_ENERGY] > 0) {
+                        //Get from container
+                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(storageTarget);
                         }
+                    } else {
+                        if (!creep.pos.isNearTo(storageTarget)) {
+                            creep.moveTo(storageTarget);
+                        }
+
                     }
                 }
             } else if (_.sum(creep.carry) > 0) {
