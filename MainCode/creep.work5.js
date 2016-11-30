@@ -73,18 +73,26 @@ var creep_work5 = {
         } else if (creep.memory.priority == 'mule') {
             if (_.sum(creep.carry) == 0) {
                 creep.memory.structureTarget = undefined;
-                var storageTarget = Game.getObjectById(creep.memory.storageSource);
-                if (storageTarget) {
-                    if (storageTarget.store[RESOURCE_ENERGY] > 0) {
-                        //Get from container
-                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(storageTarget);
-                        }
-                    } else {
-                        if (!creep.pos.isNearTo(storageTarget)) {
-                            creep.moveTo(storageTarget);
-                        }
+                var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+                if (sources) {
+                    //If it ain't worth pickin' up, fuck it.
+                    if (sources.amount < 50) {
+                        sources = undefined;
+                    }
+                } else {
+                    var storageTarget = Game.getObjectById(creep.memory.storageSource);
+                    if (storageTarget) {
+                        if (storageTarget.store[RESOURCE_ENERGY] > 0) {
+                            //Get from container
+                            if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(storageTarget);
+                            }
+                        } else {
+                            if (!creep.pos.isNearTo(storageTarget)) {
+                                creep.moveTo(storageTarget);
+                            }
 
+                        }
                     }
                 }
             } else if (_.sum(creep.carry) > 0) {
@@ -130,7 +138,7 @@ var creep_work5 = {
                     } else {
                         targets3 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
-                                return (structure.structureType == STRUCTURE_TOWER) && ((structure.energyCapacity - structure.energy) >= 300)  ;
+                                return (structure.structureType == STRUCTURE_TOWER) && ((structure.energyCapacity - structure.energy) >= 300);
                             }
                         });
                         if (targets3) {
