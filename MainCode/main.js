@@ -126,7 +126,7 @@ module.exports.loop = function() {
             switch (thisRoom.name) {
                 case 'E3N61':
                     towerList = Memory.E3N61Towers;
-                    improveMax = E3N61ImproveMax
+                    improveMax = Memory.E3N61ImproveMax
                     var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
                     if (sendLink) {
@@ -137,7 +137,7 @@ module.exports.loop = function() {
                     break;
                 case 'E4N61':
                     towerList = Memory.E4N61Towers;
-                    improveMax = E4N61ImproveMax
+                    improveMax = Memory.E4N61ImproveMax
                     break;
             }
             if (towerList) {
