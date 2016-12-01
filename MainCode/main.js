@@ -33,8 +33,10 @@ Memory.roomsUnderAttack = [];
 Memory.roomsReadyFor5 = ['E3N61'];
 Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
 Memory.E3N61ImproveMax = 400000;
+Memory.E3N61RepairRange = 20;
 Memory.E4N61Towers = ['583fb149392f104960ed133f'];
 Memory.E4N61ImproveMax = 100000;
+Memory.E4N61RepairRange = 50;
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 
 const profiler = require('screeps-profiler');
@@ -123,10 +125,12 @@ module.exports.loop = function() {
             }*/
             var towerList;
             var improveMax = 0;
+            var repairRange = 20;
             switch (thisRoom.name) {
                 case 'E3N61':
                     towerList = Memory.E3N61Towers;
-                    improveMax = Memory.E3N61ImproveMax
+                    improveMax = Memory.E3N61ImproveMax;
+                    repairRange = Memory.E3N61RepairRange;
                     var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
                     if (sendLink) {
@@ -138,13 +142,14 @@ module.exports.loop = function() {
                 case 'E4N61':
                     towerList = Memory.E4N61Towers;
                     improveMax = Memory.E4N61ImproveMax
+                    repairRange = Memory.E4N61RepairRange;
                     break;
             }
             if (towerList) {
                 if (towerList.length > 0) {
                     towerList.forEach(function(thisTower) {
                         //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        tower_Operate.run(thisTower, improveMax, thisRoom);
+                        tower_Operate.run(thisTower, improveMax, thisRoom, repairRange);
                     });
                 }
             }
