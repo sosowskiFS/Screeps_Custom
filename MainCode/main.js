@@ -32,6 +32,9 @@ Memory.roomsUnderAttack = [];
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61'];
 Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
+Memory.E3N61ImproveMax = 400000;
+Memory.E4N61Towers = ['583fb149392f104960ed133f'];
+Memory.E4N61ImproveMax = 100000;
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 
 const profiler = require('screeps-profiler');
@@ -119,9 +122,11 @@ module.exports.loop = function() {
                 });
             }*/
             var towerList;
+            var improveMax = 0;
             switch (thisRoom.name) {
                 case 'E3N61':
                     towerList = Memory.E3N61Towers;
+                    improveMax = E3N61ImproveMax
                     var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
                     if (sendLink) {
@@ -130,12 +135,16 @@ module.exports.loop = function() {
                         }
                     }
                     break;
+                case 'E4N61':
+                    towerList = Memory.E4N61Towers;
+                    improveMax = E4N61ImproveMax
+                    break;
             }
             if (towerList) {
                 if (towerList.length > 0) {
                     towerList.forEach(function(thisTower) {
                         //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        tower_Operate.run(thisTower, 300000, thisRoom);
+                        tower_Operate.run(thisTower, improveMax, thisRoom);
                     });
                 }
             }
