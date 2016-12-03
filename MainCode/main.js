@@ -15,7 +15,6 @@ var creep_constructor = require('creep.constructor');
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
 var spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
 var spawn_BuildInstruction = require('spawn.BuildInstruction');
-var previousEnergyCap = -1;
 var bestWorkerConfig = [WORK, CARRY, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
 
@@ -32,12 +31,14 @@ Memory.roomsUnderAttack = [];
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61'];
 Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
-Memory.E3N61ImproveMax = 400000;
+Memory.E3N61ImproveMax = 500000;
 Memory.E3N61RepairRange = 20;
-Memory.E4N61Towers = ['583fb149392f104960ed133f'];
-Memory.E4N61ImproveMax = 100000;
-Memory.E4N61RepairRange = 50;
+Memory.E3N61EnergyCap = -1;
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
+Memory.E4N61Towers = ['583fb149392f104960ed133f'];
+Memory.E4N61ImproveMax = 45000;
+Memory.E4N61RepairRange = 50;
+Memory.E4N61EnergyCap = -1;
 
 const profiler = require('screeps-profiler');
 
@@ -97,9 +98,20 @@ module.exports.loop = function() {
             }
 
             //Update creep configs if energy cap has changed
-            if (thisRoom.energyCapacityAvailable != previousEnergyCap && Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
-                previousEnergyCap = thisRoom.energyCapacityAvailable;
-                recalculateBestWorker();
+            if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+                var previousEnergyCap = -1;
+                switch (thisRoom.name) {
+                    case 'E4N61':
+                        previousEnergyCap = Memory.E4N61EnergyCap;
+                }
+                if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
+                    previousEnergyCap = thisRoom.energyCapacityAvailable;
+                    recalculateBestWorker(previousEnergyCap);
+                    switch (thisRoom.name) {
+                        case 'E4N61':
+                            Memory.E4N61EnergyCap = previousEnergyCap;
+                    }
+                }
             }
 
             //Expansion not finished : Low priority. Can do manually for now.
@@ -193,7 +205,7 @@ module.exports.loop = function() {
     });
 }
 
-function recalculateBestWorker() {
+function recalculateBestWorker(thisEnergyCap) {
     //Move : 50
     //Work : 100
     //Carry : 50 (50 resource/per)
@@ -204,7 +216,7 @@ function recalculateBestWorker() {
     //Tough : 10
 
     //1 Full balanced worker module : MOVE, CARRY, WORK - 200pts
-    var EnergyRemaining = previousEnergyCap;
+    var EnergyRemaining = thisEnergyCap;
     bestWorkerConfig = [];
     while ((EnergyRemaining / 200) >= 1 || bestWorkerConfig.length >= 50) {
         bestWorkerConfig.push(MOVE, CARRY, WORK);
