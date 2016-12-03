@@ -167,6 +167,7 @@ var spawn_BuildCreeps5 = {
 				prioritizedRole = 'mule';
 				storageID = strStorage[0];
 				connectedLink = strLinks[1];
+				creepSource = strTerminal[0];
 			} else if (upgraders.length < upgraderMax) {
 				prioritizedRole = 'upgrader';
 				storageID = strStorage[0];
@@ -191,6 +192,7 @@ var spawn_BuildCreeps5 = {
 					priority: prioritizedRole,
 					linkSource: connectedLink,
 					storageSource: storageID,
+					terminalID: creepSource,
 					fromSpawn: spawn
 				});
 			} else if (prioritizedRole == 'upgrader') {

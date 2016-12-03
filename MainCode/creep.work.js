@@ -44,7 +44,9 @@ var creep_work = {
 				//site ID changes when construction is complete, simply check if valid.
 			if (savedTarget) {
 				if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(savedTarget, {reusePath:20});
+					creep.moveTo(savedTarget, {
+						reusePath: 20
+					});
 				} else {
 					creep.memory.structureTarget = undefined;
 				}
@@ -53,7 +55,9 @@ var creep_work = {
 				if (targets) {
 					creep.memory.structureTarget = targets.id;
 					if (creep.build(targets) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(targets, {reusePath:20});
+						creep.moveTo(targets, {
+							reusePath: 20
+						});
 					}
 				} else {
 					//Store in container
@@ -152,7 +156,9 @@ var creep_work = {
 
 		} else if (creep.memory.upgrading) {
 			if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-				creep.moveTo(creep.room.controller, {reusePath:20});
+				creep.moveTo(creep.room.controller, {
+					reusePath: 20
+				});
 			}
 		} else {
 			//Harvest
@@ -161,7 +167,9 @@ var creep_work = {
 				if (savedTarget.structureType == STRUCTURE_CONTAINER || savedTarget.structureType == STRUCTURE_STORAGE) {
 					if (savedTarget.store[RESOURCE_ENERGY] > 0) {
 						if (creep.withdraw(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(savedTarget, {reusePath:20});
+							creep.moveTo(savedTarget, {
+								reusePath: 20
+							});
 						}
 					} else {
 						creep.memory.structureTarget = undefined;
@@ -234,7 +242,9 @@ var creep_work = {
 					}
 					var harvestResult = creep.harvest(sources);
 					if (harvestResult == ERR_NOT_IN_RANGE) {
-						creep.moveTo(sources, {reusePath:20});
+						creep.moveTo(sources, {
+							reusePath: 20
+						});
 					} else if (harvestResult == ERR_INVALID_TARGET) {
 						if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(sources);
