@@ -1,5 +1,5 @@
 var tower_Operate = {
-    run: function(tower, improveMax, thisRoom, repairRange) {
+    run: function(tower, thisRoom, repairRange) {
         var thisTower = Game.getObjectById(tower);
 
         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
@@ -10,8 +10,9 @@ var tower_Operate = {
             }
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
             //Save 50% of the tower's energy to use on repelling attackers
+            //Only maintain roads
             var closestDamagedStructure = thisTower.pos.findInRange(FIND_STRUCTURES, repairRange, {
-                filter: (structure) => (structure.hits < structure.hitsMax) && (structure.hits < improveMax) && (structure.hitsMax - structure.hits >= 200)
+                filter: (structure) => (structure.structureType == STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
             });
             if (closestDamagedStructure.length > 0) {
                 //Sort so lowest hitpoints is on top

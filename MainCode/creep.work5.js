@@ -200,6 +200,54 @@ var creep_work5 = {
                     }
                 }
             }
+        } else if (creep.memory.priority == 'repair') {
+            if (_.sum(creep.carry) == 0) {
+                creep.memory.structureTarget == undefined;
+                //Get from storage
+                var storageTarget = Game.getObjectById(creep.memory.storageSource);
+                if (storageTarget) {
+                    if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
+                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(storageTarget, {
+                                reusePath: 20
+                            });
+                        }
+                    } else {
+                        if (!creep.pos.isNearTo(storageTarget)) {
+                            creep.moveTo(storageTarget, {
+                                reusePath: 20
+                            });
+                        }
+                    }
+                }
+            } else if (creep.memory.structureTarget) {
+                var thisStructure = Game.getObjectById(creep.memory.structureTarget);
+                if (thisStructure) {
+                    if (thisStructure.hits == thisStructure.hitsMax) {
+                        creep.memory.structureTarget = undefined;
+                    } else {
+                        if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(thisStructure, {
+                                reusePath: 20
+                            });
+                        }
+                    }
+                }
+            } else {
+                var closestDamagedStructure = creep.room.find(FIND_STRUCTURES {
+                    filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+                });
+                if (closestDamagedStructure.length > 0) {
+                    closestDamagedStructure.sort(repairCompare);
+                    creep.memory.structureTarget = closestDamagedStructure[0].id;
+                    if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(closestDamagedStructure[0], {
+                            reusePath: 20
+                        });
+                    }
+                }
+            }
+
         } else if (creep.memory.priority == 'mineralMiner') {
             var thisMineral = Game.getObjectById(creep.memory.mineralID);
             if (thisMineral.mineralAmount == 0) {
@@ -230,3 +278,11 @@ var creep_work5 = {
 };
 
 module.exports = creep_work5;
+
+function repairCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}

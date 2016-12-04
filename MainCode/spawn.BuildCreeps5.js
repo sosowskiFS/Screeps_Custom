@@ -9,10 +9,12 @@ var spawn_BuildCreeps5 = {
 		var mules = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mule'); //Stores in spawn/towers, builds, upgrades
 		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader'); //Kinda important, and stuff.
 		var mineralMiners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mineralMiner');
+		var repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
 
 		var minerMax = 2;
 		var muleMax = 1;
 		var upgraderMax = 2;
+		var repairMax = 1;
 		var strSources = [];
 		var strLinks = [];
 		var strStorage = [];
@@ -29,6 +31,7 @@ var spawn_BuildCreeps5 = {
 				muleMax = 2;
 				strStorage.push('58388a3dac3bed8a51188517');
 				UpgraderMax = 2;
+				repairMax = 1;
 				strMineral.push('57efa010195b160f02c752c6');
 				strTerminal.push('58424a6ef6e01c883e9feb4b');
 				strExtractor.push('58412458eebbe1bc1d83c710');
@@ -143,7 +146,7 @@ var spawn_BuildCreeps5 = {
 				});
 			}
 
-		} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK)) {
+		} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK)) {
 			var prioritizedRole = 'miner';
 			var creepSource = '';
 			var connectedLink = '';
@@ -172,6 +175,9 @@ var spawn_BuildCreeps5 = {
 				prioritizedRole = 'upgrader';
 				storageID = strStorage[0];
 				connectedLink = strLinks[1];
+			} else if (repairers.length < repairMax) {
+				prioritizedRole = 'repair';
+				storageID = strStorage[0];
 			} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0) {
 				prioritizedRole = 'mineralMiner';
 				storageID = strTerminal[0];
@@ -199,6 +205,12 @@ var spawn_BuildCreeps5 = {
 				spawn.createCreep(minerConfig, undefined, {
 					priority: prioritizedRole,
 					linkSource: connectedLink,
+					storageSource: storageID,
+					fromSpawn: spawn
+				});
+			} else if (prioritizedRole == 'repair') {
+				spawn.createCreep(muleConfig, undefined, {
+					priority: prioritizedRole,
 					storageSource: storageID,
 					fromSpawn: spawn
 				});
