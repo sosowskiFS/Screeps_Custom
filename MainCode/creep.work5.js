@@ -170,7 +170,7 @@ var creep_work5 = {
                             if (terminalTarget) {
                                 if (terminalTarget.store[RESOURCE_ENERGY] < 10000) {
                                     creep.memory.structureTarget = terminalTarget;
-                                    if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                    if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(terminalTarget, {
                                             reusePath: 20
                                         });
