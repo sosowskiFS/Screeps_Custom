@@ -206,7 +206,7 @@ var creep_work5 = {
                 //Get from storage
                 var storageTarget = Game.getObjectById(creep.memory.storageSource);
                 if (storageTarget) {
-                    if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
+                    if (storageTarget.store[RESOURCE_ENERGY] >= 120) {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(storageTarget, {
                                 reusePath: 20
