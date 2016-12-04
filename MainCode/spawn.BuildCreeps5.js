@@ -37,7 +37,7 @@ var spawn_BuildCreeps5 = {
 
 		var roomMineral = Game.getObjectById(strMineral[0]);
 
-		if (storageMiners.length == 0 && upgradeMiners.length > 0) {
+		if (storageMiners.length == 0 && upgradeMiners.length > 0 && thisRoom.energyAvailable < 900) {
 			//reassign upgrade miner
 			upgradeMiners[0].drop(RESOURCE_ENERGY);
 			upgradeMiners[0].memory.jobSpecific = 'storageMiner';
