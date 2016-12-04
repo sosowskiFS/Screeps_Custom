@@ -67,7 +67,7 @@ var spawn_BuildCreeps5 = {
 				priority: 'harvester'
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			if (thisRoom.energyAvailable >= 400) {
+			if (thisRoom.energyAvailable >= 950) {
 				//Try to produce millitary units
 
 				//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -92,7 +92,7 @@ var spawn_BuildCreeps5 = {
 				var totalParts = 0;
 
 				var remainingEnergy = thisRoom.energyAvailable;
-				while ((remainingEnergy / 400) >= 1) {
+				while ((remainingEnergy / 950) >= 1) {
 					switch (ChosenPriority) {
 						case 'melee':
 							ToughCount = ToughCount + 1;
@@ -152,7 +152,12 @@ var spawn_BuildCreeps5 = {
 			var connectedLink = '';
 			var storageID = '';
 			var jobSpecificPri = '';
-			if (miners.length < minerMax) {
+			if (miners.length == 1 && mules.length == 0) {
+				prioritizedRole = 'mule';
+				storageID = strStorage[0];
+				connectedLink = strLinks[1];
+				creepSource = strTerminal[0];
+			} else if (miners.length < minerMax) {
 				prioritizedRole = 'miner';
 				switch (storageMiners.length) {
 					case 0:

@@ -168,7 +168,7 @@ var creep_work5 = {
                             //Store in terminal
                             terminalTarget = Game.getObjectById(creep.memory.terminalID)
                             if (terminalTarget) {
-                                if (terminalTarget.store[RESOURCE_ENERGY] < 10000) {
+                                if (terminalTarget.store[RESOURCE_ENERGY] < 50000) {
                                     creep.memory.structureTarget = terminalTarget;
                                     if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(terminalTarget, {
@@ -202,7 +202,7 @@ var creep_work5 = {
             }
         } else if (creep.memory.priority == 'repair') {
             if (_.sum(creep.carry) == 0) {
-                creep.memory.structureTarget == undefined;
+                creep.memory.structureTarget = undefined;
                 //Get from storage
                 var storageTarget = Game.getObjectById(creep.memory.storageSource);
                 if (storageTarget) {
