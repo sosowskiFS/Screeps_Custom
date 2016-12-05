@@ -17,11 +17,11 @@ var creep_combat = {
 				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 				if (Foe[0]) {
 					creep.say('REEEEEEEEE', true);
-					if (creep.pos.getRangeTo(Foe) > 1) {
-						creep.moveTo(Foe);
-						creep.attack(Foe);
+					if (creep.pos.getRangeTo(Foe[0]) > 1) {
+						creep.moveTo(Foe[0]);
+						creep.attack(Foe[0]);
 					} else {
-						creep.attack(Foe);
+						creep.attack(Foe[0]);
 					}
 				} else {
 					//Move towards rampart
@@ -64,16 +64,16 @@ var creep_combat = {
 				if (FoeTooClose[0]) {
 					//Target getting into melee range, kite it.
 					creep.moveTo(thisRoom.controller);
-					creep.rangedMassAttack();
+					creep.rangedAttack(FoeTooClose[0]);
 				} else {
 					var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
 					if (Foe[0]) {
 						creep.say('REEEEEEEEE', true);
-						if (creep.pos.getRangeTo(Foe) > 3) {
-							creep.moveTo(Foe);
-							creep.rangedAttack(Foe);
+						if (creep.pos.getRangeTo(Foe[0]) > 3) {
+							creep.moveTo(Foe[0]);
+							creep.rangedAttack(Foe[0]);
 						} else {
-							creep.rangedAttack(Foe);
+							creep.rangedAttack(Foe[0]);
 						}
 					} else {
 						//Move towards rampart

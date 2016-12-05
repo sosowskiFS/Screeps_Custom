@@ -67,7 +67,10 @@ var spawn_BuildCreeps5 = {
 				priority: 'harvester'
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			if (thisRoom.energyAvailable >= 950) {
+			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
+				//Produce a salvager unit to pick up the dropped resources
+				
+			} else if (thisRoom.energyAvailable >= 950) {
 				//Try to produce millitary units
 
 				//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250

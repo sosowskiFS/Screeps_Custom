@@ -27,6 +27,7 @@ var tower_Operate = require('tower.Operate');
 
 //Initalize Memory vars
 Memory.roomsUnderAttack = [];
+Memory.roomsPrepSalvager = [];
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61'];
@@ -88,10 +89,17 @@ module.exports.loop = function() {
             var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
             if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
+                if (hostiles[0].owner == 'Invader') {
+                    Memory.roomsPrepSalvager.push(thisRoom.name);
+                }
             } else if (hostiles.length == 0) {
                 var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+                var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
                 if (UnderAttackPos >= 0) {
                     Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+                }
+                if (salvagerPos >= 0) {
+                    Memory.roomsPrepSalvager.splice(salvagerPos, 1);
                 }
             }
 

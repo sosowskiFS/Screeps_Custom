@@ -11,8 +11,8 @@ var creep_work5 = {
         }*/
 
         if (creep.memory.priority == 'miner') {
-            //React at 120 so that the creep doesn't drop any resources on the ground
-            if (_.sum(creep.carry) < 120) {
+            //React at 144 so that the creep doesn't drop any resources on the ground
+            if (_.sum(creep.carry) < 144) {
                 var savedTarget = Game.getObjectById(creep.memory.mineSource);
                 if (savedTarget) {
                     if (creep.harvest(savedTarget) == ERR_NOT_IN_RANGE) {
@@ -31,7 +31,7 @@ var creep_work5 = {
                         }
                     }
                 }
-            } else if (_.sum(creep.carry) >= 120) {
+            } else if (_.sum(creep.carry) >= 144) {
                 var savedTarget = Game.getObjectById(creep.memory.linkSource);
                 if (savedTarget) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
