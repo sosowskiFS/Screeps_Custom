@@ -175,8 +175,11 @@ var creep_work5 = {
                                             reusePath: 20
                                         });
                                     }
+                                } else {
+                                    terminalTarget = undefined;
                                 }
-                            } else {
+                            }
+                            if (!terminalTarget) {
                                 //Build
                                 var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                                 if (targets2) {
