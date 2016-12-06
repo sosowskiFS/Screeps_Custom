@@ -42,7 +42,7 @@ var spawn_BuildCreeps = {
 				break;
 		}
 
-		var bareMinConfig = [WORK, CARRY, MOVE];
+		var bareMinConfig = [WORK, WORK, CARRY, MOVE];
 
 		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
