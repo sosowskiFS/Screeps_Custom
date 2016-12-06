@@ -30,11 +30,13 @@ Memory.roomsUnderAttack = [];
 Memory.roomsPrepSalvager = [];
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
-Memory.roomsReadyFor5 = ['E3N61'];
+Memory.roomsReadyFor5 = ['E3N61', 'E4N61'];
 Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
 Memory.E3N61RepairRange = 20;
 Memory.E3N61EnergyCap = -1;
+//Format - [0] = send [1] = receive
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
+Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
 Memory.E4N61Towers = ['583fb149392f104960ed133f'];
 Memory.E4N61RepairRange = 50;
 Memory.E4N61EnergyCap = -1;
@@ -158,6 +160,13 @@ module.exports.loop = function() {
                 case 'E4N61':
                     towerList = Memory.E4N61Towers;
                     repairRange = Memory.E4N61RepairRange;
+                    var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
+                    var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
+                    if (sendLink) {
+                        if (sendLink.energy >= 120 && sendLink.cooldown == 0) {
+                            sendLink.transferEnergy(receiveLink);
+                        }
+                    }
                     break;
             }
             if (towerList) {
@@ -168,12 +177,9 @@ module.exports.loop = function() {
                     });
                 }
             }
-
-            //Create hardcoded list of links that have to send energy in each room, and handle them
         }
 
         //Globally controlls all creeps in all rooms
-
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
             if (creep.memory.priority == 'claimer') {

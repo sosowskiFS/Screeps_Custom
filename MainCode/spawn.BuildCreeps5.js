@@ -21,6 +21,7 @@ var spawn_BuildCreeps5 = {
 		var strMineral = [];
 		var strTerminal = [];
 		var strExtractor = [];
+		var readyForMineral = false;
 
 		switch (thisRoom.name) {
 			case 'E3N61':
@@ -35,7 +36,20 @@ var spawn_BuildCreeps5 = {
 				strMineral.push('57efa010195b160f02c752c6');
 				strTerminal.push('58424a6ef6e01c883e9feb4b');
 				strExtractor.push('58412458eebbe1bc1d83c710');
+				readyForMineral = true;
 				break;
+			case 'E4N61':
+				minerMax = 2;
+				muleMax = 2;
+				UpgraderMax = 2;
+				repairMax = 1;
+				strSources.push('57ef9dba86f108ae6e60e2f8', '57ef9dba86f108ae6e60e2fa');
+				strLinks.push('5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50');
+				strStorage.push('5842a7fa4d4fac0a066fbd05');
+				strMineral.push('57efa010195b160f02c752d5');
+				strTerminal.push('NO');
+				strExtractor.push('NO');
+				readyForMineral = false;
 		}
 
 		var roomMineral = Game.getObjectById(strMineral[0]);
@@ -149,7 +163,7 @@ var spawn_BuildCreeps5 = {
 				});
 			}
 
-		} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK)) {
+		} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral)) {
 			var prioritizedRole = 'miner';
 			var creepSource = '';
 			var connectedLink = '';
@@ -186,7 +200,7 @@ var spawn_BuildCreeps5 = {
 			} else if (repairers.length < repairMax) {
 				prioritizedRole = 'repair';
 				storageID = strStorage[0];
-			} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0) {
+			} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral) {
 				prioritizedRole = 'mineralMiner';
 				storageID = strTerminal[0];
 				creepSource = strMineral[0];
