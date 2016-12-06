@@ -40,7 +40,7 @@ var spawn_BuildCreeps5 = {
 				break;
 			case 'E4N61':
 				minerMax = 2;
-				muleMax = 2;
+				muleMax = 1;
 				UpgraderMax = 2;
 				repairMax = 1;
 				strSources.push('57ef9dba86f108ae6e60e2f8', '57ef9dba86f108ae6e60e2fa');
@@ -68,7 +68,8 @@ var spawn_BuildCreeps5 = {
 			//In case of complete destruction, make a minimum viable worker
 			//Make sure 5+ work code has harvester backup path
 			spawn.createCreep(bareMinConfig, undefined, {
-				priority: 'harvester'
+				priority: 'harvester',
+				sourceLocation: strSources[1]
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {

@@ -47,7 +47,8 @@ var spawn_BuildCreeps = {
 		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
 			spawn.createCreep(bareMinConfig, undefined, {
-				priority: 'harvester'
+				priority: 'harvester', 
+				sourceLocation: strSources[1]
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 			if (thisRoom.energyAvailable >= 400) {
