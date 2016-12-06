@@ -11,12 +11,24 @@ var creep_work5 = {
         }*/
 
         if (creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
-            if (creep.ticksToLive <= 60){
+            if (creep.ticksToLive <= 60) {
                 creep.memory.priority = 'minerNearDeath';
                 creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
             }
-            //React at 144 so that the creep doesn't drop any resources on the ground
-            if (_.sum(creep.carry) < 144) {
+            //Creep will immediately harvest and store mined materials
+            var storageTarget = Game.getObjectById(creep.memory.linkSource);
+            var mineTarget = Game.getObjectById(creep.memory.mineSource);
+            if (mineTarget && storageTarget) {
+                if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(mineTarget, {
+                        reusePath: 20
+                    });
+                } else {
+                    creep.transfer(storageTarget RESOURCE_ENERGY)
+                }
+            }
+
+            /*if (_.sum(creep.carry) < 144) {
                 var savedTarget = Game.getObjectById(creep.memory.mineSource);
                 if (savedTarget) {
                     if (creep.harvest(savedTarget) == ERR_NOT_IN_RANGE) {
@@ -43,9 +55,9 @@ var creep_work5 = {
                         creep.moveTo(savedTarget);
                     }
                 }
-            }
+            }*/
         } else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
-            if (creep.ticksToLive <= 60){
+            if (creep.ticksToLive <= 60) {
                 creep.memory.priority = 'upgraderNearDeath';
             }
 
@@ -91,7 +103,7 @@ var creep_work5 = {
                 }
             }
         } else if (creep.memory.priority == 'mule' || creep.memory.priority == 'muleNearDeath') {
-            if (creep.ticksToLive <= 60){
+            if (creep.ticksToLive <= 60) {
                 creep.memory.priority = 'muleNearDeath';
             }
             if (_.sum(creep.carry) == 0) {
@@ -215,7 +227,7 @@ var creep_work5 = {
                 }
             }
         } else if (creep.memory.priority == 'repair' || creep.memory.priority == 'repairNearDeath') {
-            if (creep.ticksToLive <= 60){
+            if (creep.ticksToLive <= 60) {
                 creep.memory.priority = 'repairNearDeath';
             }
 
