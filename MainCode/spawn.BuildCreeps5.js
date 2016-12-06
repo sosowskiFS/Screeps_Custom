@@ -62,7 +62,7 @@ var spawn_BuildCreeps5 = {
 		//2,200 Points
 		var mineralMinerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY]
 
-		var bareMinConfig = [WORK, WORK, CARRY, MOVE];
+		var bareMinConfig = [MOVE,MOVE,WORK,CARRY,CARRY];
 
 		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
