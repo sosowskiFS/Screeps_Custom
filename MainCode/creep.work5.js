@@ -24,7 +24,7 @@ var creep_work5 = {
                         reusePath: 20
                     });
                 } else {
-                    creep.transfer(storageTarget RESOURCE_ENERGY)
+                    creep.transfer(storageTarget, RESOURCE_ENERGY)
                 }
             }
 
