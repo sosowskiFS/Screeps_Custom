@@ -54,6 +54,16 @@ var spawn_BuildCreeps5 = {
 
 		var roomMineral = Game.getObjectById(strMineral[0]);
 
+		if (storageMiners.length == 0 && upgradeMiners.length > 0) {
+			//reassign upgrade miner
+			upgradeMiners[0].drop(RESOURCE_ENERGY);
+			upgradeMiners[0].memory.jobSpecific = 'storageMiner';
+			upgradeMiners[0].memory.linkSource = strStorage[0];
+			upgradeMiners[0].memory.mineSource = strSources[0];
+			upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
+			storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
+		}
+
 		//900 Points
 		var minerConfig = [CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
 		//950 Points
@@ -249,16 +259,6 @@ var spawn_BuildCreeps5 = {
 			}
 
 		}
-
-		/*if (storageMiners.length == 0 && upgradeMiners.length > 0) {
-			//reassign upgrade miner
-			upgradeMiners[0].drop(RESOURCE_ENERGY);
-			upgradeMiners[0].memory.jobSpecific = 'storageMiner';
-			upgradeMiners[0].memory.linkSource = strStorage[0];
-			upgradeMiners[0].memory.mineSource = strSources[0];
-			upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
-			storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
-		}*/
 	}
 };
 
