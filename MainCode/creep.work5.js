@@ -10,7 +10,11 @@ var creep_work5 = {
             }
         }*/
 
-        if (creep.memory.priority == 'miner') {
+        if (creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
+            if (creep.ticksToLive <= 60){
+                creep.memory.priority = 'minerNearDeath';
+                creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
+            }
             //React at 144 so that the creep doesn't drop any resources on the ground
             if (_.sum(creep.carry) < 144) {
                 var savedTarget = Game.getObjectById(creep.memory.mineSource);
@@ -40,7 +44,11 @@ var creep_work5 = {
                     }
                 }
             }
-        } else if (creep.memory.priority == 'upgrader') {
+        } else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
+            if (creep.ticksToLive <= 60){
+                creep.memory.priority = 'upgraderNearDeath';
+            }
+
             if (_.sum(creep.carry) == 0) {
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
                 if (linkTarget) {
@@ -82,7 +90,10 @@ var creep_work5 = {
                     });
                 }
             }
-        } else if (creep.memory.priority == 'mule') {
+        } else if (creep.memory.priority == 'mule' || creep.memory.priority == 'muleNearDeath') {
+            if (creep.ticksToLive <= 60){
+                creep.memory.priority = 'muleNearDeath';
+            }
             if (_.sum(creep.carry) == 0) {
                 creep.memory.structureTarget = undefined;
                 var storageTarget = Game.getObjectById(creep.memory.storageSource);
@@ -203,7 +214,11 @@ var creep_work5 = {
                     }
                 }
             }
-        } else if (creep.memory.priority == 'repair') {
+        } else if (creep.memory.priority == 'repair' || creep.memory.priority == 'repairNearDeath') {
+            if (creep.ticksToLive <= 60){
+                creep.memory.priority = 'repairNearDeath';
+            }
+
             if (_.sum(creep.carry) == 0) {
                 creep.memory.structureTarget = undefined;
                 //Get from storage

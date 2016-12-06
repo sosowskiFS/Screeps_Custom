@@ -91,7 +91,7 @@ module.exports.loop = function() {
             var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
             if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
-                if (hostiles[0].owner == 'Invader') {
+                if (hostiles[0].owner.username == 'Invader') {
                     Memory.roomsPrepSalvager.push(thisRoom.name);
                 }
             } else if (hostiles.length == 0) {
