@@ -62,193 +62,205 @@ var spawn_BuildCreeps5 = {
 		//2,200 Points
 		var mineralMinerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY]
 
-		var bareMinConfig = [MOVE,MOVE,WORK,CARRY,CARRY];
+		var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
 		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
 			//Make sure 5+ work code has harvester backup path
-			spawn.createCreep(bareMinConfig, undefined, {
-				priority: 'harvester',
-				sourceLocation: strSources[1]
-			});
-		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
-				//Produce a salvager unit to pick up the dropped resources
-
-			} else if (thisRoom.energyAvailable >= 950) {
-				//Try to produce millitary units
-
-				//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
-				//Ranged unit set: MOVE, MOVE, RANGED_ATTACK - 250
-
-				//Damaged modules do not work, put padding first.
-
-				var meleeUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'melee');
-				var rangedUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'ranged');
-
-				var ChosenPriority = '';
-				if (meleeUnits <= rangedUnits) {
-					ChosenPriority = 'melee';
-				} else {
-					ChosenPriority = 'ranged';
-				}
-
-				var ToughCount = 0;
-				var MoveCount = 0;
-				var AttackCount = 0;
-				var RangedCount = 0;
-				var totalParts = 0;
-
-				var remainingEnergy = thisRoom.energyAvailable;
-				while ((remainingEnergy / 950) >= 1) {
-					switch (ChosenPriority) {
-						case 'melee':
-							ToughCount = ToughCount + 1;
-							MoveCount = MoveCount + 2;
-							AttackCount = AttackCount + 3;
-							totalParts = totalParts + 6;
-							remainingEnergy = remainingEnergy - 350;
-							break;
-						case 'ranged':
-							MoveCount = MoveCount + 2;
-							RangedCount = RangedCount + 2;
-							totalParts = totalParts + 4;
-							remainingEnergy = remainingEnergy - 400;
-							break;
-					}
-
-					if (totalParts >= 50) {
-						break;
-					}
-				}
-
-				var ChosenCreepSet = [];
-				while (ToughCount > 0) {
-					ChosenCreepSet.push(TOUGH);
-					ToughCount--;
-				}
-				while (MoveCount > 1) {
-					ChosenCreepSet.push(MOVE);
-					MoveCount--;
-				}
-				while (AttackCount > 0) {
-					ChosenCreepSet.push(ATTACK);
-					AttackCount--;
-				}
-				while (RangedCount > 0) {
-					ChosenCreepSet.push(RANGED_ATTACK);
-					RangedCount--;
-				}
-
-				//Insert one move module last so the creep can still run
-				ChosenCreepSet.push(MOVE);
-
-				if (ChosenCreepSet.length > 50) {
-					while (ChosenCreepSet.length > 50) {
-						ChosenCreepSet.splice(0, 1)
-					}
-				}
-
-				spawn.createCreep(ChosenCreepSet, undefined, {
-					priority: ChosenPriority
-				});
-			}
-
-		} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral)) {
-			var prioritizedRole = 'miner';
-			var creepSource = '';
-			var connectedLink = '';
-			var storageID = '';
-			var jobSpecificPri = '';
-			if (miners.length == 1 && mules.length == 0) {
-				prioritizedRole = 'mule';
-				storageID = strStorage[0];
-				connectedLink = strLinks[1];
-				creepSource = strTerminal[0];
-			} else if (miners.length < minerMax) {
-				prioritizedRole = 'miner';
-				switch (storageMiners.length) {
-					case 0:
-						creepSource = strSources[0];
-						connectedLink = strStorage[0];
-						jobSpecificPri = 'storageMiner';
-						break;
-					case 1:
-						creepSource = strSources[1];
-						connectedLink = strLinks[0];
-						jobSpecificPri = 'upgradeMiner';
-						break;
-				}
-			} else if (mules.length < muleMax) {
-				prioritizedRole = 'mule';
-				storageID = strStorage[0];
-				connectedLink = strLinks[1];
-				creepSource = strTerminal[0];
-			} else if (upgraders.length < upgraderMax) {
-				prioritizedRole = 'upgrader';
-				storageID = strStorage[0];
-				connectedLink = strLinks[1];
-			} else if (repairers.length < repairMax) {
-				prioritizedRole = 'repair';
-				storageID = strStorage[0];
-			} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral) {
-				prioritizedRole = 'mineralMiner';
-				storageID = strTerminal[0];
-				creepSource = strMineral[0];
-				connectedLink = strExtractor[0];
-			}
-
-			if (prioritizedRole == 'miner') {
-				spawn.createCreep(minerConfig, undefined, {
-					priority: prioritizedRole,
-					mineSource: creepSource,
-					linkSource: connectedLink,
-					jobSpecific: jobSpecificPri,
-					fromSpawn: spawn
-				});
-			} else if (prioritizedRole == 'mule') {
-				spawn.createCreep(muleConfig, undefined, {
-					priority: prioritizedRole,
-					linkSource: connectedLink,
-					storageSource: storageID,
-					terminalID: creepSource,
-					fromSpawn: spawn
-				});
-			} else if (prioritizedRole == 'upgrader') {
-				spawn.createCreep(minerConfig, undefined, {
-					priority: prioritizedRole,
-					linkSource: connectedLink,
-					storageSource: storageID,
-					fromSpawn: spawn
-				});
-			} else if (prioritizedRole == 'repair') {
-				spawn.createCreep(muleConfig, undefined, {
-					priority: prioritizedRole,
-					storageSource: storageID,
+			if (Game.getObjectById(strStorage[0]).store[RESOURCE_ENERGY] >= 1100) {
+				//There's enough in storage for a minimum and a miner. Spawn a crappy mule
+				spawn.createCreep([MOVE,CARRY,CARRY], undefined, {
+					priority: 'mule',
+					linkSource: strLinks[1],
+					storageSource: strStorage[0],
+					terminalID: strTerminal[0],
 					fromSpawn: spawn
 				});
 			} else {
-				spawn.createCreep(mineralMinerConfig, undefined, {
-					priority: prioritizedRole,
-					terminalID: storageID,
-					mineralID: creepSource,
-					extractorID: connectedLink,
-					fromSpawn: spawn
+				spawn.createCreep(bareMinConfig, undefined, {
+					priority: 'harvester',
+					sourceLocation: strSources[1]
 				});
 			}
+		}
+	} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+		if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
+			//Produce a salvager unit to pick up the dropped resources
 
+		} else if (thisRoom.energyAvailable >= 950) {
+			//Try to produce millitary units
+
+			//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
+			//Ranged unit set: MOVE, MOVE, RANGED_ATTACK - 250
+
+			//Damaged modules do not work, put padding first.
+
+			var meleeUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'melee');
+			var rangedUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'ranged');
+
+			var ChosenPriority = '';
+			if (meleeUnits <= rangedUnits) {
+				ChosenPriority = 'melee';
+			} else {
+				ChosenPriority = 'ranged';
+			}
+
+			var ToughCount = 0;
+			var MoveCount = 0;
+			var AttackCount = 0;
+			var RangedCount = 0;
+			var totalParts = 0;
+
+			var remainingEnergy = thisRoom.energyAvailable;
+			while ((remainingEnergy / 950) >= 1) {
+				switch (ChosenPriority) {
+					case 'melee':
+						ToughCount = ToughCount + 1;
+						MoveCount = MoveCount + 2;
+						AttackCount = AttackCount + 3;
+						totalParts = totalParts + 6;
+						remainingEnergy = remainingEnergy - 350;
+						break;
+					case 'ranged':
+						MoveCount = MoveCount + 2;
+						RangedCount = RangedCount + 2;
+						totalParts = totalParts + 4;
+						remainingEnergy = remainingEnergy - 400;
+						break;
+				}
+
+				if (totalParts >= 50) {
+					break;
+				}
+			}
+
+			var ChosenCreepSet = [];
+			while (ToughCount > 0) {
+				ChosenCreepSet.push(TOUGH);
+				ToughCount--;
+			}
+			while (MoveCount > 1) {
+				ChosenCreepSet.push(MOVE);
+				MoveCount--;
+			}
+			while (AttackCount > 0) {
+				ChosenCreepSet.push(ATTACK);
+				AttackCount--;
+			}
+			while (RangedCount > 0) {
+				ChosenCreepSet.push(RANGED_ATTACK);
+				RangedCount--;
+			}
+
+			//Insert one move module last so the creep can still run
+			ChosenCreepSet.push(MOVE);
+
+			if (ChosenCreepSet.length > 50) {
+				while (ChosenCreepSet.length > 50) {
+					ChosenCreepSet.splice(0, 1)
+				}
+			}
+
+			spawn.createCreep(ChosenCreepSet, undefined, {
+				priority: ChosenPriority
+			});
 		}
 
-		/*if (storageMiners.length == 0 && upgradeMiners.length > 0) {
-			//reassign upgrade miner
-			upgradeMiners[0].drop(RESOURCE_ENERGY);
-			upgradeMiners[0].memory.jobSpecific = 'storageMiner';
-			upgradeMiners[0].memory.linkSource = strStorage[0];
-			upgradeMiners[0].memory.mineSource = strSources[0];
-			upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
-			storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
-		}*/
+	}elseif(((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral)) {
+		var prioritizedRole = 'miner';
+		var creepSource = '';
+		var connectedLink = '';
+		var storageID = '';
+		var jobSpecificPri = '';
+		if (miners.length == 1 && mules.length == 0) {
+			prioritizedRole = 'mule';
+			storageID = strStorage[0];
+			connectedLink = strLinks[1];
+			creepSource = strTerminal[0];
+		} else if (miners.length < minerMax) {
+			prioritizedRole = 'miner';
+			switch (storageMiners.length) {
+				case 0:
+					creepSource = strSources[0];
+					connectedLink = strStorage[0];
+					jobSpecificPri = 'storageMiner';
+					break;
+				case 1:
+					creepSource = strSources[1];
+					connectedLink = strLinks[0];
+					jobSpecificPri = 'upgradeMiner';
+					break;
+			}
+		} else if (mules.length < muleMax) {
+			prioritizedRole = 'mule';
+			storageID = strStorage[0];
+			connectedLink = strLinks[1];
+			creepSource = strTerminal[0];
+		} else if (upgraders.length < upgraderMax) {
+			prioritizedRole = 'upgrader';
+			storageID = strStorage[0];
+			connectedLink = strLinks[1];
+		} else if (repairers.length < repairMax) {
+			prioritizedRole = 'repair';
+			storageID = strStorage[0];
+		} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral) {
+			prioritizedRole = 'mineralMiner';
+			storageID = strTerminal[0];
+			creepSource = strMineral[0];
+			connectedLink = strExtractor[0];
+		}
+
+		if (prioritizedRole == 'miner') {
+			spawn.createCreep(minerConfig, undefined, {
+				priority: prioritizedRole,
+				mineSource: creepSource,
+				linkSource: connectedLink,
+				jobSpecific: jobSpecificPri,
+				fromSpawn: spawn
+			});
+		} else if (prioritizedRole == 'mule') {
+			spawn.createCreep(muleConfig, undefined, {
+				priority: prioritizedRole,
+				linkSource: connectedLink,
+				storageSource: storageID,
+				terminalID: creepSource,
+				fromSpawn: spawn
+			});
+		} else if (prioritizedRole == 'upgrader') {
+			spawn.createCreep(minerConfig, undefined, {
+				priority: prioritizedRole,
+				linkSource: connectedLink,
+				storageSource: storageID,
+				fromSpawn: spawn
+			});
+		} else if (prioritizedRole == 'repair') {
+			spawn.createCreep(muleConfig, undefined, {
+				priority: prioritizedRole,
+				storageSource: storageID,
+				fromSpawn: spawn
+			});
+		} else {
+			spawn.createCreep(mineralMinerConfig, undefined, {
+				priority: prioritizedRole,
+				terminalID: storageID,
+				mineralID: creepSource,
+				extractorID: connectedLink,
+				fromSpawn: spawn
+			});
+		}
+
 	}
+
+	/*if (storageMiners.length == 0 && upgradeMiners.length > 0) {
+		//reassign upgrade miner
+		upgradeMiners[0].drop(RESOURCE_ENERGY);
+		upgradeMiners[0].memory.jobSpecific = 'storageMiner';
+		upgradeMiners[0].memory.linkSource = strStorage[0];
+		upgradeMiners[0].memory.mineSource = strSources[0];
+		upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
+		storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
+	}*/
+}
 };
 
 module.exports = spawn_BuildCreeps5;
