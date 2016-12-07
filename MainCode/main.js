@@ -37,7 +37,7 @@ Memory.E3N61EnergyCap = -1;
 //Format - [0] = send [1] = receive
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
-Memory.E4N61Towers = ['583fb149392f104960ed133f'];
+Memory.E4N61Towers = ['583fb149392f104960ed133f', '584791ab582cb9b014b7957a'];
 Memory.E4N61RepairRange = 50;
 Memory.E4N61EnergyCap = -1;
 
