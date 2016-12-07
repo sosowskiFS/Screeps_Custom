@@ -24,7 +24,11 @@ var creep_work5 = {
                         reusePath: 20
                     });
                 } else {
-                    creep.transfer(storageTarget, RESOURCE_ENERGY)
+                    if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(storageTarget, {
+                            reusePath: 20
+                        });
+                    }
                 }
             }
         } else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
