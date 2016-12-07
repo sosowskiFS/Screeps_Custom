@@ -135,18 +135,15 @@ var creep_work5 = {
                                 //assumed OK, drop target
                                 creep.memory.structureTarget = undefined;
                             }
-                        } else {
-                            //Do repair for new ramparts
-                            if (creep.repair(savedTarget) == ERR_INVALID_TARGET) {
-                                //Upgrading controller
-                                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(creep.room.controller, {
-                                        reusePath: 20
-                                    });
-                                }
-                            } else if (creep.repair(savedTarget) != OK) {
-                                creep.memory.structureTarget = undefined;
+                        } else {                    
+                            //Upgrading controller
+                            if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(creep.room.controller, {
+                                    reusePath: 20
+                                });
                             }
+                            //Do repair for new ramparts
+                            creep.repair(savedTarget);
                         }
                     } else {
                         if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
