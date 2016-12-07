@@ -252,17 +252,9 @@ var creep_work5 = {
             if (thisMineral.mineralAmount == 0) {
                 //Nothing left to do
                 creep.suicide();
-            } else if (_.sum(creep.carry) >= 40) {
-                //Store in terminal
-                var savedTarget = Game.getObjectById(creep.memory.terminalID);
-                if (savedTarget) {
-                    if (creep.transfer(savedTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
-                        //This should never actually fire, if ideal.
-                        creep.moveTo(savedTarget);
-                    }
-                }
             } else {
-                //Mine
+                //Creep will immediately harvest and store mined materials
+                var storageTarget = Game.getObjectById(creep.memory.terminalID);
                 var thisExtractor = Game.getObjectById(creep.memory.extractorID);
                 if (thisExtractor.cooldown == 0) {
                     if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
@@ -270,6 +262,10 @@ var creep_work5 = {
                             reusePath: 20
                         });
                     }
+                }
+                if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
+                    //This should never actually fire, if ideal.
+                    creep.moveTo(storageTarget);
                 }
             }
         }
