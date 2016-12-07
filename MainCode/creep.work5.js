@@ -137,8 +137,8 @@ var creep_work5 = {
                             }
                         } else {                    
                             //Upgrading controller
-                            if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.controller, {
+                            if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(savedTarget, {
                                     reusePath: 20
                                 });
                             }
