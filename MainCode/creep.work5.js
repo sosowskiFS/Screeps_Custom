@@ -100,7 +100,7 @@ var creep_work5 = {
                     }
                 }
             } else if (_.sum(creep.carry) > 0) {
-                var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+                var savedTarget = creep.memory.structureTarget
 
                 if (savedTarget) {
                     if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
@@ -139,7 +139,7 @@ var creep_work5 = {
                         }
                     });
                     if (targets) {
-                        creep.memory.structureTarget = targets.id;
+                        creep.memory.structureTarget = targets;
                         if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(targets);
                         } else {
@@ -152,7 +152,7 @@ var creep_work5 = {
                             }
                         });
                         if (targets3) {
-                            creep.memory.structureTarget = targets3.id;
+                            creep.memory.structureTarget = targets3;
                             if (creep.transfer(targets3, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(targets3);
                             } else {
@@ -163,7 +163,7 @@ var creep_work5 = {
                             terminalTarget = Game.getObjectById(creep.memory.terminalID)
                             if (terminalTarget) {
                                 if (terminalTarget.store[RESOURCE_ENERGY] < 50000) {
-                                    creep.memory.structureTarget = terminalTarget.id;
+                                    creep.memory.structureTarget = terminalTarget;
                                     if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(terminalTarget, {
                                             reusePath: 20
@@ -177,7 +177,7 @@ var creep_work5 = {
                                 //Build
                                 var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                                 if (targets2) {
-                                    creep.memory.structureTarget = targets2.id;
+                                    creep.memory.structureTarget = targets2;
                                     if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(targets2, {
                                             reusePath: 20
@@ -185,7 +185,7 @@ var creep_work5 = {
                                     }
                                 } else {
                                     //Upgrade
-                                    creep.memory.structureTarget = creep.room.controller.id;
+                                    creep.memory.structureTarget = creep.room.controller;
                                     if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(creep.room.controller, {
                                             reusePath: 20
