@@ -98,7 +98,7 @@ var spawn_BuildCreeps5 = {
 					//Produce a salvager unit to pick up the dropped resources
 					spawn.createCreep([MOVE,MOVE,CARRY,CARRY,CARRY,CARRY], undefined, {
 						priority: 'salvager',
-						storageTarget: strStorage[0];
+						storageTarget: strStorage[0]
 					});
 				}
 			} else if (thisRoom.energyAvailable >= 950) {
