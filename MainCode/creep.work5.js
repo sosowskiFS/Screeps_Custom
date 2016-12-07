@@ -163,7 +163,7 @@ var creep_work5 = {
                             terminalTarget = Game.getObjectById(creep.memory.terminalID)
                             if (terminalTarget) {
                                 if (terminalTarget.store[RESOURCE_ENERGY] < 50000) {
-                                    creep.memory.structureTarget = terminalTarget;
+                                    creep.memory.structureTarget = terminalTarget.id;
                                     if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(terminalTarget, {
                                             reusePath: 20
