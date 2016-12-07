@@ -257,9 +257,7 @@ var creep_work5 = {
             var thisMineral = Game.getObjectById(creep.memory.mineralID);
             if (thisMineral.mineralAmount == 0) {
                 //Nothing left to do
-                if (thisSpawn.recycleCreep(creep) == ERR_NOT_IN_RANGE){
-                    creep.moveTo(thisSpawn);
-                }
+                creep.suicide();
             } else {
                 //Creep will immediately harvest and store mined materials
                 var storageTarget = Game.getObjectById(creep.memory.terminalID);
@@ -280,9 +278,7 @@ var creep_work5 = {
             var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
             if (!sources && _.sum(creep.carry) == 0) {
                 //There's nothing left to do
-                if (thisSpawn.recycleCreep(creep) == ERR_NOT_IN_RANGE){
-                    creep.moveTo(thisSpawn);
-                }
+                creep.suicide();
             } else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
                 if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(sources);
