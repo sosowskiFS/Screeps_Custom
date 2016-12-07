@@ -285,7 +285,7 @@ var creep_work5 = {
                 }
             }
             if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) == creep.carryCapacity) {
-                var storageTarget = Game.getObjectById(creep.memory.terminalID);
+                var storageTarget = Game.getObjectById(creep.memory.storageTarget);
                 if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(storageTarget);
                 }
