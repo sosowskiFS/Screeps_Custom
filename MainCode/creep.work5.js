@@ -127,6 +127,8 @@ var creep_work5 = {
                             creep.moveTo(savedTarget, {
                                 reusePath: 20
                             });
+                        } else if (creep.build(savedTarget) != OK) {
+                            creep.memory.structureTarget = undefined;
                         }
                     }
                 }
