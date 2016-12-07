@@ -32,29 +32,22 @@ var creep_work5 = {
                 creep.memory.priority = 'upgraderNearDeath';
             }
 
-            if (_.sum(creep.carry) == 0) {
-                var linkTarget = Game.getObjectById(creep.memory.linkSource);
-                if (linkTarget) {
-                    if (linkTarget.energy > 0) {
-                        if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(linkTarget, {
-                                reusePath: 20
-                            });
-                        }
-                    } else {
-                        //Get from storage instead
-                        var storageTarget = Game.getObjectById(creep.memory.storageSource);
-                        if (storageTarget) {
-                            if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
-                                if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(storageTarget, {
-                                        reusePath: 20
-                                    });
-                                }
-                            }
-                        }
+            if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                creep.moveTo(creep.room.controller, {
+                    reusePath: 20
+                });
+            }
+
+            var linkTarget = Game.getObjectById(creep.memory.linkSource);
+            if (linkTarget) {
+                if (linkTarget.energy > 0) {
+                    if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(linkTarget, {
+                            reusePath: 20
+                        });
                     }
                 } else {
+                    //Get from storage instead
                     var storageTarget = Game.getObjectById(creep.memory.storageSource);
                     if (storageTarget) {
                         if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
@@ -66,11 +59,16 @@ var creep_work5 = {
                         }
                     }
                 }
-            } else if (_.sum(creep.carry) > 0) {
-                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller, {
-                        reusePath: 20
-                    });
+            } else {
+                var storageTarget = Game.getObjectById(creep.memory.storageSource);
+                if (storageTarget) {
+                    if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
+                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(storageTarget, {
+                                reusePath: 20
+                            });
+                        }
+                    }
                 }
             }
         } else if (creep.memory.priority == 'mule' || creep.memory.priority == 'muleNearDeath') {

@@ -78,20 +78,18 @@ var creep_work = {
 				if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE) {
 					if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(savedTarget);
-					}
-					if (savedTarget.energy == savedTarget.energyCapacity) {
+					} else {
 						creep.memory.structureTarget = undefined;
 					}
 				} else {
 					if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(savedTarget);
-					}
-					if (savedTarget.store[RESOURCE_ENERGY] == savedTarget.storeCapacity) {
+					} else {
 						creep.memory.structureTarget = undefined;
 					}
 				}
-
-			} else {
+			}
+			if (!creep.memory.structureTarget) {
 				var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 					filter: (structure) => {
 						return (structure.structureType == STRUCTURE_EXTENSION ||
@@ -102,9 +100,7 @@ var creep_work = {
 					creep.memory.structureTarget = targets.id;
 					if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(targets);
-					}
-					if (targets.energy == targets.energyCapacity) {
-						//If container fills up on this tick, forget it.
+					} else {
 						creep.memory.structureTarget = undefined;
 					}
 				} else {
@@ -117,9 +113,7 @@ var creep_work = {
 						creep.memory.structureTarget = targets.id;
 						if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(targets);
-						}
-						if (targets.energy == targets.energyCapacity) {
-							//If container fills up on this tick, forget it.
+						} else {
 							creep.memory.structureTarget = undefined;
 						}
 					} else {
@@ -135,9 +129,7 @@ var creep_work = {
 							creep.memory.structureTarget = containers.id;
 							if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(containers);
-							}
-							if (containers.store[RESOURCE_ENERGY] == containers.storeCapacity) {
-								//If container fills up on this tick, forget it.
+							} else {
 								creep.memory.structureTarget = undefined;
 							}
 						} else if (creep.memory.priority == 'harvester') {
