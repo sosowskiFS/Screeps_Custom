@@ -29,7 +29,7 @@ var spawn_BuildCreeps5 = {
 				minerMax = 2;
 				strSources.push('57ef9db786f108ae6e60e2a5', '57ef9db786f108ae6e60e2a7');
 				strLinks.push('583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1');
-				muleMax = 2;
+				muleMax = 1;
 				strStorage.push('58388a3dac3bed8a51188517');
 				UpgraderMax = 2;
 				repairMax = 1;
