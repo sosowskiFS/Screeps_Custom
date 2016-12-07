@@ -46,7 +46,7 @@ var creep_work5 = {
                             reusePath: 20
                         });
                     }
-                } else {
+                } else if (creep.carry.energy == 0) {
                     //Get from storage instead
                     var storageTarget = Game.getObjectById(creep.memory.storageSource);
                     if (storageTarget) {
@@ -59,7 +59,7 @@ var creep_work5 = {
                         }
                     }
                 }
-            } else {
+            } else if (creep.carry.energy == 0) {
                 var storageTarget = Game.getObjectById(creep.memory.storageSource);
                 if (storageTarget) {
                     if (storageTarget.store[RESOURCE_ENERGY] >= 150) {
