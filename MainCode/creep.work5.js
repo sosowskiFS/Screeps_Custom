@@ -131,6 +131,8 @@ var creep_work5 = {
                             creep.memory.structureTarget = undefined;
                         }
                     }
+                } else {
+                    creep.memory.structureTarget = undefined;
                 }
                 //Immediately find a new target if previous transfer worked
                 if (!creep.memory.structureTarget) {
