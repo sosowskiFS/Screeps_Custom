@@ -27,35 +27,6 @@ var creep_work5 = {
                     creep.transfer(storageTarget, RESOURCE_ENERGY)
                 }
             }
-
-            /*if (_.sum(creep.carry) < 144) {
-                var savedTarget = Game.getObjectById(creep.memory.mineSource);
-                if (savedTarget) {
-                    if (creep.harvest(savedTarget) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(savedTarget, {
-                            reusePath: 20
-                        });
-                    } else if (creep.harvest(savedTarget, RESOURCE_ENERGY) == ERR_NOT_ENOUGH_RESOURCES && _.sum(creep.carry) > 0) {
-                        //Source is dry, store what you have.
-                        var savedTarget2 = Game.getObjectById(creep.memory.linkSource);
-                        if (savedTarget2) {
-                            if (creep.transfer(savedTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(targets, {
-                                    reusePath: 20
-                                });
-                            }
-                        }
-                    }
-                }
-            } else if (_.sum(creep.carry) >= 144) {
-                var savedTarget = Game.getObjectById(creep.memory.linkSource);
-                if (savedTarget) {
-                    if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        //This should never actually fire, if ideal.
-                        creep.moveTo(savedTarget);
-                    }
-                }
-            }*/
         } else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
             if (creep.ticksToLive <= 60) {
                 creep.memory.priority = 'upgraderNearDeath';
@@ -110,7 +81,7 @@ var creep_work5 = {
                 creep.memory.structureTarget = undefined;
                 var storageTarget = Game.getObjectById(creep.memory.storageSource);
                 if (storageTarget) {
-                    if (storageTarget.store[RESOURCE_ENERGY] > 0) {
+                    if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
                         //Get from container
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(storageTarget, {
@@ -137,8 +108,8 @@ var creep_work5 = {
                                 creep.moveTo(savedTarget, {
                                     reusePath: 20
                                 });
-                            }
-                            if (savedTarget.energy == savedTarget.energyCapacity) {
+                            } else {
+                                //assumed OK, drop target
                                 creep.memory.structureTarget = undefined;
                             }
                         } else {
@@ -156,7 +127,9 @@ var creep_work5 = {
                             });
                         }
                     }
-                } else {
+                }
+                //Immediately find a new target if previous transfer worked
+                if (!creep.memory.structureTarget) {
                     var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => {
                             return (structure.structureType == STRUCTURE_EXTENSION ||
@@ -167,9 +140,7 @@ var creep_work5 = {
                         creep.memory.structureTarget = targets.id;
                         if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(targets);
-                        }
-                        if (targets.energy == targets.energyCapacity) {
-                            //If container fills up on this tick, forget it.
+                        } else {
                             creep.memory.structureTarget = undefined;
                         }
                     } else {
@@ -182,9 +153,7 @@ var creep_work5 = {
                             creep.memory.structureTarget = targets3.id;
                             if (creep.transfer(targets3, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(targets3);
-                            }
-                            if (targets3.energy == targets3.energyCapacity) {
-                                //If container fills up on this tick, forget it.
+                            } else {
                                 creep.memory.structureTarget = undefined;
                             }
                         } else {
