@@ -3,6 +3,14 @@ var creep_work = {
 	/** @param {Creep} creep **/
 	run: function(creep) {
 
+		if (creep.carry.energy > 0) {
+			//All creeps check for road under them and repair if needed.
+			var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
+			if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 600)) {
+				creep.repair(someStructure[0]);
+			}
+		}
+
 		if ((creep.memory.building && creep.carry.energy == 0) || (creep.memory.storing && creep.carry.energy == 0) || (creep.memory.upgrading && creep.carry.energy == 0)) {
 			creep.memory.building = false;
 			creep.memory.storing = false;

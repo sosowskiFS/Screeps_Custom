@@ -111,7 +111,21 @@ var creep_work5 = {
 
                 if (savedTarget) {
                     if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
-                        if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
+                        if (creep.memory.lookForNewRampart) {
+                            creep.memory.structureTarget = undefined;
+                            creep.memory.lookForNewRampart = undefined;
+                            var newRampart = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                filter: (structure) => (structure.structureType == STRUCTURE_RAMPART) && (structure.hits == 1)
+                            });
+                            if (newRampart) {
+                                creep.memory.structureTarget = newRampart.id;
+                                if (creep.repair(newRampart) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(newRampart, {
+                                        reusePath: 20
+                                    });
+                                }
+                            }
+                        } else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
                             //Storing in spawn/extension/tower
                             if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(savedTarget, {
@@ -122,11 +136,16 @@ var creep_work5 = {
                                 creep.memory.structureTarget = undefined;
                             }
                         } else {
-                            //Upgrading controller
-                            if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.controller, {
-                                    reusePath: 20
-                                });
+                            //Do repair for new ramparts
+                            if (creep.repair(savedTarget) == ERR_INVALID_TARGET) {
+                                //Upgrading controller
+                                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(creep.room.controller, {
+                                        reusePath: 20
+                                    });
+                                }
+                            } else if (creep.repair(savedTarget) != OK) {
+                                creep.memory.structureTarget = undefined;
                             }
                         }
                     } else {
@@ -189,6 +208,10 @@ var creep_work5 = {
                                 var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                                 if (targets2) {
                                     creep.memory.structureTarget = targets2.id;
+                                    if (targets2.structureType == STRUCTURE_RAMPART) {
+                                        creep.memory.lookForNewRampart = true;
+                                    }
+
                                     if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(targets2, {
                                             reusePath: 20
