@@ -94,8 +94,13 @@ var spawn_BuildCreeps5 = {
 			}
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
-				//Produce a salvager unit to pick up the dropped resources
-
+				if (thisRoom.energyAvailable >= 300) {
+					//Produce a salvager unit to pick up the dropped resources
+					spawn.createCreep([MOVE,MOVE,CARRY,CARRY,CARRY,CARRY], undefined, {
+						priority: 'salvager',
+						storageTarget: strStorage[0];
+					});
+				}
 			} else if (thisRoom.energyAvailable >= 950) {
 				//Try to produce millitary units
 
@@ -174,7 +179,6 @@ var spawn_BuildCreeps5 = {
 					priority: ChosenPriority
 				});
 			}
-
 		} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral)) {
 			var prioritizedRole = 'miner';
 			var creepSource = '';

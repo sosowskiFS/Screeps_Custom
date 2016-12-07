@@ -270,6 +270,22 @@ var creep_work5 = {
                     creep.moveTo(storageTarget);
                 }
             }
+        } else if (creep.memory.priority == 'salvager') {
+            var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+            if (!sources && _.sum(creep.carry) == 0) {
+                //There's nothing left to do
+                creep.suicide();
+            } else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
+                if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(sources);
+                }
+            }
+            if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) == creep.carryCapacity) {
+                var storageTarget = Game.getObjectById(creep.memory.terminalID);
+                if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(storageTarget);
+                }
+            }
         }
     }
 };
