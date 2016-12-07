@@ -178,7 +178,7 @@ var creep_work5 = {
                     } else {
                         targets3 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
-                                return (structure.structureType == STRUCTURE_TOWER) && ((structure.energyCapacity - structure.energy) >= 300);
+                                return (structure.structureType == STRUCTURE_TOWER) && (structure.energy < structure.energyCapacity);
                             }
                         });
                         if (targets3) {
