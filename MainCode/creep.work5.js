@@ -9,6 +9,13 @@ var creep_work5 = {
                 creep.signController(creep.room.controller, 'This is, by far, the most kupo room I\'ve ever seen!');
             }
         }*/
+        if (creep.carry.energy > 0) {
+            //All creeps check for road under them and repair if needed.
+            var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
+            if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 600)) {
+                creep.repair(someStructure[0]);
+            }
+        }
 
         if (creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
             if (creep.ticksToLive <= 60) {

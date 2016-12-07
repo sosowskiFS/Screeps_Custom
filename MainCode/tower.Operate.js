@@ -12,7 +12,7 @@ var tower_Operate = {
             //Save 50% of the tower's energy to use on repelling attackers
             //Only maintain roads
             var closestDamagedStructure = thisTower.pos.findInRange(FIND_STRUCTURES, repairRange, {
-                filter: (structure) => (structure.structureType == STRUCTURE_ROAD || structure.structureType == STRUCTURE_RAMPART) && (structure.hitsMax - structure.hits >= 200 && structure.hits <= 25000)
+                filter: (structure) => (structure.structureType == STRUCTURE_RAMPART) && (structure.hitsMax - structure.hits >= 200 && structure.hits <= 25000)
             });
             if (closestDamagedStructure.length > 0) {
                 //Sort so lowest hitpoints is on top
