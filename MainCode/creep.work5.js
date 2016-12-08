@@ -110,6 +110,9 @@ var creep_work5 = {
 
                 if (savedTarget) {
                     if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
+                        //Only other blocker is build.
+                        creep.repair(savedTarget);
+                        
                         if (creep.memory.lookForNewRampart) {
                             creep.memory.structureTarget = undefined;
                             creep.memory.lookForNewRampart = undefined;
@@ -263,6 +266,8 @@ var creep_work5 = {
                             });
                         }
                     }
+                } else {
+                    creep.memory.structureTarget = undefined;
                 }
             } else {
                 var closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
