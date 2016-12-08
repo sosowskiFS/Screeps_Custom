@@ -53,6 +53,15 @@ var spawn_BuildCreeps5 = {
 		}
 
 		var roomMineral = Game.getObjectById(strMineral[0]);
+		var roomStorage = Game.getObjectById(strStorage[0]);
+		if (roomStorage.store[RESOURCE_ENERGY] >= 10000) {
+			//speed up that repairing a bit
+			repairMax++;
+		}
+		if (roomStorage.store[RESOURCE_ENERGY] >= 50000) {
+			//speed it up a LOT
+			repairMax++;
+		}
 
 		if (storageMiners.length == 0 && upgradeMiners.length > 0) {
 			//reassign upgrade miner
