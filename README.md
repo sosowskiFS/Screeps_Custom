@@ -1,5 +1,5 @@
 # Screeps - My Personal Build
-My codebase for Screeps, main room is currently E3N61, and this month's expansion rank is about 385. Search for the user "Montblanc" if you want to see the code in action.
+My codebase for Screeps, main room is currently E3N61, and this month's expansion rank is about 385. Search for the user "Montblanc" if you want to see the code in action. Yeah, I just told you where I live. I'm tactically challenged.
 
 This codebase is structured to give creeps designated roles and targets, with the overall aim of keeping CPU moderately low.
 
@@ -35,6 +35,4 @@ Construction sites and specific IDs are entered manually to save on CPU usage. F
 
 Currently this codebase runs two rooms at an average of 7 CPU, though it currently expereinces occasional spikes of 25 CPU due to using built-in pathfinding.
 
-Yes, I understand the "risks" of making this public. I regret nothing. Or at least until I get nuked and raided, then maybe I'll think about regretting it.
-
-Oh yes, and I'm perfectly ok with you stealing code from this. I accept no responsibility for catastrophic economic failure. 
+I'm perfectly ok with you stealing code from this. I accept no responsibility for catastrophic economic failure. 
