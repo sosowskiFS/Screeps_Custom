@@ -40,6 +40,13 @@ var spawn_BuildCreeps = {
 				builderMax = 1;
 				UpgraderMax = 2;
 				break;
+			case 'E1N63':
+				harvesterMax = 2;
+				strSources.push('57ef9db186f108ae6e60e21d', '57ef9db186f108ae6e60e21e');
+				mineSpots.push(1, 2);
+				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+				builderMax = 1;
+				UpgraderMax = 2;
 		}
 
 		var bareMinConfig = [MOVE,MOVE,WORK,CARRY,CARRY];

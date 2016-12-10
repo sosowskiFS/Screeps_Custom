@@ -3,6 +3,8 @@
 //require('special').specialInstruction('vandalize', [ArrayOfRooms], 'message');
 //require('special').specialInstruction('construct', 'constructionID', [PathOfRooms]);
 
+//require('special').specialInstruction('construct', '', ['E3N60', 'E3N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63'])
+
 //Creeps
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
