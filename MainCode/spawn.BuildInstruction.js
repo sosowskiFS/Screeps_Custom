@@ -5,7 +5,7 @@ var spawn_BuildInstruction = {
 				if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
 					spawn.createCreep([MOVE, CLAIM], undefined, {
 						priority: 'claimer',
-						destination: params
+						destinations: params
 					});
 					console.log('Claim executed');
 				} else {
