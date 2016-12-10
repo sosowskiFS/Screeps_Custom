@@ -5,7 +5,7 @@ var tower_Operate = {
         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
         if (UnderAttackPos >= 0 && thisTower.energy > 0) {
             var closestHostile = thisRoom.find(FIND_HOSTILE_CREEPS, {
-                filter: (creep) => creep.getActiveBodyparts(WORK) > 1 || creep.getActiveBodyparts(CARRY) > 1 || creep.getActiveBodyparts(ATTACK) > 1 || creep.getActiveBodyparts(RANGED_ATTACK) > 1 || creep.getActiveBodyparts(HEAL) > 1
+                filter: (creep) => creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0
             });
             if (closestHostile.length > 0) {
                 //Target healing creeps first
