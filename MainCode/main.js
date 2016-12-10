@@ -3,7 +3,7 @@
 //require('special').specialInstruction('vandalize', [ArrayOfRooms], 'message');
 //require('special').specialInstruction('construct', 'constructionID', [PathOfRooms]);
 
-//require('special').specialInstruction('construct', '', ['E3N60', 'E3N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63'])
+//require('special').specialInstruction('construct', '584c12a6b14a695e0d9653e4', ['E3N60', 'E3N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63'])
 
 //Creeps
 var creep_work = require('creep.work');
@@ -47,6 +47,8 @@ Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
 Memory.E4N61Towers = ['583fb149392f104960ed133f', '584791ab582cb9b014b7957a'];
 Memory.E4N61RepairRange = 50;
 Memory.E4N61EnergyCap = -1;
+
+Memory.E1N63EnergyCap = -1;
 
 const profiler = require('screeps-profiler');
 
@@ -121,15 +123,15 @@ module.exports.loop = function() {
             if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
                 var previousEnergyCap = -1;
                 switch (thisRoom.name) {
-                    case 'E4N61':
-                        previousEnergyCap = Memory.E4N61EnergyCap;
+                    case 'E1N63':
+                        previousEnergyCap = Memory.E1N63EnergyCap;
                 }
                 if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
                     previousEnergyCap = thisRoom.energyCapacityAvailable;
                     recalculateBestWorker(previousEnergyCap);
                     switch (thisRoom.name) {
-                        case 'E4N61':
-                            Memory.E4N61EnergyCap = previousEnergyCap;
+                        case 'E1N63':
+                            Memory.E1N63EnergyCap = previousEnergyCap;
                     }
                 }
             }

@@ -11,7 +11,7 @@ var creep_constructor = {
         if (!creep.memory.building) {
             if (creep.memory.destinations.length > 0) {
                 if (creep.room.name != creep.memory.destinations[0]) {
-                    creep.moveTo(new RoomPosition(28, 48, creep.memory.destinations[0]));
+                    creep.moveTo(new RoomPosition(34, 47, creep.memory.destinations[0]));
                 } else {
                     creep.memory.destinations.splice(0, 1);
                 }
