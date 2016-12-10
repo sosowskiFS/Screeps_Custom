@@ -10,7 +10,7 @@ var market_buyers = {
             if (mineralInTerminal < tradeAmount) {
                 tradeAmount = mineralInTerminal;
             }
-            if (Game.market.deal(FilteredOrders[0].id, amount, thisRoom.name) == OK) {
+            if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
                 console.log('Successfully made a deal');
             }        
         }

@@ -63,7 +63,7 @@ var spawn_BuildCreeps5 = {
 			repairMax++;
 		}
 
-		if (storageMiners.length == 0 && upgradeMiners.length > 0) {
+		if (storageMiners.length == 0 && upgradeMiners.length > 0 && roomStorage.store[RESOURCE_ENERGY] <= 3000) {
 			//reassign upgrade miner
 			upgradeMiners[0].drop(RESOURCE_ENERGY);
 			upgradeMiners[0].memory.jobSpecific = 'storageMiner';
