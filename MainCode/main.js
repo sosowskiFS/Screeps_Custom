@@ -1,7 +1,7 @@
 //Instructions:
-//require('special').specialInstruction('claim', 'RoomName');
+//require('special').specialInstruction('claim', [PathOfRooms]);
 //require('special').specialInstruction('vandalize', [ArrayOfRooms], 'message');
-//require('special').specialInstruction('construct', 'constructionID', 'RoomName');
+//require('special').specialInstruction('construct', 'constructionID', [PathOfRooms]);
 
 //Creeps
 var creep_work = require('creep.work');
