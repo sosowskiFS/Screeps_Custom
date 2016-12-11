@@ -37,7 +37,6 @@ Memory.roomsPrepSalvager = [];
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61', 'E4N61'];
 Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
-Memory.E3N61RepairRange = 20;
 Memory.E3N61EnergyCap = -1;
 //Format - [0] = send [1] = receive
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
@@ -45,10 +44,10 @@ Memory.E3N61Terminals = ['58424a6ef6e01c883e9feb4b'];
 Memory.E3N61SellOre = RESOURCE_ZYNTHIUM;
 Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
 Memory.E4N61Towers = ['583fb149392f104960ed133f', '584791ab582cb9b014b7957a'];
-Memory.E4N61RepairRange = 50;
 Memory.E4N61EnergyCap = -1;
 
 Memory.E1N63EnergyCap = -1;
+Memory.E1N63Towers = ['584d6f32baef985d734be0db'];
 
 const profiler = require('screeps-profiler');
 
@@ -69,7 +68,7 @@ module.exports.loop = function() {
         }
 
         //Review market data and sell to buy orders
-        if (Game.time % 10000 == 0) {
+        if (Game.time % 1000 == 0) {
             market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre);
         }
 
@@ -160,11 +159,9 @@ module.exports.loop = function() {
                 });
             }*/
             var towerList;
-            var repairRange = 20;
             switch (thisRoom.name) {
                 case 'E3N61':
                     towerList = Memory.E3N61Towers;
-                    repairRange = Memory.E3N61RepairRange;
                     var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
                     if (sendLink) {
@@ -175,7 +172,6 @@ module.exports.loop = function() {
                     break;
                 case 'E4N61':
                     towerList = Memory.E4N61Towers;
-                    repairRange = Memory.E4N61RepairRange;
                     var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
                     if (sendLink) {
@@ -184,12 +180,14 @@ module.exports.loop = function() {
                         }
                     }
                     break;
+                case 'E1N63':
+                    towerList = Memory.E1N63Towers;
             }
             if (towerList) {
                 if (towerList.length > 0) {
                     towerList.forEach(function(thisTower) {
                         //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        tower_Operate.run(thisTower, thisRoom, repairRange);
+                        tower_Operate.run(thisTower, thisRoom);
                     });
                 }
             }

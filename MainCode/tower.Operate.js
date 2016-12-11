@@ -1,5 +1,5 @@
 var tower_Operate = {
-    run: function(tower, thisRoom, repairRange) {
+    run: function(tower, thisRoom) {
         var thisTower = Game.getObjectById(tower);
 
         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
