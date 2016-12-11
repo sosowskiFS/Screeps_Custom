@@ -148,7 +148,7 @@ var spawn_BuildCreeps = {
 			}
 
 			var creepSourceID = '';
-			if ((assignedSlot1.length) > Math.ceil(mineSpots[0] * 1.2)) {
+			if ((assignedSlot1.length) >= Math.ceil(mineSpots[0] * 1.2)) {
 				//Assign spot 2
 				creepSourceID = strSources[1];
 			} else {

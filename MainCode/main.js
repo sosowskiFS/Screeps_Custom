@@ -102,7 +102,9 @@ module.exports.loop = function() {
             }
 
             //Check for hostiles in this room
-            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
+            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
+                filter: (creep) => creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0
+            });
             if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
                 if (hostiles[0].owner.username == 'Invader') {
