@@ -47,9 +47,9 @@ var spawn_BuildCreeps5 = {
 				strLinks.push('5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50');
 				strStorage.push('5842a7fa4d4fac0a066fbd05');
 				strMineral.push('57efa010195b160f02c752d5');
-				strTerminal.push('NO');
-				strExtractor.push('NO');
-				readyForMineral = false;
+				strTerminal.push('58511f42a4bd711272b69517');
+				strExtractor.push('584dd9736e946d971f816169');
+				readyForMineral = true;
 		}
 
 		var roomMineral = Game.getObjectById(strMineral[0]);

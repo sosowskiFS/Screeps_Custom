@@ -45,6 +45,8 @@ Memory.E3N61SellOre = RESOURCE_ZYNTHIUM;
 Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
 Memory.E4N61Towers = ['583fb149392f104960ed133f', '584791ab582cb9b014b7957a'];
 Memory.E4N61EnergyCap = -1;
+Memory.E4N61Terminals = ['58511f42a4bd711272b69517'];
+Memory.E4N61SellOre = RESOURCE_HYDROGEN;
 
 Memory.E1N63EnergyCap = -1;
 Memory.E1N63Towers = ['584d6f32baef985d734be0db'];
@@ -70,6 +72,7 @@ module.exports.loop = function() {
         //Review market data and sell to buy orders
         if (Game.time % 1000 == 0) {
             market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre);
+            market_buyers.run(Game.rooms.E4N61, Game.getObjectById(Memory.E4N61Terminals[0]), Memory.E4N61SellOre);
         }
 
         //Loop through all spawns
