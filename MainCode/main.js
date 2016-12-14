@@ -71,8 +71,8 @@ module.exports.loop = function() {
 
         //Review market data and sell to buy orders
         if (Game.time % 1000 == 0) {
-            market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre);
-            market_buyers.run(Game.rooms.E4N61, Game.getObjectById(Memory.E4N61Terminals[0]), Memory.E4N61SellOre);
+            market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre, 0.18);
+            market_buyers.run(Game.rooms.E4N61, Game.getObjectById(Memory.E4N61Terminals[0]), Memory.E4N61SellOre, 0.7);
         }
 
         //Loop through all spawns
