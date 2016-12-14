@@ -35,7 +35,7 @@ Memory.roomsUnderAttack = [];
 Memory.roomsPrepSalvager = [];
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
-Memory.roomsReadyFor5 = ['E3N61', 'E4N61'];
+Memory.roomsReadyFor5 = ['E3N61', 'E4N61', 'E1N63'];
 Memory.E3N61Towers = ['583af7158d788e033383c644', '5850db58de0679b13eaef37f'];
 Memory.E3N61EnergyCap = -1;
 //Format - [0] = send [1] = receive
@@ -50,6 +50,7 @@ Memory.E4N61SellOre = RESOURCE_HYDROGEN;
 
 Memory.E1N63EnergyCap = -1;
 Memory.E1N63Towers = ['584d6f32baef985d734be0db'];
+Memory.E1N63Links['5851389331781392518d42f7', '5851488b9937b63f665b2f57']
 
 const profiler = require('screeps-profiler');
 
@@ -168,7 +169,7 @@ module.exports.loop = function() {
                     var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
                     if (sendLink) {
-                        if (sendLink.energy >= 120 && sendLink.cooldown == 0) {
+                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
                             sendLink.transferEnergy(receiveLink);
                         }
                     }
@@ -178,13 +179,20 @@ module.exports.loop = function() {
                     var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
                     if (sendLink) {
-                        if (sendLink.energy >= 120 && sendLink.cooldown == 0) {
+                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
                             sendLink.transferEnergy(receiveLink);
                         }
                     }
                     break;
                 case 'E1N63':
                     towerList = Memory.E1N63Towers;
+                    var sendLink = Game.getObjectById(Memory.E1N63Links[0]);
+                    var receiveLink = Game.getObjectById(Memory.E1N63Links[1]);
+                    if (sendLink) {
+                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
+                            sendLink.transferEnergy(receiveLink);
+                        }
+                    }
             }
             if (towerList) {
                 if (towerList.length > 0) {
