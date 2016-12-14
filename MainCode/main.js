@@ -36,7 +36,7 @@ Memory.roomsPrepSalvager = [];
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61', 'E4N61'];
-Memory.E3N61Towers = ['5835c6ded8b12ea315a3b72a', '583af7158d788e033383c644'];
+Memory.E3N61Towers = ['583af7158d788e033383c644', '5850db58de0679b13eaef37f'];
 Memory.E3N61EnergyCap = -1;
 //Format - [0] = send [1] = receive
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
@@ -187,7 +187,9 @@ module.exports.loop = function() {
                 if (towerList.length > 0) {
                     towerList.forEach(function(thisTower) {
                         //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        tower_Operate.run(thisTower, thisRoom);
+                        if (thisTower) {
+                            tower_Operate.run(thisTower, thisRoom);
+                        }
                     });
                 }
             }

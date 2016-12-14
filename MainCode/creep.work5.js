@@ -50,11 +50,11 @@ var creep_work5 = {
 
             var linkTarget = Game.getObjectById(creep.memory.linkSource);
             if (linkTarget) {
-                    if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(linkTarget, {
-                            reusePath: 20
-                        });
-                    }
+                if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(linkTarget, {
+                        reusePath: 20
+                    });
+                }
             }
         } else if (creep.memory.priority == 'mule' || creep.memory.priority == 'muleNearDeath') {
             if (creep.ticksToLive <= 60) {
@@ -87,7 +87,7 @@ var creep_work5 = {
                     if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
                         //Only other blocker is build.
                         creep.repair(savedTarget);
-                        
+
                         if (creep.memory.lookForNewRampart) {
                             creep.memory.structureTarget = undefined;
                             creep.memory.lookForNewRampart = undefined;

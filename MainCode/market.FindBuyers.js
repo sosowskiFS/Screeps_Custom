@@ -12,7 +12,7 @@ var market_buyers = {
             }
             if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
                 console.log('Successfully made a deal');
-            }        
+            }
         }
     }
 };

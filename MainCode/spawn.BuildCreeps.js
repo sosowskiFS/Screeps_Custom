@@ -46,7 +46,8 @@ var spawn_BuildCreeps = {
 				mineSpots.push(1, 2);
 				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 				builderMax = 1;
-				UpgraderMax = 2;
+				UpgraderMax = 3;
+				break;
 		}
 
 		var bareMinConfig = [MOVE,MOVE,WORK,CARRY,CARRY];
