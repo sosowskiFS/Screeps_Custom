@@ -50,7 +50,7 @@ Memory.E4N61SellOre = RESOURCE_HYDROGEN;
 
 Memory.E1N63EnergyCap = -1;
 Memory.E1N63Towers = ['584d6f32baef985d734be0db'];
-Memory.E1N63Links['5851389331781392518d42f7', '5851488b9937b63f665b2f57']
+Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 
 const profiler = require('screeps-profiler');
 
