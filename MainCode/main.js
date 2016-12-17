@@ -52,6 +52,8 @@ Memory.E1N63EnergyCap = -1;
 Memory.E1N63Towers = ['584d6f32baef985d734be0db'];
 Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 
+Memory.RoomsRun = [];
+
 const profiler = require('screeps-profiler');
 
 //Ctrl+Alt+f to autoformat documents.
@@ -81,72 +83,110 @@ module.exports.loop = function() {
             var thisRoom = Game.spawns[i].room;
             var controllerLevel = thisRoom.controller.level;
 
-            //Execute special instruction written into console
-            if (Memory.Instruction) {
-                switch (Memory.Instruction) {
-                    case 'claim':
-                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
-                        delete Memory.Instruction;
-                        delete Memory.InstructionOps;
-                        break;
-                    case 'vandalize':
-                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                        delete Memory.Instruction;
-                        delete Memory.InstructionOps;
-                        delete Memory.InstructionOps2;
-                        break;
-                    case 'construct':
-                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                        delete Memory.Instruction;
-                        delete Memory.InstructionOps;
-                        delete Memory.InstructionOps2;
-                        break;
+            if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
+                //Execute special instruction written into console
+                if (Memory.Instruction) {
+                    switch (Memory.Instruction) {
+                        case 'claim':
+                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
+                            delete Memory.Instruction;
+                            delete Memory.InstructionOps;
+                            break;
+                        case 'vandalize':
+                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                            delete Memory.Instruction;
+                            delete Memory.InstructionOps;
+                            delete Memory.InstructionOps2;
+                            break;
+                        case 'construct':
+                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                            delete Memory.Instruction;
+                            delete Memory.InstructionOps;
+                            delete Memory.InstructionOps2;
+                            break;
+                    }
                 }
-            }
 
-            //Check for hostiles in this room
-            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
-                filter: (creep) => creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0
-            });
-            if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
-                Memory.roomsUnderAttack.push(thisRoom.name);
-                if (hostiles[0].owner.username == 'Invader') {
-                    Memory.roomsPrepSalvager.push(thisRoom.name);
+                //Check for hostiles in this room
+                var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
+                    filter: (creep) => creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0
+                });
+                if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
+                    Memory.roomsUnderAttack.push(thisRoom.name);
+                    if (hostiles[0].owner.username == 'Invader') {
+                        Memory.roomsPrepSalvager.push(thisRoom.name);
+                    }
+                } else if (hostiles.length == 0) {
+                    var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+                    var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+                    if (UnderAttackPos >= 0) {
+                        Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+                    }
+                    if (salvagerPos >= 0) {
+                        Memory.roomsPrepSalvager.splice(salvagerPos, 1);
+                    }
                 }
-            } else if (hostiles.length == 0) {
-                var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
-                var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
-                if (UnderAttackPos >= 0) {
-                    Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
-                }
-                if (salvagerPos >= 0) {
-                    Memory.roomsPrepSalvager.splice(salvagerPos, 1);
-                }
-            }
 
-            //Update creep configs if energy cap has changed
-            if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
-                var previousEnergyCap = -1;
-                switch (thisRoom.name) {
-                    case 'E1N63':
-                        previousEnergyCap = Memory.E1N63EnergyCap;
-                }
-                if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
-                    previousEnergyCap = thisRoom.energyCapacityAvailable;
-                    recalculateBestWorker(previousEnergyCap);
+                //Update creep configs if energy cap has changed
+                if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+                    var previousEnergyCap = -1;
                     switch (thisRoom.name) {
                         case 'E1N63':
-                            Memory.E1N63EnergyCap = previousEnergyCap;
+                            previousEnergyCap = Memory.E1N63EnergyCap;
+                    }
+                    if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
+                        previousEnergyCap = thisRoom.energyCapacityAvailable;
+                        recalculateBestWorker(previousEnergyCap);
+                        switch (thisRoom.name) {
+                            case 'E1N63':
+                                Memory.E1N63EnergyCap = previousEnergyCap;
+                        }
+                    }
+                }
+
+                var towerList;
+                switch (thisRoom.name) {
+                    case 'E3N61':
+                        towerList = Memory.E3N61Towers;
+                        var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
+                        var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
+                        if (sendLink) {
+                            if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
+                                sendLink.transferEnergy(receiveLink);
+                            }
+                        }
+                        break;
+                    case 'E4N61':
+                        towerList = Memory.E4N61Towers;
+                        var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
+                        var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
+                        if (sendLink) {
+                            if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
+                                sendLink.transferEnergy(receiveLink);
+                            }
+                        }
+                        break;
+                    case 'E1N63':
+                        towerList = Memory.E1N63Towers;
+                        var sendLink = Game.getObjectById(Memory.E1N63Links[0]);
+                        var receiveLink = Game.getObjectById(Memory.E1N63Links[1]);
+                        if (sendLink) {
+                            if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
+                                sendLink.transferEnergy(receiveLink);
+                            }
+                        }
+                }
+                if (towerList) {
+                    if (towerList.length > 0) {
+                        towerList.forEach(function(thisTower) {
+                            //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
+                            if (thisTower) {
+                                tower_Operate.run(thisTower, thisRoom);
+                            }
+                        });
                     }
                 }
             }
-
-            //Expansion not finished : Low priority. Can do manually for now.
-
-            /*if(lastControllerLevel != roomReference.controller.level){
-                spawn_AutoExpand.run(Game.spawns['Spawn_Capital'], roomReference.controller.level);
-                lastControllerLevel = roomReference.controller.level;
-            }*/
 
             if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
                 spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
@@ -154,57 +194,10 @@ module.exports.loop = function() {
                 spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
             }
 
-            //Find is moderately expensive, run it only every 100 ticks for new tower detection.
-            /*if (Game.time % 100 == 0) {
-                Memory.towerList = thisRoom.find(FIND_MY_STRUCTURES, {
-                    filter: {
-                        structureType: STRUCTURE_TOWER
-                    }
-                });
-            }*/
-            var towerList;
-            switch (thisRoom.name) {
-                case 'E3N61':
-                    towerList = Memory.E3N61Towers;
-                    var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
-                    var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
-                    if (sendLink) {
-                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                            sendLink.transferEnergy(receiveLink);
-                        }
-                    }
-                    break;
-                case 'E4N61':
-                    towerList = Memory.E4N61Towers;
-                    var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
-                    var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
-                    if (sendLink) {
-                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                            sendLink.transferEnergy(receiveLink);
-                        }
-                    }
-                    break;
-                case 'E1N63':
-                    towerList = Memory.E1N63Towers;
-                    var sendLink = Game.getObjectById(Memory.E1N63Links[0]);
-                    var receiveLink = Game.getObjectById(Memory.E1N63Links[1]);
-                    if (sendLink) {
-                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                            sendLink.transferEnergy(receiveLink);
-                        }
-                    }
-            }
-            if (towerList) {
-                if (towerList.length > 0) {
-                    towerList.forEach(function(thisTower) {
-                        //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        if (thisTower) {
-                            tower_Operate.run(thisTower, thisRoom);
-                        }
-                    });
-                }
-            }
+            Memory.RoomsRun.push(thisRoom.name);
         }
+
+        Memory.RoomsRun = [];
 
         //Globally controlls all creeps in all rooms
         for (var name in Game.creeps) {
