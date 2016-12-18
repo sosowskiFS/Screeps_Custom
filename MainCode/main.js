@@ -36,7 +36,7 @@ Memory.roomsPrepSalvager = [];
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61', 'E4N61', 'E1N63'];
-Memory.E3N61Towers = ['583af7158d788e033383c644', '5850db58de0679b13eaef37f'];
+Memory.E3N61Towers = ['583af7158d788e033383c644', '5850db58de0679b13eaef37f', '5855c7e000a464373cf3e9aa'];
 Memory.E3N61EnergyCap = -1;
 //Format - [0] = send [1] = receive
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
