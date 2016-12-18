@@ -54,6 +54,7 @@ Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 
 Memory.RoomsRun = [];
 Memory.creepInQue = [];
+Memory.spawnInProgress = [];
 
 const profiler = require('screeps-profiler');
 
@@ -199,7 +200,7 @@ module.exports.loop = function() {
         }
 
         Memory.RoomsRun = [];
-        Memory.creepInQue = [];
+        //Memory.creepInQue = [];
 
         //Globally controlls all creeps in all rooms
         for (var name in Game.creeps) {
