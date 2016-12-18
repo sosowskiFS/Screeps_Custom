@@ -66,6 +66,28 @@ var spawn_BuildCreeps5 = {
 				break;
 		}
 
+		if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
+			var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
+			//Check to see if a creep was qued at this spawn
+			switch(Memory.creepInQue[RoomPointer + 1]) {
+				case 'miner':
+					minerMax--;
+					break;
+				case 'mule':
+					muleMax--;
+					break;
+				case 'upgrader':
+					upgraderMax--;
+					break;
+				case 'repair':
+					repairMax--;
+					break;
+				case 'mineralMiner':
+					readyForMineral = false;
+					break;
+			}
+		}
+
 		var roomMineral = Game.getObjectById(strMineral[0]);
 		var roomStorage = Game.getObjectById(strStorage[0]);
 		if (roomStorage.store[RESOURCE_ENERGY] >= 10000) {
@@ -119,7 +141,7 @@ var spawn_BuildCreeps5 = {
 			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
 				if (thisRoom.energyAvailable >= 300) {
 					//Produce a salvager unit to pick up the dropped resources
-					spawn.createCreep([MOVE,MOVE,CARRY,CARRY,CARRY,CARRY], undefined, {
+					spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 						priority: 'salvager',
 						storageTarget: strStorage[0]
 					});
@@ -285,6 +307,7 @@ var spawn_BuildCreeps5 = {
 				});
 			}
 
+			Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri);
 		}
 	}
 };
