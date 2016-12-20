@@ -207,8 +207,7 @@ module.exports.loop = function() {
             var creep = Game.creeps[name];
             if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule') {
                 creep_work5.run(creep);
-            }
-            if (creep.memory.priority == 'claimer') {
+            } else if (creep.memory.priority == 'claimer') {
                 creep_claimer.run(creep);
             } else if (creep.memory.priority == 'vandal') {
                 creep_vandal.run(creep);
