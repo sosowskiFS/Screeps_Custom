@@ -292,7 +292,11 @@ var creep_work5 = {
             }
             if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) > 100) {
                 var storageTarget = Game.getObjectById(creep.memory.storageTarget);
-                if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+                if (Object.keys(creep.carry).length > 1) {
+                    if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(storageTarget);
+                    }
+                } else if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(storageTarget);
                 }
             }
@@ -306,6 +310,16 @@ var creep_work5 = {
             if (creep.room.name != creep.memory.destination) {
                 creep.moveTo(new RoomPosition(24, 2, creep.memory.destination));
             } else {
+                if (creep.room.controller.reservation) {
+                    if (creep.room.controller.reservation.ticksToEnd <= 1000) {
+                        Memory.E1N63ClaimerNeeded = true;
+                    } else {
+                        Memory.E1N63ClaimerNeeded = false;
+                    }
+                } else {
+                    Memory.E1N63ClaimerNeeded = true;
+                }
+
                 if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller);
                 }
@@ -320,6 +334,16 @@ var creep_work5 = {
             if (creep.room.name != creep.memory.destination) {
                 creep.moveTo(new RoomPosition(24, 2, creep.memory.destination));
             } else {
+                if (creep.room.controller.reservation) {
+                    if (creep.room.controller.reservation.ticksToEnd <= 1000) {
+                        Memory.E1N63ClaimerNeeded = true;
+                    } else {
+                        Memory.E1N63ClaimerNeeded = false;
+                    }
+                } else {
+                    Memory.E1N63ClaimerNeeded = true;
+                }
+
                 if (_.sum(creep.carry) == 0) {
                     var mineTarget = Game.getObjectById(creep.memory.mineSource);
                     if (mineTarget) {
@@ -391,6 +415,16 @@ var creep_work5 = {
             } else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 150) {
                 creep.moveTo(new RoomPosition(24, 48, creep.memory.homeRoom));
             } else {
+                if (creep.room.controller.reservation) {
+                    if (creep.room.controller.reservation.ticksToEnd <= 1000) {
+                        Memory.E1N63ClaimerNeeded = true;
+                    } else {
+                        Memory.E1N63ClaimerNeeded = false;
+                    }
+                } else {
+                    Memory.E1N63ClaimerNeeded = true;
+                }
+                
                 if (_.sum(creep.carry) <= 150) {
                     //in farRoom, pick up container contents
                     var theSource = Game.getObjectById(creep.memory.mineSource);

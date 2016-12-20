@@ -51,7 +51,10 @@ Memory.E4N61SellOre = RESOURCE_HYDROGEN;
 Memory.E1N63EnergyCap = -1;
 Memory.E1N63Towers = ['584d6f32baef985d734be0db'];
 Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
+Memory.E1N63Terminals = ['5859644c969e3a483fff380a'];
+Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
 Memory.E1N63FarRoles = [];
+Memory.E1N63ClaimerNeeded = true;
 
 Memory.RoomsRun = [];
 Memory.creepInQue = [];
@@ -78,6 +81,7 @@ module.exports.loop = function() {
         if (Game.time % 1000 == 0) {
             market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre, 0.18);
             market_buyers.run(Game.rooms.E4N61, Game.getObjectById(Memory.E4N61Terminals[0]), Memory.E4N61SellOre, 0.7);
+            market_buyers.run(Game.rooms.E1N63, Game.getObjectById(Memory.E1N63Terminals[0]), Memory.E1N63SellOre, 0.2);
         }
 
         //Loop through all spawns

@@ -72,10 +72,10 @@ var spawn_BuildCreeps5 = {
 					strLinks.push('5851389331781392518d42f7', '5851488b9937b63f665b2f57');
 					strStorage.push('584ebb6cb33541d02a283774');
 					strMineral.push('57efa010195b160f02c752a0');
-					strTerminal.push('no');
-					strExtractor.push('no');
-					readyForMineral = false;
-					usingFarMiners = false;
+					strTerminal.push('5859644c969e3a483fff380a');
+					strExtractor.push('585711fd97c4584d6a29c37a');
+					readyForMineral = true;
+					usingFarMiners = true;
 					farRooms.push('E1N62');
 					farSources.push('57ef9db186f108ae6e60e220');
 					farLength = Memory.E1N63FarRoles.length;
@@ -280,7 +280,7 @@ var spawn_BuildCreeps5 = {
 					storageID = strTerminal[0];
 					creepSource = strMineral[0];
 					connectedLink = strExtractor[0];
-				} else if (usingFarMiners && Memory.E1N63FarRoles.indexOf('farClaimer') == -1) {
+				} else if (usingFarMiners && Memory.E1N63FarRoles.indexOf('farClaimer') == -1 && Memory.E1N63ClaimerNeeded) {
 					//Claimer
 					prioritizedRole = 'farClaimer';
 					roomTarget = farRooms[0];
