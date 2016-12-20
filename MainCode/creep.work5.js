@@ -356,8 +356,9 @@ var creep_work5 = {
                                 var thisUnit = Game.getObjectById(creep.memory.storageUnit);
                                 if (thisUnit.hits < thisUnit.hitsMax) {
                                     creep.repair(thisUnit);
-                                }
-                                creep.transfer(thisUnit, RESOURCE_ENERGY);
+                                } else {
+                                    creep.transfer(thisUnit, RESOURCE_ENERGY);
+                                }                 
                             } else {
                                 var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
                                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
@@ -382,8 +383,9 @@ var creep_work5 = {
                         if (thisUnit) {
                             if (thisUnit.hits < thisUnit.hitsMax) {
                                 creep.repair(thisUnit);
-                            }
-                            creep.transfer(thisUnit, RESOURCE_ENERGY);
+                            } else {
+                               creep.transfer(thisUnit, RESOURCE_ENERGY); 
+                            }                    
                         }
                     } else {
                         var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
