@@ -347,6 +347,24 @@ var creep_work5 = {
                             }
                         }
                     }
+                } else {
+                    if (creep.memory.storageUnit) {
+                        var thisUnit = Game.getObjectById(creep.memory.storageUnit);
+                        if (thisUnit.hits < thisUnit.hitsMax) {
+                            creep.repair(thisUnit);
+                        }
+                        creep.transfer(thisUnit, RESOURCE_ENERGY);
+                    } else {
+                        var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 50, {
+                            filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                        });
+                        if (containers.length) {
+                            if (creep.build(containers[0]) == ERR_INVALID_TARGET) {
+                                creep.transfer(containers[0], RESOURCE_ENERGY);
+                                creep.memory.storageUnit = containers[0];
+                            }
+                        }
+                    }
                 }
             }
         } else if (creep.memory.priority == 'farMule') {
