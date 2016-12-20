@@ -79,28 +79,6 @@ var spawn_BuildCreeps5 = {
 					break;
 			}
 
-			if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
-				var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
-					//Check to see if a creep was qued at this spawn
-				switch (Memory.creepInQue[RoomPointer + 1]) {
-					case 'miner':
-						minerMax--;
-						break;
-					case 'mule':
-						muleMax--;
-						break;
-					case 'upgrader':
-						upgraderMax--;
-						break;
-					case 'repair':
-						repairMax--;
-						break;
-					case 'mineralMiner':
-						readyForMineral = false;
-						break;
-				}
-			}
-
 			var roomMineral = Game.getObjectById(strMineral[0]);
 			var roomStorage = Game.getObjectById(strStorage[0]);
 			if (roomStorage.store[RESOURCE_ENERGY] >= 10000) {
@@ -243,7 +221,15 @@ var spawn_BuildCreeps5 = {
 				var connectedLink = '';
 				var storageID = '';
 				var jobSpecificPri = '';
-				if (miners.length == 1 && mules.length == 0) {
+				var blockedRole = '';
+				var blockedSubRole = '';
+				if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
+					var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
+					blockedRole = Memory.creepInQue[RoomPointer + 1];
+					blockedSubRole = Memory.creepInQue[RoomPointer + 2];
+				}
+
+				if (miners.length == 1 && mules.length == 0 && blockedRole != 'mule') {
 					prioritizedRole = 'mule';
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
@@ -252,29 +238,33 @@ var spawn_BuildCreeps5 = {
 					prioritizedRole = 'miner';
 					switch (storageMiners.length) {
 						case 0:
-							creepSource = strSources[0];
-							connectedLink = strStorage[0];
-							jobSpecificPri = 'storageMiner';
+							if (blockedSubRole != 'storageMiner') {
+								creepSource = strSources[0];
+								connectedLink = strStorage[0];
+								jobSpecificPri = 'storageMiner';
+							}
 							break;
 						case 1:
-							creepSource = strSources[1];
-							connectedLink = strLinks[0];
-							jobSpecificPri = 'upgradeMiner';
+							if (blockedSubRole != 'upgradeMiner') {
+								creepSource = strSources[1];
+								connectedLink = strLinks[0];
+								jobSpecificPri = 'upgradeMiner';
+							}
 							break;
 					}
-				} else if (mules.length < muleMax) {
+				} else if (mules.length < muleMax && blockedRole != 'mule') {
 					prioritizedRole = 'mule';
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
-				} else if (upgraders.length < upgraderMax) {
+				} else if (upgraders.length < upgraderMax && blockedRole != 'upgrader') {
 					prioritizedRole = 'upgrader';
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
-				} else if (repairers.length < repairMax) {
+				} else if (repairers.length < repairMax && blockedRole != 'repair') {
 					prioritizedRole = 'repair';
 					storageID = strStorage[0];
-				} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral) {
+				} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && blockedRole != 'mineralMiner') {
 					prioritizedRole = 'mineralMiner';
 					storageID = strTerminal[0];
 					creepSource = strMineral[0];
