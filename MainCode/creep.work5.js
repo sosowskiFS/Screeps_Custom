@@ -358,7 +358,7 @@ var creep_work5 = {
                                     creep.repair(thisUnit);
                                 } else {
                                     creep.transfer(thisUnit, RESOURCE_ENERGY);
-                                }                 
+                                }
                             } else {
                                 var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
                                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
@@ -384,8 +384,8 @@ var creep_work5 = {
                             if (thisUnit.hits < thisUnit.hitsMax) {
                                 creep.repair(thisUnit);
                             } else {
-                               creep.transfer(thisUnit, RESOURCE_ENERGY); 
-                            }                    
+                                creep.transfer(thisUnit, RESOURCE_ENERGY);
+                            }
                         }
                     } else {
                         var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
@@ -430,18 +430,14 @@ var creep_work5 = {
                 if (_.sum(creep.carry) <= 150) {
                     //in farRoom, pick up container contents
                     var theSource = Game.getObjectById(creep.memory.mineSource);
-                    if (!creep.pos.isNearTo(theSource)) {
-                        creep.moveTo(theSource);
-                    } else {
-                        var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 5, {
-                            filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                        });
-                        if (containers.length) {
-                            if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(containers[0], {
-                                    reusePath: 20
-                                });
-                            }
+                    var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
+                        filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                    });
+                    if (containers.length) {
+                        if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(containers[0], {
+                                reusePath: 20
+                            });
                         }
                     }
                 } else {
