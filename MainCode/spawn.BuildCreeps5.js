@@ -244,7 +244,7 @@ var spawn_BuildCreeps5 = {
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
-				} else if (miners.length < minerMax) {
+				} else if (miners.length < minerMax && blockedRole != 'miner') {
 					switch (storageMiners.length) {
 						case 0:
 							if (blockedSubRole != 'storageMiner') {
