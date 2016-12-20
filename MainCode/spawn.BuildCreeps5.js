@@ -336,7 +336,7 @@ var spawn_BuildCreeps5 = {
 							fromSpawn: spawn
 						});
 					} else if (prioritizedRole == 'farClaimer') {
-						if (spawn.canCreateCreep(farClaimerConfig)) {
+						if (spawn.canCreateCreep(farClaimerConfig) == OK) {
 							spawn.createCreep(farClaimerConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
@@ -345,7 +345,7 @@ var spawn_BuildCreeps5 = {
 							Memory.E1N63FarRoles.push('farClaimer');
 						}
 					} else if (prioritizedRole == 'farMiner') {
-						if (spawn.canCreateCreep(farMinerConfig)) {
+						if (spawn.canCreateCreep(farMinerConfig) == OK) {
 							spawn.createCreep(farMinerConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
@@ -355,7 +355,7 @@ var spawn_BuildCreeps5 = {
 							Memory.E1N63FarRoles.push('farMiner');
 						}
 					} else if (prioritizedRole == 'farMule') {
-						if (spawn.canCreateCreep(farMuleConfig)) {
+						if (spawn.canCreateCreep(farMuleConfig) == OK) {
 							spawn.createCreep(farMuleConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
