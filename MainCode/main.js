@@ -49,7 +49,7 @@ Memory.E4N61Terminals = ['58511f42a4bd711272b69517'];
 Memory.E4N61SellOre = RESOURCE_HYDROGEN;
 
 Memory.E1N63EnergyCap = -1;
-Memory.E1N63Towers = ['584d6f32baef985d734be0db'];
+Memory.E1N63Towers = ['584d6f32baef985d734be0db', '5851c1ba2a1b963e6104d783'];
 Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 Memory.E1N63Terminals = ['5859644c969e3a483fff380a'];
 Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
