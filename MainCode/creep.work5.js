@@ -359,12 +359,12 @@ var creep_work5 = {
                                 }
                                 creep.transfer(thisUnit, RESOURCE_ENERGY);
                             } else {
-                                var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 50, {
+                                var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
                                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                                 });
                                 if (containers.length) {
                                     creep.transfer(containers[0], RESOURCE_ENERGY);
-                                    creep.memory.storageUnit = containers[0];
+                                    creep.memory.storageUnit = containers[0].id;
                                 } else {
                                     var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
                                     if (sites.length) {
@@ -379,19 +379,19 @@ var creep_work5 = {
                 } else {
                     if (creep.memory.storageUnit) {
                         var thisUnit = Game.getObjectById(creep.memory.storageUnit);
-                        if (thisUnit.hits < thisUnit.hitsMax) {
-                            creep.repair(thisUnit);
+                        if (thisUnit) {
+                            if (thisUnit.hits < thisUnit.hitsMax) {
+                                creep.repair(thisUnit);
+                            }
+                            creep.transfer(thisUnit, RESOURCE_ENERGY);
                         }
-                        creep.transfer(thisUnit, RESOURCE_ENERGY);
                     } else {
-                        var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 50, {
+                        var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
                             filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                         });
                         if (containers.length) {
-                            if (creep.build(containers[0]) == ERR_INVALID_TARGET) {
-                                creep.transfer(containers[0], RESOURCE_ENERGY);
-                                creep.memory.storageUnit = containers[0];
-                            }
+                            creep.transfer(containers[0], RESOURCE_ENERGY);
+                            creep.memory.storageUnit = containers[0].id;
                         } else {
                             var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
                             if (sites.length) {
@@ -424,7 +424,7 @@ var creep_work5 = {
                 } else {
                     Memory.E1N63ClaimerNeeded = true;
                 }
-                
+
                 if (_.sum(creep.carry) <= 150) {
                     //in farRoom, pick up container contents
                     var theSource = Game.getObjectById(creep.memory.mineSource);
