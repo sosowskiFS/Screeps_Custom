@@ -336,34 +336,34 @@ var spawn_BuildCreeps5 = {
 							fromSpawn: spawn
 						});
 					} else if (prioritizedRole == 'farClaimer') {
-						var result = spawn.createCreep(farClaimerConfig, undefined, {
-							priority: prioritizedRole,
-							destination: roomTarget,
-							fromSpawn: spawn
-						});
-						if (_.isString(result)) {
+						if (spawn.canCreateCreep(farClaimerConfig)) {
+							spawn.createCreep(farClaimerConfig, undefined, {
+								priority: prioritizedRole,
+								destination: roomTarget,
+								fromSpawn: spawn
+							});
 							Memory.E1N63FarRoles.push('farClaimer');
 						}
 					} else if (prioritizedRole == 'farMiner') {
-						var result = spawn.createCreep(farMinerConfig, undefined, {
-							priority: prioritizedRole,
-							destination: roomTarget,
-							mineSource: creepSource,
-							fromSpawn: spawn
-						});
-						if (_.isString(result)) {
+						if (spawn.canCreateCreep(farMinerConfig)) {
+							spawn.createCreep(farMinerConfig, undefined, {
+								priority: prioritizedRole,
+								destination: roomTarget,
+								mineSource: creepSource,
+								fromSpawn: spawn
+							});
 							Memory.E1N63FarRoles.push('farMiner');
 						}
 					} else if (prioritizedRole == 'farMule') {
-						var result = spawn.createCreep(farMuleConfig, undefined, {
-							priority: prioritizedRole,
-							destination: roomTarget,
-							homeRoom: thisRoom.name,
-							mineSource: creepSource,
-							storageSource: storageID,
-							fromSpawn: spawn
-						});
-						if (_.isString(result)) {
+						if (spawn.canCreateCreep(farMuleConfig)) {
+							spawn.createCreep(farMuleConfig, undefined, {
+								priority: prioritizedRole,
+								destination: roomTarget,
+								homeRoom: thisRoom.name,
+								mineSource: creepSource,
+								storageSource: storageID,
+								fromSpawn: spawn
+							});
 							Memory.E1N63FarRoles.push('farMule');
 						}
 					}
