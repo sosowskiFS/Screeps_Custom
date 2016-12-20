@@ -339,9 +339,14 @@ var creep_work5 = {
                                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                                 });
                                 if (containers.length) {
-                                    if (creep.build(containers[0]) == ERR_INVALID_TARGET) {
-                                        creep.transfer(containers[0], RESOURCE_ENERGY);
-                                        creep.memory.storageUnit = containers[0];
+                                    creep.transfer(containers[0], RESOURCE_ENERGY);
+                                    creep.memory.storageUnit = containers[0];
+                                } else {
+                                    var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 5)
+                                    if (sites.length) {
+                                        if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
+                                            creep.moveTo(sites[0]);
+                                        }
                                     }
                                 }
                             }
@@ -362,6 +367,13 @@ var creep_work5 = {
                             if (creep.build(containers[0]) == ERR_INVALID_TARGET) {
                                 creep.transfer(containers[0], RESOURCE_ENERGY);
                                 creep.memory.storageUnit = containers[0];
+                            }
+                        } else {
+                            var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 5)
+                            if (sites.length) {
+                                if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(sites[0]);
+                                }
                             }
                         }
                     }
