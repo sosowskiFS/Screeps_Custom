@@ -296,6 +296,100 @@ var creep_work5 = {
                     creep.moveTo(storageTarget);
                 }
             }
+        } else if (creep.memory.priority == 'farClaimer') {
+            if (creep.ticksToLive <= 5) {
+                //Remove yourself from the list of farCreeps
+                var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
+                Memory.E1N63FarRoles.splice(farIndex, 1);
+            }
+
+            if (creep.room.name != creep.memory.destination) {
+                creep.moveTo(new RoomPosition(24, 2, creep.memory.destination));
+            } else {
+                if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(creep.room.controller);
+                }
+            }
+        } else if (creep.memory.priority == 'farMiner') {
+            if (creep.ticksToLive <= 5) {
+                //Remove yourself from the list of farCreeps
+                var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
+                Memory.E1N63FarRoles.splice(farIndex, 1);
+            }
+
+            if (creep.room.name != creep.memory.destination) {
+                creep.moveTo(new RoomPosition(24, 2, creep.memory.destination));
+            } else {
+                if (_.sum(creep.carry) == 0) {
+                    var mineTarget = Game.getObjectById(creep.memory.mineSource);
+                    if (mineTarget) {
+                        if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(mineTarget, {
+                                reusePath: 5
+                            });
+                        } else {
+                            if (creep.memory.storageUnit) {
+                                var thisUnit = Game.getObjectById(creep.memory.storageUnit);
+                                if (thisUnit.hits < thisUnit.hitsMax) {
+                                    creep.repair(thisUnit);
+                                }
+                                creep.transfer(thisUnit, RESOURCE_ENERGY);
+                            } else {
+                                var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 5, {
+                                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                                });
+                                if (containers.length) {
+                                    if (creep.build(containers[0]) == ERR_INVALID_TARGET) {
+                                        creep.transfer(containers[0], RESOURCE_ENERGY);
+                                        creep.memory.storageUnit = containers[0];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else if (creep.memory.priority == 'farMule') {
+            if (creep.ticksToLive <= 5) {
+                //Remove yourself from the list of farCreeps
+                var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
+                Memory.E1N63FarRoles.splice(farIndex, 1);
+            }
+
+            if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 150) {
+                creep.moveTo(new RoomPosition(24, 2, creep.memory.destination));
+            } else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 150) {
+                creep.moveTo(new RoomPosition(24, 48, creep.memory.homeRoom));
+            } else {
+                if (_.sum(creep.carry) <= 150) {
+                    //in farRoom, pick up container contents
+                    var theSource = Game.getObjectById(creep.memory.mineSource);
+                    if (!creep.pos.isNearTo(theSource)) {
+                        creep.moveTo(theSource);
+                    } else {
+                        var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 5, {
+                            filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                        });
+                        if (containers.length) {
+                            if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(containers[0], {
+                                    reusePath: 20
+                                });
+                            }
+                        }
+                    }
+                } else {
+                    //in home room, drop off energy
+                    var storageUnit = Game.getObjectById(creep.memory.storageSource)
+                    if (storageUnit) {
+                        if (creep.transfer(storageUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(storageUnit, {
+                                reusePath: 20
+                            });
+                        }
+                    }
+                }
+            }
         }
     }
 };
