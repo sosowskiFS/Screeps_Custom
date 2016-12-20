@@ -1,14 +1,7 @@
 var spawn_BuildCreeps5 = {
 	run: function(spawn, thisRoom) {
-		if (spawn.spawning) {
-			if (Memory.spawnInProgress.indexOf(spawn.name) == -1) {
-				Memory.spawnInProgress.push(spawn.name);
-			}
-		} else {
-			if (Memory.spawnInProgress.indexOf(spawn.name) >= 0) {
-				//Clear spawn from progress array
-				var spawnIndex = Memory.spawnInProgress.indexOf(spawn.name);
-				Memory.spawnInProgress.splice(spawnIndex, 1);
+		if (!spawn.spawning) {
+			if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
 				//Clear creep from que array
 				var queSpawnIndex = Memory.creepInQue.indexOf(spawn.name);
 				Memory.creepInQue.splice(queSpawnIndex - 3, 4);
@@ -216,7 +209,7 @@ var spawn_BuildCreeps5 = {
 					});
 				}
 			} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral)) {
-				var prioritizedRole = 'miner';
+				var prioritizedRole = '';
 				var creepSource = '';
 				var connectedLink = '';
 				var storageID = '';
@@ -235,10 +228,10 @@ var spawn_BuildCreeps5 = {
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
 				} else if (miners.length < minerMax) {
-					prioritizedRole = 'miner';
 					switch (storageMiners.length) {
 						case 0:
 							if (blockedSubRole != 'storageMiner') {
+								prioritizedRole = 'miner';
 								creepSource = strSources[0];
 								connectedLink = strStorage[0];
 								jobSpecificPri = 'storageMiner';
@@ -246,6 +239,7 @@ var spawn_BuildCreeps5 = {
 							break;
 						case 1:
 							if (blockedSubRole != 'upgradeMiner') {
+								prioritizedRole = 'miner';
 								creepSource = strSources[1];
 								connectedLink = strLinks[0];
 								jobSpecificPri = 'upgradeMiner';
@@ -271,46 +265,48 @@ var spawn_BuildCreeps5 = {
 					connectedLink = strExtractor[0];
 				}
 
-				if (prioritizedRole == 'miner') {
-					spawn.createCreep(minerConfig, undefined, {
-						priority: prioritizedRole,
-						mineSource: creepSource,
-						linkSource: connectedLink,
-						jobSpecific: jobSpecificPri,
-						fromSpawn: spawn
-					});
-				} else if (prioritizedRole == 'mule') {
-					spawn.createCreep(muleConfig, undefined, {
-						priority: prioritizedRole,
-						linkSource: connectedLink,
-						storageSource: storageID,
-						terminalID: creepSource,
-						fromSpawn: spawn
-					});
-				} else if (prioritizedRole == 'upgrader') {
-					spawn.createCreep(minerConfig, undefined, {
-						priority: prioritizedRole,
-						linkSource: connectedLink,
-						storageSource: storageID,
-						fromSpawn: spawn
-					});
-				} else if (prioritizedRole == 'repair') {
-					spawn.createCreep(muleConfig, undefined, {
-						priority: prioritizedRole,
-						storageSource: storageID,
-						fromSpawn: spawn
-					});
-				} else {
-					spawn.createCreep(mineralMinerConfig, undefined, {
-						priority: prioritizedRole,
-						terminalID: storageID,
-						mineralID: creepSource,
-						extractorID: connectedLink,
-						fromSpawn: spawn
-					});
+				if (prioritizedRole != '') {
+					if (prioritizedRole == 'miner') {
+						spawn.createCreep(minerConfig, undefined, {
+							priority: prioritizedRole,
+							mineSource: creepSource,
+							linkSource: connectedLink,
+							jobSpecific: jobSpecificPri,
+							fromSpawn: spawn
+						});
+					} else if (prioritizedRole == 'mule') {
+						spawn.createCreep(muleConfig, undefined, {
+							priority: prioritizedRole,
+							linkSource: connectedLink,
+							storageSource: storageID,
+							terminalID: creepSource,
+							fromSpawn: spawn
+						});
+					} else if (prioritizedRole == 'upgrader') {
+						spawn.createCreep(minerConfig, undefined, {
+							priority: prioritizedRole,
+							linkSource: connectedLink,
+							storageSource: storageID,
+							fromSpawn: spawn
+						});
+					} else if (prioritizedRole == 'repair') {
+						spawn.createCreep(muleConfig, undefined, {
+							priority: prioritizedRole,
+							storageSource: storageID,
+							fromSpawn: spawn
+						});
+					} else {
+						spawn.createCreep(mineralMinerConfig, undefined, {
+							priority: prioritizedRole,
+							terminalID: storageID,
+							mineralID: creepSource,
+							extractorID: connectedLink,
+							fromSpawn: spawn
+						});
+					}
+					Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 				}
 
-				Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 			}
 		}
 	}
