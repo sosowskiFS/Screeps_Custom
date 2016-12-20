@@ -1,7 +1,7 @@
 var creep_work5 = {
 
     /** @param {Creep} creep **/
-    run: function(creep, thisSpawn) {
+    run: function(creep) {
 
         //wew lad
         /*if (!creep.room.controller.sign) {

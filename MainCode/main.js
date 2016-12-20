@@ -205,6 +205,9 @@ module.exports.loop = function() {
         //Globally controlls all creeps in all rooms
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
+            if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule') {
+                creep_work5.run(creep);
+            }
             if (creep.memory.priority == 'claimer') {
                 creep_claimer.run(creep);
             } else if (creep.memory.priority == 'vandal') {
@@ -225,11 +228,7 @@ module.exports.loop = function() {
                         //In case of emergency
                         creep_work.run(creep);
                     } else {
-                        if (creep.memory.fromSpawn) {
-                            creep_work5.run(creep, creep.memory.fromSpawn);
-                        } else {
-                            creep_work5.run(creep, Game.spawns[i]);
-                        }
+                        creep_work5.run(creep);
                     }
                 }
             }
