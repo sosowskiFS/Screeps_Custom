@@ -75,7 +75,7 @@ var spawn_BuildCreeps5 = {
 					strTerminal.push('no');
 					strExtractor.push('no');
 					readyForMineral = false;
-					usingFarMiners = true;
+					usingFarMiners = false;
 					farRooms.push('E1N62');
 					farSources.push('57ef9db186f108ae6e60e220');
 					farLength = Memory.E1N63FarRoles.length;

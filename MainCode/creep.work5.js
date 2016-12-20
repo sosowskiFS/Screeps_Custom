@@ -335,14 +335,14 @@ var creep_work5 = {
                                 }
                                 creep.transfer(thisUnit, RESOURCE_ENERGY);
                             } else {
-                                var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 5, {
+                                var containers = creep.pos.findInRange(FIND_MY_STRUCTURES, 50, {
                                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                                 });
                                 if (containers.length) {
                                     creep.transfer(containers[0], RESOURCE_ENERGY);
                                     creep.memory.storageUnit = containers[0];
                                 } else {
-                                    var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 5)
+                                    var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
                                     if (sites.length) {
                                         if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
                                             creep.moveTo(sites[0]);
@@ -369,7 +369,7 @@ var creep_work5 = {
                                 creep.memory.storageUnit = containers[0];
                             }
                         } else {
-                            var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 5)
+                            var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
                             if (sites.length) {
                                 if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(sites[0]);
