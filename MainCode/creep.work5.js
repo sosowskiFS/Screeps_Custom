@@ -344,62 +344,41 @@ var creep_work5 = {
                     Memory.E1N63ClaimerNeeded = true;
                 }
 
-                if (_.sum(creep.carry) == 0) {
-                    var mineTarget = Game.getObjectById(creep.memory.mineSource);
-                    if (mineTarget) {
-                        if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(mineTarget, {
-                                reusePath: 5
-                            });
+                var mineTarget = Game.getObjectById(creep.memory.mineSource);
+                if (mineTarget) {
+                    if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(mineTarget, {
+                            reusePath: 5
+                        });
+                    }
+                }
+
+                if (creep.memory.storageUnit) {
+                    var thisUnit = Game.getObjectById(creep.memory.storageUnit);
+                    if (thisUnit) {
+                        if (thisUnit.hits < thisUnit.hitsMax) {
+                            creep.repair(thisUnit);
                         } else {
-                            if (creep.memory.storageUnit) {
-                                var thisUnit = Game.getObjectById(creep.memory.storageUnit);
-                                if (thisUnit.hits < thisUnit.hitsMax) {
-                                    creep.repair(thisUnit);
-                                } else {
-                                    creep.transfer(thisUnit, RESOURCE_ENERGY);
-                                }
-                            } else {
-                                var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
-                                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                                });
-                                if (containers.length) {
-                                    creep.transfer(containers[0], RESOURCE_ENERGY);
-                                    creep.memory.storageUnit = containers[0].id;
-                                } else {
-                                    var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
-                                    if (sites.length) {
-                                        if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
-                                            creep.moveTo(sites[0]);
-                                        }
-                                    }
-                                }
-                            }
+                            creep.transfer(thisUnit, RESOURCE_ENERGY);
                         }
                     }
                 } else {
-                    if (creep.memory.storageUnit) {
-                        var thisUnit = Game.getObjectById(creep.memory.storageUnit);
-                        if (thisUnit) {
-                            if (thisUnit.hits < thisUnit.hitsMax) {
-                                creep.repair(thisUnit);
-                            } else {
-                                creep.transfer(thisUnit, RESOURCE_ENERGY);
-                            }
-                        }
+                    var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
+                        filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                    });
+                    if (containers.length) {
+                        creep.transfer(containers[0], RESOURCE_ENERGY);
+                        creep.memory.storageUnit = containers[0].id;
                     } else {
-                        var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
-                            filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                        });
-                        if (containers.length) {
-                            creep.transfer(containers[0], RESOURCE_ENERGY);
-                            creep.memory.storageUnit = containers[0].id;
+                        var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
+                        if (sites.length) {
+                            if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(sites[0]);
+                            }
                         } else {
-                            var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
-                            if (sites.length) {
-                                if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(sites[0]);
-                                }
+                            //Create new container
+                            if (creep.pos.isNearTo(mineTarget)) {
+                                creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER)
                             }
                         }
                     }
@@ -429,11 +408,21 @@ var creep_work5 = {
 
                 if (_.sum(creep.carry) <= 150) {
                     //in farRoom, pick up container contents
-                    var theSource = Game.getObjectById(creep.memory.mineSource);
+                    if (creep.memory.containerTarget) {
+                        var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+                        if (thisContainer) {
+                            if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(thisContainer, {
+                                    reusePath: 20
+                                });
+                            }
+                        }
+                    }
                     var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
                         filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                     });
                     if (containers.length) {
+                        creep.memory.containerTarget = containers[0].id;
                         if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(containers[0], {
                                 reusePath: 20
