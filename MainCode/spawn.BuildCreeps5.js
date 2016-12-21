@@ -289,7 +289,7 @@ var spawn_BuildCreeps5 = {
 					prioritizedRole = 'farMiner';
 					roomTarget = farRooms[0];
 					creepSource = farSources[0];
-				} else if (usingFarMiners && Memory.E1N63FarRoles.indexOf('farMule') == -1) {
+				} else if (usingFarMiners && Memory.E1N63FarRoles.filter(function(value){return value === 'farMule';}).length < 2) {
 					//Mule
 					prioritizedRole = 'farMule';
 					roomTarget = farRooms[0];
