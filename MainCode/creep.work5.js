@@ -332,7 +332,7 @@ var creep_work5 = {
                 //Remove yourself from the list of farCreeps
                 Memory.E1N63FarRoles.splice(farIndex, 1);
             } else if (farIndex == -1) {
-                Memory.E1N63FarRoles.push('farMiner')
+                Memory.E1N63FarRoles.push('farMiner');
             }
 
             if (creep.room.name != creep.memory.destination) {
@@ -388,8 +388,7 @@ var creep_work5 = {
                     }
                 }
             }
-        }
-        elseif(creep.memory.priority == 'farMule') {
+        } else if (creep.memory.priority == 'farMule') {
             var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
             if (creep.ticksToLive <= 5 && farIndex > -1) {
                 //Remove yourself from the list of farCreeps
