@@ -15,7 +15,9 @@
   	if (!testvar) {
   		testvar = [];
   	}
-  	testvar.push('wew lad');
+  	testvar.push('wew lad', 'lad wew');
+    var indexOF = testvar.indexOf('wew lad');
+    testvar.splice(indexOF, 1);
   	alert(testvar);
   </script>
 </body>

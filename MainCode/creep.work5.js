@@ -301,10 +301,12 @@ var creep_work5 = {
                 }
             }
         } else if (creep.memory.priority == 'farClaimer') {
-            if (creep.ticksToLive <= 5) {
+            var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
+            if (creep.ticksToLive <= 5 && farIndex > -1) {
                 //Remove yourself from the list of farCreeps
-                var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
                 Memory.E1N63FarRoles.splice(farIndex, 1);
+            } else if (farIndex == -1) {
+                Memory.E1N63FarRoles.push('farClaimer')
             }
 
             if (creep.room.name != creep.memory.destination) {
@@ -325,10 +327,12 @@ var creep_work5 = {
                 }
             }
         } else if (creep.memory.priority == 'farMiner') {
-            if (creep.ticksToLive <= 5) {
+            var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
+            if (creep.ticksToLive <= 5 && farIndex > -1) {
                 //Remove yourself from the list of farCreeps
-                var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
                 Memory.E1N63FarRoles.splice(farIndex, 1);
+            } else if (farIndex == -1) {
+                Memory.E1N63FarRoles.push('farMiner')
             }
 
             if (creep.room.name != creep.memory.destination) {
@@ -384,11 +388,14 @@ var creep_work5 = {
                     }
                 }
             }
-        } else if (creep.memory.priority == 'farMule') {
-            if (creep.ticksToLive <= 5) {
+        }
+        elseif(creep.memory.priority == 'farMule') {
+            var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
+            if (creep.ticksToLive <= 5 && farIndex > -1) {
                 //Remove yourself from the list of farCreeps
-                var farIndex = Memory.E1N63FarRoles.indexOf(creep.memory.priority);
                 Memory.E1N63FarRoles.splice(farIndex, 1);
+            } else if (farIndex == -1) {
+                Memory.E1N63FarRoles.push('farMule')
             }
 
             if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 150) {
