@@ -363,7 +363,9 @@ var creep_work5 = {
                         if (thisUnit.hits < thisUnit.hitsMax) {
                             creep.repair(thisUnit);
                         } else {
-                            creep.transfer(thisUnit, RESOURCE_ENERGY);
+                            if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(thisUnit);
+                            }
                         }
                     }
                 } else {
@@ -371,7 +373,9 @@ var creep_work5 = {
                         filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                     });
                     if (containers.length) {
-                        creep.transfer(containers[0], RESOURCE_ENERGY);
+                        if (creep.transfer(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(containers[0]);
+                        }
                         creep.memory.storageUnit = containers[0].id;
                     } else {
                         var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
