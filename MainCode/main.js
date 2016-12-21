@@ -31,8 +31,7 @@ var tower_Operate = require('tower.Operate');
 var market_buyers = require('market.FindBuyers');
 
 //Initalize Memory vars
-Memory.roomsUnderAttack = [];
-Memory.roomsPrepSalvager = [];
+
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61', 'E4N61', 'E1N63'];
@@ -53,11 +52,16 @@ Memory.E1N63Towers = ['584d6f32baef985d734be0db', '5851c1ba2a1b963e6104d783'];
 Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 Memory.E1N63Terminals = ['5859644c969e3a483fff380a'];
 Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
-Memory.E1N63FarRoles = [];
-Memory.E1N63ClaimerNeeded = true;
 
-Memory.RoomsRun = [];
-Memory.creepInQue = [];
+
+//These will be checked, and defaults set only if undefined
+Memory.RoomsRun;
+Memory.creepInQue;
+Memory.roomsUnderAttack;
+Memory.roomsPrepSalvager;
+Memory.E1N63FarRoles;
+//Boolean
+Memory.E1N63ClaimerNeeded;
 
 const profiler = require('screeps-profiler');
 
@@ -83,6 +87,9 @@ module.exports.loop = function() {
             market_buyers.run(Game.rooms.E4N61, Game.getObjectById(Memory.E4N61Terminals[0]), Memory.E4N61SellOre, 0.7);
             market_buyers.run(Game.rooms.E1N63, Game.getObjectById(Memory.E1N63Terminals[0]), Memory.E1N63SellOre, 0.2);
         }
+
+        //Set defaults on various memory values
+        memCheck();
 
         //Loop through all spawns
         for (var i in Game.spawns) {
@@ -264,4 +271,32 @@ function recalculateBestWorker(thisEnergyCap) {
     }
     //Make the modules pretty
     bestWorkerConfig.sort();
+}
+
+function memCheck() {
+    if (!Memory.RoomsRun) {
+        Memory.RoomsRun = [];
+        console.log('RoomsRun Defaulted');
+    }
+    if (!Memory.creepInQue) {
+        Memory.creepInQue = [];
+        console.log('creepInQue Defaulted');
+    }
+    if (!Memory.roomsUnderAttack) {
+        Memory.roomsUnderAttack = [];
+        console.log('roomsUnderAttack Defaulted');
+    }   
+    if (!Memory.roomsPrepSalvager) {
+        Memory.roomsPrepSalvager = [];
+        console.log('roomsPrepSalvager Defaulted');
+    }
+    if (!Memory.E1N63FarRoles) {
+        Memory.E1N63FarRoles = [];
+        console.log('E1N63FarRoles Defaulted');
+    }
+    //Boolean
+    if (!Memory.E1N63ClaimerNeeded) {
+        Memory.E1N63ClaimerNeeded = true;
+        console.log('E1N63ClaimerNeeded Defaulted');
+    }
 }
