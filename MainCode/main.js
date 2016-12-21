@@ -55,13 +55,13 @@ Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
 
 
 //These will be checked, and defaults set only if undefined
-Memory.RoomsRun;
-Memory.creepInQue;
-Memory.roomsUnderAttack;
-Memory.roomsPrepSalvager;
-Memory.E1N63FarRoles;
+//Memory.RoomsRun;
+//Memory.creepInQue;
+//Memory.roomsUnderAttack;
+//Memory.roomsPrepSalvager;
+//Memory.E1N63FarRoles;
 //Boolean
-Memory.E1N63ClaimerNeeded;
+//Memory.E1N63ClaimerNeeded;
 
 const profiler = require('screeps-profiler');
 
