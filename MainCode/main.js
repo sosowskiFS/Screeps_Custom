@@ -295,7 +295,7 @@ function memCheck() {
         console.log('E1N63FarRoles Defaulted');
     }
     //Boolean
-    if (!Memory.E1N63ClaimerNeeded) {
+    if (typeof Memory.E1N63ClaimerNeeded === 'undefined') {
         Memory.E1N63ClaimerNeeded = true;
         console.log('E1N63ClaimerNeeded Defaulted');
     }
