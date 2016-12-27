@@ -48,14 +48,22 @@ var spawn_BuildCreeps = {
 				builderMax = 1;
 				UpgraderMax = 3;
 				break;
+			case 'E1N61':
+				harvesterMax = 2;
+				strSources.push('57ef9db186f108ae6e60e223', '57ef9db186f108ae6e60e224');
+				mineSpots.push(3, 5);
+				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+				builderMax = 1;
+				UpgraderMax = 3;
+				break;
 		}
 
-		var bareMinConfig = [MOVE,MOVE,WORK,CARRY,CARRY];
+		var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
 		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
 			spawn.createCreep(bareMinConfig, undefined, {
-				priority: 'harvester', 
+				priority: 'harvester',
 				sourceLocation: strSources[1]
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {

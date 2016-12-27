@@ -144,14 +144,14 @@ module.exports.loop = function() {
                 if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
                     var previousEnergyCap = -1;
                     switch (thisRoom.name) {
-                        case 'E1N63':
+                        case 'E1N61':
                             previousEnergyCap = Memory.E1N63EnergyCap;
                     }
                     if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
                         previousEnergyCap = thisRoom.energyCapacityAvailable;
                         recalculateBestWorker(previousEnergyCap);
                         switch (thisRoom.name) {
-                            case 'E1N63':
+                            case 'E1N61':
                                 Memory.E1N63EnergyCap = previousEnergyCap;
                         }
                     }

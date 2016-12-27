@@ -16,8 +16,8 @@ var creep_constructor = {
                     creep.memory.destinations.splice(0, 1);
                 }
             } else {
-                if (creep.harvest(Game.getObjectById('57ef9db186f108ae6e60e21e')) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(Game.getObjectById('57ef9db186f108ae6e60e21e'));
+                if (creep.harvest(Game.getObjectById('57ef9db186f108ae6e60e223')) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(Game.getObjectById('57ef9db186f108ae6e60e223'));
                 }
             }
         } else {
