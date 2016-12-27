@@ -3,6 +3,10 @@ var market_buyers = {
     run: function(thisRoom, thisTerminal, thisMineral, targetPrice) {
         var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
         var mineralInTerminal = thisTerminal.store[thisMineral];
+        var MaxSaleAmount = 50000;
+        if (mineralInTerminal > MaxSaleAmount) {
+            mineralInTerminal = MaxSaleAmount;
+        }
         var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == thisMineral && order.type == ORDER_BUY && order.price >= targetPrice && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
         if (FilteredOrders.length > 0) {
             FilteredOrders.sort(orderPriceCompare);

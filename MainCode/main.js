@@ -83,7 +83,7 @@ module.exports.loop = function() {
 
         //Review market data and sell to buy orders
         if (Game.time % 1000 == 0) {
-            market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre, 0.18);
+            market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre, 0.16);
             market_buyers.run(Game.rooms.E4N61, Game.getObjectById(Memory.E4N61Terminals[0]), Memory.E4N61SellOre, 0.7);
             market_buyers.run(Game.rooms.E1N63, Game.getObjectById(Memory.E1N63Terminals[0]), Memory.E1N63SellOre, 0.2);
         }
