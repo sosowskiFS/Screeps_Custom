@@ -190,8 +190,10 @@ module.exports.loop = function() {
                                 sendLink.transferEnergy(receiveLink);
                             }
                         }
+                        break;
                     case 'E1N61':
                         towerList = Memory.E1N61Towers;
+                        break;
                 }
                 if (towerList) {
                     if (towerList.length > 0) {
