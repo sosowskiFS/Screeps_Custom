@@ -53,6 +53,8 @@ Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 Memory.E1N63Terminals = ['5859644c969e3a483fff380a'];
 Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
 
+Memory.E1N61Towers = ['5863c4fe21a13bee585cde13'];
+
 
 //These will be checked, and defaults set only if undefined
 //Memory.RoomsRun;
@@ -188,6 +190,8 @@ module.exports.loop = function() {
                                 sendLink.transferEnergy(receiveLink);
                             }
                         }
+                    case 'E1N61':
+                        towerList = Memory.E1N61Towers;
                 }
                 if (towerList) {
                     if (towerList.length > 0) {
