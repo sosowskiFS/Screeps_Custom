@@ -33,7 +33,7 @@ var creep_Kebab = {
                 } else if (creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos) && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length > 0) {
                     var thisWall = Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES);
                     if (thisWall[0]) {
-                        creep.attack(target);
+                        creep.attack(thisWall[0]);
                         break;
                     }
                 } else if (!creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos)) {
