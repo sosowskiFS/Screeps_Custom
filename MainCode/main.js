@@ -39,25 +39,20 @@ var market_buyers = require('market.FindBuyers');
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
 Memory.roomsReadyFor5 = ['E3N61', 'E4N61', 'E1N63'];
-Memory.E3N61Towers = ['583af7158d788e033383c644', '5850db58de0679b13eaef37f', '5855c7e000a464373cf3e9aa'];
 Memory.E3N61EnergyCap = -1;
 //Format - [0] = send [1] = receive
 Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 Memory.E3N61Terminals = ['58424a6ef6e01c883e9feb4b'];
 Memory.E3N61SellOre = RESOURCE_ZYNTHIUM;
 Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
-Memory.E4N61Towers = ['583fb149392f104960ed133f', '584791ab582cb9b014b7957a'];
 Memory.E4N61EnergyCap = -1;
 Memory.E4N61Terminals = ['58511f42a4bd711272b69517'];
 Memory.E4N61SellOre = RESOURCE_HYDROGEN;
 
 Memory.E1N63EnergyCap = -1;
-Memory.E1N63Towers = ['584d6f32baef985d734be0db', '5851c1ba2a1b963e6104d783'];
 Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 Memory.E1N63Terminals = ['5859644c969e3a483fff380a'];
 Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
-
-Memory.E1N61Towers = ['5863c4fe21a13bee585cde13'];
 
 
 //These will be checked, and defaults set only if undefined
@@ -188,10 +183,10 @@ module.exports.loop = function() {
                     }
                 }
 
-                var towerList;
+                //var towerList;
                 switch (thisRoom.name) {
                     case 'E3N61':
-                    towerList = Memory.E3N61Towers;
+                    //towerList = Memory.E3N61Towers;
                     var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
                     if (sendLink) {
@@ -201,7 +196,7 @@ module.exports.loop = function() {
                     }
                     break;
                     case 'E4N61':
-                    towerList = Memory.E4N61Towers;
+                    //towerList = Memory.E4N61Towers;
                     var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
                     if (sendLink) {
@@ -211,7 +206,7 @@ module.exports.loop = function() {
                     }
                     break;
                     case 'E1N63':
-                    towerList = Memory.E1N63Towers;
+                    //towerList = Memory.E1N63Towers;
                     var sendLink = Game.getObjectById(Memory.E1N63Links[0]);
                     var receiveLink = Game.getObjectById(Memory.E1N63Links[1]);
                     if (sendLink) {
@@ -221,12 +216,13 @@ module.exports.loop = function() {
                     }
                     break;
                     case 'E1N61':
-                    towerList = Memory.E1N61Towers;
+                    //towerList = Memory.E1N61Towers;
                     break;
                 }
-                if (towerList) {
-                    if (towerList.length > 0) {
-                        towerList.forEach(function(thisTower) {
+
+                if (Memory.towerList[thisRoom.name]) {
+                    if (Memory.towerList[thisRoom.name].length > 0) {
+                        Memory.towerList[thisRoom.name].forEach(function(thisTower) {
                             //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
                             if (thisTower) {
                                 tower_Operate.run(thisTower, thisRoom);
