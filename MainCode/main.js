@@ -35,25 +35,7 @@ var tower_Operate = require('tower.Operate');
 var market_buyers = require('market.FindBuyers');
 
 //Initalize Memory vars
-
-//Manually add room names to this array when links have been constructed
-//Remember to update creeps5+ with link/storage/source IDs
-//Memory.roomsReadyFor5 = ['E3N61', 'E4N61', 'E1N63'];
-Memory.E3N61EnergyCap = -1;
-//Format - [0] = send [1] = receive
-//Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
-Memory.E3N61Terminals = ['58424a6ef6e01c883e9feb4b'];
-Memory.E3N61SellOre = RESOURCE_ZYNTHIUM;
-//Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
-Memory.E4N61EnergyCap = -1;
-Memory.E4N61Terminals = ['58511f42a4bd711272b69517'];
-Memory.E4N61SellOre = RESOURCE_HYDROGEN;
-
 Memory.E1N63EnergyCap = -1;
-//Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
-Memory.E1N63Terminals = ['5859644c969e3a483fff380a'];
-Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
-
 
 //These will be checked, and defaults set only if undefined
 //Memory.RoomsRun;
