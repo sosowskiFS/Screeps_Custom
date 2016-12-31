@@ -82,13 +82,6 @@ module.exports.loop = function() {
             }
         }
 
-        //Review market data and sell to buy orders
-        if (Game.time % 1000 == 0) {
-            market_buyers.run(Game.rooms.E3N61, Game.getObjectById(Memory.E3N61Terminals[0]), Memory.E3N61SellOre, 0.16);
-            market_buyers.run(Game.rooms.E4N61, Game.getObjectById(Memory.E4N61Terminals[0]), Memory.E4N61SellOre, 0.7);
-            market_buyers.run(Game.rooms.E1N63, Game.getObjectById(Memory.E1N63Terminals[0]), Memory.E1N63SellOre, 0.2);
-        }
-
         //Set defaults on various memory values
         memCheck();
 
@@ -259,6 +252,24 @@ module.exports.loop = function() {
                     }
                 }
 
+                //Get list of Terminals
+                if (Game.time % 250 == 0 || !Memory.terminalList[thisRoom.name]) {
+                    Memory.terminalList[thisRoom.name] = [];
+                    var terminalLocations = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: { structureType: STRUCTURE_TERMINAL }
+                    });
+                    if(terminalLocations) {
+                        if (terminalLocations.length > 0) {
+                            Memory.terminalList[thisRoom.name].push(terminalLocations[0].id);
+                        }
+                    }
+                }
+
+                //Review market data and sell to buy orders
+                if (Game.time % 1000 == 0 && Memory.terminalList[thisRoom.name][0]) {
+                    market_buyers.run(thisRoom, Game.getObjectById(Memory.terminalList[thisRoom.name][0]), Memory.mineralList[thisRoom.name]);
+                }
+
                 //Handle Links
                 if (Memory.linkList[thisRoom.name][0]) {
                     var roomLink = Game.getObjectById(Memory.linkList[thisRoom.name][0]);
@@ -400,5 +411,11 @@ function memCheck() {
     }
     if (!Memory.mineralList) {
         Memory.mineralList = new Object();
+    }
+    if (!Memory.terminalList) {
+        Memory.terminalList = new Object();
+    }
+    if (!Memory.extractorList) {
+        Memory.extractorList = new Object();
     }
 }

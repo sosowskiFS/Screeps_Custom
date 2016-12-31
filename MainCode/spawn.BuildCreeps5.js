@@ -25,7 +25,7 @@ var spawn_BuildCreeps5 = {
 			var strLinks = Memory.linkList[thisRoom.name];
 			var strStorage = Memory.storageList[thisRoom.name];
 			var strMineral = Memory.mineralList[thisRoom.name];
-			var strTerminal = [];
+			var strTerminal = Memory.terminalList[thisRoom.name];
 			var strExtractor = [];
 			var readyForMineral = false;
 			var usingFarMiners = false;
@@ -44,7 +44,7 @@ var spawn_BuildCreeps5 = {
 					//upgraderMax = 2;
 					//repairMax = 1;
 					//strMineral.push('57efa010195b160f02c752c6');
-					strTerminal.push('58424a6ef6e01c883e9feb4b');
+					//strTerminal.push('58424a6ef6e01c883e9feb4b');
 					strExtractor.push('58412458eebbe1bc1d83c710');
 					readyForMineral = true;
 					usingFarMiners = false;
@@ -58,7 +58,7 @@ var spawn_BuildCreeps5 = {
 					//strLinks.push('5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50');
 					//strStorage.push('5842a7fa4d4fac0a066fbd05');
 					//strMineral.push('57efa010195b160f02c752d5');
-					strTerminal.push('58511f42a4bd711272b69517');
+					//strTerminal.push('58511f42a4bd711272b69517');
 					strExtractor.push('584dd9736e946d971f816169');
 					readyForMineral = true;
 					usingFarMiners = false;
@@ -72,7 +72,7 @@ var spawn_BuildCreeps5 = {
 					//strLinks.push('5851389331781392518d42f7', '5851488b9937b63f665b2f57');
 					//strStorage.push('584ebb6cb33541d02a283774');
 					//strMineral.push('57efa010195b160f02c752a0');
-					strTerminal.push('5859644c969e3a483fff380a');
+					//strTerminal.push('5859644c969e3a483fff380a');
 					strExtractor.push('585711fd97c4584d6a29c37a');
 					readyForMineral = true;
 					usingFarMiners = false;
