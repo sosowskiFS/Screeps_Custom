@@ -183,6 +183,32 @@ module.exports.loop = function() {
                     }
                 }
 
+                //Get list of Sources
+                if (Game.time % 110 == 0 || !Memory.sourceList[thisRoom.name]) {
+                    Memory.sourceList[thisRoom.name] = [];
+                    var roomSources = thisRoom.find(FIND_SOURCES);
+                    var reverseFlag = false;
+                    if(roomSources) {
+                        var sourceCounter = 0;
+                        while (roomSources[sourceCounter]) {
+                            if (Memory.sourceList[thisRoom.name].indexOf(roomSources[sourceCounter].id) == -1) {
+                                Memory.sourceList[thisRoom.name].push(roomSources[sourceCounter].id)
+                            }
+                            //If there is no storage unit nearby, this should not be #1
+                            var nearContainers = roomSources[sourceCounter].pos.findInRange(FIND_MY_STRUCTURES, 3, {
+                                filter : { structureType: STRUCTURE_STORAGE }
+                            });
+                            if (sourceCounter == 0 && nearContainers.length == 0) {
+                                reverseFlag = true;
+                            }
+                            sourceCounter++;
+                        }
+                        if (reverseFlag) {
+                            Memory.sourceList[thisRoom.name].reverse();
+                        }
+                    }
+                }
+
                 //var towerList;
                 switch (thisRoom.name) {
                     case 'E3N61':
@@ -335,5 +361,8 @@ function memCheck() {
     //Object
     if (!Memory.towerList) {
         Memory.towerList = new Object();
+    }
+    if (!Memory.sourceList) {
+        Memory.sourceList = new Object();
     }
 }

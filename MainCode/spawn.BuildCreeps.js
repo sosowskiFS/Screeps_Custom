@@ -14,49 +14,10 @@ var spawn_BuildCreeps = {
 		var builderMax = 1;
 		var upgraderMax = 2;
 		//How many creeps can mine at once
-		var mineSpots = [];
+		var mineSpots = [2,5];
 		//Add sources from N to S
-		var strSources = [];
-		var assignedSlot1;
-
-		switch (thisRoom.name) {
-			case 'E3N61':
-				//two sources
-				harvesterMax = 2;
-				//Source[1] is more accessable
-				strSources.push('57ef9db786f108ae6e60e2a5', '57ef9db786f108ae6e60e2a7');
-				mineSpots.push(4, 2);
-				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
-				builderMax = 1;
-				upgraderMax = 2;
-				break;
-			case 'E4N61':
-				//two sources
-				harvesterMax = 2;
-				//Source[1] is more accessable
-				strSources.push('57ef9dba86f108ae6e60e2f8', '57ef9dba86f108ae6e60e2fa');
-				mineSpots.push(1, 5);
-				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
-				builderMax = 1;
-				upgraderMax = 2;
-				break;
-			case 'E1N63':
-				harvesterMax = 2;
-				strSources.push('57ef9db186f108ae6e60e21d', '57ef9db186f108ae6e60e21e');
-				mineSpots.push(1, 2);
-				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
-				builderMax = 1;
-				upgraderMax = 3;
-				break;
-			case 'E1N61':
-				harvesterMax = 2;
-				strSources.push('57ef9db186f108ae6e60e223', '57ef9db186f108ae6e60e224');
-				mineSpots.push(3, 5);
-				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
-				builderMax = 1;
-				upgraderMax = 3;
-				break;
-		}
+		var strSources = Memory.sourceList[thisRoom.name];
+		var assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 
 		var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 

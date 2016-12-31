@@ -21,7 +21,7 @@ var spawn_BuildCreeps5 = {
 			var muleMax = 1;
 			var upgraderMax = 2;
 			var repairMax = 1;
-			var strSources = [];
+			var strSources = Memory.sourceList[thisRoom.name];
 			var strLinks = [];
 			var strStorage = [];
 			var strMineral = [];
@@ -37,7 +37,7 @@ var spawn_BuildCreeps5 = {
 				case 'E3N61':
 					//two sources
 					minerMax = 2;
-					strSources.push('57ef9db786f108ae6e60e2a5', '57ef9db786f108ae6e60e2a7');
+					//strSources.push('57ef9db786f108ae6e60e2a5', '57ef9db786f108ae6e60e2a7');
 					strLinks.push('583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1');
 					muleMax = 1;
 					strStorage.push('58388a3dac3bed8a51188517');
@@ -54,7 +54,7 @@ var spawn_BuildCreeps5 = {
 					muleMax = 1;
 					UpgraderMax = 2;
 					repairMax = 1;
-					strSources.push('57ef9dba86f108ae6e60e2f8', '57ef9dba86f108ae6e60e2fa');
+					//strSources.push('57ef9dba86f108ae6e60e2f8', '57ef9dba86f108ae6e60e2fa');
 					strLinks.push('5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50');
 					strStorage.push('5842a7fa4d4fac0a066fbd05');
 					strMineral.push('57efa010195b160f02c752d5');
@@ -68,7 +68,7 @@ var spawn_BuildCreeps5 = {
 					muleMax = 1;
 					UpgraderMax = 2;
 					repairMax = 1;
-					strSources.push('57ef9db186f108ae6e60e21d', '57ef9db186f108ae6e60e21e');
+					//strSources.push('57ef9db186f108ae6e60e21d', '57ef9db186f108ae6e60e21e');
 					strLinks.push('5851389331781392518d42f7', '5851488b9937b63f665b2f57');
 					strStorage.push('584ebb6cb33541d02a283774');
 					strMineral.push('57efa010195b160f02c752a0');
