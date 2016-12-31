@@ -122,23 +122,6 @@ module.exports.loop = function() {
                     }
                 }
 
-                //Update creep configs if energy cap has changed
-                if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
-                    var previousEnergyCap = -1;
-                    switch (thisRoom.name) {
-                        case 'E1N61':
-                        previousEnergyCap = Memory.E1N63EnergyCap;
-                    }
-                    if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
-                        previousEnergyCap = thisRoom.energyCapacityAvailable;
-                        recalculateBestWorker(previousEnergyCap);
-                        switch (thisRoom.name) {
-                            case 'E1N61':
-                            Memory.E1N63EnergyCap = previousEnergyCap;
-                        }
-                    }
-                }
-
                 //Keep the towerList object updated
                 if (Game.time % 100 == 0 || !Memory.towerList[thisRoom.name]) {
                     if (!Memory.towerList[thisRoom.name]) {
@@ -289,6 +272,28 @@ module.exports.loop = function() {
                         });
                     }
                 }
+
+                //Update advanced script rooms
+                if ((Memory.storageList[thisRoom.name].length == 0 || Memory.linkList[thisRoom.name].length < 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                    Memory.RoomsAt5.push(thisRoom.name)
+                }
+
+                //Update creep configs if energy cap has changed
+                if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                    var previousEnergyCap = -1;
+                    switch (thisRoom.name) {
+                        case 'E1N61':
+                        previousEnergyCap = Memory.E1N63EnergyCap;
+                    }
+                    if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
+                        previousEnergyCap = thisRoom.energyCapacityAvailable;
+                        recalculateBestWorker(previousEnergyCap);
+                        switch (thisRoom.name) {
+                            case 'E1N61':
+                            Memory.E1N63EnergyCap = previousEnergyCap;
+                        }
+                    }
+                }
             }
 
             if (Memory.storageList[thisRoom.name].length == 0 || Memory.linkList[thisRoom.name].length < 2) {
@@ -323,7 +328,7 @@ module.exports.loop = function() {
                     creep_combat.run(creep, thisRoom, Game.spawns[i]);
                 }
             } else {
-                if (Memory.roomsReadyFor5.indexOf(creep.room.name) === -1) {
+                if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                     creep_work.run(creep);
                 } else {
                     if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
@@ -385,6 +390,9 @@ function memCheck() {
     if (!Memory.E1N63FarRoles) {
         Memory.E1N63FarRoles = [];
         console.log('E1N63FarRoles Defaulted');
+    }
+    if (!Memory.RoomsAt5) {
+        Memory.RoomsAt5 = [];
     }
     //Boolean
     if (typeof Memory.E1N63ClaimerNeeded === 'undefined') {
