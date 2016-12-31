@@ -4,11 +4,11 @@ var creep_Kebab = {
     run: function(creep) {
         if (creep.memory.destinations.length > 0) {
             if (creep.room.name != creep.memory.destinations[0]) {
-                creep.moveTo(new RoomPosition(34, 47, creep.memory.destinations[0]));
+                creep.moveTo(new RoomPosition(25, 25, creep.memory.destinations[0]));
             } else {
                 creep.memory.destinations.splice(0, 1);
             }
-        } else {
+        } else if (creep.memory.destinations.length == 0) {
             //Move towards wall
             var flagName = creep.room.name + 'eWall';
             var flagCounter = 1;
