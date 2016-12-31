@@ -1,7 +1,9 @@
 # Screeps - My Personal Build
-My codebase for Screeps, main room is currently E3N61, and this month's expansion rank is about 385. Search for the user "Montblanc" if you want to see the code in action. Yeah, I just told you where I live. I'm tactically challenged.
+My codebase for Screeps, main room is currently E3N61, and this month's expansion rank is about 285. Search for the user "Montblanc" if you want to see the code in action. Yeah, I just told you where I live. I'm tactically challenged.
 
 This codebase is structured to give creeps designated roles and targets, with the overall aim of keeping CPU moderately low.
+
+This codebase is now mostly automated! Any room with a friendly spawn in it will automatically detect needed structures and work from memory. Next goal : Automating structures.
 
 Creeps in low level controlled rooms prioritize their role, but work universally if their role is not needed. CPU usage is generally higher in these rooms.
 
@@ -30,9 +32,5 @@ There are some special, manually created creep roles as well:
 **Constructor** - Given a target room, creep will mine and construct in specified room. Used to follow up after Claimer
 
 **Vandal** - Rushes through a list of rooms to go to each room's controller and write the specified message on the sign. Now you too can be a blight on society!
-
-Construction sites and specific IDs are entered manually to save on CPU usage. Future updates should change this to write IDs to memory.
-
-Currently this codebase runs two rooms at an average of 7 CPU, though it currently expereinces occasional spikes of 25 CPU due to using built-in pathfinding.
 
 I'm perfectly ok with you stealing code from this. I accept no responsibility for catastrophic economic failure. 
