@@ -248,6 +248,17 @@ module.exports.loop = function() {
                     }
                 }
 
+                //Get list of Minerals
+                if (Game.time % 250 == 0 || !Memory.mineralList[thisRoom.name]) {
+                    Memory.mineralList[thisRoom.name] = [];
+                    var mineralLocations = thisRoom.find(FIND_MINERALS);
+                    if(mineralLocations) {
+                        if (mineralLocations.length > 0) {
+                            Memory.mineralList[thisRoom.name].push(mineralLocations[0].id);
+                        }
+                    }
+                }
+
                 //Handle Links
                 if (Memory.linkList[thisRoom.name][0]) {
                     var roomLink = Game.getObjectById(Memory.linkList[thisRoom.name][0]);
@@ -386,5 +397,8 @@ function memCheck() {
     }
     if (!Memory.storageList) {
         Memory.storageList = new Object();
+    }
+    if (!Memory.mineralList) {
+        Memory.mineralList = new Object();
     }
 }
