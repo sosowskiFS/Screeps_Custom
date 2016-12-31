@@ -6,7 +6,7 @@
 
 //require('special').specialInstruction('construct', '584c12a6b14a695e0d9653e4', ['E3N60', 'E3N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63'])
 
-//require('special').specialInstruction('removeKebab', '5849bf71b14a695e0d934f4b', ['E3N60', 'E4N60', 'E3N61', 'E4N62']);
+//require('special').specialInstruction('removeKebab', '58366a7b84afc9937e209535', ['E3N60', 'E2N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63', 'E2N63']);
 
 //Creeps
 var creep_work = require('creep.work');
@@ -107,28 +107,28 @@ module.exports.loop = function() {
                 if (Memory.Instruction) {
                     switch (Memory.Instruction) {
                         case 'claim':
-                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
-                            delete Memory.Instruction;
-                            delete Memory.InstructionOps;
-                            break;
+                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
+                        delete Memory.Instruction;
+                        delete Memory.InstructionOps;
+                        break;
                         case 'vandalize':
-                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                            delete Memory.Instruction;
-                            delete Memory.InstructionOps;
-                            delete Memory.InstructionOps2;
-                            break;
+                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                        delete Memory.Instruction;
+                        delete Memory.InstructionOps;
+                        delete Memory.InstructionOps2;
+                        break;
                         case 'construct':
-                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                            delete Memory.Instruction;
-                            delete Memory.InstructionOps;
-                            delete Memory.InstructionOps2;
-                            break;
+                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                        delete Memory.Instruction;
+                        delete Memory.InstructionOps;
+                        delete Memory.InstructionOps2;
+                        break;
                         case 'removeKebab':
-                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                            delete Memory.Instruction;
-                            delete Memory.InstructionOps;
-                            delete Memory.InstructionOps2;
-                            break;
+                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                        delete Memory.Instruction;
+                        delete Memory.InstructionOps;
+                        delete Memory.InstructionOps2;
+                        break;
                     }
                 }
 
@@ -157,14 +157,33 @@ module.exports.loop = function() {
                     var previousEnergyCap = -1;
                     switch (thisRoom.name) {
                         case 'E1N61':
-                            previousEnergyCap = Memory.E1N63EnergyCap;
+                        previousEnergyCap = Memory.E1N63EnergyCap;
                     }
                     if (thisRoom.energyCapacityAvailable != previousEnergyCap) {
                         previousEnergyCap = thisRoom.energyCapacityAvailable;
                         recalculateBestWorker(previousEnergyCap);
                         switch (thisRoom.name) {
                             case 'E1N61':
-                                Memory.E1N63EnergyCap = previousEnergyCap;
+                            Memory.E1N63EnergyCap = previousEnergyCap;
+                        }
+                    }
+                }
+
+                //Keep the towerList object updated
+                if (Game.time % 100 == 0 || !Memory.towerList[thisRoom.name]) {
+                    if (!Memory.towerList[thisRoom.name]) {
+                        Memory.towerList[thisRoom.name] = [];
+                    }
+                    var roomTowers = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: { structureType: STRUCTURE_TOWER }
+                    });
+                    if (roomTowers){
+                        var towerCounter = 0;
+                        while (roomTowers[towerCounter]) {
+                            if (Memory.towerList[thisRoom.name].indexOf(roomTowers[towerCounter].id) == -1) {
+                                Memory.towerList[thisRoom.name].push(roomTowers[towerCounter].id)
+                            }
+                            towerCounter++;
                         }
                     }
                 }
@@ -172,38 +191,38 @@ module.exports.loop = function() {
                 var towerList;
                 switch (thisRoom.name) {
                     case 'E3N61':
-                        towerList = Memory.E3N61Towers;
-                        var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
-                        var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
-                        if (sendLink) {
-                            if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                                sendLink.transferEnergy(receiveLink);
-                            }
+                    towerList = Memory.E3N61Towers;
+                    var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
+                    var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
+                    if (sendLink) {
+                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
+                            sendLink.transferEnergy(receiveLink);
                         }
-                        break;
+                    }
+                    break;
                     case 'E4N61':
-                        towerList = Memory.E4N61Towers;
-                        var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
-                        var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
-                        if (sendLink) {
-                            if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                                sendLink.transferEnergy(receiveLink);
-                            }
+                    towerList = Memory.E4N61Towers;
+                    var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
+                    var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
+                    if (sendLink) {
+                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
+                            sendLink.transferEnergy(receiveLink);
                         }
-                        break;
+                    }
+                    break;
                     case 'E1N63':
-                        towerList = Memory.E1N63Towers;
-                        var sendLink = Game.getObjectById(Memory.E1N63Links[0]);
-                        var receiveLink = Game.getObjectById(Memory.E1N63Links[1]);
-                        if (sendLink) {
-                            if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                                sendLink.transferEnergy(receiveLink);
-                            }
+                    towerList = Memory.E1N63Towers;
+                    var sendLink = Game.getObjectById(Memory.E1N63Links[0]);
+                    var receiveLink = Game.getObjectById(Memory.E1N63Links[1]);
+                    if (sendLink) {
+                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
+                            sendLink.transferEnergy(receiveLink);
                         }
-                        break;
+                    }
+                    break;
                     case 'E1N61':
-                        towerList = Memory.E1N61Towers;
-                        break;
+                    towerList = Memory.E1N61Towers;
+                    break;
                 }
                 if (towerList) {
                     if (towerList.length > 0) {
@@ -316,5 +335,9 @@ function memCheck() {
     if (typeof Memory.E1N63ClaimerNeeded === 'undefined') {
         Memory.E1N63ClaimerNeeded = true;
         console.log('E1N63ClaimerNeeded Defaulted');
+    }
+    //Object
+    if (!Memory.towerList) {
+        Memory.towerList = new Object();
     }
 }

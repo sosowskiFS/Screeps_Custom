@@ -11,14 +11,19 @@
 
 <body>
   <script type="text/javascript">
-  	var testvar;
-  	if (!testvar) {
-  		testvar = [];
-  	}
-  	testvar.push('wew lad', 'lad wew');
-    var indexOF = testvar.indexOf('wew lad');
-    testvar.splice(indexOF, 1);
-  	alert(testvar);
+  	//var towerlistObject = {
+      //'room1' : ['towerID1', 'towerID2'],
+      //'room2' : ['towerID1.2', 'towerID2.2']
+    //};
+    var towerlistObject;
+    if (!towerlistObject) {
+      towerlistObject = new Object();
+    }
+    if (!towerlistObject["room3"]) {
+      towerlistObject["room3"] = [];
+    }
+    towerlistObject["room3"].push('wew');
+  	alert(towerlistObject["room3"]);
   </script>
 </body>
 </html>
