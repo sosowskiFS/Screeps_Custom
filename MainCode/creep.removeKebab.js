@@ -17,8 +17,8 @@ var creep_Kebab = {
                     //Wall removed, proceed to target
                     var theTarget = Game.getObjectById(creep.memory.targetID)
                     if (theTarget) {
-                        if(creep.attack(target) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(target);
+                        if(creep.attack(theTarget) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(theTarget);
                         }
                     } else {
                         //Assume target is destroyed, vandalize.
