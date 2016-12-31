@@ -209,43 +209,46 @@ module.exports.loop = function() {
                     }
                 }
 
-                //var towerList;
-                switch (thisRoom.name) {
-                    case 'E3N61':
-                    //towerList = Memory.E3N61Towers;
-                    var sendLink = Game.getObjectById(Memory.E3N61Links[0]);
-                    var receiveLink = Game.getObjectById(Memory.E3N61Links[1]);
-                    if (sendLink) {
-                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                            sendLink.transferEnergy(receiveLink);
+                //Get list of Links
+                if (Game.time % 120 == 0 || !Memory.linkList[thisRoom.name]) {
+                    Memory.linkList[thisRoom.name] = [];
+                    var roomLinks = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: { structureType: STRUCTURE_LINK }
+                    });
+                    var reverseFlag = false;
+                    if(roomLinks) {
+                        var linkCounter = 0;
+                        while (roomLinks[linkCounter]) {
+                            if (Memory.linkList[thisRoom.name].indexOf(roomLinks[linkCounter].id) == -1) {
+                                Memory.linkList[thisRoom.name].push(roomLinks[linkCounter].id)
+                            }
+                            //If there is no source nearby, this should not be #1
+                            var nearSources = roomLinks[linkCounter].pos.findInRange(FIND_SOURCES, 3);
+                            if (linkCounter == 0 && nearSources.length == 0) {
+                                reverseFlag = true;
+                            }
+                            linkCounter++;
+                        }
+                        if (reverseFlag) {
+                            Memory.linkList[thisRoom.name].reverse();
                         }
                     }
-                    break;
-                    case 'E4N61':
-                    //towerList = Memory.E4N61Towers;
-                    var sendLink = Game.getObjectById(Memory.E4N61Links[0]);
-                    var receiveLink = Game.getObjectById(Memory.E4N61Links[1]);
-                    if (sendLink) {
-                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                            sendLink.transferEnergy(receiveLink);
-                        }
-                    }
-                    break;
-                    case 'E1N63':
-                    //towerList = Memory.E1N63Towers;
-                    var sendLink = Game.getObjectById(Memory.E1N63Links[0]);
-                    var receiveLink = Game.getObjectById(Memory.E1N63Links[1]);
-                    if (sendLink) {
-                        if (sendLink.energy >= 50 && sendLink.cooldown == 0) {
-                            sendLink.transferEnergy(receiveLink);
-                        }
-                    }
-                    break;
-                    case 'E1N61':
-                    //towerList = Memory.E1N61Towers;
-                    break;
                 }
 
+                //Handle Links
+                if (Memory.linkList[thisRoom.name][0]) {
+                    var roomLink = Game.getObjectById(Memory.linkList[thisRoom.name][0]);
+                    if (roomLink) {
+                        if (roomLink.energy >= 50 && roomLink.cooldown == 0) {
+                            var receiveLink = Game.getObjectById(Memory.linkList[thisRoom.name][1]);
+                            if (receiveLink) {
+                                roomLink.transferEnergy(receiveLink);
+                            }
+                        }
+                    }
+                }
+                
+                //Handle Towers
                 if (Memory.towerList[thisRoom.name]) {
                     if (Memory.towerList[thisRoom.name].length > 0) {
                         Memory.towerList[thisRoom.name].forEach(function(thisTower) {
@@ -364,5 +367,8 @@ function memCheck() {
     }
     if (!Memory.sourceList) {
         Memory.sourceList = new Object();
+    }
+    if (!Memory.linkList) {
+        Memory.linkList = new Object();
     }
 }
