@@ -7,10 +7,10 @@ var market_buyers = {
         if (mineralInTerminal > MaxSaleAmount) {
             mineralInTerminal = MaxSaleAmount;
         }
-        var targetPrice = 0.16
+        var targetPrice = 0.16;
         switch (thisMineral) {
             case RESOURCE_ZYNTHIUM:
-                targetPrice = 0.16
+                targetPrice = 0.16;
                 break;
             case RESOURCE_HYDROGEN:
                 targetPrice = 0.7;

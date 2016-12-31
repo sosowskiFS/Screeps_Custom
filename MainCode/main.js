@@ -265,6 +265,19 @@ module.exports.loop = function() {
                     }
                 }
 
+                //Get list of extractors
+                if (Game.time % 250 == 0 || !Memory.extractorList[thisRoom.name]) {
+                    Memory.extractorList[thisRoom.name] = [];
+                    var extractorLocations = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: { structureType: STRUCTURE_EXTRACTOR }
+                    });
+                    if(extractorLocations) {
+                        if (extractorLocations.length > 0) {
+                            Memory.extractorList[thisRoom.name].push(extractorLocations[0].id);
+                        }
+                    }
+                }
+
                 //Review market data and sell to buy orders
                 if (Game.time % 1000 == 0 && Memory.terminalList[thisRoom.name][0]) {
                     market_buyers.run(thisRoom, Game.getObjectById(Memory.terminalList[thisRoom.name][0]), Memory.mineralList[thisRoom.name]);
