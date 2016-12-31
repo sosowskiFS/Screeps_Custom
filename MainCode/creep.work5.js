@@ -397,7 +397,7 @@ var creep_work5 = {
             if (creep.ticksToLive <= 5 && farIndex > -1) {
                 //Remove yourself from the list of farCreeps
                 Memory.E1N63FarRoles.splice(farIndex, 1);
-            } else if (farIndex == -1 || Memory.E1N63FarRoles.filter(function(value){return value === 'farMule';}).length < 2) {
+            } else if (farIndex == -1) {
                 Memory.E1N63FarRoles.push('farMule')
             }
 

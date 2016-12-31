@@ -36,6 +36,18 @@ var spawn_BuildInstruction = {
 					console.log('Could not execute constructor. Spawn cannot create creep.');
 				}
 				break;
+			case 'removeKebab':
+				if (spawn.canCreateCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK]) == OK) {
+					spawn.createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK], undefined, {
+						priority: 'removeKebab',
+						targetID: params,
+						destinations: params2
+					});
+					console.log('Construct executed');
+				} else {
+					console.log('Could not execute constructor. Spawn cannot create creep.');
+				}
+				break;
 		}
 	}
 };

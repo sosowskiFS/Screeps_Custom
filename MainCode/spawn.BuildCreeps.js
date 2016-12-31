@@ -28,7 +28,7 @@ var spawn_BuildCreeps = {
 				mineSpots.push(4, 2);
 				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 				builderMax = 1;
-				UpgraderMax = 2;
+				upgraderMax = 2;
 				break;
 			case 'E4N61':
 				//two sources
@@ -38,7 +38,7 @@ var spawn_BuildCreeps = {
 				mineSpots.push(1, 5);
 				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 				builderMax = 1;
-				UpgraderMax = 2;
+				upgraderMax = 2;
 				break;
 			case 'E1N63':
 				harvesterMax = 2;
@@ -46,7 +46,7 @@ var spawn_BuildCreeps = {
 				mineSpots.push(1, 2);
 				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 				builderMax = 1;
-				UpgraderMax = 3;
+				upgraderMax = 3;
 				break;
 			case 'E1N61':
 				harvesterMax = 2;
@@ -54,7 +54,7 @@ var spawn_BuildCreeps = {
 				mineSpots.push(3, 5);
 				assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 				builderMax = 1;
-				UpgraderMax = 3;
+				upgraderMax = 3;
 				break;
 		}
 

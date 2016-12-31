@@ -2,6 +2,7 @@
 //require('special').specialInstruction('claim', [PathOfRooms]);
 //require('special').specialInstruction('vandalize', [ArrayOfRooms], 'message');
 //require('special').specialInstruction('construct', 'constructionID', [PathOfRooms]);
+//require('special').specialInstruction('removeKebab', 'enemySpawnID', [PathOfRooms]);
 
 //require('special').specialInstruction('construct', '584c12a6b14a695e0d9653e4', ['E3N60', 'E3N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63'])
 
@@ -12,6 +13,7 @@ var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
 var creep_constructor = require('creep.constructor');
+var creep_Kebab = require('creep.removeKebab');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -65,7 +67,7 @@ Memory.E1N61Towers = ['5863c4fe21a13bee585cde13'];
 //Boolean
 //Memory.E1N63ClaimerNeeded;
 
-const profiler = require('screeps-profiler');
+//const profiler = require('screeps-profiler');
 
 //Ctrl+Alt+f to autoformat documents.
 
@@ -73,9 +75,9 @@ const profiler = require('screeps-profiler');
 //Creep calculator : http://codepen.io/findoff/full/RPmqOd/
 //Profiler commands : https://github.com/gdborton/screeps-profiler
 
-profiler.enable();
+//profiler.enable();
 module.exports.loop = function() {
-    profiler.wrap(function() {
+    //profiler.wrap(function() {
         for (var name in Memory.creeps) {
             if (!Game.creeps[name]) {
                 delete Memory.creeps[name];
@@ -114,6 +116,12 @@ module.exports.loop = function() {
                             delete Memory.InstructionOps2;
                             break;
                         case 'construct':
+                            spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
+                            delete Memory.Instruction;
+                            delete Memory.InstructionOps;
+                            delete Memory.InstructionOps2;
+                            break;
+                        case 'removeKebab':
                             spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
                             delete Memory.Instruction;
                             delete Memory.InstructionOps;
@@ -230,6 +238,8 @@ module.exports.loop = function() {
                 creep_vandal.run(creep);
             } else if (creep.memory.priority == 'constructor') {
                 creep_constructor.run(creep);
+            } else if (creep.memory.priority == 'removeKebab') {
+                creep_Kebab.run(creep);
             } else if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
                 if (creep.memory.fromSpawn) {
                     creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
@@ -249,7 +259,7 @@ module.exports.loop = function() {
                 }
             }
         }
-    });
+    //});
 }
 
 function recalculateBestWorker(thisEnergyCap) {
