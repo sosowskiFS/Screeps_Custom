@@ -6,6 +6,8 @@
 
 //require('special').specialInstruction('construct', '584c12a6b14a695e0d9653e4', ['E3N60', 'E3N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63'])
 
+//require('special').specialInstruction('removeKebab', '5849bf71b14a695e0d934f4b', ['E3N60', 'E4N60', 'E3N61', 'E4N62']);
+
 //Creeps
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
