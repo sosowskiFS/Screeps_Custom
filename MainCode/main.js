@@ -38,19 +38,19 @@ var market_buyers = require('market.FindBuyers');
 
 //Manually add room names to this array when links have been constructed
 //Remember to update creeps5+ with link/storage/source IDs
-Memory.roomsReadyFor5 = ['E3N61', 'E4N61', 'E1N63'];
+//Memory.roomsReadyFor5 = ['E3N61', 'E4N61', 'E1N63'];
 Memory.E3N61EnergyCap = -1;
 //Format - [0] = send [1] = receive
-Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
+//Memory.E3N61Links = ['583adab41b9ba6bd6923fc74', '583af8fa827c44087d11fca1'];
 Memory.E3N61Terminals = ['58424a6ef6e01c883e9feb4b'];
 Memory.E3N61SellOre = RESOURCE_ZYNTHIUM;
-Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
+//Memory.E4N61Links = ['5846b97fa223c8f26df40a15', '5846c2f5b4d42f365e1c0d50'];
 Memory.E4N61EnergyCap = -1;
 Memory.E4N61Terminals = ['58511f42a4bd711272b69517'];
 Memory.E4N61SellOre = RESOURCE_HYDROGEN;
 
 Memory.E1N63EnergyCap = -1;
-Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
+//Memory.E1N63Links = ['5851389331781392518d42f7', '5851488b9937b63f665b2f57'];
 Memory.E1N63Terminals = ['5859644c969e3a483fff380a'];
 Memory.E1N63SellOre = RESOURCE_LEMERGIUM;
 
@@ -184,7 +184,7 @@ module.exports.loop = function() {
                 }
 
                 //Get list of Sources
-                if (Game.time % 110 == 0 || !Memory.sourceList[thisRoom.name]) {
+                if (Game.time % 250 == 0 || !Memory.sourceList[thisRoom.name]) {
                     Memory.sourceList[thisRoom.name] = [];
                     var roomSources = thisRoom.find(FIND_SOURCES);
                     var reverseFlag = false;
@@ -210,7 +210,7 @@ module.exports.loop = function() {
                 }
 
                 //Get list of Links
-                if (Game.time % 120 == 0 || !Memory.linkList[thisRoom.name]) {
+                if (Game.time % 250 == 0 || !Memory.linkList[thisRoom.name]) {
                     Memory.linkList[thisRoom.name] = [];
                     var roomLinks = thisRoom.find(FIND_MY_STRUCTURES, {
                         filter: { structureType: STRUCTURE_LINK }
@@ -231,6 +231,19 @@ module.exports.loop = function() {
                         }
                         if (reverseFlag) {
                             Memory.linkList[thisRoom.name].reverse();
+                        }
+                    }
+                }
+
+                //Get list of Storage Units
+                if (Game.time % 250 == 0 || !Memory.storageList[thisRoom.name]) {
+                    Memory.storageList[thisRoom.name] = [];
+                    var storageUnits = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: { structureType: STRUCTURE_STORAGE }
+                    });
+                    if(storageUnits) {
+                        if (storageUnits.length > 0) {
+                            Memory.storageList[thisRoom.name].push(storageUnits[0].id);
                         }
                     }
                 }
@@ -261,7 +274,7 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Memory.roomsReadyFor5.indexOf(thisRoom.name) === -1) {
+            if (Memory.storageList[thisRoom.name].length == 0 || Memory.linkList[thisRoom.name].length < 2) {
                 spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
             } else {
                 spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
@@ -370,5 +383,8 @@ function memCheck() {
     }
     if (!Memory.linkList) {
         Memory.linkList = new Object();
+    }
+    if (!Memory.storageList) {
+        Memory.storageList = new Object();
     }
 }
