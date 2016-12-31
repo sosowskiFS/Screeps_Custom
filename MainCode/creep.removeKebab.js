@@ -20,6 +20,7 @@ var creep_Kebab = {
                         if(creep.attack(theTarget) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(theTarget);
                         }
+                        break;
                     } else {
                         //Assume target is destroyed, vandalize.
                         var signResult = creep.signController(creep.room.controller,'https://www.youtube.com/watch?v=HgD8-Ree07I');
@@ -29,6 +30,7 @@ var creep_Kebab = {
                             //KEBAB REMOVED
                             creep.suicide();
                         }
+                        break;
                     }
                 } else if (creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos) && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length > 0) {
                     var thisWall = Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES);
