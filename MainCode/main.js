@@ -274,7 +274,7 @@ module.exports.loop = function() {
                 }
 
                 //Update advanced script rooms
-                if ((Memory.storageList[thisRoom.name].length > 0 || Memory.linkList[thisRoom.name].length == 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                if ((Memory.storageList[thisRoom.name].length > 0 && Memory.linkList[thisRoom.name].length == 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                     Memory.RoomsAt5.push(thisRoom.name)
                 }
 
