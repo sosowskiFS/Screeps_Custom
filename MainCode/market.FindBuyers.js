@@ -4,7 +4,7 @@ var market_buyers = {
         var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
         var currentMineral = Game.getObjectById(thisMineral);
         var mineralInTerminal = thisTerminal.store[currentMineral.mineralType];
-        var MaxSaleAmount = 50000;
+        var MaxSaleAmount = 30000;
         if (mineralInTerminal > MaxSaleAmount) {
             mineralInTerminal = MaxSaleAmount;
         }
