@@ -118,6 +118,20 @@ var creep_work5 = {
                                 creep.moveTo(savedTarget, {
                                     reusePath: 20
                                 });
+                            } else {
+                            	//Check for nearby link and fill it if possible.
+                            	var links = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+                        			filter: { structureType: STRUCTURE_LINK }
+                    			});
+                    			if (links) {
+                    				if (links.length > 0) {
+                    					if (links[0].energy < 400) {
+                    						if (creep.transfer(links[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    							creep.moveTo(links[0]);
+                    						}
+                    					}                  					
+                    				}
+                    			}
                             }
                             //Do repair for new ramparts
                             creep.repair(savedTarget);
