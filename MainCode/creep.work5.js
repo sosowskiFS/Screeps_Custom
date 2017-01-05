@@ -291,16 +291,26 @@ var creep_work5 = {
                 //Creep will immediately harvest and store mined materials
                 var storageTarget = Game.getObjectById(creep.memory.terminalID);
                 var thisExtractor = Game.getObjectById(creep.memory.extractorID);
-                if (thisExtractor.cooldown == 0) {
-                    if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(thisMineral, {
-                            reusePath: 20
-                        });
+                if (storageTarget && thisExtractor) {
+                    if ((creep.pos.isNearTo(storageTarget) && !creep.pos.isNearTo(thisExtractor))) {
+                        var thisDirection = creep.pos.getDirectionTo(thisExtractor);
+                        creep.move(thisDirection);
+                    } else if (!creep.pos.isNearTo(storageTarget) && creep.pos.isNearTo(thisExtractor)) {
+                        var thisDirection = creep.pos.getDirectionTo(storageTarget);
+                        creep.move(thisDirection);
+                    } else {
+                        if (thisExtractor.cooldown == 0) {
+                            if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(thisMineral, {
+                                    reusePath: 20
+                                });
+                            }
+                        }
+                        if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
+                            //This should never actually fire, if ideal.
+                            creep.moveTo(storageTarget);
+                        }
                     }
-                }
-                if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
-                    //This should never actually fire, if ideal.
-                    creep.moveTo(storageTarget);
                 }
             }
         } else if (creep.memory.priority == 'salvager') {
