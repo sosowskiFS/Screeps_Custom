@@ -376,15 +376,24 @@ var spawn_BuildCreeps5 = {
 					Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 				}
 			} else if (mules.length == 0) {
-				//Spawn a crappy mule
-				spawn.createCreep([MOVE, CARRY, CARRY], undefined, {
-					priority: 'mule',
-					linkSource: strLinks[1],
-					storageSource: strStorage[0],
-					terminalID: strTerminal[0],
-					fromSpawn: spawn
-				});
-				Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
+				var blockedRole = '';
+				var blockedSubRole = '';
+				if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
+					var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
+					blockedRole = Memory.creepInQue[RoomPointer + 1];
+					blockedSubRole = Memory.creepInQue[RoomPointer + 2];
+				}
+				if (blockedRole != 'mule') {
+					//Spawn a crappy mule
+					spawn.createCreep([MOVE, CARRY, CARRY], undefined, {
+						priority: 'mule',
+						linkSource: strLinks[1],
+						storageSource: strStorage[0],
+						terminalID: strTerminal[0],
+						fromSpawn: spawn
+					});
+					Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
+				}
 			}
 		}
 	}
