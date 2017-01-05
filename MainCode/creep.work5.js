@@ -26,22 +26,22 @@ var creep_work5 = {
             var storageTarget = Game.getObjectById(creep.memory.linkSource);
             var mineTarget = Game.getObjectById(creep.memory.mineSource);
             if (mineTarget && storageTarget) {
+                if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(storageTarget, {
+                        reusePath: 5
+                    });
+                } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(mineTarget, {
+                        reusePath: 5
+                    });
+                }
+
                 if ((creep.pos.isNearTo(storageTarget) && !creep.pos.isNearTo(mineTarget))) {
                     var thisDirection = creep.pos.getDirectionTo(mineTarget);
                     creep.move(thisDirection);
                 } else if (!creep.pos.isNearTo(storageTarget) && creep.pos.isNearTo(mineTarget)) {
                     var thisDirection = creep.pos.getDirectionTo(storageTarget);
                     creep.move(thisDirection);
-                } else {
-                    if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(storageTarget, {
-                            reusePath: 5
-                        });
-                    } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(mineTarget, {
-                            reusePath: 5
-                        });
-                    }
                 }
             }
         } else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
@@ -292,24 +292,24 @@ var creep_work5 = {
                 var storageTarget = Game.getObjectById(creep.memory.terminalID);
                 var thisExtractor = Game.getObjectById(creep.memory.extractorID);
                 if (storageTarget && thisExtractor) {
+                    if (thisExtractor.cooldown == 0) {
+                        if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(thisMineral, {
+                                reusePath: 20
+                            });
+                        }
+                    }
+                    if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
+                        //This should never actually fire, if ideal.
+                        creep.moveTo(storageTarget);
+                    }
+
                     if ((creep.pos.isNearTo(storageTarget) && !creep.pos.isNearTo(thisExtractor))) {
                         var thisDirection = creep.pos.getDirectionTo(thisExtractor);
                         creep.move(thisDirection);
                     } else if (!creep.pos.isNearTo(storageTarget) && creep.pos.isNearTo(thisExtractor)) {
                         var thisDirection = creep.pos.getDirectionTo(storageTarget);
                         creep.move(thisDirection);
-                    } else {
-                        if (thisExtractor.cooldown == 0) {
-                            if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(thisMineral, {
-                                    reusePath: 20
-                                });
-                            }
-                        }
-                        if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
-                            //This should never actually fire, if ideal.
-                            creep.moveTo(storageTarget);
-                        }
                     }
                 }
             }
