@@ -143,11 +143,20 @@ var spawn_BuildCreeps5 = {
 			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
 					if (thisRoom.energyAvailable >= 300) {
-						//Produce a salvager unit to pick up the dropped resources
-						spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
-							priority: 'salvager',
-							storageTarget: strStorage[0]
-						});
+						var blockedRole = '';
+						if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
+							var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
+							blockedRole = Memory.creepInQue[RoomPointer + 1];
+						}
+						if (blockedRole != 'salvager') { //Produce a salvager unit to pick up the dropped resources
+							spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
+								priority: 'salvager',
+								storageTarget: strStorage[0]
+							});
+							Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
+						}
+
+
 					}
 				} else if (thisRoom.energyAvailable >= 950) {
 					//Try to produce millitary units
