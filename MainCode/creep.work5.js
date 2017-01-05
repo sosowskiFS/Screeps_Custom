@@ -26,16 +26,15 @@ var creep_work5 = {
             var storageTarget = Game.getObjectById(creep.memory.linkSource);
             var mineTarget = Game.getObjectById(creep.memory.mineSource);
             if (mineTarget && storageTarget) {
-                if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(mineTarget, {
-                        reusePath: 5
-                    });
-                } else if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(storageTarget, {
                         reusePath: 5
                     });
+                } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(mineTarget, {
+                        reusePath: 5
+                    });
                 }
-
             }
         } else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
             if (creep.ticksToLive <= 60) {
