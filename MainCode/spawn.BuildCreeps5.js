@@ -28,7 +28,7 @@ var spawn_BuildCreeps5 = {
 			var strTerminal = Memory.terminalList[thisRoom.name];
 			var strExtractor = Memory.extractorList[thisRoom.name];
 			var readyForMineral = false;
-			if (strExtractor[0] && strTerminal[0] && strMineral[0]){
+			if (strExtractor[0] && strTerminal[0] && strMineral[0]) {
 				readyForMineral = true;
 			}
 			var usingFarMiners = false;
@@ -292,7 +292,9 @@ var spawn_BuildCreeps5 = {
 					prioritizedRole = 'farMiner';
 					roomTarget = farRooms[0];
 					creepSource = farSources[0];
-				} else if (usingFarMiners && Memory.E1N63FarRoles.filter(function(value){return value === 'farMule';}).length < 2) {
+				} else if (usingFarMiners && Memory.E1N63FarRoles.filter(function(value) {
+						return value === 'farMule';
+					}).length < 2) {
 					//Mule
 					prioritizedRole = 'farMule';
 					roomTarget = farRooms[0];
@@ -373,6 +375,16 @@ var spawn_BuildCreeps5 = {
 					}
 					Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 				}
+			} else if (mules.length == 0) {
+				//Spawn a crappy mule
+				spawn.createCreep([MOVE, CARRY, CARRY], undefined, {
+					priority: 'mule',
+					linkSource: strLinks[1],
+					storageSource: strStorage[0],
+					terminalID: strTerminal[0],
+					fromSpawn: spawn
+				});
+				Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
 			}
 		}
 	}
