@@ -213,6 +213,8 @@ var creep_work5 = {
                                         creep.moveTo(targets2, {
                                             reusePath: 20
                                         });
+                                    } else if (creep.build(targets2) == ERR_NO_BODYPART) {
+                                        creep.suicide();
                                     }
                                 } else {
                                     //Upgrade
@@ -221,6 +223,8 @@ var creep_work5 = {
                                         creep.moveTo(creep.room.controller, {
                                             reusePath: 20
                                         });
+                                    } else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
+                                        creep.suicide();
                                     }
                                 }
                             }
