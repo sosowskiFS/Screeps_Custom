@@ -26,14 +26,22 @@ var creep_work5 = {
             var storageTarget = Game.getObjectById(creep.memory.linkSource);
             var mineTarget = Game.getObjectById(creep.memory.mineSource);
             if (mineTarget && storageTarget) {
-                if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(storageTarget, {
-                        reusePath: 5
-                    });
-                } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(mineTarget, {
-                        reusePath: 5
-                    });
+                if ((creep.pos.isNearTo(storageTarget) && !creep.pos.isNearTo(mineTarget))) {
+                    var thisDirection = creep.pos.getDirectionTo(mineTarget);
+                    creep.move(thisDirection);
+                } else if (!creep.pos.isNearTo(storageTarget) && creep.pos.isNearTo(mineTarget)) {
+                    var thisDirection = creep.pos.getDirectionTo(storageTarget);
+                    creep.move(thisDirection);
+                } else {
+                    if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(storageTarget, {
+                            reusePath: 5
+                        });
+                    } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(mineTarget, {
+                            reusePath: 5
+                        });
+                    }
                 }
             }
         } else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
@@ -118,19 +126,21 @@ var creep_work5 = {
                                     reusePath: 20
                                 });
                             } else {
-                            	//Check for nearby link and fill it if possible.
-                            	var links = creep.pos.findInRange(FIND_STRUCTURES, 3, {
-                        			filter: { structureType: STRUCTURE_LINK }
-                    			});
-                    			if (links) {
-                    				if (links.length > 0) {
-                    					if (links[0].energy < 400) {
-                    						if (creep.transfer(links[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    							creep.moveTo(links[0]);
-                    						}
-                    					}                  					
-                    				}
-                    			}
+                                //Check for nearby link and fill it if possible.
+                                var links = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+                                    filter: {
+                                        structureType: STRUCTURE_LINK
+                                    }
+                                });
+                                if (links) {
+                                    if (links.length > 0) {
+                                        if (links[0].energy < 400) {
+                                            if (creep.transfer(links[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                                creep.moveTo(links[0]);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             //Do repair for new ramparts
                             creep.repair(savedTarget);
