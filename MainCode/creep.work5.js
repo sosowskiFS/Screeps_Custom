@@ -28,11 +28,13 @@ var creep_work5 = {
             if (mineTarget && storageTarget) {
                 if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(storageTarget, {
-                        reusePath: 5
+                        reusePath: 5,
+                        ignoreRoads: true
                     });
                 } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(mineTarget, {
-                        reusePath: 5
+                        reusePath: 5,
+                        ignoreRoads: true
                     });
                 }
 

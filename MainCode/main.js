@@ -64,6 +64,9 @@ module.exports.loop = function() {
             }
         }
 
+        //Use experimental PathFinder
+        PathFinder.use(true);
+
         //Set defaults on various memory values
         memCheck();
 
