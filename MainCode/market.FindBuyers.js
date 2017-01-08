@@ -12,7 +12,7 @@ var market_buyers = {
             //Initalize this memory object
             Memory.PriceList[currentMineral.mineralType] = 0;
         }
-        if (mineralInTerminal > 0) {
+        if (mineralInTerminal > 0 && TerminalEnergy >= 50000) {
             var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
             if (FilteredOrders.length > 0) {
                 FilteredOrders.sort(orderPriceCompare);
