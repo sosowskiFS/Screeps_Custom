@@ -327,11 +327,11 @@ var spawn_BuildCreeps5 = {
 				} else if (usingFarMiners && farClaimerCount < 1 && Memory.FarClaimerNeeded[thisRoom.name] && blockedRole != 'farClaimer') {
 					//Claimer
 					prioritizedRole = 'farClaimer';
-					roomTarget = Game.flags[thisRoom.name + "FarMining"].room.name;
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 				} else if (usingFarMiners && farMinerCount < 1 && blockedRole != 'farMiner') {
 					//Miner
 					prioritizedRole = 'farMiner';
-					roomTarget = Game.flags[thisRoom.name + "FarMining"].room.name;
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					var markedSources = Game.flags[thisRoom.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
 					if (markedSources.length) {
 						farSource = markedSources[0].id;
@@ -339,7 +339,7 @@ var spawn_BuildCreeps5 = {
 				} else if (usingFarMiners && farMuleCount < 2 && blockedRole != 'farMule') {
 					//Mule
 					prioritizedRole = 'farMule';
-					roomTarget = Game.flags[thisRoom.name + "FarMining"].room.name;
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					storageID = strStorage[0];
 					var markedSources = Game.flags[thisRoom.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
 					if (markedSources.length) {
