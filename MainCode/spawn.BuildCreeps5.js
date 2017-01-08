@@ -332,19 +332,11 @@ var spawn_BuildCreeps5 = {
 					//Miner
 					prioritizedRole = 'farMiner';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
-					var markedSources = Game.flags[thisRoom.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
-					if (markedSources.length) {
-						farSource = markedSources[0].id;
-					}
 				} else if (usingFarMiners && farMuleCount < 2 && blockedRole != 'farMule') {
 					//Mule
 					prioritizedRole = 'farMule';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					storageID = strStorage[0];
-					var markedSources = Game.flags[thisRoom.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
-					if (markedSources.length) {
-						farSource = markedSources[0].id;
-					}
 				}
 
 				if (prioritizedRole != '') {
@@ -400,7 +392,6 @@ var spawn_BuildCreeps5 = {
 							spawn.createCreep(farMinerConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
-								mineSource: farSource,
 								fromSpawn: spawn,
 								homeRoom: thisRoom.name
 							});
@@ -411,7 +402,6 @@ var spawn_BuildCreeps5 = {
 								priority: prioritizedRole,
 								destination: roomTarget,
 								homeRoom: thisRoom.name,
-								mineSource: farSource,
 								storageSource: storageID,
 								fromSpawn: spawn
 							});

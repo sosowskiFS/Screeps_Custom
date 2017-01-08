@@ -398,12 +398,30 @@ var creep_work5 = {
 					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 				}
 
-				var mineTarget = Game.getObjectById(creep.memory.mineSource);
-				if (mineTarget) {
-					if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(mineTarget, {
-							reusePath: 5
-						});
+				var mineTarget = "";
+
+				if (creep.memory.mineSource) {
+					mineTarget = Game.getObjectById(creep.memory.mineSource);
+					if (mineTarget) {
+						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(mineTarget, {
+								reusePath: 5
+							});
+						}
+					}
+				} else {
+					//Get the source ID while in the room
+					var markedSources = Game.flags[thisRoom.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
+					if (markedSources.length) {
+						creep.memory.mineSource = markedSources[0].id;
+					}
+					mineTarget = Game.getObjectById(creep.memory.mineSource);
+					if (mineTarget) {
+						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(mineTarget, {
+								reusePath: 5
+							});
+						}
 					}
 				}
 
@@ -490,6 +508,13 @@ var creep_work5 = {
 							}
 						} else {
 							//No container yet, move to be near source
+							if (!creep.memory.mineSource) {
+								var markedSources = Game.flags[thisRoom.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
+								if (markedSources.length) {
+									creep.memory.mineSource = markedSources[0].id;
+								}
+							}
+
 							var thisSource = Game.getObjectById(creep.memory.mineSource);
 							if (thisSource) {
 								creep.moveTo(thisSource);
