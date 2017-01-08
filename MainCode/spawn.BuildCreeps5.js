@@ -244,7 +244,8 @@ var spawn_BuildCreeps5 = {
 						priority: ChosenPriority
 					});
 				}
-			} else if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral) || (usingFarMiners && farLength < 3)) {
+			}
+			if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral) || (usingFarMiners && farLength < 3)) {
 				var prioritizedRole = '';
 				var creepSource = '';
 				var connectedLink = '';
