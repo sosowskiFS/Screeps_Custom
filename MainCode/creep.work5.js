@@ -411,7 +411,10 @@ var creep_work5 = {
 					}
 				} else {
 					//Get the source ID while in the room
-					var markedSources = Game.flags[creep.room.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
+					var markedSources = [];
+					if (Game.flags[creep.room.name + "FarMining"]) {
+						markedSources = Game.flags[creep.room.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
+					}
 					if (markedSources.length) {
 						creep.memory.mineSource = markedSources[0].id;
 					}
@@ -509,7 +512,10 @@ var creep_work5 = {
 						} else {
 							//No container yet, move to be near source
 							if (!creep.memory.mineSource) {
-								var markedSources = Game.flags[creep.room.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
+								var markedSources = [];
+								if (Game.flags[creep.room.name + "FarMining"]) {
+									markedSources = Game.flags[creep.room.name + "FarMining"].pos.lookFor(LOOK_SOURCES);
+								}
 								if (markedSources.length) {
 									creep.memory.mineSource = markedSources[0].id;
 								}
