@@ -279,7 +279,7 @@ module.exports.loop = function() {
                 //Update advanced script rooms
                 if ((Memory.storageList[thisRoom.name].length > 0 && Memory.linkList[thisRoom.name].length == 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                     Memory.RoomsAt5.push(thisRoom.name)
-                } else if (Memory.RoomsAt5.indexOf(thisRoom.name) != -1) {
+                } else if ((Memory.storageList[thisRoom.name].length == 0 && Memory.linkList[thisRoom.name].length < 2) Memory.RoomsAt5.indexOf(thisRoom.name) != -1) {
                     //This room shouldn't be on this list
                     var thisRoomIndex = Memory.RoomsAt5.indexOf(thisRoom.name)
                     Memory.RoomsAt5.splice(thisRoomIndex, 1);
