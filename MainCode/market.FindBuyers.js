@@ -38,8 +38,8 @@ module.exports = market_buyers;
 
 function orderPriceCompare(a, b) {
     if (a.price < b.price)
-        return -1;
-    if (a.price > b.price)
         return 1;
+    if (a.price > b.price)
+        return -1;
     return 0;
 }
