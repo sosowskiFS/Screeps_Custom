@@ -87,23 +87,25 @@ var spawn_BuildCreeps5 = {
 
 			var roomMineral = Game.getObjectById(strMineral[0]);
 			var roomStorage = Game.getObjectById(strStorage[0]);
-			if (roomStorage.store[RESOURCE_ENERGY] >= 10000) {
-				//speed up that repairing a bit
-				repairMax++;
-			}
-			if (roomStorage.store[RESOURCE_ENERGY] >= 50000) {
-				//speed it up a LOT
-				repairMax++;
-			}
+			if (roomStorage) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 10000) {
+					//speed up that repairing a bit
+					repairMax++;
+				}
+				if (roomStorage.store[RESOURCE_ENERGY] >= 50000) {
+					//speed it up a LOT
+					repairMax++;
+				}
 
-			if (storageMiners.length == 0 && upgradeMiners.length > 0 && roomStorage.store[RESOURCE_ENERGY] <= 3000) {
-				//reassign upgrade miner
-				upgradeMiners[0].drop(RESOURCE_ENERGY);
-				upgradeMiners[0].memory.jobSpecific = 'storageMiner';
-				upgradeMiners[0].memory.linkSource = strStorage[0];
-				upgradeMiners[0].memory.mineSource = strSources[0];
-				upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
-				storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
+				if (storageMiners.length == 0 && upgradeMiners.length > 0 && roomStorage.store[RESOURCE_ENERGY] <= 3000) {
+					//reassign upgrade miner
+					upgradeMiners[0].drop(RESOURCE_ENERGY);
+					upgradeMiners[0].memory.jobSpecific = 'storageMiner';
+					upgradeMiners[0].memory.linkSource = strStorage[0];
+					upgradeMiners[0].memory.mineSource = strSources[0];
+					upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
+					storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
+				}
 			}
 
 			//800 Points
