@@ -277,6 +277,7 @@ var spawn_BuildCreeps5 = {
 				var blockedSubRole = '';
 				var roomTarget = '';
 				var farSource = '';
+				var muleNumber = 1;
 				if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
 					var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
 					blockedRole = Memory.creepInQue[RoomPointer + 1];
@@ -332,11 +333,12 @@ var spawn_BuildCreeps5 = {
 					//Miner
 					prioritizedRole = 'farMiner';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
-				} else if (usingFarMiners && farMuleCount < 1 && blockedRole != 'farMule') {
+				} else if (usingFarMiners && farMuleCount < 2 && blockedRole != 'farMule') {
 					//Mule
 					prioritizedRole = 'farMule';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					storageID = strStorage[0];
+					muleNumber = farMuleCount + 1;
 				}
 
 				if (prioritizedRole != '') {
@@ -403,7 +405,8 @@ var spawn_BuildCreeps5 = {
 								destination: roomTarget,
 								homeRoom: thisRoom.name,
 								storageSource: storageID,
-								fromSpawn: spawn
+								fromSpawn: spawn,
+								muleNum: muleNumber
 							});
 						}
 					}

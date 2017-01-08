@@ -468,8 +468,30 @@ var creep_work5 = {
 			if (creep.ticksToLive == 1 && farIndex > -1) {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-			} else if (farIndex == -1) {
-				Memory.FarCreeps[creep.memory.homeRoom].push('farMule')
+			} else {
+				var creepCount = Memory.FarCreeps[thisRoom.name].reduce(function(m, v) {
+					for (var k in m) {
+						if (~v.indexOf(k)) m[k]++;
+					}
+					return m;
+				}, {
+					farClaimer: 0,
+					farMiner: 0,
+					farMule: 0
+				});
+
+				switch (creep.memory.muleNum) {
+					case 1:
+						if (creepCount.farMule == 0) {
+							Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
+						}
+						break;
+					case 2:
+						if (creepCount.farMule == 1) {
+							Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
+						}
+						break;
+				}
 			}
 
 			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 150) {
