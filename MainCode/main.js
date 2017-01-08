@@ -4,7 +4,7 @@
 //require('special').specialInstruction('construct', 'constructionID', [PathOfRooms]);
 //require('special').specialInstruction('removeKebab', 'enemySpawnID', [PathOfRooms]);
 
-//require('special').specialInstruction('construct', '584c12a6b14a695e0d9653e4', ['E3N60', 'E3N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63'])
+//require('special').specialInstruction('construct', '58705347da857f0660495253', ['E3N60', 'E4N60', 'E4N61', 'E4N62'])
 
 //require('special').specialInstruction('removeKebab', '58366a7b84afc9937e209535', ['E3N60', 'E2N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63', 'E2N63']);
 
@@ -279,6 +279,10 @@ module.exports.loop = function() {
                 //Update advanced script rooms
                 if ((Memory.storageList[thisRoom.name].length > 0 && Memory.linkList[thisRoom.name].length == 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                     Memory.RoomsAt5.push(thisRoom.name)
+                } else if (Memory.RoomsAt5.indexOf(thisRoom.name) != -1) {
+                    //This room shouldn't be on this list
+                    var thisRoomIndex = Memory.RoomsAt5.indexOf(thisRoom.name)
+                    Memory.RoomsAt5.splice(thisRoomIndex, 1);
                 }
 
                 //Update creep configs if energy cap has changed
