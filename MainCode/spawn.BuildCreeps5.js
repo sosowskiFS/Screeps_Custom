@@ -34,11 +34,11 @@ var spawn_BuildCreeps5 = {
 				readyForMineral = true;
 			}
 			var usingFarMiners = false;
-			var farRooms = [];
-			var farSources = [];
-			var farLength = 0;
+			//var farRooms = [];
+			//var farSources = [];
+			//var farLength = 0;
 
-			switch (thisRoom.name) {
+			/*switch (thisRoom.name) {
 				case 'E3N61':
 					//two sources
 					//minerMax = 2;
@@ -85,6 +85,28 @@ var spawn_BuildCreeps5 = {
 					farSources.push('57ef9db186f108ae6e60e220');
 					farLength = Memory.E1N63FarRoles.length;
 					break;
+			}*/
+
+			var farMinerCount = 0;
+			var farClaimerCount = 0;
+			var farMuleCount = 0;
+			if (Memory.FarCreeps[thisRoom.name]) {
+				//Enable far miner consideration for this spawn
+				usingFarMiners = true;
+				var creepCount = Memory.FarCreeps[thisRoom.name].reduce(function(m, v) {
+					for (var k in m) {
+						if (~v.id.indexOf(k)) m[k]++;
+					}
+					return m;
+				}, {
+					farClaimer: 0,
+					farMiner: 0,
+					farMule: 0
+				});
+
+				farMinerCount = creepCount.farMiner;
+				farClaimerCount = creepCount.farClaimer;
+				farMuleCount = creepCount.farMule;
 			}
 
 			var roomMineral = Game.getObjectById(strMineral[0]);
@@ -120,8 +142,8 @@ var spawn_BuildCreeps5 = {
 			var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
 			//950 Points
 			var farMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
-			//1300 Points
-			var farMuleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+			//1150 Points
+			var farMuleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 			//1950 Points
 			var farClaimerConfig = [MOVE, MOVE, MOVE, CLAIM, CLAIM, CLAIM];
 			//Upgrader to use minerConfig
@@ -245,7 +267,7 @@ var spawn_BuildCreeps5 = {
 					});
 				}
 			}
-			if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral) || (usingFarMiners && farLength < 3)) {
+			if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral) || (usingFarMiners)) {
 				var prioritizedRole = '';
 				var creepSource = '';
 				var connectedLink = '';
@@ -254,6 +276,7 @@ var spawn_BuildCreeps5 = {
 				var blockedRole = '';
 				var blockedSubRole = '';
 				var roomTarget = '';
+				var farSource = '';
 				if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
 					var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
 					blockedRole = Memory.creepInQue[RoomPointer + 1];
@@ -301,23 +324,27 @@ var spawn_BuildCreeps5 = {
 					storageID = strTerminal[0];
 					creepSource = strMineral[0];
 					connectedLink = strExtractor[0];
-				} else if (usingFarMiners && Memory.E1N63FarRoles.indexOf('farClaimer') == -1 && Memory.E1N63ClaimerNeeded) {
+				} else if (usingFarMiners && farClaimerCount < 1 && Memory.FarClaimerNeeded[thisRoom.name] && blockedRole != 'farClaimer') {
 					//Claimer
 					prioritizedRole = 'farClaimer';
-					roomTarget = farRooms[0];
-				} else if (usingFarMiners && Memory.E1N63FarRoles.indexOf('farMiner') == -1) {
+					roomTarget = Game.flags[thisRoom.name & "FarMining"].room.name;
+				} else if (usingFarMiners && farMinerCount < 1 && blockedRole != 'farMiner') {
 					//Miner
 					prioritizedRole = 'farMiner';
-					roomTarget = farRooms[0];
-					creepSource = farSources[0];
-				} else if (usingFarMiners && Memory.E1N63FarRoles.filter(function(value) {
-						return value === 'farMule';
-					}).length < 2) {
+					roomTarget = Game.flags[thisRoom.name & "FarMining"].room.name;
+					var markedSources = Game.flags[thisRoom.name & "FarMining"].pos.lookFor(LOOK_SOURCES);
+					if (markedSources.length) {
+						farSource = markedSources[0].id;
+					}
+				} else if (usingFarMiners && farMuleCount < 2 && blockedRole != 'farMule') {
 					//Mule
 					prioritizedRole = 'farMule';
-					roomTarget = farRooms[0];
-					creepSource = farSources[0];
+					roomTarget = Game.flags[thisRoom.name & "FarMining"].room.name;
 					storageID = strStorage[0];
+					var markedSources = Game.flags[thisRoom.name & "FarMining"].pos.lookFor(LOOK_SOURCES);
+					if (markedSources.length) {
+						farSource = markedSources[0].id;
+					}
 				}
 
 				if (prioritizedRole != '') {
@@ -363,20 +390,20 @@ var spawn_BuildCreeps5 = {
 							spawn.createCreep(farClaimerConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
-								fromSpawn: spawn
+								fromSpawn: spawn,
+								homeRoom: thisRoom.name
 							});
-							Memory.E1N63FarRoles.push('farClaimer');
-							Memory.E1N63ClaimerNeeded = false;
+							Memory.FarClaimerNeeded[thisRoom.name] = false;
 						}
 					} else if (prioritizedRole == 'farMiner') {
 						if (spawn.canCreateCreep(farMinerConfig) == OK) {
 							spawn.createCreep(farMinerConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
-								mineSource: creepSource,
-								fromSpawn: spawn
+								mineSource: farSource,
+								fromSpawn: spawn,
+								homeRoom: thisRoom.name
 							});
-							Memory.E1N63FarRoles.push('farMiner');
 						}
 					} else if (prioritizedRole == 'farMule') {
 						if (spawn.canCreateCreep(farMuleConfig) == OK) {
@@ -384,11 +411,10 @@ var spawn_BuildCreeps5 = {
 								priority: prioritizedRole,
 								destination: roomTarget,
 								homeRoom: thisRoom.name,
-								mineSource: creepSource,
+								mineSource: farSource,
 								storageSource: storageID,
 								fromSpawn: spawn
 							});
-							Memory.E1N63FarRoles.push('farMule');
 						}
 					}
 					Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);

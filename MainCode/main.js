@@ -302,6 +302,17 @@ module.exports.loop = function() {
                 Memory.energyCap[thisRoom.name].push(thisRoom.energyCapacityAvailable);
                 recalculateBestWorker(Memory.energyCap[thisRoom.name][0]);
             }
+
+            //Check through flags to see if far mining has been requested
+            if (Game.flags[thisRoom.name & "FarMining"]) {
+                if (!Memory.FarCreeps[thisRoom.name]) {
+                    Memory.FarCreeps[thisRoom.name] = [];
+                    Memory.FarClaimerNeeded[thisRoom.name] = true;
+                }
+            } else if (Memory.FarCreeps[thisRoom.name]) {
+                Memory.FarCreeps[thisRoom.name] = undefined;
+                Memory.FarClaimerNeeded[thisRoom.name] = false;
+            }
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
@@ -395,19 +406,16 @@ function memCheck() {
         Memory.roomsPrepSalvager = [];
         console.log('roomsPrepSalvager Defaulted');
     }
-    if (!Memory.E1N63FarRoles) {
-        Memory.E1N63FarRoles = [];
-        console.log('E1N63FarRoles Defaulted');
-    }
     if (!Memory.RoomsAt5) {
         Memory.RoomsAt5 = [];
     }
-    //Boolean
-    if (typeof Memory.E1N63ClaimerNeeded === 'undefined') {
-        Memory.E1N63ClaimerNeeded = true;
-        console.log('E1N63ClaimerNeeded Defaulted');
-    }
     //Object
+    if (!Memory.FarClaimerNeeded) {
+        Memory.FarClaimerNeeded = new Object();
+    }
+    if (!Memory.FarCreeps) {
+        Memory.FarCreeps = new Object();
+    }
     if (!Memory.PriceList) {
         Memory.PriceList = new Object();
     }
