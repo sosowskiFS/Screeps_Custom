@@ -332,7 +332,7 @@ var spawn_BuildCreeps5 = {
 					//Miner
 					prioritizedRole = 'farMiner';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
-				} else if (usingFarMiners && farMuleCount < 2 && blockedRole != 'farMule') {
+				} else if (usingFarMiners && farMuleCount < 1 && blockedRole != 'farMule') {
 					//Mule
 					prioritizedRole = 'farMule';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
