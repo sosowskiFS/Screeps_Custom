@@ -17,6 +17,8 @@ var spawn_BuildCreeps5 = {
 			var mineralMiners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mineralMiner');
 			var repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
 
+			var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
+
 			var minerMax = 2;
 			var muleMax = 1;
 			var upgraderMax = 2;
@@ -148,7 +150,7 @@ var spawn_BuildCreeps5 = {
 				}
 			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
-					if (thisRoom.energyAvailable >= 300) {
+					if (thisRoom.energyAvailable >= 300 && salvagers.length == 0) {
 						var blockedRole = '';
 						if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
 							var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
