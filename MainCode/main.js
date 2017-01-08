@@ -303,7 +303,7 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Memory.storageList[thisRoom.name].length == 0 || Memory.linkList[thisRoom.name].length < 2) {
+            if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                 spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
             } else {
                 spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
