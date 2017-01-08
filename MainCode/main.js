@@ -34,9 +34,6 @@ var tower_Operate = require('tower.Operate');
 //Market
 var market_buyers = require('market.FindBuyers');
 
-//Initalize Memory vars
-Memory.E1N63EnergyCap = -1;
-
 //These will be checked, and defaults set only if undefined
 //Memory.RoomsRun;
 //Memory.creepInQue;
@@ -409,6 +406,9 @@ function memCheck() {
         console.log('E1N63ClaimerNeeded Defaulted');
     }
     //Object
+    if (!Memory.PriceList) {
+        Memory.PriceList = new Object();
+    }
     if (!Memory.towerList) {
         Memory.towerList = new Object();
     }

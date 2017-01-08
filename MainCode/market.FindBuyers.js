@@ -8,27 +8,27 @@ var market_buyers = {
         if (mineralInTerminal > MaxSaleAmount) {
             mineralInTerminal = MaxSaleAmount;
         }
-        var targetPrice = 0.16;
-        switch (currentMineral.mineralType) {
-            case RESOURCE_ZYNTHIUM:
-                targetPrice = 0.16;
-                break;
-            case RESOURCE_HYDROGEN:
-                targetPrice = 0.7;
-                break;
-            case RESOURCE_LEMERGIUM:
-                targetPrice = 0.2;
-                break;
+        if (!Memory.PriceList[currentMineral.mineralType]) {
+            //Initalize this memory object
+            Memory.PriceList[currentMineral.mineralType] = 0;
         }
-        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= targetPrice && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
-        if (FilteredOrders.length > 0) {
-            FilteredOrders.sort(orderPriceCompare);
-            var tradeAmount = FilteredOrders[0].amount;
-            if (mineralInTerminal < tradeAmount) {
-                tradeAmount = mineralInTerminal;
-            }
-            if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
-                console.log('Successfully made a deal');
+        if (mineralInTerminal > 0) {
+            var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
+            if (FilteredOrders.length > 0) {
+                FilteredOrders.sort(orderPriceCompare);
+                var tradeAmount = FilteredOrders[0].amount;
+                if (mineralInTerminal < tradeAmount) {
+                    tradeAmount = mineralInTerminal;
+                }
+                if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
+                    console.log('Successfully made a deal');
+                    Memory.PriceList[currentMineral.mineralType] = FilteredOrders[0].price;
+                }
+            } else {
+                //No orders were found with mineral in the terminal, drop the price a bit
+                if (Memory.PriceList[currentMineral.mineralType] > 0) {
+                    Memory.PriceList[currentMineral.mineralType] = Memory.PriceList[currentMineral.mineralType] - 0.01;
+                }              
             }
         }
     }
