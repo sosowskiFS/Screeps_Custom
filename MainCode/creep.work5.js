@@ -469,7 +469,7 @@ var creep_work5 = {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else {
-				var creepCount = Memory.FarCreeps[thisRoom.name].reduce(function(m, v) {
+				var creepCount = Memory.FarCreeps[creep.memory.homeRoom].reduce(function(m, v) {
 					for (var k in m) {
 						if (~v.indexOf(k)) m[k]++;
 					}
