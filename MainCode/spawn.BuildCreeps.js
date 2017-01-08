@@ -14,7 +14,7 @@ var spawn_BuildCreeps = {
 		var builderMax = 1;
 		var upgraderMax = 2;
 		//How many creeps can mine at once
-		var mineSpots = [2,5];
+		var mineSpots = [2, 5];
 		//Add sources from N to S
 		var strSources = Memory.sourceList[thisRoom.name];
 		var assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
@@ -28,7 +28,24 @@ var spawn_BuildCreeps = {
 				sourceLocation: strSources[1]
 			});
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			if (thisRoom.energyAvailable >= 400) {
+			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
+				if (thisRoom.energyAvailable >= 1000 && salvagers.length == 0) {
+					var blockedRole = '';
+					if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
+						var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
+						blockedRole = Memory.creepInQue[RoomPointer + 1];
+					}
+					if (blockedRole != 'salvager') { //Produce a salvager unit to pick up the dropped resources
+						spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
+							priority: 'salvager',
+							storageTarget: strStorage[0]
+						});
+						Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
+					}
+
+
+				}
+			} else if (thisRoom.energyAvailable >= 400) {
 				//Try to produce millitary units
 
 				//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250

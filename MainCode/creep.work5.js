@@ -32,6 +32,11 @@ var creep_work5 = {
             var storageTarget = Game.getObjectById(creep.memory.linkSource);
             var mineTarget = Game.getObjectById(creep.memory.mineSource);
             if (mineTarget && storageTarget) {
+            	if (storageTarget.structureType == STRUCTURE_LINK) {
+            		if (storageTarget.energy == storageTarget.energyCapacity) {
+            			break;
+            		}
+            	}
                 if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(storageTarget, {
                         reusePath: 5,
