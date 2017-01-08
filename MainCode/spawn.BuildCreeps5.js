@@ -150,7 +150,7 @@ var spawn_BuildCreeps5 = {
 				}
 			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
-					if (thisRoom.energyAvailable >= 2000 && salvagers.length == 0) {
+					if (thisRoom.energyAvailable >= 1600 && salvagers.length == 0) {
 						var blockedRole = '';
 						if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
 							var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
