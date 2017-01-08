@@ -304,7 +304,7 @@ module.exports.loop = function() {
             }
 
             //Check through flags to see if far mining has been requested
-            if (Game.flags[thisRoom.name & "FarMining"]) {
+            if (Game.flags[thisRoom.name + "FarMining"]) {
                 if (!Memory.FarCreeps[thisRoom.name]) {
                     Memory.FarCreeps[thisRoom.name] = [];
                     Memory.FarClaimerNeeded[thisRoom.name] = true;
