@@ -34,7 +34,7 @@ var creep_work5 = {
             if (mineTarget && storageTarget) {
             	if (storageTarget.structureType == STRUCTURE_LINK) {
             		if (storageTarget.energy == storageTarget.energyCapacity) {
-            			break;
+            			return;
             		}
             	}
                 if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
