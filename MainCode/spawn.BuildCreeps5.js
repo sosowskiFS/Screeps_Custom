@@ -95,7 +95,7 @@ var spawn_BuildCreeps5 = {
 				usingFarMiners = true;
 				var creepCount = Memory.FarCreeps[thisRoom.name].reduce(function(m, v) {
 					for (var k in m) {
-						if (~v.id.indexOf(k)) m[k]++;
+						if (~v.indexOf(k)) m[k]++;
 					}
 					return m;
 				}, {

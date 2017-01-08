@@ -15,15 +15,19 @@
       //'room1' : ['towerID1', 'towerID2'],
       //'room2' : ['towerID1.2', 'towerID2.2']
     //};
-    var towerlistObject;
-    if (!towerlistObject) {
-      towerlistObject = new Object();
-    }
-    if (!towerlistObject["room3"]) {
-      towerlistObject["room3"] = [];
-    }
-    towerlistObject["room3"].push('wew');
-  	alert(towerlistObject["room3"]);
+        someArray = ['farClaimer', 'farMiner', 'farMule'];
+        var creepCount = someArray.reduce(function(m, v) {
+          for (var k in m) {
+            if (~v.indexOf(k)) m[k]++;
+          }
+          return m;
+        }, {
+          farClaimer: 0,
+          farMiner: 0,
+          farMule: 0
+        });
+
+        alert(creepCount.farClaimer);
   </script>
 </body>
 </html>
