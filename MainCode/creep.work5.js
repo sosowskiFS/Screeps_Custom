@@ -11,7 +11,7 @@ var creep_work5 = {
         }*/
 
         var ignoreRoadsValue = false;
-        if (Memory.IgnoreRoadRooms = creep.room.name) {
+        if (Memory.IgnoreRoadRooms == creep.room.name) {
         	ignoreRoadsValue = true;
         }
 

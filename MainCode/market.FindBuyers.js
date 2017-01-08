@@ -25,8 +25,8 @@ var market_buyers = {
                     Memory.PriceList[currentMineral.mineralType] = FilteredOrders[0].price;
                 }
             } else {
-                //No orders were found with mineral in the terminal, drop the price a bit
-                if (Memory.PriceList[currentMineral.mineralType] > 0) {
+                //No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
+                if (Memory.PriceList[currentMineral.mineralType] > 0 && TerminalEnergy == 50000) {
                     Memory.PriceList[currentMineral.mineralType] = Memory.PriceList[currentMineral.mineralType] - 0.01;
                 }              
             }
