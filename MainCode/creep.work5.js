@@ -9,6 +9,12 @@ var creep_work5 = {
                 creep.signController(creep.room.controller, 'This is, by far, the most kupo room I\'ve ever seen!');
             }
         }*/
+
+        var ignoreRoadsValue = false;
+        if (Memory.IgnoreRoadRooms = creep.room.name) {
+        	ignoreRoadsValue = true;
+        }
+
         if (creep.carry.energy > 0 && creep.memory.priority != 'miner' && creep.memory.priority != 'minerNearDeath') {
             //All creeps check for road under them and repair if needed.
             var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
@@ -29,12 +35,12 @@ var creep_work5 = {
                 if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(storageTarget, {
                         reusePath: 5,
-                        ignoreRoads: true
+                        ignoreRoads: ignoreRoadsValue
                     });
                 } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(mineTarget, {
                         reusePath: 5,
-                        ignoreRoads: true
+                        ignoreRoads: ignoreRoadsValue
                     });
                 }
 

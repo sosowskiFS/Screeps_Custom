@@ -34,6 +34,8 @@ var tower_Operate = require('tower.Operate');
 //Market
 var market_buyers = require('market.FindBuyers');
 
+Memory.IgnoreRoadRooms = "E1N63"
+
 //These will be checked, and defaults set only if undefined
 //Memory.RoomsRun;
 //Memory.creepInQue;
