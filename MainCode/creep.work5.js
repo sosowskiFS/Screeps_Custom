@@ -465,10 +465,13 @@ var creep_work5 = {
 			}
 		} else if (creep.memory.priority == 'farMule') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive == 1 && farIndex > -1) {
+			var multiples = ['farMule', 'farMule'].every(function(v, i) {
+				return Memory.FarCreeps[creep.memory.homeRoom].indexOf(v) !== -1;
+			});
+			if (creep.ticksToLive == 1 && farIndex > -1 && multiples) {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-			} else if (farIndex == -1) {
+			} else if (farIndex == -1 || !multiples) {
 				Memory.FarCreeps[creep.memory.homeRoom].push('farMule')
 			}
 
