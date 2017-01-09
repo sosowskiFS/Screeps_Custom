@@ -20,6 +20,8 @@ var spawn_BuildCreeps5 = {
 			var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
 
 			var farMules = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name);
+			var farClaimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name);
+			var farMiners = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name);
 
 			var minerMax = 2;
 			var muleMax = 1;
@@ -114,6 +116,24 @@ var spawn_BuildCreeps5 = {
 					if (farMules.length < farMuleCount) {
 						//Lost a creep, remove it from the memory value
 						var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farMule');
+						if (farIndex != -1) {
+							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
+						}
+					}
+				}
+				if (farClaimers.length) {
+					if (farClaimers.length < farClaimerCount) {
+						//Lost a creep, remove it from the memory value
+						var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farClaimer');
+						if (farIndex != -1) {
+							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
+						}
+					}
+				}
+				if (farMiners.length) {
+					if (farMiners.length < farMinerCount) {
+						//Lost a creep, remove it from the memory value
+						var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farMiner');
 						if (farIndex != -1) {
 							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 						}

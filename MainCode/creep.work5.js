@@ -494,9 +494,9 @@ var creep_work5 = {
 				}
 			}
 
-			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 150) {
+			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 900) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
-			} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 150) {
+			} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 900) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom));
 			} else {
 				if (creep.room.controller.reservation) {
@@ -509,7 +509,7 @@ var creep_work5 = {
 					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 				}
 
-				if (_.sum(creep.carry) <= 150) {
+				if (_.sum(creep.carry) <= 900) {
 					//in farRoom, pick up container contents
 					if (creep.memory.containerTarget) {
 						var thisContainer = Game.getObjectById(creep.memory.containerTarget);
