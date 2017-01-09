@@ -307,7 +307,7 @@ module.exports.loop = function() {
             if (Game.flags[thisRoom.name + "FarMining"]) {
                 if (!Memory.FarCreeps[thisRoom.name]) {
                     Memory.FarCreeps[thisRoom.name] = [];
-                    Memory.FarClaimerNeeded[thisRoom.name] = true;
+                    Memory.FarClaimerNeeded[thisRoom.name] = false;
                 }
             } else if (Memory.FarCreeps[thisRoom.name]) {
                 Memory.FarCreeps[thisRoom.name] = undefined;

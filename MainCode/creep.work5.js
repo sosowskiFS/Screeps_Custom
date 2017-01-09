@@ -362,13 +362,13 @@ var creep_work5 = {
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
-				if (creep.room.controller.reservation) {
+				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
 						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 					} else {
 						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
 					}
-				} else {
+				} else if (creep.room.name == creep.memory.destination) {
 					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 				}
 
@@ -388,13 +388,13 @@ var creep_work5 = {
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
-				if (creep.room.controller.reservation) {
+				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
 						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 					} else {
 						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
 					}
-				} else {
+				} else if (creep.room.name == creep.memory.destination) {
 					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 				}
 
@@ -499,13 +499,13 @@ var creep_work5 = {
 			} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 900) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom));
 			} else {
-				if (creep.room.controller.reservation) {
+				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
 						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 					} else {
 						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
 					}
-				} else {
+				} else if (creep.room.name == creep.memory.destination) {
 					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
 				}
 

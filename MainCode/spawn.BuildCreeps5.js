@@ -357,7 +357,7 @@ var spawn_BuildCreeps5 = {
 					storageID = strTerminal[0];
 					creepSource = strMineral[0];
 					connectedLink = strExtractor[0];
-				} else if (usingFarMiners && farClaimerCount < 1 && Memory.FarClaimerNeeded[thisRoom.name] && blockedRole != 'farClaimer') {
+				} else if (usingFarMiners && farClaimerCount < 1 && Memory.FarClaimerNeeded[thisRoom.name] == true && blockedRole != 'farClaimer') {
 					//Claimer
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
