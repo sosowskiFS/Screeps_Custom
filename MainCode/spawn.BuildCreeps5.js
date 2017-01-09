@@ -19,6 +19,8 @@ var spawn_BuildCreeps5 = {
 
 			var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
 
+			var farMules = _.filter(Game.creeps, (creep) => creep.memory.role == 'farMule' && creep.memory.homeRoom == thisRoom.name);
+
 			var minerMax = 2;
 			var muleMax = 1;
 			var upgraderMax = 2;
@@ -338,7 +340,18 @@ var spawn_BuildCreeps5 = {
 					prioritizedRole = 'farMule';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					storageID = strStorage[0];
-					muleNumber = farMuleCount + 1;
+					if (farMules.length) {
+						switch (farMules[0].memory.muleNum) {
+							case 1:
+								muleNumber = 2;
+								break;
+							case 2:
+								muleNumber = 1;
+								break;
+						}
+					} else {
+						muleNumber = 1
+					}
 				}
 
 				if (prioritizedRole != '') {
