@@ -152,6 +152,10 @@ var spawn_BuildCreeps5 = {
 					//speed up that repairing a bit
 					repairMax++;
 				}
+				if (roomStorage.store[RESOURCE_ENERGY] >= 25000) {
+					//speed up that repairing a bit
+					muleMax++;
+				}
 				if (roomStorage.store[RESOURCE_ENERGY] >= 50000) {
 					//speed it up a LOT
 					repairMax++;
