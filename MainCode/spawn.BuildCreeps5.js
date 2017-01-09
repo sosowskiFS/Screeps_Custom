@@ -109,6 +109,16 @@ var spawn_BuildCreeps5 = {
 				farMinerCount = creepCount.farMiner;
 				farClaimerCount = creepCount.farClaimer;
 				farMuleCount = creepCount.farMule;
+
+				if (farMules.length) {
+					if (farMules.length < farMuleCount) {
+						//Lost a creep, remove it from the memory value
+						var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf('farMule');
+						if (farIndex != -1) {
+							Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
+						}
+					}
+				}
 			}
 
 			var roomMineral = Game.getObjectById(strMineral[0]);
