@@ -113,9 +113,9 @@ var spawn_BuildCreeps5 = {
 				if (farMules.length) {
 					if (farMules.length < farMuleCount) {
 						//Lost a creep, remove it from the memory value
-						var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf('farMule');
+						var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farMule');
 						if (farIndex != -1) {
-							Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
+							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 						}
 					}
 				}
