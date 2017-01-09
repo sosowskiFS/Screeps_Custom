@@ -19,7 +19,7 @@ var spawn_BuildCreeps5 = {
 
 			var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
 
-			var farMules = _.filter(Game.creeps, (creep) => creep.memory.role == 'farMule' && creep.memory.homeRoom == thisRoom.name);
+			var farMules = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name);
 
 			var minerMax = 2;
 			var muleMax = 1;
