@@ -516,7 +516,8 @@ var creep_work5 = {
 						if (thisContainer) {
 							if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(thisContainer, {
-									reusePath: 20
+									reusePath: 20,
+									ignoreRoads: true
 								});
 							}
 						}
@@ -528,7 +529,8 @@ var creep_work5 = {
 							creep.memory.containerTarget = containers[0].id;
 							if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(containers[0], {
-									reusePath: 20
+									reusePath: 20,
+									ignoreRoads: true
 								});
 							}
 						} else {
@@ -545,7 +547,10 @@ var creep_work5 = {
 
 							var thisSource = Game.getObjectById(creep.memory.mineSource);
 							if (thisSource) {
-								creep.moveTo(thisSource);
+								creep.moveTo(thisSource, {
+									reusePath: 20,
+									ignoreRoads: true
+								});
 							}
 						}
 					}
@@ -555,7 +560,8 @@ var creep_work5 = {
 					if (storageUnit) {
 						if (creep.transfer(storageUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(storageUnit, {
-								reusePath: 20
+								reusePath: 20,
+								ignoreRoads: true
 							});
 						}
 					}
