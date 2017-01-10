@@ -313,6 +313,10 @@ module.exports.loop = function() {
                 Memory.FarCreeps[thisRoom.name] = undefined;
                 Memory.FarClaimerNeeded[thisRoom.name] = false;
             }
+
+            if (Game.flags[thisRoom.name + "FarGuard"]) {
+                Memory.FarGuardNeeded[thisRoom.name] = true;
+            }
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
@@ -412,6 +416,9 @@ function memCheck() {
     //Object
     if (!Memory.FarClaimerNeeded) {
         Memory.FarClaimerNeeded = new Object();
+    }
+    if (!Memory.FarGuardNeeded) {
+        Memory.FarGuardNeeded = new Object();
     }
     if (!Memory.FarCreeps) {
         Memory.FarCreeps = new Object();

@@ -22,6 +22,7 @@ var spawn_BuildCreeps5 = {
 			var farMules = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name);
 			var farClaimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name);
 			var farMiners = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name);
+			var farGuards = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name);
 
 			var minerMax = 2;
 			var muleMax = 1;
@@ -94,23 +95,26 @@ var spawn_BuildCreeps5 = {
 			var farMinerCount = 0;
 			var farClaimerCount = 0;
 			var farMuleCount = 0;
+			var farGuardCount = 0;
 			if (Memory.FarCreeps[thisRoom.name]) {
 				//Enable far miner consideration for this spawn
 				usingFarMiners = true;
 				var creepCount = Memory.FarCreeps[thisRoom.name].reduce(function(m, v) {
 					for (var k in m) {
-						if (~v.indexOf(k)) m[k]++;
+						if (~v.indexOf(k)) m[k] ++;
 					}
 					return m;
 				}, {
 					farClaimer: 0,
 					farMiner: 0,
-					farMule: 0
+					farMule: 0,
+					farGuard: 0
 				});
 
 				farMinerCount = creepCount.farMiner;
 				farClaimerCount = creepCount.farClaimer;
 				farMuleCount = creepCount.farMule;
+				farGuardCount = creepCount.farGuard;
 
 				if (farMules.length) {
 					if (farMules.length < farMuleCount) {
@@ -152,6 +156,21 @@ var spawn_BuildCreeps5 = {
 					}
 				} else if (farMinerCount > 0) {
 					var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farMiner');
+					if (farIndex != -1) {
+						Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
+					}
+				}
+
+				if (farGuards.length) {
+					if (farGuards.length < farGuardCount) {
+						//Lost a creep, remove it from the memory value
+						var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farGuard');
+						if (farIndex != -1) {
+							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
+						}
+					}
+				} else if (farGuardCount > 0) {
+					var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farGuard');
 					if (farIndex != -1) {
 						Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 					}
@@ -199,6 +218,8 @@ var spawn_BuildCreeps5 = {
 			var farMuleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 			//1950 Points
 			var farClaimerConfig = [MOVE, MOVE, MOVE, CLAIM, CLAIM, CLAIM];
+			//1300 Points
+			var farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK];
 			//Upgrader to use minerConfig
 			//2,200 Points
 			var mineralMinerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY]
@@ -403,6 +424,9 @@ var spawn_BuildCreeps5 = {
 					} else {
 						muleNumber = 1
 					}
+				} else if (usingFarMiners && farGuardCount < 1 && blockedRole != 'farGuard' && Memory.FarGuardNeeded[thisRoom.name] == true) {
+					prioritizedRole = 'farGuard';
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 				}
 
 				if (prioritizedRole != '') {
@@ -471,6 +495,15 @@ var spawn_BuildCreeps5 = {
 								storageSource: storageID,
 								fromSpawn: spawn,
 								muleNum: muleNumber
+							});
+						}
+					} else if (prioritizedRole == 'farGuard') {
+						if (spawn.canCreateCreep(farGuardConfig) == OK) {
+							spawn.createCreep(farGuardConfig, undefined, {
+								priority: prioritizedRole,
+								destination: roomTarget,
+								homeRoom: thisRoom.name,
+								fromSpawn: spawn
 							});
 						}
 					}

@@ -471,7 +471,7 @@ var creep_work5 = {
 			} else {
 				var creepCount = Memory.FarCreeps[creep.memory.homeRoom].reduce(function(m, v) {
 					for (var k in m) {
-						if (~v.indexOf(k)) m[k]++;
+						if (~v.indexOf(k)) m[k] ++;
 					}
 					return m;
 				}, {
@@ -573,6 +573,70 @@ var creep_work5 = {
 							});
 						}
 					}
+				}
+			}
+		} else if (creep.memory.priority == 'farGuard') {
+			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
+			if (creep.ticksToLive == 1 && farIndex > -1) {
+				//Remove yourself from the list of farCreeps
+				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
+			} else if (farIndex == -1) {
+				Memory.FarCreeps[creep.memory.homeRoom].push('farGuard');
+			}
+
+			if (creep.room.name != creep.memory.destination) {
+				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+			} else {
+				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
+					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
+						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					} else {
+						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+					}
+				} else if (creep.room.name == creep.memory.destination) {
+					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+				}
+
+				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+				if (Foe) {
+					creep.say('REEEEEEEEE', true);
+					if (creep.pos.getRangeTo(Foe) > 3) {
+						creep.moveTo(Foe);
+						creep.rangedAttack(Foe);
+					} else {
+						var foeDirection = creep.pos.getDirectionTo(Foe);
+						var evadeDirection = TOP;
+						switch (foeDirection) {
+							case TOP:
+								evadeDirection = BOTTOM;
+								break;
+							case TOP_RIGHT:
+								evadeDirection = BOTTOM_LEFT;
+								break;
+							case RIGHT:
+								evadeDirection = LEFT;
+								break;
+							case BOTTOM_RIGHT:
+								evadeDirection = TOP_LEFT;
+								break;
+							case BOTTOM:
+								evadeDirection = TOP;
+								break;
+							case BOTTOM_LEFT:
+								evadeDirection = TOP_RIGHT;
+								break;
+							case LEFT:
+								evadeDirection = RIGHT;
+								break;
+							case TOP_LEFT:
+								evadeDirection = BOTTOM_RIGHT;
+								break;
+						}
+						creep.move(evadeDirection);
+						creep.rangedAttack(Foe);
+					}
+				} else {
+					creep.moveTo(Game.flags[creep.memory.homeRoom + "FarGuard"].pos);
 				}
 			}
 		}
