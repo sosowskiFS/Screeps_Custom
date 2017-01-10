@@ -334,7 +334,7 @@ module.exports.loop = function() {
     //Globally controlls all creeps in all rooms
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule') {
+        if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule' ||  creep.memory.priority == 'farGuard') {
             creep_work5.run(creep);
         } else if (creep.memory.priority == 'claimer') {
             creep_claimer.run(creep);
