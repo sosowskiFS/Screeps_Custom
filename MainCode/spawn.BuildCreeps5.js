@@ -120,7 +120,13 @@ var spawn_BuildCreeps5 = {
 							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 						}
 					}
+				} else if (farMuleCount) {
+					var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farMule');
+					if (farIndex != -1) {
+						Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
+					}
 				}
+
 				if (farClaimers.length) {
 					if (farClaimers.length < farClaimerCount) {
 						//Lost a creep, remove it from the memory value
@@ -129,7 +135,13 @@ var spawn_BuildCreeps5 = {
 							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 						}
 					}
+				} else if (farClaimerCount > 0) {
+					var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farClaimer');
+					if (farIndex != -1) {
+						Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
+					}
 				}
+
 				if (farMiners.length) {
 					if (farMiners.length < farMinerCount) {
 						//Lost a creep, remove it from the memory value
@@ -137,6 +149,11 @@ var spawn_BuildCreeps5 = {
 						if (farIndex != -1) {
 							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 						}
+					}
+				} else if (farMinerCount > 0) {
+					var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farMiner');
+					if (farIndex != -1) {
+						Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 					}
 				}
 			}
