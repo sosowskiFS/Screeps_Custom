@@ -120,7 +120,7 @@ var spawn_BuildCreeps5 = {
 							Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
 						}
 					}
-				} else if (farMuleCount) {
+				} else if (farMuleCount > 0) {
 					var farIndex = Memory.FarCreeps[thisRoom.name].indexOf('farMule');
 					if (farIndex != -1) {
 						Memory.FarCreeps[thisRoom.name].splice(farIndex, 1);
