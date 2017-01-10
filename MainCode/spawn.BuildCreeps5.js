@@ -358,11 +358,15 @@ var spawn_BuildCreeps5 = {
 					blockedSubRole = Memory.creepInQue[RoomPointer + 2];
 				}
 
-				if (miners.length == 1 && mules.length == 0 && blockedRole != 'mule') {
+				if (miners.length >= 1 && mules.length == 0 && blockedRole != 'mule') {
 					prioritizedRole = 'mule';
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
+					if (thisRoom.energyAvailable < 950) {
+						//Spawn a panicMule
+						muleConfig = [MOVE, CARRY, CARRY];
+					}
 				} else if (miners.length < minerMax && blockedRole != 'miner') {
 					switch (storageMiners.length) {
 						case 0:
