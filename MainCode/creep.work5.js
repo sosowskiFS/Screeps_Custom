@@ -186,59 +186,45 @@ var creep_work5 = {
 							creep.memory.structureTarget = undefined;
 						}
 					} else {
-						targets3 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-							filter: (structure) => {
-								return (structure.structureType == STRUCTURE_TOWER) && (structure.energy < structure.energyCapacity);
-							}
-						});
-						if (targets3) {
-							creep.memory.structureTarget = targets3.id;
-							if (creep.transfer(targets3, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(targets3);
-							} else {
-								creep.memory.structureTarget = undefined;
-							}
-						} else {
-							//Store in terminal
-							terminalTarget = Game.getObjectById(creep.memory.terminalID)
-							if (terminalTarget) {
-								if (terminalTarget.store[RESOURCE_ENERGY] < 50000) {
-									creep.memory.structureTarget = terminalTarget.id;
-									if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(terminalTarget, {
-											reusePath: 20
-										});
-									}
-								} else {
-									terminalTarget = undefined;
+						//Store in terminal
+						terminalTarget = Game.getObjectById(creep.memory.terminalID)
+						if (terminalTarget) {
+							if (terminalTarget.store[RESOURCE_ENERGY] < 50000) {
+								creep.memory.structureTarget = terminalTarget.id;
+								if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(terminalTarget, {
+										reusePath: 20
+									});
 								}
+							} else {
+								terminalTarget = undefined;
 							}
-							if (!terminalTarget) {
-								//Build
-								var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
-								if (targets2) {
-									creep.memory.structureTarget = targets2.id;
-									if (targets2.structureType == STRUCTURE_RAMPART) {
-										creep.memory.lookForNewRampart = true;
-									}
+						}
+						if (!terminalTarget) {
+							//Build
+							var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+							if (targets2) {
+								creep.memory.structureTarget = targets2.id;
+								if (targets2.structureType == STRUCTURE_RAMPART) {
+									creep.memory.lookForNewRampart = true;
+								}
 
-									if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(targets2, {
-											reusePath: 20
-										});
-									} else if (creep.build(targets2) == ERR_NO_BODYPART) {
-										creep.suicide();
-									}
-								} else {
-									//Upgrade
-									creep.memory.structureTarget = creep.room.controller.id;
-									if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(creep.room.controller, {
-											reusePath: 20
-										});
-									} else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
-										creep.suicide();
-									}
+								if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(targets2, {
+										reusePath: 20
+									});
+								} else if (creep.build(targets2) == ERR_NO_BODYPART) {
+									creep.suicide();
+								}
+							} else {
+								//Upgrade
+								creep.memory.structureTarget = creep.room.controller.id;
+								if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.controller, {
+										reusePath: 20
+									});
+								} else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
+									creep.suicide();
 								}
 							}
 						}
