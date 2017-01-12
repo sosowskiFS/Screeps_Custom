@@ -11,6 +11,7 @@
 //Creeps
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
+var creep_farMining = require('creep.farMining');
 var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
@@ -335,7 +336,7 @@ module.exports.loop = function() {
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule' ||  creep.memory.priority == 'farGuard') {
-            creep_work5.run(creep);
+            creep_farMining.run(creep);
         } else if (creep.memory.priority == 'claimer') {
             creep_claimer.run(creep);
         } else if (creep.memory.priority == 'vandal') {
