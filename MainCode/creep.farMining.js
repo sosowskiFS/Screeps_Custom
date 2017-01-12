@@ -295,3 +295,5 @@ var creep_farMining = {
 		}
 	}
 };
+
+module.exports = creep_farMining;

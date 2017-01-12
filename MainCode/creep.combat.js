@@ -5,111 +5,26 @@ var creep_combat = {
 		//Defensive-focused attack
 		//Only run this code if the room is being invaded, remain offline otherwise.
 		//(Saves running excess finds in peacetime)
-		if (creep.memory.priority == 'melee' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			var friendlyRanged = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
-				filter: function(object) {
-					return object.getActiveBodyparts(RANGED_ATTACK) > 0;
-				}
-			});
-
-			if (friendlyRanged.length == 0) {
-				//Do not have a ranged partner. Play defensively.
-				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
-				if (Foe[0]) {
-					creep.say('REEEEEEEEE', true);
-					if (creep.pos.getRangeTo(Foe[0]) > 1) {
-						creep.moveTo(Foe[0]);
-						creep.attack(Foe[0]);
-					} else {
-						creep.attack(Foe[0]);
-					}
+		if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+			//Move towards rampart
+			var flagName = creep.room.name + 'Rampart';
+			var flagCounter = 1;
+			while (Game.flags[flagName + flagCounter.toString()]) {
+				if (Game.flags[flagName + flagCounter.toString()].pos.x == creep.pos.x && Game.flags[flagName + flagCounter.toString()].pos.y == creep.pos.y) {
+					break;
+				} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
+					creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
+					break;
 				} else {
-					//Move towards rampart
-					var flagName = creep.room.name + 'Rampart';
-					var flagCounter = 1;
-					while (Game.flags[flagName + flagCounter.toString()]) {
-						if (Game.flags[flagName + flagCounter.toString()].pos.x == creep.pos.x && Game.flags[flagName + flagCounter.toString()].pos.y == creep.pos.y) {
-							break;
-						} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
-							creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
-							break;
-						} else {
-							flagCounter++;
-						}
-					}
-				}
-			} else {
-				//Have ranged partner. Go on the offense.
-				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-				if (Foe) {
-					creep.say('REEEEEEEEE', true);
-					if (creep.pos.getRangeTo(Foe) > 1) {
-						creep.moveTo(Foe);
-						creep.attack(Foe);
-					} else {
-						creep.attack(Foe);
-					}
+					flagCounter++;
 				}
 			}
-		} else if (creep.memory.priority == 'ranged' && Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
-			var friendlyMelee = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
-				filter: function(object) {
-					return object.getActiveBodyparts(ATTACK) > 0;
-				}
-			});
 
-			if (friendlyMelee.length == 0) {
-				//Do not have a melee partner. Play defensively.
-				var FoeTooClose = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2);
-				if (FoeTooClose[0]) {
-					//Target getting into melee range, kite it.
-					creep.moveTo(thisRoom.controller);
-					creep.rangedAttack(FoeTooClose[0]);
-				} else {
-					var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5);
-					if (Foe[0]) {
-						creep.say('REEEEEEEEE', true);
-						if (creep.pos.getRangeTo(Foe[0]) > 3) {
-							creep.moveTo(Foe[0]);
-							creep.rangedAttack(Foe[0]);
-						} else {
-							creep.rangedAttack(Foe[0]);
-						}
-					} else {
-						//Move towards rampart
-						var flagName = creep.room.name + 'Rampart';
-						var flagCounter = 1;
-						while (Game.flags[flagName + flagCounter.toString()]) {
-							if (Game.flags[flagName + flagCounter.toString()].pos.x == creep.pos.x && Game.flags[flagName + flagCounter.toString()].pos.y == creep.pos.y) {
-								break;
-							} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
-								creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
-								break;
-							} else {
-								flagCounter++;
-							}
-						}
-					}
-				}
-			} else {
-				//Have melee partner. Go on the offense.
-				var FoeTooClose = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2);
-				if (FoeTooClose[0]) {
-					//Target getting into melee range, kite it.
-					creep.moveTo(thisRoom.controller);
-					creep.rangedAttack(FoeTooClose[0]);
-				} else {
-					var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-					if (Foe) {
-						creep.say('REEEEEEEEE', true);
-						if (creep.pos.getRangeTo(Foe) > 3) {
-							creep.moveTo(Foe);
-							creep.rangedAttack(Foe);
-						} else {
-							creep.rangedAttack(Foe);
-						}
-					}
-				}
+			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
+			if (Foe[0]) {
+				creep.say('REEEEEEEEE', true);
+				creep.rangedAttack(Foe[0]);
+				creep.attack(Foe[0]);
 			}
 		} else {
 			//Not under attack, move to red flags marking ramparts

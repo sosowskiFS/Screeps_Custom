@@ -262,7 +262,7 @@ var spawn_BuildCreeps5 = {
 
 
 					}
-				} else if (thisRoom.energyAvailable >= 950) {
+				} else if (thisRoom.energyAvailable >= 530) {
 					//Try to produce millitary units
 
 					//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -270,15 +270,14 @@ var spawn_BuildCreeps5 = {
 
 					//Damaged modules do not work, put padding first.
 
-					var meleeUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'melee');
-					var rangedUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'ranged');
+					//var defenderUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
 
-					var ChosenPriority = '';
-					if (meleeUnits <= rangedUnits) {
-						ChosenPriority = 'melee';
-					} else {
-						ChosenPriority = 'ranged';
-					}
+					//var ChosenPriority = '';
+					//if (meleeUnits <= rangedUnits) {
+						//ChosenPriority = 'melee';
+					//} else {
+						//ChosenPriority = 'ranged';
+					//}
 
 					var ToughCount = 0;
 					var MoveCount = 0;
@@ -287,22 +286,23 @@ var spawn_BuildCreeps5 = {
 					var totalParts = 0;
 
 					var remainingEnergy = thisRoom.energyAvailable;
-					while ((remainingEnergy / 950) >= 1) {
-						switch (ChosenPriority) {
-							case 'melee':
-								ToughCount = ToughCount + 1;
-								MoveCount = MoveCount + 2;
-								AttackCount = AttackCount + 3;
-								totalParts = totalParts + 6;
-								remainingEnergy = remainingEnergy - 350;
-								break;
-							case 'ranged':
-								MoveCount = MoveCount + 2;
+					while ((remainingEnergy / 530) >= 1) {
+						//switch (ChosenPriority) {
+							//case 'melee':
+								//ToughCount = ToughCount + 1;
+								MoveCount = MoveCount + 3;
+								AttackCount = AttackCount + 1;
 								RangedCount = RangedCount + 2;
-								totalParts = totalParts + 4;
-								remainingEnergy = remainingEnergy - 400;
-								break;
-						}
+								totalParts = totalParts + 6;
+								remainingEnergy = remainingEnergy - 530;
+								//break;
+							//case 'ranged':
+								//MoveCount = MoveCount + 2;
+								//RangedCount = RangedCount + 2;
+								//totalParts = totalParts + 4;
+								//remainingEnergy = remainingEnergy - 400;
+								//break;
+						//}
 
 						if (totalParts >= 50) {
 							break;
@@ -337,7 +337,7 @@ var spawn_BuildCreeps5 = {
 					}
 
 					spawn.createCreep(ChosenCreepSet, undefined, {
-						priority: ChosenPriority
+						priority: 'defender'
 					});
 				}
 			}

@@ -335,7 +335,7 @@ module.exports.loop = function() {
     //Globally controlls all creeps in all rooms
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule' ||  creep.memory.priority == 'farGuard') {
+        if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule' || creep.memory.priority == 'farGuard') {
             creep_farMining.run(creep);
         } else if (creep.memory.priority == 'claimer') {
             creep_claimer.run(creep);
@@ -345,12 +345,8 @@ module.exports.loop = function() {
             creep_constructor.run(creep);
         } else if (creep.memory.priority == 'removeKebab') {
             creep_Kebab.run(creep);
-        } else if (creep.memory.priority == 'melee' || creep.memory.priority == 'ranged') {
-            if (creep.memory.fromSpawn) {
-                creep_combat.run(creep, thisRoom, creep.memory.fromSpawn);
-            } else {
-                creep_combat.run(creep, thisRoom, Game.spawns[i]);
-            }
+        } else if (creep.memory.priority == 'defender') {
+            creep_combat.run(creep, thisRoom);
         } else {
             if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                 creep_work.run(creep);
