@@ -38,10 +38,19 @@ var creep_work5 = {
 					}
 				}
 				if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(storageTarget, {
-						reusePath: 5,
-						ignoreRoads: ignoreRoadsValue
-					});
+					if (creep.carry.energy > 0) {
+						creep.moveTo(storageTarget, {
+							reusePath: 5,
+							ignoreRoads: ignoreRoadsValue
+						});
+					} else {
+						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(mineTarget, {
+								reusePath: 5,
+								ignoreRoads: ignoreRoadsValue
+							});
+						}
+					}
 				} else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(mineTarget, {
 						reusePath: 5,
