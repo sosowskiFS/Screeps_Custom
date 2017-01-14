@@ -236,7 +236,7 @@ var spawn_BuildCreeps5 = {
 						linkSource: strLinks[1],
 						storageSource: strStorage[0],
 						terminalID: strTerminal[0],
-						fromSpawn: spawn
+						fromSpawn: spawn.id;
 					});
 				} else {
 					spawn.createCreep(bareMinConfig, undefined, {
@@ -440,7 +440,7 @@ var spawn_BuildCreeps5 = {
 							mineSource: creepSource,
 							linkSource: connectedLink,
 							jobSpecific: jobSpecificPri,
-							fromSpawn: spawn
+							fromSpawn: spawn.id
 						});
 					} else if (prioritizedRole == 'mule') {
 						spawn.createCreep(muleConfig, undefined, {
@@ -448,20 +448,20 @@ var spawn_BuildCreeps5 = {
 							linkSource: connectedLink,
 							storageSource: storageID,
 							terminalID: creepSource,
-							fromSpawn: spawn
+							fromSpawn: spawn.id
 						});
 					} else if (prioritizedRole == 'upgrader') {
 						spawn.createCreep(minerConfig, undefined, {
 							priority: prioritizedRole,
 							linkSource: connectedLink,
 							storageSource: storageID,
-							fromSpawn: spawn
+							fromSpawn: spawn.id
 						});
 					} else if (prioritizedRole == 'repair') {
 						spawn.createCreep(muleConfig, undefined, {
 							priority: prioritizedRole,
 							storageSource: storageID,
-							fromSpawn: spawn
+							fromSpawn: spawn.id
 						});
 					} else if (prioritizedRole == 'mineralMiner') {
 						spawn.createCreep(mineralMinerConfig, undefined, {
@@ -469,14 +469,14 @@ var spawn_BuildCreeps5 = {
 							terminalID: storageID,
 							mineralID: creepSource,
 							extractorID: connectedLink,
-							fromSpawn: spawn
+							fromSpawn: spawn.id
 						});
 					} else if (prioritizedRole == 'farClaimer') {
 						if (spawn.canCreateCreep(farClaimerConfig) == OK) {
 							spawn.createCreep(farClaimerConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
-								fromSpawn: spawn,
+								fromSpawn: spawn.id,
 								homeRoom: thisRoom.name
 							});
 							Memory.FarClaimerNeeded[thisRoom.name] = false;
@@ -486,7 +486,7 @@ var spawn_BuildCreeps5 = {
 							spawn.createCreep(farMinerConfig, undefined, {
 								priority: prioritizedRole,
 								destination: roomTarget,
-								fromSpawn: spawn,
+								fromSpawn: spawn.id,
 								homeRoom: thisRoom.name
 							});
 						}
@@ -497,7 +497,7 @@ var spawn_BuildCreeps5 = {
 								destination: roomTarget,
 								homeRoom: thisRoom.name,
 								storageSource: storageID,
-								fromSpawn: spawn,
+								fromSpawn: spawn.id,
 								muleNum: muleNumber
 							});
 						}
@@ -507,7 +507,7 @@ var spawn_BuildCreeps5 = {
 								priority: prioritizedRole,
 								destination: roomTarget,
 								homeRoom: thisRoom.name,
-								fromSpawn: spawn
+								fromSpawn: spawn.id
 							});
 						}
 					}
@@ -528,7 +528,7 @@ var spawn_BuildCreeps5 = {
 						linkSource: strLinks[1],
 						storageSource: strStorage[0],
 						terminalID: strTerminal[0],
-						fromSpawn: spawn
+						fromSpawn: spawn.id
 					});
 					Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
 				}

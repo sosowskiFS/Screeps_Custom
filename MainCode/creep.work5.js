@@ -101,12 +101,14 @@ var creep_work5 = {
 							});
 						}
 					} else {
-						if (!creep.pos.isNearTo(storageTarget)) {
-							creep.moveTo(storageTarget, {
-								reusePath: 5
-							});
+						var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
+						if (spawnTarget) {
+							if (!creep.pos.isNearTo(spawnTarget)) {
+								creep.moveTo(spawnTarget, {
+									reusePath: 5
+								});
+							}
 						}
-
 					}
 				}
 			} else if (_.sum(creep.carry) > 0) {
@@ -257,10 +259,13 @@ var creep_work5 = {
 							});
 						}
 					} else {
-						if (!creep.pos.isNearTo(storageTarget)) {
-							creep.moveTo(storageTarget, {
-								reusePath: 20
-							});
+						var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
+						if (spawnTarget) {
+							if (!creep.pos.isNearTo(spawnTarget)) {
+								creep.moveTo(spawnTarget, {
+									reusePath: 5
+								});
+							}
 						}
 					}
 				}
