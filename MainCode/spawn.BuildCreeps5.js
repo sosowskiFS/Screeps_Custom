@@ -236,7 +236,7 @@ var spawn_BuildCreeps5 = {
 						linkSource: strLinks[1],
 						storageSource: strStorage[0],
 						terminalID: strTerminal[0],
-						fromSpawn: spawn.id;
+						fromSpawn: spawn.id
 					});
 				} else {
 					spawn.createCreep(bareMinConfig, undefined, {
