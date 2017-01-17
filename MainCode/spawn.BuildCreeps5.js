@@ -210,8 +210,19 @@ var spawn_BuildCreeps5 = {
 
 			//800 Points
 			var minerConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
+			//800 Points
+			var upgraderConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
+			if (thisRoom.energyCapacityAvailable >= 1550) {
+				//1550 Points
+				upgraderConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+				upgraderMax--;
+			}
 			//950 Points
 			var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
+			if (thisRoom.energyCapacityAvailable >= 1250) {
+				//1250 Points
+				muleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+			}
 			//950 Points
 			var farMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
 			//2000 Points
@@ -274,9 +285,9 @@ var spawn_BuildCreeps5 = {
 
 					//var ChosenPriority = '';
 					//if (meleeUnits <= rangedUnits) {
-						//ChosenPriority = 'melee';
+					//ChosenPriority = 'melee';
 					//} else {
-						//ChosenPriority = 'ranged';
+					//ChosenPriority = 'ranged';
 					//}
 
 					var ToughCount = 0;
@@ -288,20 +299,20 @@ var spawn_BuildCreeps5 = {
 					var remainingEnergy = thisRoom.energyAvailable;
 					while ((remainingEnergy / 530) >= 1) {
 						//switch (ChosenPriority) {
-							//case 'melee':
-								//ToughCount = ToughCount + 1;
-								MoveCount = MoveCount + 3;
-								AttackCount = AttackCount + 1;
-								RangedCount = RangedCount + 2;
-								totalParts = totalParts + 6;
-								remainingEnergy = remainingEnergy - 530;
-								//break;
-							//case 'ranged':
-								//MoveCount = MoveCount + 2;
-								//RangedCount = RangedCount + 2;
-								//totalParts = totalParts + 4;
-								//remainingEnergy = remainingEnergy - 400;
-								//break;
+						//case 'melee':
+						//ToughCount = ToughCount + 1;
+						MoveCount = MoveCount + 3;
+						AttackCount = AttackCount + 1;
+						RangedCount = RangedCount + 2;
+						totalParts = totalParts + 6;
+						remainingEnergy = remainingEnergy - 530;
+						//break;
+						//case 'ranged':
+						//MoveCount = MoveCount + 2;
+						//RangedCount = RangedCount + 2;
+						//totalParts = totalParts + 4;
+						//remainingEnergy = remainingEnergy - 400;
+						//break;
 						//}
 
 						if (totalParts >= 50) {
@@ -341,7 +352,7 @@ var spawn_BuildCreeps5 = {
 					});
 				}
 			}
-			if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(muleConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral) || (usingFarMiners)) {
+			if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(minerConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral) || (usingFarMiners)) {
 				var prioritizedRole = '';
 				var creepSource = '';
 				var connectedLink = '';
@@ -451,7 +462,7 @@ var spawn_BuildCreeps5 = {
 							fromSpawn: spawn.id
 						});
 					} else if (prioritizedRole == 'upgrader') {
-						spawn.createCreep(minerConfig, undefined, {
+						spawn.createCreep(upgraderConfig, undefined, {
 							priority: prioritizedRole,
 							linkSource: connectedLink,
 							storageSource: storageID,
