@@ -264,11 +264,13 @@ var spawn_BuildCreeps5 = {
 							blockedRole = Memory.creepInQue[RoomPointer + 1];
 						}
 						if (blockedRole != 'salvager') { //Produce a salvager unit to pick up the dropped resources
-							spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
-								priority: 'salvager',
-								storageTarget: strStorage[0]
-							});
-							Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
+							if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
+								spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
+									priority: 'salvager',
+									storageTarget: strStorage[0]
+								});
+								Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
+							}
 						}
 
 
@@ -446,42 +448,57 @@ var spawn_BuildCreeps5 = {
 
 				if (prioritizedRole != '') {
 					if (prioritizedRole == 'miner') {
-						spawn.createCreep(minerConfig, undefined, {
-							priority: prioritizedRole,
-							mineSource: creepSource,
-							linkSource: connectedLink,
-							jobSpecific: jobSpecificPri,
-							fromSpawn: spawn.id
-						});
+						if (spawn.canCreateCreep(minerConfig) == OK) {
+							spawn.createCreep(minerConfig, undefined, {
+								priority: prioritizedRole,
+								mineSource: creepSource,
+								linkSource: connectedLink,
+								jobSpecific: jobSpecificPri,
+								fromSpawn: spawn.id
+							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						}
 					} else if (prioritizedRole == 'mule') {
-						spawn.createCreep(muleConfig, undefined, {
-							priority: prioritizedRole,
-							linkSource: connectedLink,
-							storageSource: storageID,
-							terminalID: creepSource,
-							fromSpawn: spawn.id
-						});
+						if (spawn.canCreateCreep(muleConfig) == OK) {
+							spawn.createCreep(muleConfig, undefined, {
+								priority: prioritizedRole,
+								linkSource: connectedLink,
+								storageSource: storageID,
+								terminalID: creepSource,
+								fromSpawn: spawn.id
+							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						}
 					} else if (prioritizedRole == 'upgrader') {
-						spawn.createCreep(upgraderConfig, undefined, {
-							priority: prioritizedRole,
-							linkSource: connectedLink,
-							storageSource: storageID,
-							fromSpawn: spawn.id
-						});
+						if (spawn.canCreateCreep(upgraderConfig) == OK) {
+							spawn.createCreep(upgraderConfig, undefined, {
+								priority: prioritizedRole,
+								linkSource: connectedLink,
+								storageSource: storageID,
+								fromSpawn: spawn.id
+							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						}
 					} else if (prioritizedRole == 'repair') {
-						spawn.createCreep(muleConfig, undefined, {
-							priority: prioritizedRole,
-							storageSource: storageID,
-							fromSpawn: spawn.id
-						});
+						if (spawn.canCreateCreep(muleConfig) == OK) {
+							spawn.createCreep(muleConfig, undefined, {
+								priority: prioritizedRole,
+								storageSource: storageID,
+								fromSpawn: spawn.id
+							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						}
 					} else if (prioritizedRole == 'mineralMiner') {
-						spawn.createCreep(mineralMinerConfig, undefined, {
-							priority: prioritizedRole,
-							terminalID: storageID,
-							mineralID: creepSource,
-							extractorID: connectedLink,
-							fromSpawn: spawn.id
-						});
+						if (spawn.canCreateCreep(mineralMinerConfig) == OK) {
+							spawn.createCreep(mineralMinerConfig, undefined, {
+								priority: prioritizedRole,
+								terminalID: storageID,
+								mineralID: creepSource,
+								extractorID: connectedLink,
+								fromSpawn: spawn.id
+							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						}
 					} else if (prioritizedRole == 'farClaimer') {
 						if (spawn.canCreateCreep(farClaimerConfig) == OK) {
 							spawn.createCreep(farClaimerConfig, undefined, {
@@ -491,6 +508,7 @@ var spawn_BuildCreeps5 = {
 								homeRoom: thisRoom.name
 							});
 							Memory.FarClaimerNeeded[thisRoom.name] = false;
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						}
 					} else if (prioritizedRole == 'farMiner') {
 						if (spawn.canCreateCreep(farMinerConfig) == OK) {
@@ -500,6 +518,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id,
 								homeRoom: thisRoom.name
 							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						}
 					} else if (prioritizedRole == 'farMule') {
 						if (spawn.canCreateCreep(farMuleConfig) == OK) {
@@ -511,6 +530,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id,
 								muleNum: muleNumber
 							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						}
 					} else if (prioritizedRole == 'farGuard') {
 						if (spawn.canCreateCreep(farGuardConfig) == OK) {
@@ -520,9 +540,9 @@ var spawn_BuildCreeps5 = {
 								homeRoom: thisRoom.name,
 								fromSpawn: spawn.id
 							});
+							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						}
 					}
-					Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 				}
 			} else if (mules.length == 0) {
 				var blockedRole = '';
@@ -534,14 +554,16 @@ var spawn_BuildCreeps5 = {
 				}
 				if (blockedRole != 'mule') {
 					//Spawn a crappy mule
-					spawn.createCreep([MOVE, CARRY, CARRY], undefined, {
-						priority: 'mule',
-						linkSource: strLinks[1],
-						storageSource: strStorage[0],
-						terminalID: strTerminal[0],
-						fromSpawn: spawn.id
-					});
-					Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
+					if (spawn.canCreateCreep([MOVE, CARRY, CARRY]) == OK) {
+						spawn.createCreep([MOVE, CARRY, CARRY], undefined, {
+							priority: 'mule',
+							linkSource: strLinks[1],
+							storageSource: strStorage[0],
+							terminalID: strTerminal[0],
+							fromSpawn: spawn.id
+						});
+						Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
+					}
 				}
 			}
 		}
