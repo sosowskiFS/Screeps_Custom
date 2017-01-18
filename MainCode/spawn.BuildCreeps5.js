@@ -245,7 +245,7 @@ var spawn_BuildCreeps5 = {
 				//Make sure 5+ work code has harvester backup path
 				if (Game.getObjectById(strStorage[0]).store[RESOURCE_ENERGY] >= 1100) {
 					//There's enough in storage for a minimum and a miner. Spawn a crappy mule
-					spawn.createCreep([MOVE, CARRY, CARRY], undefined, {
+					spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 						priority: 'mule',
 						linkSource: strLinks[1],
 						storageSource: strStorage[0],
@@ -381,7 +381,7 @@ var spawn_BuildCreeps5 = {
 					creepSource = strTerminal[0];
 					if (thisRoom.energyAvailable < muleConfigCost) {
 						//Spawn a panicMule
-						muleConfig = [MOVE, CARRY, CARRY];
+						muleConfig = [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
 					}
 				} else if (miners.length < minerMax && blockedRole != 'miner') {
 					switch (storageMiners.length) {
