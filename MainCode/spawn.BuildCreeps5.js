@@ -20,40 +20,9 @@ var spawn_BuildCreeps5 = {
 			var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
 
 			var farMules = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name);
-			var farMules1 = [];
-			var farMiningRoom1 = "UNSET";
-			if (Game.flags[thisRoom.name + "FarMining"]) {
-				var farMules1 = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining"].pos.roomName);
-				farMiningRoom1 = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
-			}
-			var farMules2 = [];
-			var farMiningRoom2 = "UNSET";
-			if (Game.flags[thisRoom.name + "FarMining2"]) {
-				var farMules2 = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining2"].pos.roomName);
-				farMiningRoom2 = Game.flags[thisRoom.name + "FarMining2"].pos.roomName
-			}
-
 			var farClaimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name);
-			var farClaimerNeedCount = 0;
-			if (Game.flags[thisRoom.name + "FarMining"]) {
-				if (Memory.FarClaimerNeeded[thisRoom.name].indexOf(Game.flags[thisRoom.name + "FarMining"].pos.roomName) != -1) {
-					farClaimerNeedCount++;
-				}
-			}
-			if (Game.flags[thisRoom.name + "FarMining2"]) {
-				if (Memory.FarClaimerNeeded[thisRoom.name].indexOf(Game.flags[thisRoom.name + "FarMining2"].pos.roomName) != -1) {
-					farClaimerNeedCount++;
-				}
-			}
 			var farMiners = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name);
 			var farGuards = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name);
-			var farGuardNeedCount = 0;
-			if (Game.flags[thisRoom.name + "FarGuard"]) {
-				farGuardNeedCount++;
-			}
-			if (Game.flags[thisRoom.name + "FarGuard2"]) {
-				farGuardNeedCount++;
-			}
 
 			var minerMax = 2;
 			var muleMax = 1;
@@ -450,68 +419,34 @@ var spawn_BuildCreeps5 = {
 					storageID = strTerminal[0];
 					creepSource = strMineral[0];
 					connectedLink = strExtractor[0];
-				} else if (usingFarMiners && farClaimerCount < farClaimerNeedCount && (Memory.FarClaimerNeeded[thisRoom.name].indexOf(farMiningRoom1) != -1 || Memory.FarClaimerNeeded[thisRoom.name].indexOf(farMiningRoom2) != -1) && blockedRole != 'farClaimer') {
+				} else if (usingFarMiners && farClaimerCount < 1 && Memory.FarClaimerNeeded[thisRoom.name] == true && blockedRole != 'farClaimer') {
 					//Claimer
 					prioritizedRole = 'farClaimer';
-					if (Memory.FarClaimerNeeded[thisRoom.name].indexOf(farMiningRoom1) != -1) {
-						roomTarget = farMiningRoom1;
-					} else {
-						roomTarget = farMiningRoom2;
-					}
-
-				} else if (usingFarMiners && farMinerCount < Memory.FarRoomCount[thisRoom.name] && blockedRole != 'farMiner') {
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
+				} else if (usingFarMiners && farMinerCount < 1 && blockedRole != 'farMiner') {
 					//Miner
 					prioritizedRole = 'farMiner';
-					if (farMinerCount == 1) {
-						roomTarget = Game.flags[thisRoom.name + "FarMining2"].pos.roomName;
-					} else {
-						roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
-					}
-				} else if (usingFarMiners && farMuleCount < (Memory.FarRoomCount[thisRoom.name] * 2) && blockedRole != 'farMule') {
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
+				} else if (usingFarMiners && farMuleCount < 2 && blockedRole != 'farMule') {
 					//Mule
 					prioritizedRole = 'farMule';
-					if (farMuleCount >= 2) {
-						roomTarget = Game.flags[thisRoom.name + "FarMining2"].pos.roomName;
-						if (farMules2.length) {
-							switch (farMules2[0].memory.muleNum) {
-								case 1:
-									muleNumber = 2;
-									break;
-								case 2:
-									muleNumber = 1;
-									break;
-							}
-						} else {
-							muleNumber = 1
-						}
-					} else {
-						roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
-						if (farMules1.length) {
-							switch (farMules1[0].memory.muleNum) {
-								case 1:
-									muleNumber = 2;
-									break;
-								case 2:
-									muleNumber = 1;
-									break;
-							}
-						} else {
-							muleNumber = 1
-						}
-					}
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					storageID = strStorage[0];
-				} else if (usingFarMiners && farGuardCount < farGuardNeedCount && blockedRole != 'farGuard' && Memory.FarGuardNeeded[thisRoom.name] == true && (Memory.FarGuardNeeded[thisRoom.name].indexOf(farMiningRoom1) != -1 || Memory.FarGuardNeeded[thisRoom.name].indexOf(farMiningRoom2) != -1)) {
-					prioritizedRole = 'farGuard';
-					if (farGuardNeedCount == 1) {
-						if (Memory.FarGuardNeeded[thisRoom.name].indexOf(farMiningRoom1) != -1) {
-							roomTarget = farMiningRoom1;
-						} else {
-							roomTarget = farMiningRoom2;
+					if (farMules.length) {
+						switch (farMules[0].memory.muleNum) {
+							case 1:
+								muleNumber = 2;
+								break;
+							case 2:
+								muleNumber = 1;
+								break;
 						}
 					} else {
-						//2
+						muleNumber = 1
 					}
-
+				} else if (usingFarMiners && farGuardCount < 1 && blockedRole != 'farGuard' && Memory.FarGuardNeeded[thisRoom.name] == true) {
+					prioritizedRole = 'farGuard';
+					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 				}
 
 				if (prioritizedRole != '') {
@@ -575,7 +510,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id,
 								homeRoom: thisRoom.name
 							});
-							Memory.FarClaimerNeeded[thisRoom.name] = Memory.FarGuardNeeded[thisRoom.name].replace(roomTarget, "");
+							Memory.FarClaimerNeeded[thisRoom.name] = false;
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						}
 					} else if (prioritizedRole == 'farMiner') {

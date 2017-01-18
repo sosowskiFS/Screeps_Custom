@@ -308,31 +308,16 @@ module.exports.loop = function() {
             if (Game.flags[thisRoom.name + "FarMining"]) {
                 if (!Memory.FarCreeps[thisRoom.name]) {
                     Memory.FarCreeps[thisRoom.name] = [];
-                    Memory.FarClaimerNeeded[thisRoom.name] = "";
-                    Memory.FarRoomCount[thisRoom.name] = 1;
+                    Memory.FarClaimerNeeded[thisRoom.name] = false;
                 }
             } else if (Memory.FarCreeps[thisRoom.name]) {
                 Memory.FarCreeps[thisRoom.name] = undefined;
-                Memory.FarClaimerNeeded[thisRoom.name] = "";
-            }
-
-            if (Game.flags[thisRoom.name + "FarMining2"]) {
-                Memory.FarRoomCount[thisRoom.name] = 2;
+                Memory.FarClaimerNeeded[thisRoom.name] = false;
             }
 
             if (Game.flags[thisRoom.name + "FarGuard"]) {
-                if (Memory.FarGuardNeeded[thisRoom.name].indexOf(Game.flags[thisRoom.name + "FarGuard"].pos.roomName) == -1) {
-                    Memory.FarGuardNeeded[thisRoom.name] = Memory.FarGuardNeeded[thisRoom.name] + Game.flags[thisRoom.name + "FarGuard"].pos.roomName;
-                }             
+                Memory.FarGuardNeeded[thisRoom.name] = true;
             }
-
-            if (Game.flags[thisRoom.name + "FarGuard2"]) {
-                if (Memory.FarGuardNeeded[thisRoom.name].indexOf(Game.flags[thisRoom.name + "FarGuard2"].pos.roomName) == -1) {
-                    Memory.FarGuardNeeded[thisRoom.name] = Memory.FarGuardNeeded[thisRoom.name] + Game.flags[thisRoom.name + "FarGuard2"].pos.roomName;
-                }             
-            }
-
-            Memory.RoomsRun.push(thisRoom.name);
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
@@ -340,6 +325,8 @@ module.exports.loop = function() {
         } else {
             spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
         }
+
+        Memory.RoomsRun.push(thisRoom.name);
     }
 
     Memory.RoomsRun = [];
@@ -432,9 +419,6 @@ function memCheck() {
     }
     if (!Memory.FarCreeps) {
         Memory.FarCreeps = new Object();
-    }
-    if (!Memory.FarRoomCount) {
-        Memory.FarRoomCount = new Object();
     }
     if (!Memory.PriceList) {
         Memory.PriceList = new Object();
