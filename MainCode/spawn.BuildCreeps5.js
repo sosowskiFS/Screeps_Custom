@@ -208,6 +208,7 @@ var spawn_BuildCreeps5 = {
 				}
 			}
 
+
 			//800 Points
 			var minerConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
 			//800 Points
@@ -218,10 +219,12 @@ var spawn_BuildCreeps5 = {
 				upgraderMax--;
 			}
 			//950 Points
+			var muleConfigCost = 950;
 			var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
 			if (thisRoom.energyCapacityAvailable >= 1500) {
 				//1500 Points
 				muleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+				muleConfigCost = 1500;
 			}
 			//950 Points
 			var farMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
@@ -376,7 +379,7 @@ var spawn_BuildCreeps5 = {
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
-					if (thisRoom.energyAvailable < 950) {
+					if (thisRoom.energyAvailable < muleConfigCost) {
 						//Spawn a panicMule
 						muleConfig = [MOVE, CARRY, CARRY];
 					}
