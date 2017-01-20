@@ -4,7 +4,7 @@ var creep_farMining = {
 	run: function(creep) {
 		if (creep.memory.priority == 'farClaimer') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive == 1 && farIndex > -1) {
+			if (creep.ticksToLive <= 20 && farIndex > -1) {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else if (farIndex == -1) {
@@ -30,7 +30,7 @@ var creep_farMining = {
 			}
 		} else if (creep.memory.priority == 'farMiner') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive == 1 && farIndex > -1) {
+			if (creep.ticksToLive <= 60 && farIndex > -1) {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else if (farIndex == -1) {
@@ -117,7 +117,7 @@ var creep_farMining = {
 			}
 		} else if (creep.memory.priority == 'farMule') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive == 1 && farIndex > -1) {
+			if (creep.ticksToLive <= 150 && farIndex > -1) {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else {
@@ -207,7 +207,7 @@ var creep_farMining = {
 			}
 		} else if (creep.memory.priority == 'farGuard') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive == 1 && farIndex > -1) {
+			if (creep.ticksToLive <= 70 && farIndex > -1) {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else if (farIndex == -1) {
