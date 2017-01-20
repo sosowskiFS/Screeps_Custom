@@ -120,7 +120,7 @@ var creep_farMining = {
 			if (creep.ticksToLive <= 150 && farIndex > -1) {
 				//Remove yourself from the list of farCreeps
 				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-			} else {
+			} else if (farIndex == -1) {
 				Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
 			}
 
