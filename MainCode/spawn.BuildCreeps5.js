@@ -230,6 +230,10 @@ var spawn_BuildCreeps5 = {
 			var farMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
 			//2000 Points
 			var farMuleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+			if (thisRoom.energyCapacityAvailable >= 2500) {
+				//2500 Points
+				farMuleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+			}
 			//1950 Points
 			var farClaimerConfig = [MOVE, MOVE, MOVE, CLAIM, CLAIM, CLAIM];
 			//1300 Points
@@ -367,7 +371,6 @@ var spawn_BuildCreeps5 = {
 				var blockedSubRole = '';
 				var roomTarget = '';
 				var farSource = '';
-				var muleNumber = 1;
 				if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
 					var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
 					blockedRole = Memory.creepInQue[RoomPointer + 1];
@@ -427,23 +430,11 @@ var spawn_BuildCreeps5 = {
 					//Miner
 					prioritizedRole = 'farMiner';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
-				} else if (usingFarMiners && farMuleCount < 2 && blockedRole != 'farMule') {
+				} else if (usingFarMiners && farMuleCount < 1 && blockedRole != 'farMule') {
 					//Mule
 					prioritizedRole = 'farMule';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					storageID = strStorage[0];
-					if (farMules.length) {
-						switch (farMules[0].memory.muleNum) {
-							case 1:
-								muleNumber = 2;
-								break;
-							case 2:
-								muleNumber = 1;
-								break;
-						}
-					} else {
-						muleNumber = 1
-					}
 				} else if (usingFarMiners && farGuardCount < 1 && blockedRole != 'farGuard' && Memory.FarGuardNeeded[thisRoom.name] == true) {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
@@ -530,8 +521,7 @@ var spawn_BuildCreeps5 = {
 								destination: roomTarget,
 								homeRoom: thisRoom.name,
 								storageSource: storageID,
-								fromSpawn: spawn.id,
-								muleNum: muleNumber
+								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						}
@@ -557,8 +547,8 @@ var spawn_BuildCreeps5 = {
 				}
 				if (blockedRole != 'mule') {
 					//Spawn a crappy mule
-					if (spawn.canCreateCreep([MOVE, CARRY, CARRY]) == OK) {
-						spawn.createCreep([MOVE, CARRY, CARRY], undefined, {
+					if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
+						spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 							priority: 'mule',
 							linkSource: strLinks[1],
 							storageSource: strStorage[0],

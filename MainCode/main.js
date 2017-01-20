@@ -259,7 +259,7 @@ module.exports.loop = function() {
             }
 
             //Review market data and sell to buy orders
-            if (Game.time % 500 == 0 && Memory.terminalList[thisRoom.name][0]) {
+            if (Game.time % 1000 == 0 && Memory.terminalList[thisRoom.name][0]) {
                 market_buyers.run(thisRoom, Game.getObjectById(Memory.terminalList[thisRoom.name][0]), Memory.mineralList[thisRoom.name]);
             }
 
