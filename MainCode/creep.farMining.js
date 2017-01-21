@@ -2,7 +2,7 @@ var creep_farMining = {
 
 	/** @param {Creep} creep **/
 	run: function(creep) {
-		var creepCount = Memory.FarCreeps[creep.memory.homeRoom].reduce(function(m, v) {
+		var creepCount = Memory.FarCreeps[thisRoom.name].reduce(function(m, v) {
 			for (var k in m) {
 				if (~v.indexOf(k)) m[k]++;
 			}
