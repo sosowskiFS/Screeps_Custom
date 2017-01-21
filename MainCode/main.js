@@ -333,6 +333,10 @@ module.exports.loop = function() {
                 Memory.FarClaimerNeeded[thisRoom.name].roomList = "";
             }
 
+            if (!Memory.FarGuardNeeded[thisRoom.name]) {
+                Memory.FarGuardNeeded[thisRoom.name] = new Object();
+            }
+
             if (!Memory.FarGuardNeeded[thisRoom.name].roomList) {
                 Memory.FarGuardNeeded[thisRoom.name].roomList = "";
             }
