@@ -185,7 +185,7 @@ var creep_farMining = {
 						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 					}
 				}
-			} else if (farIndex == -1 || creepCount.farMule < 2) {
+			} else if (farIndex == -1 creepCount.farMule < 2) {
 				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
 					if (creepCount.farMule < 2 && creep.pos.roomName == Game.flags[creep.memory.homeRoom + "FarMining2"].pos.roomName) {
 						Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
