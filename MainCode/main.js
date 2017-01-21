@@ -337,11 +337,15 @@ module.exports.loop = function() {
                 Memory.FarGuardNeeded[thisRoom.name] = new Object();
             }
 
+            if (Memory.FarGuardNeeded[thisRoom.name] == true || Memory.FarGuardNeeded[thisRoom.name] == false) {
+                Memory.FarGuardNeeded[thisRoom.name] = new Object();
+            }
+
             if (Game.flags[thisRoom.name + "FarGuard"]) {
-                if (!Memory.FarGuardNeeded[thisRoom.name].roomList) {
+                if (Memory.FarGuardNeeded[thisRoom.name].roomList == undefined) {
                     Memory.FarGuardNeeded[thisRoom.name].roomList = "";
                 }
-                
+
                 if (Memory.FarGuardNeeded[thisRoom.name].roomList.indexOf(Game.flags[thisRoom.name + "FarGuard"].pos.roomName) == -1) {
                     Memory.FarGuardNeeded[thisRoom.name].roomList = Memory.FarGuardNeeded[thisRoom.name].roomList + Game.flags[thisRoom.name + "FarGuard"].pos.roomName;
                 }
