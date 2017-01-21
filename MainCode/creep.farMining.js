@@ -16,12 +16,18 @@ var creep_farMining = {
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+						}
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) != -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.replace(creep.room.name, "");
+						}
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+						Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+					}
 				}
 
 				if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
@@ -42,12 +48,18 @@ var creep_farMining = {
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+						}
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) != -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.replace(creep.room.name, "");
+						}
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+						Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+					}
 				}
 
 				var mineTarget = "";
@@ -131,12 +143,18 @@ var creep_farMining = {
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+						}
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) != -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.replace(creep.room.name, "");
+						}
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+						Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+					}
 				}
 
 				if (_.sum(creep.carry) <= 900) {
@@ -217,15 +235,20 @@ var creep_farMining = {
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
-
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+						}
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) != -1) {
+							Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.replace(creep.room.name, "");
+						}
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					if (Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList.indexOf(creep.room.name) == -1) {
+						Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList = Memory.FarClaimerNeeded[creep.memory.homeRoom].roomList + creep.room.name;
+					}
 				}
 
 				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);

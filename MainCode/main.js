@@ -305,18 +305,48 @@ module.exports.loop = function() {
             }
 
             //Check through flags to see if far mining has been requested
+            if (Memory.FarClaimerNeeded[thisRoom.name] == true || Memory.FarClaimerNeeded[thisRoom.name] == false) {
+                Memory.FarClaimerNeeded[thisRoom.name] = new Object();
+            }
+
+            if (!Memory.FarClaimerNeeded[thisRoom.name]) {
+                Memory.FarClaimerNeeded[thisRoom.name] = new Object();
+            }
+
+            if (!Memory.FarClaimerNeeded[thisRoom.name].roomList) {
+                Memory.FarClaimerNeeded[thisRoom.name].roomList = "";
+            }
+
             if (Game.flags[thisRoom.name + "FarMining"]) {
                 if (!Memory.FarCreeps[thisRoom.name]) {
                     Memory.FarCreeps[thisRoom.name] = [];
-                    Memory.FarClaimerNeeded[thisRoom.name] = false;
+                    Memory.FarClaimerNeeded[thisRoom.name].roomList = "";
+                    Memory.FarRoomCount[thisRoom.name] = 1;
                 }
             } else if (Memory.FarCreeps[thisRoom.name]) {
                 Memory.FarCreeps[thisRoom.name] = undefined;
-                Memory.FarClaimerNeeded[thisRoom.name] = false;
+                Memory.FarClaimerNeeded[thisRoom.name].roomList = "";
+            }
+
+            if (Game.flags[thisRoom.name + "FarMining2"]) {
+                Memory.FarRoomCount[thisRoom.name] = 2;
+                Memory.FarClaimerNeeded[thisRoom.name].roomList = "";
+            }
+
+            if (!Memory.FarGuardNeeded[thisRoom.name].roomList) {
+                Memory.FarGuardNeeded[thisRoom.name].roomList = "";
             }
 
             if (Game.flags[thisRoom.name + "FarGuard"]) {
-                Memory.FarGuardNeeded[thisRoom.name] = true;
+                if (Memory.FarGuardNeeded[thisRoom.name].roomList.indexOf(Game.flags[thisRoom.name + "FarGuard"].pos.roomName) == -1) {
+                    Memory.FarGuardNeeded[thisRoom.name].roomList = Memory.FarGuardNeeded[thisRoom.name].roomList + Game.flags[thisRoom.name + "FarGuard"].pos.roomName;
+                }
+            }
+
+            if (Game.flags[thisRoom.name + "FarGuard2"]) {
+                if (Memory.FarGuardNeeded[thisRoom.name].roomList.indexOf(Game.flags[thisRoom.name + "FarGuard2"].pos.roomName) == -1) {
+                    Memory.FarGuardNeeded[thisRoom.name].roomList = Memory.FarGuardNeeded[thisRoom.name].roomList + Game.flags[thisRoom.name + "FarGuard2"].pos.roomName;
+                }
             }
         }
 
@@ -419,6 +449,9 @@ function memCheck() {
     }
     if (!Memory.FarCreeps) {
         Memory.FarCreeps = new Object();
+    }
+    if (!Memory.FarRoomCount) {
+        Memory.FarRoomCount = new Object();
     }
     if (!Memory.PriceList) {
         Memory.PriceList = new Object();

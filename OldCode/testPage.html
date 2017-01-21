@@ -15,19 +15,12 @@
       //'room1' : ['towerID1', 'towerID2'],
       //'room2' : ['towerID1.2', 'towerID2.2']
     //};
-        someArray = ['farClaimer', 'farMiner', 'farMule'];
-        var creepCount = someArray.reduce(function(m, v) {
-          for (var k in m) {
-            if (~v.indexOf(k)) m[k]++;
-          }
-          return m;
-        }, {
-          farClaimer: 0,
-          farMiner: 0,
-          farMule: 0
-        });
+        var waow = new Object();
+        waow.roomList = "Mayonaseu"
+        var thisIndex = waow.roomList.indexOf("Mayonaseu")
+        waow.roomList = waow.roomList.replace("Mayonaseu", "WAAAUO!!!");
 
-        alert(creepCount.farClaimer);
+        alert(thisIndex + " " + waow.roomList);
   </script>
 </body>
 </html>
