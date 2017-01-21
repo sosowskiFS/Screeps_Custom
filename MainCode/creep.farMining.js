@@ -26,7 +26,7 @@ var creep_farMining = {
 						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 					}
 				}
-			} else if (farIndex == -1 || creepCount.farClaimer < 2) {
+			} else if (farIndex == -1) {
 				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
 					if (creepCount.farClaimer < 2 && creep.pos.roomName == Game.flags[creep.memory.homeRoom + "FarMining2"].pos.roomName) {
 						Memory.FarCreeps[creep.memory.homeRoom].push('farClaimer');
@@ -73,7 +73,7 @@ var creep_farMining = {
 						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 					}
 				}
-			} else if (farIndex == -1 || creepCount.farMiner < 2) {
+			} else if (farIndex == -1) {
 				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
 					if (creepCount.farMiner < 2 && creep.pos.roomName == Game.flags[creep.memory.homeRoom + "FarMining2"].pos.roomName) {
 						Memory.FarCreeps[creep.memory.homeRoom].push('farMiner');
@@ -185,7 +185,7 @@ var creep_farMining = {
 						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 					}
 				}
-			} else if (farIndex == -1 creepCount.farMule < 2) {
+			} else if (farIndex == -1) {
 				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
 					if (creepCount.farMule < 2 && creep.pos.roomName == Game.flags[creep.memory.homeRoom + "FarMining2"].pos.roomName) {
 						Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
