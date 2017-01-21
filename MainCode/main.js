@@ -331,6 +331,8 @@ module.exports.loop = function() {
             if (Game.flags[thisRoom.name + "FarMining2"]) {
                 Memory.FarRoomCount[thisRoom.name] = 2;
                 Memory.FarClaimerNeeded[thisRoom.name].roomList = "";
+            } else if (Game.flags[thisRoom.name + "FarMining"]) {
+                Memory.FarRoomCount[thisRoom.name] = 1;
             }
 
             if (!Memory.FarGuardNeeded[thisRoom.name]) {
