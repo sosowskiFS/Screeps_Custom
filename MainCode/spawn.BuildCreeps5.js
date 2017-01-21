@@ -27,7 +27,7 @@ var spawn_BuildCreeps5 = {
 				farMuleNeedCount++;
 				farMiningRoom1 = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 				var farMuleTester = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == farMiningRoom1);
-				if(farMuleTester.count > 0) {
+				if(farMuleTester.length > 0) {
 					farMuleRoom1 = true;
 				}
 			}
@@ -55,7 +55,7 @@ var spawn_BuildCreeps5 = {
 			var farMinerRoom1 = false;
 			if (Game.flags[thisRoom.name + "FarMining"]) {
 				var farMinerTester = _.filter(Game.creeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == farMiningRoom1);
-				if(farMinerTester.count > 0) {
+				if(farMinerTester.length > 0) {
 					farMinerRoom1 = true;
 				}
 			}
