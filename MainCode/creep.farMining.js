@@ -2,40 +2,13 @@ var creep_farMining = {
 
 	/** @param {Creep} creep **/
 	run: function(creep) {
-		var creepCount = Memory.FarCreeps[thisRoom.name].reduce(function(m, v) {
-			for (var k in m) {
-				if (~v.indexOf(k)) m[k]++;
-			}
-			return m;
-		}, {
-			farClaimer: 0,
-			farMiner: 0,
-			farMule: 0,
-			farGuard: 0
-		});
-
 		if (creep.memory.priority == 'farClaimer') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
 			if (creep.ticksToLive <= 20 && farIndex > -1) {
-				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-					if (creepCount.farClaimer >= 2) {
-						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-					}
-				} else {
-					if (creepCount.farClaimer == 1) {
-						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-					}
-				}
+				//Remove yourself from the list of farCreeps
+				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else if (farIndex == -1) {
-				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-					if (creepCount.farClaimer < 2 && creep.pos.roomName == Game.flags[creep.memory.homeRoom + "FarMining2"].pos.roomName) {
-						Memory.FarCreeps[creep.memory.homeRoom].push('farClaimer');
-					}
-				} else {
-					if (creepCount.farClaimer < 1) {
-						Memory.FarCreeps[creep.memory.homeRoom].push('farClaimer');
-					}
-				}
+				Memory.FarCreeps[creep.memory.homeRoom].push('farClaimer')
 			}
 
 			if (creep.room.name != creep.memory.destination) {
@@ -64,25 +37,10 @@ var creep_farMining = {
 		} else if (creep.memory.priority == 'farMiner') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
 			if (creep.ticksToLive <= 60 && farIndex > -1) {
-				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-					if (creepCount.farMiner >= 2) {
-						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-					}
-				} else {
-					if (creepCount.farMiner == 1) {
-						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-					}
-				}
+				//Remove yourself from the list of farCreeps
+				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else if (farIndex == -1) {
-				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-					if (creepCount.farMiner < 2 && creep.pos.roomName == Game.flags[creep.memory.homeRoom + "FarMining2"].pos.roomName) {
-						Memory.FarCreeps[creep.memory.homeRoom].push('farMiner');
-					}
-				} else {
-					if (creepCount.farMiner < 1) {
-						Memory.FarCreeps[creep.memory.homeRoom].push('farMiner');
-					}
-				}
+				Memory.FarCreeps[creep.memory.homeRoom].push('farMiner');
 			}
 
 			if (creep.room.name != creep.memory.destination) {
@@ -176,25 +134,10 @@ var creep_farMining = {
 		} else if (creep.memory.priority == 'farMule') {
 			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
 			if (creep.ticksToLive <= 150 && farIndex > -1) {
-				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-					if (creepCount.farMule >= 2) {
-						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-					}
-				} else {
-					if (creepCount.farMule == 1) {
-						Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-					}
-				}
+				//Remove yourself from the list of farCreeps
+				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
 			} else if (farIndex == -1) {
-				if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-					if (creepCount.farMule < 2 && creep.pos.roomName == Game.flags[creep.memory.homeRoom + "FarMining2"].pos.roomName) {
-						Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
-					}
-				} else {
-					if (creepCount.farMule < 1) {
-						Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
-					}
-				}
+				Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
 			}
 
 			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 900) {
