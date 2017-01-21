@@ -77,11 +77,7 @@ var creep_farMining = {
 					//Get the source ID while in the room
 					var markedSources = [];
 					if (Game.flags[creep.memory.homeRoom + "FarMining"]) {
-						if (Game.flags[creep.memory.homeRoom + "FarMining"].pos.roomName == creep.pos.roomName) {
-							markedSources = Game.flags[creep.memory.homeRoom + "FarMining"].pos.lookFor(LOOK_SOURCES);
-						} else if (Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-							markedSources = Game.flags[creep.memory.homeRoom + "FarMining2"].pos.lookFor(LOOK_SOURCES);
-						}					
+						markedSources = Game.flags[creep.memory.homeRoom + "FarMining"].pos.lookFor(LOOK_SOURCES);
 					}
 					if (markedSources.length) {
 						creep.memory.mineSource = markedSources[0].id;
