@@ -70,6 +70,10 @@ module.exports.loop = function() {
     //Set defaults on various memory values
     memCheck();
 
+    var roomDist = 999;
+    var roomName = '';
+    var instructionSpawn;
+
     //Loop through all spawns
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
@@ -77,6 +81,15 @@ module.exports.loop = function() {
 
         if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
             //Execute special instruction written into console
+            if (Game.flags["ClaimThis"]) {
+                var theDistance = Game.map.getRoomLinearDistance(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
+                if (theDistance < roomDist) {
+                    roomDist = thisDistance;
+                    roomName = thisRoom.name;
+                    instructionSpawn = Game.spawns[i];
+                }
+            }
+
             if (Memory.Instruction) {
                 switch (Memory.Instruction) {
                     case 'claim':
@@ -318,6 +331,10 @@ module.exports.loop = function() {
             if (Game.flags[thisRoom.name + "FarGuard"]) {
                 Memory.FarGuardNeeded[thisRoom.name] = true;
             }
+        }
+
+        if (Game.flags["ClaimThis"]) {
+            spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {

@@ -1,13 +1,16 @@
 var spawn_BuildInstruction = {
-	run: function(spawn, instruction, params, thisRoom, params2 = '') {
+	run: function(spawn, instruction, params, thisRoom = '', params2 = '') {
 		switch (instruction) {
 			case 'claim':
 				if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
 					spawn.createCreep([MOVE, CLAIM], undefined, {
 						priority: 'claimer',
-						destinations: params
+						destination: params
 					});
 					console.log('Claim executed');
+					if (Game.flags["ClaimThis"]) {
+						Game.flags["ClaimThis"].remove();
+					}
 				} else {
 					console.log('Could not execute claim. Spawn cannot create creep.');
 				}
