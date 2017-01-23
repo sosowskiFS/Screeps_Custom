@@ -342,17 +342,6 @@ module.exports.loop = function() {
             }
         }
 
-        if (Game.flags["ClaimThis"]) {
-            spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
-        }
-
-        if (Game.flags["BuildThis"]) {
-            var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
-            if (sitesOnTile.length) {
-                spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0], '', Game.flags["BuildThis"].pos.roomName);
-            }       
-        }
-
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
             spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
         } else {
@@ -364,6 +353,17 @@ module.exports.loop = function() {
 
     Memory.RoomsRun = [];
     //Memory.creepInQue = [];
+
+    if (Game.flags["ClaimThis"]) {
+        spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
+    }
+
+    if (Game.flags["BuildThis"]) {
+        var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
+        if (sitesOnTile.length) {
+            spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0], '', Game.flags["BuildThis"].pos.roomName);
+        }
+    }
 
     //Globally controlls all creeps in all rooms
     for (var name in Game.creeps) {
