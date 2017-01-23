@@ -14,7 +14,7 @@ var creep_constructor = {
             } else {
                 sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
 
-                if (!sources) {
+                if (sources) {
                     if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(sources);
                     }
