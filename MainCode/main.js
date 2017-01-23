@@ -361,7 +361,7 @@ module.exports.loop = function() {
     if (Game.flags["BuildThis"]) {
         var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
         if (sitesOnTile.length) {
-            spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0], '', Game.flags["BuildThis"].pos.roomName);
+            spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, '', Game.flags["BuildThis"].pos.roomName);
         }
     }
 
