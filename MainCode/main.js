@@ -84,7 +84,7 @@ module.exports.loop = function() {
             if (Game.flags["ClaimThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
                 if (theDistance < roomDist) {
-                    roomDist = thisDistance;
+                    roomDist = theDistance;
                     roomName = thisRoom.name;
                     instructionSpawn = Game.spawns[i];
                 }
@@ -93,7 +93,7 @@ module.exports.loop = function() {
             if (Game.flags["BuildThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
                 if (theDistance < roomDist) {
-                    roomDist = thisDistance;
+                    roomDist = theDistance;
                     roomName = thisRoom.name;
                     instructionSpawn = Game.spawns[i];
                 }
