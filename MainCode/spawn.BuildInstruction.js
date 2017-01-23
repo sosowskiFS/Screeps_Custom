@@ -12,7 +12,7 @@ var spawn_BuildInstruction = {
 						Game.flags["ClaimThis"].remove();
 					}
 				} else {
-					console.log('Could not execute claim. Spawn cannot create creep.');
+					//console.log('Could not execute claim. Spawn cannot create creep.');
 				}
 				break;
 			case 'vandalize':
@@ -24,7 +24,7 @@ var spawn_BuildInstruction = {
 					});
 					console.log('Vandalize executed');
 				} else {
-					console.log('Could not execute vandalize. Spawn cannot create creep.');
+					//console.log('Could not execute vandalize. Spawn cannot create creep.');
 				}
 				break;
 			case 'construct':
@@ -38,7 +38,7 @@ var spawn_BuildInstruction = {
 						});
 						console.log('Construct executed');
 					} else {
-						console.log('Could not execute constructor. Spawn cannot create creep.');
+						//console.log('Could not execute constructor. Spawn cannot create creep.');
 					}
 				}
 				break;
@@ -51,7 +51,7 @@ var spawn_BuildInstruction = {
 					});
 					console.log('Construct executed');
 				} else {
-					console.log('Could not execute constructor. Spawn cannot create creep.');
+					//console.log('Could not execute constructor. Spawn cannot create creep.');
 				}
 				break;
 		}
