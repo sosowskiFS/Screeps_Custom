@@ -90,6 +90,15 @@ module.exports.loop = function() {
                 }
             }
 
+            if (Game.flags["BuildThis"]) {
+                var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
+                if (theDistance < roomDist) {
+                    roomDist = thisDistance;
+                    roomName = thisRoom.name;
+                    instructionSpawn = Game.spawns[i];
+                }
+            }
+
             if (Memory.Instruction) {
                 switch (Memory.Instruction) {
                     case 'claim':
@@ -335,6 +344,13 @@ module.exports.loop = function() {
 
         if (Game.flags["ClaimThis"]) {
             spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
+        }
+
+        if (Game.flags["BuildThis"]) {
+            var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
+            if (sitesOnTile.length) {
+                spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0], '', Game.flags["BuildThis"].pos.roomName);
+            }       
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {

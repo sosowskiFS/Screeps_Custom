@@ -32,7 +32,7 @@ var spawn_BuildInstruction = {
 					spawn.createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY], undefined, {
 						priority: 'constructor',
 						siteID: params,
-						destinations: params2
+						destination: params2
 					});
 					console.log('Construct executed');
 				} else {

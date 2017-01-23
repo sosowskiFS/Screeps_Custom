@@ -9,15 +9,15 @@ var creep_constructor = {
         }
 
         if (!creep.memory.building) {
-            if (creep.memory.destinations.length > 0) {
-                if (creep.room.name != creep.memory.destinations[0]) {
-                    creep.moveTo(new RoomPosition(25, 25, creep.memory.destinations[0]));
-                } else {
-                    creep.memory.destinations.splice(0, 1);
-                }
+            if (creep.room.name != creep.memory.destination) {
+                creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
             } else {
-                if (creep.harvest(Game.getObjectById('57ef9dba86f108ae6e60e2f5')) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(Game.getObjectById('57ef9dba86f108ae6e60e2f5'));
+                sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
+
+                if (!sources) {
+                    if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(sources);
+                    }
                 }
             }
         } else {
@@ -28,6 +28,11 @@ var creep_constructor = {
                 }
             } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(Game.getObjectById(creep.memory.siteID));
+            } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_INVALID_TARGET) {
+                if (Game.flags["BuildThis"]) {
+                    Game.flags["BuildThis"].remove();
+                }
+                creep.suicide();
             }
         }
     }
