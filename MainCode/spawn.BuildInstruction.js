@@ -28,20 +28,23 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'construct':
-				if (spawn.canCreateCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY]) == OK) {
-					spawn.createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY], undefined, {
-						priority: 'constructor',
-						siteID: params,
-						destination: params2
-					});
-					console.log('Construct executed');
-				} else {
-					console.log('Could not execute constructor. Spawn cannot create creep.');
+				var constructors = _.filter(Game.creeps, (creep) => creep.memory.priority == 'constructor');
+				if (constructors.length < 3) {
+					if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY]) == OK) {
+						spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY], undefined, {
+							priority: 'constructor',
+							siteID: params,
+							destination: params2
+						});
+						console.log('Construct executed');
+					} else {
+						console.log('Could not execute constructor. Spawn cannot create creep.');
+					}
 				}
 				break;
 			case 'removeKebab':
-				if (spawn.canCreateCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK]) == OK) {
-					spawn.createCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK], undefined, {
+				if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK]) == OK) {
+					spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK], undefined, {
 						priority: 'removeKebab',
 						targetID: params,
 						destinations: params2
