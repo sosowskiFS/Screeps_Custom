@@ -125,7 +125,15 @@ var creep_farMining = {
 			}
 
 			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 900) {
-				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+				var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
+				if (droppedSources.length) {
+					//Pick up dropped energy from dead mules, etc.
+					if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(droppedSources[0]);
+					}
+				} else {
+					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+				}
 			} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 900) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom));
 			} else {
