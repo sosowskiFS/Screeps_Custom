@@ -180,19 +180,19 @@ var spawn_BuildCreeps5 = {
 			var roomMineral = Game.getObjectById(strMineral[0]);
 			var roomStorage = Game.getObjectById(strStorage[0]);
 			if (roomStorage) {
-				if (roomStorage.store[RESOURCE_ENERGY] >= 5000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 100000) {
 					//Add another mule for resource management
 					muleMax++;
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 10000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 200000) {
 					//speed up that repairing a bit
 					repairMax++;
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 25000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 300000) {
 					//speed up that repairing a bit
 					muleMax++;
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 50000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 400000) {
 					//speed it up a LOT
 					repairMax++;
 				}

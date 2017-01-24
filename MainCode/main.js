@@ -365,6 +365,22 @@ module.exports.loop = function() {
         }
     }
 
+    if (Game.market.credits > 1500000 && Game.time % 1000) {
+        //Periodically look for cheap subscription tokens
+        var availableCredits = Game.market.credits
+        if (availableCredits > 2500000) {
+            availableCredits = 2500000;
+        }
+        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_BUY && order.price <= availableCredits);
+        if (FilteredOrders.length > 0) {
+            FilteredOrders.sort(orderPriceCompare);
+
+            if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
+                Game.notify('A subscription token was purchased for ' & FilteredOrders[0].price & ' credits');
+            }
+        }
+    }
+
     //Globally controlls all creeps in all rooms
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
@@ -480,4 +496,12 @@ function memCheck() {
     if (!Memory.energyCap) {
         Memory.energyCap = new Object();
     }
+}
+
+function orderPriceCompare(a, b) {
+    if (a.price < b.price)
+        return 1;
+    if (a.price > b.price)
+        return -1;
+    return 0;
 }
