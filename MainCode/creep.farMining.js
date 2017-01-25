@@ -84,7 +84,7 @@ var creep_farMining = {
 						}
 					}
 				} else {
-					var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
+					var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
 						filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
 					});
 					if (containers.length) {
@@ -93,7 +93,7 @@ var creep_farMining = {
 						}
 						creep.memory.storageUnit = containers[0].id;
 					} else {
-						var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 50)
+						var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
 						if (sites.length) {
 							if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(sites[0]);
@@ -155,7 +155,7 @@ var creep_farMining = {
 								}
 							}
 						} else {
-							var containers = creep.pos.findInRange(FIND_STRUCTURES, 50, {
+							var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
 								filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
 							});
 							if (containers.length) {
@@ -205,7 +205,7 @@ var creep_farMining = {
 			if (creep.ticksToLive <= 70) {
 				creep.memory.priority == 'farGuardNearDeath';
 			}
-			
+
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
