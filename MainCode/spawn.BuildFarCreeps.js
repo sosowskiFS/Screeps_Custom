@@ -1,11 +1,6 @@
 var spawn_BuildFarCreeps = {
 	run: function(spawn, thisRoom) {
 		if (!spawn.spawning) {
-			if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
-				//Clear creep from que array
-				var queSpawnIndex = Memory.creepInQue.indexOf(spawn.name);
-				Memory.creepInQue.splice(queSpawnIndex - 3, 4);
-			}
 
 			var farMules = [];
 			var farClaimers = [];
