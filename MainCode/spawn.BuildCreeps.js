@@ -5,10 +5,8 @@ var spawn_BuildCreeps = {
 		var harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
 		var builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
 		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
-		//TODO : Count creeps by room, not globally.
-		//var harvesters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'harvester');
-		//var builders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'builder');
-		//var upgraders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'upgrader');
+
+		var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
 
 		var harvesterMax = 2;
 		var builderMax = 1;
