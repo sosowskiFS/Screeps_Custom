@@ -142,7 +142,7 @@ var spawn_BuildFarCreeps = {
 							targetFlag: flagName
 						});
 						Memory.FarClaimerNeeded[Game.flags[flagName].pos.roomName] = false;
-						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 				} else if (prioritizedRole == 'farMiner') {
 					if (spawn.canCreateCreep(farMinerConfig) == OK) {
@@ -153,7 +153,7 @@ var spawn_BuildFarCreeps = {
 							homeRoom: thisRoom.name,
 							targetFlag: flagName
 						});
-						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 				} else if (prioritizedRole == 'farMule') {
 					if (spawn.canCreateCreep(farMuleConfig) == OK) {
@@ -165,7 +165,7 @@ var spawn_BuildFarCreeps = {
 							fromSpawn: spawn.id,
 							targetFlag: flagName
 						});
-						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 				} else if (prioritizedRole == 'farGuard') {
 					if (spawn.canCreateCreep(farGuardConfig) == OK) {
@@ -176,7 +176,7 @@ var spawn_BuildFarCreeps = {
 							fromSpawn: spawn.id,
 							targetFlag: flagName
 						});
-						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 				}
 			}
