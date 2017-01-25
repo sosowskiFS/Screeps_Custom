@@ -48,8 +48,8 @@ var creep_farMining = {
 				} else {
 					//Get the source ID while in the room
 					var markedSources = [];
-					if (Game.flags[flagName]) {
-						markedSources = Game.flags[flagName].pos.lookFor(LOOK_SOURCES);
+					if (Game.flags[creep.memory.targetFlag]) {
+						markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
 					}
 					if (markedSources.length) {
 						creep.memory.mineSource = markedSources[0].id;
@@ -158,8 +158,8 @@ var creep_farMining = {
 								//No container yet, move to be near source
 								if (!creep.memory.mineSource) {
 									var markedSources = [];
-									if (Game.flags[flagName]) {
-										markedSources = Game.flags[flagName].pos.lookFor(LOOK_SOURCES);
+									if (Game.flags[creep.memory.targetFlag]) {
+										markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
 									}
 									if (markedSources.length) {
 										creep.memory.mineSource = markedSources[0].id;
@@ -244,7 +244,7 @@ var creep_farMining = {
 					}
 				} else {
 					//creep.memory.flagname
-					creep.moveTo(Game.flags[creep.memory.homeRoom + "FarGuard"].pos);
+					creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
 				}
 			}
 		}
