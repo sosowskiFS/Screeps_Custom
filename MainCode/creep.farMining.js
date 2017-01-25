@@ -2,7 +2,11 @@ var creep_farMining = {
 
 	/** @param {Creep} creep **/
 	run: function(creep) {
-		if (creep.memory.priority == 'farClaimer') {
+		if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farClaimerNearDeath') {
+			if (creep.ticksToLive <= 20) {
+				creep.memory.priority == 'farClaimerNearDeath';
+			}
+
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
@@ -20,7 +24,11 @@ var creep_farMining = {
 					creep.moveTo(creep.room.controller);
 				}
 			}
-		} else if (creep.memory.priority == 'farMiner') {
+		} else if (creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMinerNearDeath') {
+			if (creep.ticksToLive <= 60) {
+				creep.memory.priority == 'farMinerNearDeath';
+			}
+
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
@@ -99,7 +107,11 @@ var creep_farMining = {
 					}
 				}
 			}
-		} else if (creep.memory.priority == 'farMule') {
+		} else if (creep.memory.priority == 'farMule' || creep.memory.priority == 'farMuleNearDeath') {
+			if (creep.ticksToLive <= 150) {
+				creep.memory.priority = 'farMuleNearDeath';
+			}
+
 			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 900) {
 				var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 				if (droppedSources.length) {
@@ -189,7 +201,11 @@ var creep_farMining = {
 					}
 				}
 			}
-		} else if (creep.memory.priority == 'farGuard') {
+		} else if (creep.memory.priority == 'farGuard' || creep.memory.priority == 'farGuardNearDeath') {
+			if (creep.ticksToLive <= 70) {
+				creep.memory.priority == 'farGuardNearDeath';
+			}
+			
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
