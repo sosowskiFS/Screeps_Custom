@@ -22,6 +22,7 @@ var creep_Kebab = require('creep.removeKebab');
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
 var spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
 var spawn_BuildInstruction = require('spawn.BuildInstruction');
+var spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
 var bestWorkerConfig = [WORK, CARRY, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
 
@@ -328,24 +329,35 @@ module.exports.loop = function() {
 
             //Check through flags to see if far mining has been requested
             if (Game.flags[thisRoom.name + "FarMining"]) {
-                if (!Memory.FarCreeps[thisRoom.name]) {
-                    Memory.FarCreeps[thisRoom.name] = [];
-                    Memory.FarClaimerNeeded[thisRoom.name] = false;
+                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining"].pos.roomName]) {
+                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining"].pos.roomName] = false;
                 }
-            } else if (Memory.FarCreeps[thisRoom.name]) {
-                Memory.FarCreeps[thisRoom.name] = undefined;
-                Memory.FarClaimerNeeded[thisRoom.name] = false;
+            }
+            if (Game.flags[thisRoom.name + "FarMining2"]) {
+                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining2"].pos.roomName]) {
+                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining2"].pos.roomName] = false;
+                }
+            }
+            if (Game.flags[thisRoom.name + "FarMining3"]) {
+                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName]) {
+                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName] = false;
+                }
             }
 
-            if (Game.flags[thisRoom.name + "FarGuard"]) {
-                Memory.FarGuardNeeded[thisRoom.name] = true;
-            }
+            //if (Game.flags[thisRoom.name + "FarGuard"]) {
+            //Memory.FarGuardNeeded[thisRoom.name] = true;
+            //}
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
             spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
         } else {
             spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
+        }
+
+        if (Game.flags[thisRoom.name + "FarMining"]) {
+            //Run farMining spawn
+            spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
         }
 
         Memory.RoomsRun.push(thisRoom.name);

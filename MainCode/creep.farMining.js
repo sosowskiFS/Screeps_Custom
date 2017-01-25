@@ -3,25 +3,17 @@ var creep_farMining = {
 	/** @param {Creep} creep **/
 	run: function(creep) {
 		if (creep.memory.priority == 'farClaimer') {
-			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive <= 20 && farIndex > -1) {
-				//Remove yourself from the list of farCreeps
-				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-			} else if (farIndex == -1) {
-				Memory.FarCreeps[creep.memory.homeRoom].push('farClaimer')
-			}
-
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						Memory.FarClaimerNeeded[creep.room.name] = true;
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
 				if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
@@ -29,25 +21,17 @@ var creep_farMining = {
 				}
 			}
 		} else if (creep.memory.priority == 'farMiner') {
-			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive <= 60 && farIndex > -1) {
-				//Remove yourself from the list of farCreeps
-				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-			} else if (farIndex == -1) {
-				Memory.FarCreeps[creep.memory.homeRoom].push('farMiner');
-			}
-
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						Memory.FarClaimerNeeded[creep.room.name] = true;
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
 				var mineTarget = "";
@@ -64,8 +48,8 @@ var creep_farMining = {
 				} else {
 					//Get the source ID while in the room
 					var markedSources = [];
-					if (Game.flags[creep.memory.homeRoom + "FarMining"]) {
-						markedSources = Game.flags[creep.memory.homeRoom + "FarMining"].pos.lookFor(LOOK_SOURCES);
+					if (Game.flags[flagName]) {
+						markedSources = Game.flags[flagName].pos.lookFor(LOOK_SOURCES);
 					}
 					if (markedSources.length) {
 						creep.memory.mineSource = markedSources[0].id;
@@ -116,14 +100,6 @@ var creep_farMining = {
 				}
 			}
 		} else if (creep.memory.priority == 'farMule') {
-			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive <= 150 && farIndex > -1) {
-				//Remove yourself from the list of farCreeps
-				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-			} else if (farIndex == -1) {
-				Memory.FarCreeps[creep.memory.homeRoom].push('farMule');
-			}
-
 			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 900) {
 				var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 				if (droppedSources.length) {
@@ -139,12 +115,12 @@ var creep_farMining = {
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						Memory.FarClaimerNeeded[creep.room.name] = true;
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
 				if (_.sum(creep.carry) <= 900) {
@@ -182,8 +158,8 @@ var creep_farMining = {
 								//No container yet, move to be near source
 								if (!creep.memory.mineSource) {
 									var markedSources = [];
-									if (Game.flags[creep.memory.homeRoom + "FarMining"]) {
-										markedSources = Game.flags[creep.memory.homeRoom + "FarMining"].pos.lookFor(LOOK_SOURCES);
+									if (Game.flags[flagName]) {
+										markedSources = Game.flags[flagName].pos.lookFor(LOOK_SOURCES);
 									}
 									if (markedSources.length) {
 										creep.memory.mineSource = markedSources[0].id;
@@ -214,26 +190,18 @@ var creep_farMining = {
 				}
 			}
 		} else if (creep.memory.priority == 'farGuard') {
-			var farIndex = Memory.FarCreeps[creep.memory.homeRoom].indexOf(creep.memory.priority);
-			if (creep.ticksToLive <= 70 && farIndex > -1) {
-				//Remove yourself from the list of farCreeps
-				Memory.FarCreeps[creep.memory.homeRoom].splice(farIndex, 1);
-			} else if (farIndex == -1) {
-				Memory.FarCreeps[creep.memory.homeRoom].push('farGuard');
-			}
-
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
 
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+						Memory.FarClaimerNeeded[creep.room.name] = true;
 					} else {
-						Memory.FarClaimerNeeded[creep.memory.homeRoom] = false;
+						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 				} else if (creep.room.name == creep.memory.destination) {
-					Memory.FarClaimerNeeded[creep.memory.homeRoom] = true;
+					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
 				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
@@ -275,6 +243,7 @@ var creep_farMining = {
 						creep.rangedAttack(Foe);
 					}
 				} else {
+					//creep.memory.flagname
 					creep.moveTo(Game.flags[creep.memory.homeRoom + "FarGuard"].pos);
 				}
 			}
