@@ -140,7 +140,7 @@ var creep_farMining = {
 				}
 
 				if (_.sum(creep.carry) <= 900) {
-					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 5);
+					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 10);
 					if (droppedSources.length) {
 						//Pick up dropped energy from dead mules, etc.
 						if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
