@@ -136,7 +136,7 @@ var creep_farMining = {
 				}
 
 				if (_.sum(creep.carry) <= 900) {
-					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
+					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 5);
 					if (droppedSources.length) {
 						//Pick up dropped energy from dead mules, etc.
 						if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
@@ -178,9 +178,9 @@ var creep_farMining = {
 									reusePath: 20,
 									ignoreRoads: true
 								});
-								if (creep.pos.isNearTo(thisSource)) {
+								if (creep.pos.inRangeTo(thisSource, 5)) {
 									//Search for container
-									var containers = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+									var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
 										filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
 									});
 									if (containers.length) {
