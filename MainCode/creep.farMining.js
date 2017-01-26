@@ -147,43 +147,51 @@ var creep_farMining = {
 						if (creep.memory.containerTarget) {
 							var thisContainer = Game.getObjectById(creep.memory.containerTarget);
 							if (thisContainer) {
-								if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-									creep.moveTo(thisContainer, {
-										reusePath: 20,
-										ignoreRoads: true
-									});
-								}
-							}
-						} else {
-							var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
-								filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-							});
-							if (containers.length) {
-								creep.memory.containerTarget = containers[0].id;
-								if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-									creep.moveTo(containers[0], {
-										reusePath: 20,
-										ignoreRoads: true
-									});
-								}
-							} else {
-								//No container yet, move to be near source
-								if (!creep.memory.mineSource) {
-									var markedSources = [];
-									if (Game.flags[creep.memory.targetFlag]) {
-										markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
+								if (thisContainer.store[RESOURCE_ENERGY] > 0) {
+									if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+										creep.moveTo(thisContainer, {
+											reusePath: 20,
+											ignoreRoads: true
+										});
 									}
-									if (markedSources.length) {
-										creep.memory.mineSource = markedSources[0].id;
-									}
+								} else {
+									//Wait by controller
+									creep.moveTo(creep.room.controller);
 								}
 
-								var thisSource = Game.getObjectById(creep.memory.mineSource);
-								if (thisSource) {
-									creep.moveTo(thisSource, {
-										reusePath: 20,
-										ignoreRoads: true
+							}
+						} else {
+							//No container yet, move to be near source
+							if (!creep.memory.mineSource) {
+								var markedSources = [];
+								if (Game.flags[creep.memory.targetFlag]) {
+									markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
+								}
+								if (markedSources.length) {
+									creep.memory.mineSource = markedSources[0].id;
+								}
+							}
+
+							var thisSource = Game.getObjectById(creep.memory.mineSource);
+							if (thisSource) {
+								creep.moveTo(thisSource, {
+									reusePath: 20,
+									ignoreRoads: true
+								});
+								if (creep.pos.isNearTo(thisSource)) {
+									//Search for container
+									var containers = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+										filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
 									});
+									if (containers.length) {
+										creep.memory.containerTarget = containers[0].id;
+										if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+											creep.moveTo(containers[0], {
+												reusePath: 20,
+												ignoreRoads: true
+											});
+										}
+									}
 								}
 							}
 						}
