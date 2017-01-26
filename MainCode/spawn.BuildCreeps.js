@@ -16,6 +16,7 @@ var spawn_BuildCreeps = {
 		//Add sources from N to S
 		var strSources = Memory.sourceList[thisRoom.name];
 		var assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+		var strStorage = Memory.storageList[thisRoom.name];
 
 		var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
@@ -33,7 +34,7 @@ var spawn_BuildCreeps = {
 						var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
 						blockedRole = Memory.creepInQue[RoomPointer + 1];
 					}
-					if (blockedRole != 'salvager') { //Produce a salvager unit to pick up the dropped resources
+					if (blockedRole != 'salvager' && strStorage.length) { //Produce a salvager unit to pick up the dropped resources
 						spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 							priority: 'salvager',
 							storageTarget: strStorage[0]

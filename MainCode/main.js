@@ -38,15 +38,6 @@ var market_buyers = require('market.FindBuyers');
 
 Memory.IgnoreRoadRooms = "E1N63"
 
-//These will be checked, and defaults set only if undefined
-//Memory.RoomsRun;
-//Memory.creepInQue;
-//Memory.roomsUnderAttack;
-//Memory.roomsPrepSalvager;
-//Memory.E1N63FarRoles;
-//Boolean
-//Memory.E1N63ClaimerNeeded;
-
 //const profiler = require('screeps-profiler');
 
 //Ctrl+Alt+f to autoformat documents.
@@ -61,7 +52,7 @@ module.exports.loop = function() {
     for (var name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
-            console.log('Clearing non-existing creep memory:', name);
+            //console.log('Clearing non-existing creep memory:', name);
         }
     }
 
