@@ -108,7 +108,7 @@ var creep_farMining = {
 				}
 			}
 		} else if (creep.memory.priority == 'farMule' || creep.memory.priority == 'farMuleNearDeath') {
-			if (creep.ticksToLive <= 150) {
+			if (creep.ticksToLive <= 170) {
 				creep.memory.priority = 'farMuleNearDeath';
 			}
 
