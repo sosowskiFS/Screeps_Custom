@@ -181,12 +181,24 @@ var spawn_BuildCreeps5 = {
 				muleConfigCost = 1500;
 			}
 
+			//800 Points
+			var upgraderConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
+			if (thisRoom.energyCapacityAvailable >= 1550) {
+				//1550 Points
+				upgraderConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+				upgraderMax--;
+			}
+
 			var roomMineral = Game.getObjectById(strMineral[0]);
 			var roomStorage = Game.getObjectById(strStorage[0]);
 			if (roomStorage) {
 				if (roomStorage.store[RESOURCE_ENERGY] >= 100000) {
 					//Add another mule for resource management
 					muleMax++;
+					if (thisRoom.energyCapacityAvailable >= 1950) {
+						//1950 Points
+						upgraderConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+					}
 				}
 				if (roomStorage.store[RESOURCE_ENERGY] >= 200000) {
 					//speed up that repairing a bit
@@ -219,13 +231,6 @@ var spawn_BuildCreeps5 = {
 
 			//800 Points
 			var minerConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
-			//800 Points
-			var upgraderConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
-			if (thisRoom.energyCapacityAvailable >= 1550) {
-				//1550 Points
-				upgraderConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
-				upgraderMax--;
-			}
 			//Upgrader to use minerConfig
 			//2,200 Points
 			var mineralMinerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY]
