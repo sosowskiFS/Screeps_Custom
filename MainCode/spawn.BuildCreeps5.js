@@ -172,6 +172,15 @@ var spawn_BuildCreeps5 = {
 				}
 			}*/
 
+			//950 Points
+			var muleConfigCost = 950;
+			var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
+			if (thisRoom.energyCapacityAvailable >= 1500) {
+				//1500 Points
+				muleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+				muleConfigCost = 1500;
+			}
+
 			var roomMineral = Game.getObjectById(strMineral[0]);
 			var roomStorage = Game.getObjectById(strStorage[0]);
 			if (roomStorage) {
@@ -184,12 +193,16 @@ var spawn_BuildCreeps5 = {
 					repairMax++;
 				}
 				if (roomStorage.store[RESOURCE_ENERGY] >= 300000) {
-					//speed up that repairing a bit
-					muleMax++;
+					//Bigger Mules/Repairers
+					if (thisRoom.energyCapacityAvailable >= 3000) {
+						muleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+						muleConfigCost = 3000;
+					}
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 400000) {
-					//speed it up a LOT
+				if (roomStorage.store[RESOURCE_ENERGY] >= 500000) {
+					//HOW MUCH MUST I CRANK IT UP?
 					repairMax++;
+					muleMax++;
 				}
 
 				if (storageMiners.length == 0 && upgradeMiners.length > 0 && roomStorage.store[RESOURCE_ENERGY] <= 3000) {
@@ -212,14 +225,6 @@ var spawn_BuildCreeps5 = {
 				//1550 Points
 				upgraderConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
 				upgraderMax--;
-			}
-			//950 Points
-			var muleConfigCost = 950;
-			var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
-			if (thisRoom.energyCapacityAvailable >= 1500) {
-				//1500 Points
-				muleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-				muleConfigCost = 1500;
 			}
 			//Upgrader to use minerConfig
 			//2,200 Points
