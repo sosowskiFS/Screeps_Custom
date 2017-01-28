@@ -227,7 +227,7 @@ var creep_work5 = {
 								} else if (creep.build(targets2) == ERR_NO_BODYPART) {
 									creep.suicide();
 								}
-							} else {
+							} else if (creep.room.controller.level != 8) {
 								//Upgrade
 								creep.memory.structureTarget = creep.room.controller.id;
 								if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
