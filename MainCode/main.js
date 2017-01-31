@@ -161,7 +161,7 @@ module.exports.loop = function() {
             }
 
             //Get list of Sources
-            if (Game.time % 250 == 0 || !Memory.sourceList[thisRoom.name]) {
+            if (Game.time % 1000 == 0 || !Memory.sourceList[thisRoom.name]) {
                 Memory.sourceList[thisRoom.name] = [];
                 var roomSources = thisRoom.find(FIND_SOURCES);
                 var reverseFlag = false;
@@ -189,7 +189,7 @@ module.exports.loop = function() {
             }
 
             //Get list of Links
-            if (Game.time % 250 == 0 || !Memory.linkList[thisRoom.name]) {
+            if (Game.time % 1000 == 0 || !Memory.linkList[thisRoom.name]) {
                 Memory.linkList[thisRoom.name] = [];
                 var roomLinks = thisRoom.find(FIND_MY_STRUCTURES, {
                     filter: {
@@ -232,7 +232,7 @@ module.exports.loop = function() {
             }
 
             //Get list of Minerals
-            if (Game.time % 250 == 0 || !Memory.mineralList[thisRoom.name]) {
+            if (!Memory.mineralList[thisRoom.name]) {
                 Memory.mineralList[thisRoom.name] = [];
                 var mineralLocations = thisRoom.find(FIND_MINERALS);
                 if (mineralLocations) {
@@ -243,7 +243,7 @@ module.exports.loop = function() {
             }
 
             //Get list of Terminals
-            if (Game.time % 250 == 0 || !Memory.terminalList[thisRoom.name]) {
+            if (Game.time % 800 == 0 || !Memory.terminalList[thisRoom.name]) {
                 Memory.terminalList[thisRoom.name] = [];
                 var terminalLocations = thisRoom.find(FIND_MY_STRUCTURES, {
                     filter: {
@@ -258,7 +258,7 @@ module.exports.loop = function() {
             }
 
             //Get list of extractors
-            if (Game.time % 250 == 0 || !Memory.extractorList[thisRoom.name]) {
+            if (Game.time % 800 == 0 || !Memory.extractorList[thisRoom.name]) {
                 Memory.extractorList[thisRoom.name] = [];
                 var extractorLocations = thisRoom.find(FIND_MY_STRUCTURES, {
                     filter: {
@@ -268,6 +268,36 @@ module.exports.loop = function() {
                 if (extractorLocations) {
                     if (extractorLocations.length > 0) {
                         Memory.extractorList[thisRoom.name].push(extractorLocations[0].id);
+                    }
+                }
+            }
+
+            //Get list of power spawns
+            if (Game.time % 2000 == 0 || !Memory.powerSpawnList[thisRoom.name]) {
+                Memory.powerSpawnList[thisRoom.name] = [];
+                var powerSpawns = thisRoom.find(FIND_MY_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_POWER_SPAWN
+                    }
+                });
+                if (powerSpawns) {
+                    if (powerSpawns.length > 0) {
+                        Memory.powerSpawnList[thisRoom.name].push(powerSpawns[0].id);
+                    }
+                }
+            }
+
+            //Get list of nukers
+            if (Game.time % 2000 == 0 || !Memory.nukerList[thisRoom.name]){
+                Memory.nukerList[thisRoom.name] = [];
+                var theseNukes = thisRoom.find(FIND_MY_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_NUKER
+                    }
+                });
+                if (theseNukes) {
+                    if (theseNukes.length > 0) {
+                        Memory.nukerList[thisRoom.name].push(theseNukes[0].id);
                     }
                 }
             }
@@ -299,6 +329,16 @@ module.exports.loop = function() {
                             tower_Operate.run(thisTower, thisRoom);
                         }
                     });
+                }
+            }
+
+            //Handle Power Spawn
+            if (Memory.powerSpawnList[thisRoom.name][0]) {
+                var thisPowerSpawn = Game.getObjectById(Memory.powerSpawnList[thisRoom.name][0]);
+                if (thisPowerSpawn){
+                    if (thisPowerSpawn.energy >= 50 && thisPowerSpawn.power > 0){
+                        thisPowerSpawn.processPower();
+                    }
                 }
             }
 
@@ -368,7 +408,7 @@ module.exports.loop = function() {
         }
     }
 
-    if (Game.market.credits > 1500000 && Game.time % 1000) {
+    if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
         //Periodically look for cheap subscription tokens
         var availableCredits = Game.market.credits
         if (availableCredits > 2500000) {
@@ -495,6 +535,12 @@ function memCheck() {
     }
     if (!Memory.extractorList) {
         Memory.extractorList = new Object();
+    }
+    if (!Memory.powerSpawnList) {
+        Memory.powerSpawnList = new Object();
+    }
+    if (!Memory.nukerList) {
+        Memory.nukerList = new Object();
     }
     if (!Memory.energyCap) {
         Memory.energyCap = new Object();
