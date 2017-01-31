@@ -453,6 +453,13 @@ module.exports.loop = function() {
         }
     }
     //});
+
+    //Log average CPU usage in memory.
+    var thisTickCPU = Game.cpu.getUsed();
+    //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
+    Memory.totalTicksRecorded = Memory.totalTicksRecorded + 1;
+    Memory.averageUsedCPU = Memory.averageUsedCPU + ((thisTickCPU - Memory.averageUsedCPU) /  Memory.totalTicksRecorded)
+
 }
 
 function recalculateBestWorker(thisEnergyCap) {
@@ -501,6 +508,14 @@ function memCheck() {
     }
     if (!Memory.RoomsAt5) {
         Memory.RoomsAt5 = [];
+    }
+    //Decimal
+    if (!Memory.averageUsedCPU) {
+        Memory.averageUsedCPU = 0.0;
+    }
+    //Integer
+    if (!Memory.totalTicksRecorded) {
+        Memory.totalTicksRecorded = 0;
     }
     //Object
     if (!Memory.FarClaimerNeeded) {
