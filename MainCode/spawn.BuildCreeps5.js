@@ -266,7 +266,7 @@ var spawn_BuildCreeps5 = {
 								blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
 							}
 						}
-						if (!blockedRole.contains('salvager')) { //Produce a salvager unit to pick up the dropped resources
+						if (!blockedRole.includes('salvager')) { //Produce a salvager unit to pick up the dropped resources
 							if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
 								spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 									priority: 'salvager',
