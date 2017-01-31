@@ -46,7 +46,7 @@ var creep_farMining = {
 
 				if (creep.memory.mineSource) {
 					mineTarget = Game.getObjectById(creep.memory.mineSource);
-					if (mineTarget) {
+					if (mineTarget && _.sum(creep.carry) <= 35) {
 						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(mineTarget, {
 								reusePath: 5
