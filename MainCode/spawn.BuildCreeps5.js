@@ -259,11 +259,14 @@ var spawn_BuildCreeps5 = {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
 					if (thisRoom.energyAvailable >= 1600 && salvagers.length == 0) {
 						var blockedRole = '';
-						if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
-							var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
-							blockedRole = Memory.creepInQue[RoomPointer + 1];
+
+						var queLength = Memory.creepInQue.length;
+						for (var i = 0; i < queLength; i++) {
+							if (Memory.creepInQue[i] == thisRoom.name) {
+								blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
+							}
 						}
-						if (blockedRole != 'salvager') { //Produce a salvager unit to pick up the dropped resources
+						if (!blockedRole.contains('salvager')) { //Produce a salvager unit to pick up the dropped resources
 							if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
 								spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 									priority: 'salvager',
@@ -364,13 +367,16 @@ var spawn_BuildCreeps5 = {
 				var blockedSubRole = '';
 				var roomTarget = '';
 				var farSource = '';
-				if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
-					var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
-					blockedRole = Memory.creepInQue[RoomPointer + 1];
-					blockedSubRole = Memory.creepInQue[RoomPointer + 2];
+
+				var queLength = Memory.creepInQue.length;
+				for (var i = 0; i < queLength; i++) {
+					if (Memory.creepInQue[i] == thisRoom.name) {
+						blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
+						blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
+					}
 				}
 
-				if (miners.length >= 1 && mules.length == 0 && blockedRole != 'mule') {
+				if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule')) {
 					prioritizedRole = 'mule';
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
@@ -379,10 +385,10 @@ var spawn_BuildCreeps5 = {
 						//Spawn a panicMule
 						muleConfig = [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
 					}
-				} else if (miners.length < minerMax && blockedRole != 'miner') {
+				} else if (miners.length < minerMax) {
 					switch (storageMiners.length) {
 						case 0:
-							if (blockedSubRole != 'storageMiner') {
+							if (!blockedSubRole.includes('storageMiner')) {
 								prioritizedRole = 'miner';
 								creepSource = strSources[0];
 								connectedLink = strStorage[0];
@@ -390,7 +396,7 @@ var spawn_BuildCreeps5 = {
 							}
 							break;
 						case 1:
-							if (blockedSubRole != 'upgradeMiner') {
+							if (!blockedSubRole.includes('upgradeMiner')) {
 								prioritizedRole = 'miner';
 								creepSource = strSources[1];
 								connectedLink = strLinks[0];
@@ -398,19 +404,19 @@ var spawn_BuildCreeps5 = {
 							}
 							break;
 					}
-				} else if (mules.length < muleMax && blockedRole != 'mule') {
+				} else if (mules.length < muleMax && !blockedRole.includes('mule')) {
 					prioritizedRole = 'mule';
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
-				} else if (upgraders.length < upgraderMax && blockedRole != 'upgrader') {
+				} else if (upgraders.length < upgraderMax && !blockedRole.includes('upgrader')) {
 					prioritizedRole = 'upgrader';
 					storageID = strStorage[0];
 					connectedLink = strLinks[1];
-				} else if (repairers.length < repairMax && blockedRole != 'repair') {
+				} else if (repairers.length < repairMax && !blockedRole.includes('repair')) {
 					prioritizedRole = 'repair';
 					storageID = strStorage[0];
-				} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && blockedRole != 'mineralMiner') {
+				} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner')) {
 					prioritizedRole = 'mineralMiner';
 					storageID = strTerminal[0];
 					creepSource = strMineral[0];
@@ -475,12 +481,15 @@ var spawn_BuildCreeps5 = {
 			} else if (mules.length == 0) {
 				var blockedRole = '';
 				var blockedSubRole = '';
-				if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
-					var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
-					blockedRole = Memory.creepInQue[RoomPointer + 1];
-					blockedSubRole = Memory.creepInQue[RoomPointer + 2];
+
+				var queLength = Memory.creepInQue.length;
+				for (var i = 0; i < queLength; i++) {
+					if (Memory.creepInQue[i] == thisRoom.name) {
+						blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
+						blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
+					}
 				}
-				if (blockedRole != 'mule') {
+				if (!blockedRole.includes('mule')) {
 					//Spawn a crappy mule
 					if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
 						spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
