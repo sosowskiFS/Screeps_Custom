@@ -503,6 +503,49 @@ var spawn_BuildCreeps5 = {
 					}
 				}
 			}
+		} else {
+			//Add a visual for spawn progress
+			var thisCreepRole = Game.creeps[spawn.spawning.name].memory.priority;
+			var relatedUnicode = '';
+			switch (thisCreepRole) {
+				case 'mule':
+					relatedUnicode = 'U+1F40x2';
+					break;
+				case 'miner':
+					relatedUnicode = 'U+26Cx';
+					break;
+				case 'upgrader':
+					relatedUnicode = 'U+1F446';
+					break;
+				case 'repair':
+					relatedUnicode = 'U+1F6E0';
+					break;
+				case 'mineralMiner':
+					relatedUnicode = 'U+26Cx U+1F5FB';
+					break;
+				case 'salvager':
+					relatedUnicode = 'U+1F4B2';
+					break;
+				case 'defender':
+					relatedUnicode = 'U+2694';
+					break;
+				case 'farMiner':
+					relatedUnicode = 'U+27A1 U+26Cx';
+					break;
+				case 'farMule':
+					relatedUnicode = 'U+27A1 U+1F40x2';
+					break;
+				case 'farClaimer':
+					relatedUnicode = 'U+27A1 U+1F6A9';
+					break;
+				case 'farGuard':
+					relatedUnicode = 'U+27A1 U+2694';
+					break;
+			}
+			var spawnProgress = spawn.spawning.needTime - spawn.spawning.remainingTime;
+			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
+
+			thisRoom.visual.text(relatedUnicode + ' ' + thisCreepRole + ' (' + percentageComplete + '%)', spawn.pos);
 		}
 	}
 };
