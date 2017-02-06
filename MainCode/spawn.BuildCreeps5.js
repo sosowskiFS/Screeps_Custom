@@ -6,13 +6,13 @@ var spawn_BuildCreeps5 = {
 			var formattedNumber = roomStorage.store[RESOURCE_ENERGY].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 			if (roomStorage.store[RESOURCE_ENERGY] == 420) {
 				thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", roomStorage.pos.x + 1, roomStorage.pos.y, {
-					align: 'left'
+					align: 'left',
 					size: 0.7,
 					color: '#7DE3B5'
 				});
 			} else {
 				thisRoom.visual.text(formattedNumber, roomStorage.pos.x + 1, roomStorage.pos.y, {
-					align: 'left'
+					align: 'left',
 					size: 0.7,
 					color: '#7DE3B5'
 				});
