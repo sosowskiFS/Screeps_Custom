@@ -72,6 +72,14 @@ module.exports.loop = function() {
         var controllerLevel = thisRoom.controller.level;
 
         if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
+            //Display the remaining progress of the controller
+            var remainingEnergy = thisRoom.controller.progressTotal - thisRoom.controller.progress;
+            if (remainingEnergy > 0) {
+                var formattedNumber = remainingEnergy.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
+                    align: 'left'
+                });
+            }
             //Execute special instruction written into console
             if (Game.flags["ClaimThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
@@ -288,7 +296,7 @@ module.exports.loop = function() {
             }
 
             //Get list of nukers
-            if (Game.time % 2000 == 0 || !Memory.nukerList[thisRoom.name]){
+            if (Game.time % 2000 == 0 || !Memory.nukerList[thisRoom.name]) {
                 Memory.nukerList[thisRoom.name] = [];
                 var theseNukes = thisRoom.find(FIND_MY_STRUCTURES, {
                     filter: {
@@ -335,8 +343,8 @@ module.exports.loop = function() {
             //Handle Power Spawn
             if (Memory.powerSpawnList[thisRoom.name][0]) {
                 var thisPowerSpawn = Game.getObjectById(Memory.powerSpawnList[thisRoom.name][0]);
-                if (thisPowerSpawn){
-                    if (thisPowerSpawn.energy >= 50 && thisPowerSpawn.power > 0){
+                if (thisPowerSpawn) {
+                    if (thisPowerSpawn.energy >= 50 && thisPowerSpawn.power > 0) {
                         thisPowerSpawn.processPower();
                     }
                 }
@@ -458,7 +466,7 @@ module.exports.loop = function() {
     var thisTickCPU = Game.cpu.getUsed();
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
     Memory.totalTicksRecorded = Memory.totalTicksRecorded + 1;
-    Memory.averageUsedCPU = Memory.averageUsedCPU + ((thisTickCPU - Memory.averageUsedCPU) /  Memory.totalTicksRecorded)
+    Memory.averageUsedCPU = Memory.averageUsedCPU + ((thisTickCPU - Memory.averageUsedCPU) / Memory.totalTicksRecorded)
 
 }
 
