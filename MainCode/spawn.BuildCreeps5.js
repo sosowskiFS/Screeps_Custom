@@ -509,37 +509,37 @@ var spawn_BuildCreeps5 = {
 			var relatedUnicode = '';
 			switch (thisCreepRole) {
 				case 'mule':
-					relatedUnicode = '🐂';
+					relatedUnicode = '\uD83D\uDC02'				
 					break;
 				case 'miner':
-					relatedUnicode = '⛏️';
+					relatedUnicode = '\u26CF';
 					break;
 				case 'upgrader':
-					relatedUnicode = '👆';
+					relatedUnicode = '\uD83D\uDC46';
 					break;
 				case 'repair':
-					relatedUnicode = '🛠️';
+					relatedUnicode = '\uD83D\uDEE0';
 					break;
 				case 'mineralMiner':
-					relatedUnicode = '⛏️ 🗻';
+					relatedUnicode = '\u26CF \uD83D\uDDFB';
 					break;
 				case 'salvager':
-					relatedUnicode = '💱';
+					relatedUnicode = '\uD83D\uDCB2';
 					break;
 				case 'defender':
-					relatedUnicode = '⚔️';
+					relatedUnicode = '\u2694';
 					break;
 				case 'farMiner':
-					relatedUnicode = '➡️ ⛏️';
+					relatedUnicode = '\u27A1 \u26CF';
 					break;
 				case 'farMule':
-					relatedUnicode = '➡️ 🐂';
+					relatedUnicode = '\u27A1 \uD83D\uDC02';
 					break;
 				case 'farClaimer':
-					relatedUnicode = '➡️ 🚩';
+					relatedUnicode = '\u27A1 \uD83D\uDEA9';
 					break;
 				case 'farGuard':
-					relatedUnicode = '➡️ ⚔️';
+					relatedUnicode = '\u27A1 \u2694';
 					break;
 			}
 			var spawnProgress = spawn.spawning.needTime - spawn.spawning.remainingTime;
