@@ -6,11 +6,13 @@ var creep_farMining = {
 			if (creep.ticksToLive <= 20) {
 				creep.memory.priority == 'farClaimerNearDeath';
 				creep.room.visual.text("\u2620\u27A1\uD83D\uDEA9", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			} else {
 				creep.room.visual.text("\u27A1\uD83D\uDEA9", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			}
 
@@ -35,11 +37,13 @@ var creep_farMining = {
 			if (creep.ticksToLive <= 60) {
 				creep.memory.priority == 'farMinerNearDeath';
 				creep.room.visual.text("\u2620\u27A1\u26CF", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			} else {
 				creep.room.visual.text("\u27A1\u26CF", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			}
 
@@ -129,11 +133,13 @@ var creep_farMining = {
 			if (creep.ticksToLive <= 170) {
 				creep.memory.priority = 'farMuleNearDeath';
 				creep.room.visual.text("\u2620\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			} else {
 				creep.room.visual.text("\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			}
 
@@ -238,11 +244,13 @@ var creep_farMining = {
 			if (creep.ticksToLive <= 70) {
 				creep.memory.priority == 'farGuardNearDeath';
 				creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			} else {
 				creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
-					align: 'left'
+					align: 'left',
+					color: '#7DE3B5'
 				});
 			}
 

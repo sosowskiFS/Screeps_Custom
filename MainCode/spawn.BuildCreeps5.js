@@ -7,10 +7,14 @@ var spawn_BuildCreeps5 = {
 			if (roomStorage.store[RESOURCE_ENERGY] == 420) {
 				thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", roomStorage.pos.x + 1, roomStorage.pos.y, {
 					align: 'left'
+					size: 0.7,
+					color: '#7DE3B5'
 				});
 			} else {
 				thisRoom.visual.text(formattedNumber, roomStorage.pos.x + 1, roomStorage.pos.y, {
 					align: 'left'
+					size: 0.7,
+					color: '#7DE3B5'
 				});
 			}
 		}
@@ -384,8 +388,10 @@ var spawn_BuildCreeps5 = {
 			var spawnProgress = (spawn.spawning.needTime - spawn.spawning.remainingTime) + 1;
 			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
 
-			thisRoom.visual.text('  (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
-				align: 'left'
+			thisRoom.visual.text('   (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
+				align: 'left',
+				size: 1,
+				color: '#7DE3B5'
 			});
 		}
 	}
