@@ -21,8 +21,8 @@ var tower_Operate = {
                 thisTower.heal(closestDamagedCreep);
             }
         }
-
-        thisRoom.visual.rect(thisTower.pos.x - 15, thisTower.pos.y - 15, 30, 30, {fill: '#ff0019', opacity: 0.2});
+        //Enable to see tower coverage
+        //thisRoom.visual.rect(thisTower.pos.x - 15, thisTower.pos.y - 15, 30, 30, {fill: '#ff0019', opacity: 0.2});
     }
 };
 
