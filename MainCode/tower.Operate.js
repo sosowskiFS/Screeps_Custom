@@ -22,7 +22,7 @@ var tower_Operate = {
             }
         }
 
-        //thisRoom.visual.rect(tower.pos.x - 15, tower.pos.y - 15, 30, 30, {fill: '#ff0019', opacity: 0.2});
+        thisRoom.visual.rect(thisTower.pos.x - 15, thisTower.pos.y - 15, 30, 30, {fill: '#ff0019', opacity: 0.2});
     }
 };
 
