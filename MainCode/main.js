@@ -76,9 +76,15 @@ module.exports.loop = function() {
             var remainingEnergy = thisRoom.controller.progressTotal - thisRoom.controller.progress;
             if (remainingEnergy > 0) {
                 var formattedNumber = remainingEnergy.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
-                    align: 'left'
-                });
+                if (remainingEnergy == 420) {
+                    thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
+                        align: 'left'
+                    });
+                } else {
+                    thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
+                        align: 'left'
+                    });
+                }
             }
             //Execute special instruction written into console
             if (Game.flags["ClaimThis"]) {

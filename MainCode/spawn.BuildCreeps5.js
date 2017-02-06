@@ -4,7 +4,15 @@ var spawn_BuildCreeps5 = {
 		var roomStorage = Game.getObjectById(strStorage[0]);
 		if (roomStorage) {
 			var formattedNumber = roomStorage.store[RESOURCE_ENERGY].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-			thisRoom.visual.text(formattedNumber, roomStorage.pos.x + 1, roomStorage.pos.y, {align: 'left'});
+			if (roomStorage.store[RESOURCE_ENERGY] == 420) {
+				thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", roomStorage.pos.x + 1, roomStorage.pos.y, {
+					align: 'left'
+				});
+			} else {
+				thisRoom.visual.text(formattedNumber, roomStorage.pos.x + 1, roomStorage.pos.y, {
+					align: 'left'
+				});
+			}
 		}
 		if (!spawn.spawning) {
 			if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
@@ -511,11 +519,12 @@ var spawn_BuildCreeps5 = {
 			}
 		} else {
 			//Add a visual for spawn progress
+			//https://r12a.github.io/apps/conversion/ Dank emoji blaze it
 			var thisCreepRole = Game.creeps[spawn.spawning.name].memory.priority;
 			var relatedUnicode = '';
 			switch (thisCreepRole) {
 				case 'mule':
-					relatedUnicode = '\uD83D\uDC02'				
+					relatedUnicode = '\uD83D\uDC02'
 					break;
 				case 'miner':
 					relatedUnicode = '\u26CF';
@@ -551,7 +560,9 @@ var spawn_BuildCreeps5 = {
 			var spawnProgress = (spawn.spawning.needTime - spawn.spawning.remainingTime) + 1;
 			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
 
-			thisRoom.visual.text(relatedUnicode + ' (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {align: 'left'});
+			thisRoom.visual.text(relatedUnicode + ' (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
+				align: 'left'
+			});
 		}
 	}
 };
