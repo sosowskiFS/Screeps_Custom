@@ -536,7 +536,7 @@ var spawn_BuildCreeps5 = {
 					relatedUnicode = '\uD83D\uDEE0';
 					break;
 				case 'mineralMiner':
-					relatedUnicode = '\u26CF \uD83D\uDDFB';
+					relatedUnicode = '\u26CF\uD83D\uDDFB';
 					break;
 				case 'salvager':
 					relatedUnicode = '\uD83D\uDCB2';
@@ -545,16 +545,16 @@ var spawn_BuildCreeps5 = {
 					relatedUnicode = '\u2694';
 					break;
 				case 'farMiner':
-					relatedUnicode = '\u27A1 \u26CF';
+					relatedUnicode = '\u27A1\u26CF';
 					break;
 				case 'farMule':
-					relatedUnicode = '\u27A1 \uD83D\uDC02';
+					relatedUnicode = '\u27A1\uD83D\uDC02';
 					break;
 				case 'farClaimer':
-					relatedUnicode = '\u27A1 \uD83D\uDEA9';
+					relatedUnicode = '\u27A1\uD83D\uDEA9';
 					break;
 				case 'farGuard':
-					relatedUnicode = '\u27A1 \u2694';
+					relatedUnicode = '\u27A1\u2694';
 					break;
 			}
 			var spawnProgress = (spawn.spawning.needTime - spawn.spawning.remainingTime) + 1;
