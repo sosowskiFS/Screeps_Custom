@@ -509,43 +509,43 @@ var spawn_BuildCreeps5 = {
 			var relatedUnicode = '';
 			switch (thisCreepRole) {
 				case 'mule':
-					relatedUnicode = 'U+1F40x2';
+					relatedUnicode = '🐂';
 					break;
 				case 'miner':
-					relatedUnicode = 'U+26Cx';
+					relatedUnicode = '⛏️';
 					break;
 				case 'upgrader':
-					relatedUnicode = 'U+1F446';
+					relatedUnicode = '👆';
 					break;
 				case 'repair':
-					relatedUnicode = 'U+1F6E0';
+					relatedUnicode = '🛠️';
 					break;
 				case 'mineralMiner':
-					relatedUnicode = 'U+26Cx U+1F5FB';
+					relatedUnicode = '⛏️ 🗻';
 					break;
 				case 'salvager':
-					relatedUnicode = 'U+1F4B2';
+					relatedUnicode = '💱';
 					break;
 				case 'defender':
-					relatedUnicode = 'U+2694';
+					relatedUnicode = '⚔️';
 					break;
 				case 'farMiner':
-					relatedUnicode = 'U+27A1 U+26Cx';
+					relatedUnicode = '➡️ ⛏️';
 					break;
 				case 'farMule':
-					relatedUnicode = 'U+27A1 U+1F40x2';
+					relatedUnicode = '➡️ 🐂';
 					break;
 				case 'farClaimer':
-					relatedUnicode = 'U+27A1 U+1F6A9';
+					relatedUnicode = '➡️ 🚩';
 					break;
 				case 'farGuard':
-					relatedUnicode = 'U+27A1 U+2694';
+					relatedUnicode = '➡️ ⚔️';
 					break;
 			}
 			var spawnProgress = spawn.spawning.needTime - spawn.spawning.remainingTime;
 			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
 
-			thisRoom.visual.text(relatedUnicode + ' ' + thisCreepRole + ' (' + percentageComplete + '%)', spawn.pos, {align: 'right'});
+			thisRoom.visual.text(relatedUnicode + ' ' + thisCreepRole + ' (' + percentageComplete + '%)', spawn.pos, {align: 'left'});
 		}
 	}
 };
