@@ -545,7 +545,7 @@ var spawn_BuildCreeps5 = {
 			var spawnProgress = spawn.spawning.needTime - spawn.spawning.remainingTime;
 			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
 
-			thisRoom.visual.text(relatedUnicode + ' ' + thisCreepRole + ' (' + percentageComplete + '%)', spawn.pos);
+			thisRoom.visual.text(relatedUnicode + ' ' + thisCreepRole + ' (' + percentageComplete + '%)', spawn.pos, {align: 'right'});
 		}
 	}
 };
