@@ -45,6 +45,7 @@ Memory.IgnoreRoadRooms = "E1N63"
 //Constants : http://support.screeps.com/hc/en-us/articles/203084991-API-Reference
 //Creep calculator : http://codepen.io/findoff/full/RPmqOd/
 //Profiler commands : https://github.com/gdborton/screeps-profiler
+//Emoji Unicode converter : https://r12a.github.io/apps/conversion/
 
 //profiler.enable();
 module.exports.loop = function() {

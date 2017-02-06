@@ -381,48 +381,10 @@ var spawn_BuildCreeps5 = {
 			}
 		} else {
 			//Add a visual for spawn progress
-			//https://r12a.github.io/apps/conversion/ Dank emoji blaze it
-			var thisCreepRole = Game.creeps[spawn.spawning.name].memory.priority;
-			var relatedUnicode = '';
-			switch (thisCreepRole) {
-				case 'mule':
-					relatedUnicode = '\uD83D\uDC02'
-					break;
-				case 'miner':
-					relatedUnicode = '\u26CF';
-					break;
-				case 'upgrader':
-					relatedUnicode = '\uD83D\uDC46';
-					break;
-				case 'repair':
-					relatedUnicode = '\uD83D\uDEE0';
-					break;
-				case 'mineralMiner':
-					relatedUnicode = '\u26CF\uD83D\uDDFB';
-					break;
-				case 'salvager':
-					relatedUnicode = '\uD83D\uDCB2';
-					break;
-				case 'defender':
-					relatedUnicode = '\u2694';
-					break;
-				case 'farMiner':
-					relatedUnicode = '\u27A1\u26CF';
-					break;
-				case 'farMule':
-					relatedUnicode = '\u27A1\uD83D\uDC02';
-					break;
-				case 'farClaimer':
-					relatedUnicode = '\u27A1\uD83D\uDEA9';
-					break;
-				case 'farGuard':
-					relatedUnicode = '\u27A1\u2694';
-					break;
-			}
 			var spawnProgress = (spawn.spawning.needTime - spawn.spawning.remainingTime) + 1;
 			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
 
-			thisRoom.visual.text(relatedUnicode + ' (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
+			thisRoom.visual.text('(' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
 				align: 'left'
 			});
 		}
