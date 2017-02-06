@@ -41,8 +41,6 @@ var spawn_BuildCreeps = {
 						});
 						Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
 					}
-
-
 				}
 			} else if (thisRoom.energyAvailable >= 530) {
 				//Try to produce millitary units
