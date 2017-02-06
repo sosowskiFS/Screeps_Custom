@@ -27,11 +27,11 @@ var creep_work5 = {
 			if (creep.ticksToLive <= 60) {
 				creep.memory.priority = 'minerNearDeath';
 				creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
-				creep.room.visual.text("\u2620\u26CF", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\u26CF", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\u26CF", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u26CF", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
@@ -77,11 +77,11 @@ var creep_work5 = {
 		} else if (creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
 			if (creep.ticksToLive <= 60) {
 				creep.memory.priority = 'upgraderNearDeath';
-				creep.room.visual.text("\u2620\uD83D\uDC46", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\uD83D\uDC46", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\uD83D\uDC46", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\uD83D\uDC46", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
@@ -103,11 +103,11 @@ var creep_work5 = {
 		} else if (creep.memory.priority == 'mule' || creep.memory.priority == 'muleNearDeath') {
 			if (creep.ticksToLive <= 60) {
 				creep.memory.priority = 'muleNearDeath';
-				creep.room.visual.text("\u2620\uD83D\uDC02", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\uD83D\uDC02", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\uD83D\uDC02", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\uD83D\uDC02", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
@@ -270,11 +270,11 @@ var creep_work5 = {
 		} else if (creep.memory.priority == 'repair' || creep.memory.priority == 'repairNearDeath') {
 			if (creep.ticksToLive <= 60) {
 				creep.memory.priority = 'repairNearDeath';
-				creep.room.visual.text("\u2620\uD83D\uDEE0", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\uD83D\uDEE0", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\uD83D\uDEE0", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\uD83D\uDEE0", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
@@ -332,7 +332,7 @@ var creep_work5 = {
 			}
 
 		} else if (creep.memory.priority == 'mineralMiner') {
-			creep.room.visual.text("\u26CF\uD83D\uDDFB", creep.pos.x + 1, creep.pos.y, {
+			creep.room.visual.text("\u26CF\uD83D\uDDFB", creep.pos.x, creep.pos.y, {
 				align: 'left'
 			});
 
@@ -367,7 +367,7 @@ var creep_work5 = {
 				}
 			}
 		} else if (creep.memory.priority == 'salvager') {
-			creep.room.visual.text("\uD83D\uDCB2", creep.pos.x + 1, creep.pos.y, {
+			creep.room.visual.text("\uD83D\uDCB2", creep.pos.x, creep.pos.y, {
 				align: 'left'
 			});
 			var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);

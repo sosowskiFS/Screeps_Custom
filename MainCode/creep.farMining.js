@@ -5,11 +5,11 @@ var creep_farMining = {
 		if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farClaimerNearDeath') {
 			if (creep.ticksToLive <= 20) {
 				creep.memory.priority == 'farClaimerNearDeath';
-				creep.room.visual.text("\u2620\u27A1\uD83D\uDEA9", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\u27A1\uD83D\uDEA9", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\u27A1\uD83D\uDEA9", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u27A1\uD83D\uDEA9", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
@@ -34,11 +34,11 @@ var creep_farMining = {
 		} else if (creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMinerNearDeath') {
 			if (creep.ticksToLive <= 60) {
 				creep.memory.priority == 'farMinerNearDeath';
-				creep.room.visual.text("\u2620\u27A1\u26CF", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\u27A1\u26CF", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\u27A1\u26CF", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u27A1\u26CF", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
@@ -128,11 +128,11 @@ var creep_farMining = {
 		} else if (creep.memory.priority == 'farMule' || creep.memory.priority == 'farMuleNearDeath') {
 			if (creep.ticksToLive <= 170) {
 				creep.memory.priority = 'farMuleNearDeath';
-				creep.room.visual.text("\u2620\u27A1\uD83D\uDC02", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\u27A1\uD83D\uDC02", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
@@ -237,11 +237,11 @@ var creep_farMining = {
 		} else if (creep.memory.priority == 'farGuard' || creep.memory.priority == 'farGuardNearDeath') {
 			if (creep.ticksToLive <= 70) {
 				creep.memory.priority == 'farGuardNearDeath';
-				creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			} else {
-				creep.room.visual.text("\u27A1\u2694", creep.pos.x + 1, creep.pos.y, {
+				creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
 					align: 'left'
 				});
 			}
