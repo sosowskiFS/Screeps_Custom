@@ -1,5 +1,11 @@
 var spawn_BuildCreeps5 = {
 	run: function(spawn, thisRoom) {
+		var strStorage = Memory.storageList[thisRoom.name];
+		var roomStorage = Game.getObjectById(strStorage[0]);
+		if (roomStorage) {
+			var formattedNumber = roomStorage.store[RESOURCE_ENERGY].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			thisRoom.visual.text(formattedNumber, roomStorage.pos.x + 1, roomStorage.pos.y, {align: 'left'});
+		}
 		if (!spawn.spawning) {
 			if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
 				//Clear creep from que array
@@ -25,7 +31,6 @@ var spawn_BuildCreeps5 = {
 			var repairMax = 1;
 			var strSources = Memory.sourceList[thisRoom.name];
 			var strLinks = Memory.linkList[thisRoom.name];
-			var strStorage = Memory.storageList[thisRoom.name];
 			var strMineral = Memory.mineralList[thisRoom.name];
 			var strTerminal = Memory.terminalList[thisRoom.name];
 			var strExtractor = Memory.extractorList[thisRoom.name];
@@ -190,7 +195,6 @@ var spawn_BuildCreeps5 = {
 			}
 
 			var roomMineral = Game.getObjectById(strMineral[0]);
-			var roomStorage = Game.getObjectById(strStorage[0]);
 			if (roomStorage) {
 				if (roomStorage.store[RESOURCE_ENERGY] >= 100000) {
 					//Add another mule for resource management
@@ -544,7 +548,7 @@ var spawn_BuildCreeps5 = {
 					relatedUnicode = '\u27A1 \u2694';
 					break;
 			}
-			var spawnProgress = spawn.spawning.needTime - spawn.spawning.remainingTime;
+			var spawnProgress = (spawn.spawning.needTime - spawn.spawning.remainingTime) + 1;
 			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
 
 			thisRoom.visual.text(relatedUnicode + ' (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {align: 'left'});
