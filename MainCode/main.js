@@ -321,6 +321,25 @@ module.exports.loop = function() {
                 }
             }
 
+            if (Memory.nukerList[thisRoom.name][0] && Memory.terminalList[thisRoom.name][0] && Game.time % 1000 == 0) {
+                var thisNuker = Game.getObjectById(Memory.nukerList[thisRoom.name][0]);
+                var thisTerminal = Game.getObjectById(Memory.terminalList[thisRoom.name][0]);
+
+                if (thisNuker.ghodium < thisNuker.ghodiumCapacity && (thisTerminal.store[RESOURCE_GHODIUM] + thisNuker.ghodium) < thisNuker.ghodiumCapacity) {
+                    //Buy more ghodium
+                    var neededGhodium = thisNuker.ghodiumCapacity - (thisTerminal.store[RESOURCE_GHODIUM] + thisNuker.ghodium)
+                    var terminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
+                    var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == RESOURCE_GHODIUM && order.type == ORDER_SELL && Game.market.calcTransactionCost(neededGhodium, thisRoom.name, order.roomName) <= terminalEnergy);
+                    if (FilteredOrders.length > 0) {
+                        FilteredOrders.sort(orderPriceCompareBuying);
+                        if (FilteredOrders[0].amount < neededGhodium) {
+                            neededGhodium = FilteredOrders[0].amount;
+                        }
+                        Game.market.deal(FilteredOrders[0].id, neededGhodium, thisRoom.name);
+                    }
+                }
+            }
+
             //Review market data and sell to buy orders
             if (Game.time % 1000 == 0 && Memory.terminalList[thisRoom.name][0]) {
                 market_buyers.run(thisRoom, Game.getObjectById(Memory.terminalList[thisRoom.name][0]), Memory.mineralList[thisRoom.name]);
@@ -433,7 +452,7 @@ module.exports.loop = function() {
         if (availableCredits > 2500000) {
             availableCredits = 2500000;
         }
-        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_BUY && order.price <= availableCredits);
+        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_SELL && order.price <= availableCredits);
         if (FilteredOrders.length > 0) {
             FilteredOrders.sort(orderPriceCompare);
 
@@ -586,5 +605,13 @@ function orderPriceCompare(a, b) {
         return 1;
     if (a.price > b.price)
         return -1;
+    return 0;
+}
+
+function orderPriceCompareBuying(a, b) {
+    if (a.price < b.price)
+        return -1;
+    if (a.price > b.price)
+        return 1;
     return 0;
 }

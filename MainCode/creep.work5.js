@@ -323,7 +323,7 @@ var creep_work5 = {
 						creep.room.visual.circle(thisStructure.pos, {
 							fill: 'transparent',
 							stroke: 'green',
-							radius: 1
+							radius: 0.75
 						});
 						var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 						creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
