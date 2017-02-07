@@ -7,7 +7,7 @@ var spawn_BuildCreeps5 = {
 			if (roomStorage.store[RESOURCE_ENERGY] == 420) {
 				thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", roomStorage.pos.x + 1, roomStorage.pos.y, {
 					align: 'left',
-					size: 0.7,
+					size: 10,
 					color: '#7DE3B5'
 				});
 			} else {

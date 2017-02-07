@@ -80,7 +80,7 @@ module.exports.loop = function() {
                 if (remainingEnergy == 420) {
                     thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
                         align: 'left',
-                        size: 1,
+                        size: 10,
                         color: '#7DE3B5'
                     });
                 } else {
