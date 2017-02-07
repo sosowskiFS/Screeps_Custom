@@ -320,6 +320,16 @@ var creep_work5 = {
 								reusePath: 20
 							});
 						}
+						creep.room.visual.circle(thisStructure.pos, {
+							fill: 'transparent',
+							stroke: 'green'
+						});
+						var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+						creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
+							align: 'left',
+							color: '#7DE3B5',
+							size: 0.7
+						});
 					}
 				} else {
 					creep.memory.structureTarget = undefined;
