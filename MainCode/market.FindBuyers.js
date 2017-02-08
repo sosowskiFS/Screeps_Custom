@@ -12,7 +12,7 @@ var market_buyers = {
             //Initalize this memory object
             Memory.PriceList[currentMineral.mineralType] = 0;
         }
-        if (mineralInTerminal > 0 && TerminalEnergy >= 50000) {
+        if (mineralInTerminal > 0 && TerminalEnergy >= 100000) {
             var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
             if (FilteredOrders.length > 0) {
                 FilteredOrders.sort(orderPriceCompare);
@@ -26,7 +26,7 @@ var market_buyers = {
                 }
             } else {
                 //No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
-                if (Memory.PriceList[currentMineral.mineralType] > 0 && TerminalEnergy >= 50000) {
+                if (Memory.PriceList[currentMineral.mineralType] > 0 && TerminalEnergy >= 100000) {
                     Memory.PriceList[currentMineral.mineralType] = Memory.PriceList[currentMineral.mineralType] - 0.01;
                 }              
             }
