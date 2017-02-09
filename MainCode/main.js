@@ -83,7 +83,7 @@ module.exports.loop = function() {
                         size: 3,
                         color: '#7DE3B5'
                     });
-                } else if(thisRoom.visual) {
+                } else {
                     thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
                         align: 'left',
                         size: 1,
