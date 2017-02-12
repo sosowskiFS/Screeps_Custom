@@ -412,6 +412,21 @@ module.exports.loop = function() {
                     Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName] = false;
                 }
             }
+            if (Game.flags[thisRoom.name + "FarMining4"]) {
+                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining4"].pos.roomName]) {
+                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining4"].pos.roomName] = false;
+                }
+            }
+            if (Game.flags[thisRoom.name + "FarMining5"]) {
+                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName]) {
+                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName] = false;
+                }
+            }
+            if (Game.flags[thisRoom.name + "FarMining6"]) {
+                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining6"].pos.roomName]) {
+                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining6"].pos.roomName] = false;
+                }
+            }
 
             //if (Game.flags[thisRoom.name + "FarGuard"]) {
             //Memory.FarGuardNeeded[thisRoom.name] = true;
