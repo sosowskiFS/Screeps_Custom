@@ -453,7 +453,7 @@ module.exports.loop = function() {
 
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
     Memory.totalTicksSpawnRecorded = Memory.totalTicksSpawnRecorded + 1;
-    var totalSpawnCPU = Game.getUsedCpu() - preSpawnCPU;
+    var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
     Memory.averageUsedSpawnCPU = Memory.averageUsedSpawnCPU + ((totalSpawnCPU - Memory.averageUsedSpawnCPU) / Memory.totalTicksSpawnRecorded)
 
     Memory.RoomsRun = [];
@@ -520,7 +520,7 @@ module.exports.loop = function() {
 
     //Log average creep CPU usage
     Memory.totalTicksCreepRecorded = Memory.totalTicksCreepRecorded + 1;
-    var totalCreepCPU = Game.getUsedCpu() - preCreepCPU;
+    var totalCreepCPU = Game.cpu.getUsed() - preCreepCPU;
     Memory.averageUsedCreepCPU = Memory.averageUsedCreepCPU + ((totalCreepCPU - Memory.averageUsedCreepCPU) / Memory.totalTicksCreepRecorded)
 
     //Log average total CPU usage in memory.
