@@ -68,6 +68,10 @@ module.exports.loop = function() {
     var instructionSpawn;
 
     //Loop through all spawns
+
+    //Log average CPU for spawn processes in memory.
+    var preSpawnCPU = Game.cpu.getUsed();
+
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         var controllerLevel = thisRoom.controller.level;
@@ -447,6 +451,11 @@ module.exports.loop = function() {
         Memory.RoomsRun.push(thisRoom.name);
     }
 
+    //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
+    Memory.totalTicksSpawnRecorded = Memory.totalTicksSpawnRecorded + 1;
+    var totalSpawnCPU = Game.getUsedCpu() - preSpawnCPU;
+    Memory.averageUsedSpawnCPU = Memory.averageUsedSpawnCPU + ((totalSpawnCPU - Memory.averageUsedSpawnCPU) / Memory.totalTicksSpawnRecorded)
+
     Memory.RoomsRun = [];
     //Memory.creepInQue = [];
 
@@ -478,6 +487,8 @@ module.exports.loop = function() {
     }
 
     //Globally controlls all creeps in all rooms
+    //Log average CPU for creep processes in memory.
+    var preCreepCPU = Game.cpu.getUsed();
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule' || creep.memory.priority == 'farGuard' || creep.memory.priority == 'farClaimerNearDeath' || creep.memory.priority == 'farMinerNearDeath' || creep.memory.priority == 'farMuleNearDeath' || creep.memory.priority == 'farGuardNearDeath') {
@@ -507,7 +518,12 @@ module.exports.loop = function() {
     }
     //});
 
-    //Log average CPU usage in memory.
+    //Log average creep CPU usage
+    Memory.totalTicksCreepRecorded = Memory.totalTicksCreepRecorded + 1;
+    var totalCreepCPU = Game.getUsedCpu() - preCreepCPU;
+    Memory.averageUsedCreepCPU = Memory.averageUsedCreepCPU + ((totalCreepCPU - Memory.averageUsedCreepCPU) / Memory.totalTicksCreepRecorded)
+
+    //Log average total CPU usage in memory.
     var thisTickCPU = Game.cpu.getUsed();
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
     Memory.totalTicksRecorded = Memory.totalTicksRecorded + 1;
@@ -566,9 +582,21 @@ function memCheck() {
     if (!Memory.averageUsedCPU) {
         Memory.averageUsedCPU = 0.0;
     }
+    if (!Memory.averageUsedSpawnCPU) {
+        Memory.averageUsedSpawnCPU = 0.0;
+    }
+    if (!Memory.averageUsedCreepCPU) {
+        Memory.averageUsedSpawnCPU = 0.0;
+    }
     //Integer
     if (!Memory.totalTicksRecorded) {
         Memory.totalTicksRecorded = 0;
+    }
+    if (!Memory.totalTicksSpawnRecorded) {
+        Memory.totalTicksSpawnRecorded = 0;
+    }
+    if (!Memory.totalTicksCreepRecorded) {
+        Memory.totalTicksSpawnRecorded = 0;
     }
     //Object
     if (!Memory.FarClaimerNeeded) {
