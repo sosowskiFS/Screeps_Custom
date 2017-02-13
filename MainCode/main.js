@@ -57,6 +57,17 @@ module.exports.loop = function() {
         }
     }
 
+    //Reset average CPU usage records on request
+    if (Game.flags["ResetAverages"]) {
+        Memory.totalTicksSpawnRecorded = 0;
+        Memory.totalTicksCreepRecorded = 0;
+        Memory.totalTicksRecorded = 0;
+        Memory.averageUsedSpawnCPU = 0;
+        Memory.averageUsedCreepCPU = 0;
+        Memory.averageUsedCPU = 0;
+        Game.flags["ResetAverages"].remove();
+    }
+
     //Use experimental PathFinder
     PathFinder.use(true);
 
