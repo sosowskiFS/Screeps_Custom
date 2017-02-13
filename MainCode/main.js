@@ -88,6 +88,9 @@ module.exports.loop = function() {
         var controllerLevel = thisRoom.controller.level;
 
         if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
+            //Populate the room creeps memory.
+            Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
+
             //Display the remaining progress of the controller
             var remainingEnergy = thisRoom.controller.progressTotal - thisRoom.controller.progress;
             if (remainingEnergy > 0) {
@@ -449,9 +452,9 @@ module.exports.loop = function() {
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
-            spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom);
+            spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
         } else {
-            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom);
+            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
         }
 
         if (Game.flags[thisRoom.name + "FarMining"]) {
@@ -468,6 +471,7 @@ module.exports.loop = function() {
     Memory.averageUsedSpawnCPU = Memory.averageUsedSpawnCPU + ((totalSpawnCPU - Memory.averageUsedSpawnCPU) / Memory.totalTicksSpawnRecorded)
 
     Memory.RoomsRun = [];
+    Memory.roomCreeps = new Object();
     //Memory.creepInQue = [];
 
     if (Game.flags["ClaimThis"]) {
@@ -651,6 +655,9 @@ function memCheck() {
     }
     if (!Memory.energyCap) {
         Memory.energyCap = new Object();
+    }
+    if (!Memory.roomCreeps) {
+        Memory.roomCreeps = new Object();
     }
 }
 

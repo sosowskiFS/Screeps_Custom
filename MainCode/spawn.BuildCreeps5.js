@@ -1,5 +1,5 @@
 var spawn_BuildCreeps5 = {
-	run: function(spawn, thisRoom) {
+	run: function(spawn, thisRoom, RoomCreeps) {
 		var strStorage = Memory.storageList[thisRoom.name];
 		var roomStorage = Game.getObjectById(strStorage[0]);
 		if (roomStorage) {
@@ -24,7 +24,7 @@ var spawn_BuildCreeps5 = {
 				var queSpawnIndex = Memory.creepInQue.indexOf(spawn.name);
 				Memory.creepInQue.splice(queSpawnIndex - 3, 4);
 			}
-			var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
+			//var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
 			var miners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source
 			var upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
@@ -237,7 +237,7 @@ var spawn_BuildCreeps5 = {
 					});
 				}
 			}
-			if (((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(minerConfig) == OK) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && spawn.canCreateCreep(mineralMinerConfig) == OK && readyForMineral)) {
+			if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
 				var prioritizedRole = '';
 				var creepSource = '';
 				var connectedLink = '';
