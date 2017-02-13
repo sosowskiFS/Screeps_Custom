@@ -211,7 +211,7 @@ var creep_work5 = {
 				}
 				//Immediately find a new target if previous transfer worked
 				if (!creep.memory.structureTarget) {
-					var targets = creep.room.find(FIND_STRUCTURES, {
+					var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (structure) => {
 							return (structure.structureType == STRUCTURE_EXTENSION ||
 								structure.structureType == STRUCTURE_SPAWN ||
@@ -220,11 +220,10 @@ var creep_work5 = {
 								structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
 						}
 					});
-					if (targets.length) {
-						targets.sort(structureTypeCompare);
-						creep.memory.structureTarget = targets[0].id;
-						if (creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(targets[0]);
+					if (targets) {
+						creep.memory.structureTarget = targets.id;
+						if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(targets);
 						} else {
 							creep.memory.structureTarget = undefined;
 						}
@@ -423,14 +422,4 @@ function repairCompare(a, b) {
 	if (a.hits > b.hits)
 		return 1;
 	return 0;
-}
-
-function structureTypeCompare(a, b) {
-	if ((a.structureType == STRUCTURE_NUKER || a.structureType == STRUCTURE_POWER_SPAWN) && (b.structureType == STRUCTURE_EXTENSION || b.structureType == STRUCTURE_SPAWN || b.structureType == STRUCTURE_TOWER)){
-		return 1;
-	}
-	if ((b.structureType == STRUCTURE_NUKER || b.structureType == STRUCTURE_POWER_SPAWN) && (a.structureType == STRUCTURE_EXTENSION || a.structureType == STRUCTURE_SPAWN || a.structureType == STRUCTURE_TOWER)) {
-		return -1;
-	}
-    return 0;
 }
