@@ -229,7 +229,7 @@ var creep_work5 = {
 						//Level8 Structures
 						var targets2;
 						if (creep.room.controller.level == 8) {
-							var targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 								filter: (structure) => {
 									return (structure.structureType == STRUCTURE_POWER_SPAWN ||
 										structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
