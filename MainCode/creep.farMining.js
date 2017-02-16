@@ -278,7 +278,7 @@ var creep_farMining = {
 						}
 					} else {
 						creep.say('REEEEEEEEE', true);
-						if (creep.pos.getRangeTo(Foe) > 3) {
+						if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0 && Foe.getActiveBodyparts(RANGED_ATTACK) == 0)) {
 							creep.moveTo(Foe);
 							creep.rangedAttack(Foe);
 						} else {
