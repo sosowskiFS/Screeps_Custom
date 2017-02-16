@@ -158,7 +158,7 @@ var spawn_BuildFarCreeps = {
 			}
 
 			if (Game.flags[thisRoom.name + "FarGuard2"] && prioritizedRole == '') {
-				if (farGuards.length < 1 && Game.flags[thisRoom.name + "FarGuard2"] && blockedRole != 'farGuard') {
+				if (farGuards2.length < 1 && Game.flags[thisRoom.name + "FarGuard2"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard2"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard2"].name;
@@ -183,7 +183,7 @@ var spawn_BuildFarCreeps = {
 			}
 
 			if (Game.flags[thisRoom.name + "FarGuard3"] && prioritizedRole == '') {
-				if (farGuards.length < 1 && Game.flags[thisRoom.name + "FarGuard3"] && blockedRole != 'farGuard') {
+				if (farGuards3.length < 1 && Game.flags[thisRoom.name + "FarGuard3"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard3"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard3"].name;
@@ -208,7 +208,7 @@ var spawn_BuildFarCreeps = {
 			}
 
 			if (Game.flags[thisRoom.name + "FarGuard4"] && prioritizedRole == '') {
-				if (farGuards.length < 1 && Game.flags[thisRoom.name + "FarGuard4"] && blockedRole != 'farGuard') {
+				if (farGuards4.length < 1 && Game.flags[thisRoom.name + "FarGuard4"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard4"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard4"].name;
@@ -234,7 +234,7 @@ var spawn_BuildFarCreeps = {
 			}
 
 			if (Game.flags[thisRoom.name + "FarGuard5"] && prioritizedRole == '') {
-				if (farGuards.length < 1 && Game.flags[thisRoom.name + "FarGuard5"] && blockedRole != 'farGuard') {
+				if (farGuards5.length < 1 && Game.flags[thisRoom.name + "FarGuard5"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard5"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard5"].name;
@@ -260,7 +260,7 @@ var spawn_BuildFarCreeps = {
 			}
 
 			if (Game.flags[thisRoom.name + "FarGuard6"] && prioritizedRole == '') {
-				if (farGuards.length < 1 && Game.flags[thisRoom.name + "FarGuard6"] && blockedRole != 'farGuard') {
+				if (farGuards6.length < 1 && Game.flags[thisRoom.name + "FarGuard6"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard6"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard6"].name;
