@@ -7,7 +7,7 @@ var creep_towerDrainer = {
 			creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 		} else {
 			if (creep.hits == creep.hitsMax) {
-				creep.moveTo(Room.controller);
+				creep.moveTo(creep.room.controller);
 			} else {
 				//Drawing fire
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom));
