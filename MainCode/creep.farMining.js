@@ -270,41 +270,49 @@ var creep_farMining = {
 
 				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 				if (Foe) {
-					creep.say('REEEEEEEEE', true);
-					if (creep.pos.getRangeTo(Foe) > 3) {
-						creep.moveTo(Foe);
-						creep.rangedAttack(Foe);
-					} else {
-						var foeDirection = creep.pos.getDirectionTo(Foe);
-						var evadeDirection = TOP;
-						switch (foeDirection) {
-							case TOP:
-								evadeDirection = BOTTOM;
-								break;
-							case TOP_RIGHT:
-								evadeDirection = BOTTOM_LEFT;
-								break;
-							case RIGHT:
-								evadeDirection = LEFT;
-								break;
-							case BOTTOM_RIGHT:
-								evadeDirection = TOP_LEFT;
-								break;
-							case BOTTOM:
-								evadeDirection = TOP;
-								break;
-							case BOTTOM_LEFT:
-								evadeDirection = TOP_RIGHT;
-								break;
-							case LEFT:
-								evadeDirection = RIGHT;
-								break;
-							case TOP_LEFT:
-								evadeDirection = BOTTOM_RIGHT;
-								break;
+					if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
+						//Guard specific spot, fire at things nearby
+						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
+						if (creep.pos.getRangeTo(Foe) <= 3) {
+							creep.rangedAttack(Foe);
 						}
-						creep.move(evadeDirection);
-						creep.rangedAttack(Foe);
+					} else {
+						creep.say('REEEEEEEEE', true);
+						if (creep.pos.getRangeTo(Foe) > 3) {
+							creep.moveTo(Foe);
+							creep.rangedAttack(Foe);
+						} else {
+							var foeDirection = creep.pos.getDirectionTo(Foe);
+							var evadeDirection = TOP;
+							switch (foeDirection) {
+								case TOP:
+									evadeDirection = BOTTOM;
+									break;
+								case TOP_RIGHT:
+									evadeDirection = BOTTOM_LEFT;
+									break;
+								case RIGHT:
+									evadeDirection = LEFT;
+									break;
+								case BOTTOM_RIGHT:
+									evadeDirection = TOP_LEFT;
+									break;
+								case BOTTOM:
+									evadeDirection = TOP;
+									break;
+								case BOTTOM_LEFT:
+									evadeDirection = TOP_RIGHT;
+									break;
+								case LEFT:
+									evadeDirection = RIGHT;
+									break;
+								case TOP_LEFT:
+									evadeDirection = BOTTOM_RIGHT;
+									break;
+							}
+							creep.move(evadeDirection);
+							creep.rangedAttack(Foe);
+						}
 					}
 				} else {
 					creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
