@@ -5,6 +5,7 @@ var creep_towerDrainer = {
 		if (!creep.memory.lastHP){
 			creep.memory.lastHP = creep.hits;
 		}
+		creep.notifyWhenAttacked(false);
 
 		if (creep.room.name != creep.memory.destination) {
 			creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));

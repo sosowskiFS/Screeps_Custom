@@ -58,16 +58,19 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'tDrain':
-				if (spawn.canCreateCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL]) == OK) {
-					spawn.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL], undefined, {
-						priority: 'TowerDrainer',
-						destination: params,
-						homeRoom: spawn.room.name
-					});
-					if (Game.flags["DrainTurret"]) {
-						Game.flags["DrainTurret"].remove();
+				var tDrainers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'TowerDrainer');
+				if (tDrainers.length < 2) {
+					if (spawn.canCreateCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL]) == OK) {
+						spawn.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL], undefined, {
+							priority: 'TowerDrainer',
+							destination: params,
+							homeRoom: spawn.room.name
+						});
+						//if (Game.flags["DrainTurret"]) {
+						//Game.flags["DrainTurret"].remove();
+						//}
+						console.log('Tower Drain Executed');
 					}
-					console.log('Tower Drain Executed');
 				}
 				break;
 		}
