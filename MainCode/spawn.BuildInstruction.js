@@ -58,8 +58,8 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'tDrain':
-				if (spawn.canCreateCreep([TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL]) == OK) {
-					spawn.createCreep([TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL], undefined, {
+				if (spawn.canCreateCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL]) == OK) {
+					spawn.createCreep([TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL], undefined, {
 						priority: 'TowerDrainer',
 						destination: params,
 						homeRoom: spawn.room.name
