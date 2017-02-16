@@ -17,6 +17,7 @@ var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
 var creep_constructor = require('creep.constructor');
 var creep_Kebab = require('creep.removeKebab');
+var creep_towerDrainer = require('creep.towerDrainer');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -121,6 +122,24 @@ module.exports.loop = function() {
 
             if (Game.flags["BuildThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
+                if (theDistance < roomDist) {
+                    roomDist = theDistance;
+                    roomName = thisRoom.name;
+                    instructionSpawn = Game.spawns[i];
+                }
+            }
+
+            if (Game.flags["DrainTurret"]) {
+                var theDistance = Game.map.getRoomLinearDistance(Game.flags["DrainTurret"].pos.roomName, thisRoom.name);
+                if (theDistance < roomDist) {
+                    roomDist = theDistance;
+                    roomName = thisRoom.name;
+                    instructionSpawn = Game.spawns[i];
+                }
+            }
+
+            if (Game.flags["RemoveKebab"]) {
+                var theDistance = Game.map.getRoomLinearDistance(Game.flags["RemoveKebab"].pos.roomName, thisRoom.name);
                 if (theDistance < roomDist) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
@@ -485,6 +504,17 @@ module.exports.loop = function() {
         }
     }
 
+    if (Game.flags["DrainTurret"]) {
+        spawn_BuildInstruction.run(instructionSpawn, 'tDrain', Game.flags["DrainTurret"].pos.roomName);
+    }
+
+    if (Game.flags["RemoveKebab"]) {
+        var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
+        if (sitesOnTile.length) {
+            spawn_BuildInstruction.run(instructionSpawn, 'removeKebab', sitesOnTile[0].id, '', Game.flags["RemoveKebab"].pos.roomName);
+        }
+    }
+
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
         //Periodically look for cheap subscription tokens
         var availableCredits = Game.market.credits
@@ -512,6 +542,8 @@ module.exports.loop = function() {
             creep_claimer.run(creep);
         } else if (creep.memory.priority == 'vandal') {
             creep_vandal.run(creep);
+        } else if (creep.memory.priority == 'TowerDrainer') {
+            creep_towerDrainer.run(creep);
         } else if (creep.memory.priority == 'constructor') {
             creep_constructor.run(creep);
         } else if (creep.memory.priority == 'removeKebab') {

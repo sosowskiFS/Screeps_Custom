@@ -47,11 +47,26 @@ var spawn_BuildInstruction = {
 					spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK], undefined, {
 						priority: 'removeKebab',
 						targetID: params,
-						destinations: params2
+						destination: params2
 					});
-					console.log('Construct executed');
+					console.log('Kebab executed');
+					if (Game.flags["RemoveKebab"]) {
+						Game.flags["RemoveKebab"].remove();
+					}
 				} else {
 					//console.log('Could not execute constructor. Spawn cannot create creep.');
+				}
+				break;
+			case 'tDrain':
+				if (spawn.canCreateCreep([TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL]) == OK) {
+					spawn.createCreep([TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL], undefined, {
+						priority: 'TowerDrainer',
+						destination: params
+					});
+					if (Game.flags["DrainTurret"]) {
+						Game.flags["DrainTurret"].remove();
+					}
+					console.log('Tower Drain Executed');
 				}
 				break;
 		}
