@@ -73,6 +73,20 @@ var spawn_BuildInstruction = {
 					}
 				}
 				break;
+			case 'helper':
+				if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]) == OK) {
+					spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], undefined, {
+						priority: 'helper',
+						destination: params
+					});
+					console.log('Helper executed');
+					if (Game.flags[spawn.room.name + "SendHelper"]) {
+						Game.flags[spawn.room.name + "SendHelper"].remove();
+					}
+				} else {
+					//console.log('Could not execute constructor. Spawn cannot create creep.');
+				}
+				break;
 		}
 	}
 };

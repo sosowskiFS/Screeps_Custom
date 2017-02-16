@@ -17,6 +17,7 @@ var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
 var creep_constructor = require('creep.constructor');
 var creep_Kebab = require('creep.removeKebab');
+var creep_Helper = require('creep.helper');
 var creep_towerDrainer = require('creep.towerDrainer');
 
 //Spawning
@@ -482,6 +483,10 @@ module.exports.loop = function() {
         }
 
         Memory.RoomsRun.push(thisRoom.name);
+
+        if (Game.flags[thisRoom.name + "SendHelper"]) {
+            spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
+        }
     }
 
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
@@ -548,6 +553,8 @@ module.exports.loop = function() {
             creep_constructor.run(creep);
         } else if (creep.memory.priority == 'removeKebab') {
             creep_Kebab.run(creep);
+        } else if (creep.memory.priority == 'helper') {
+            creep_Helper.run(creep);
         } else if (creep.memory.priority == 'defender') {
             creep_combat.run(creep, thisRoom);
         } else {
