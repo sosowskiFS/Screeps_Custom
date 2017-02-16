@@ -61,7 +61,8 @@ var spawn_BuildInstruction = {
 				if (spawn.canCreateCreep([TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL]) == OK) {
 					spawn.createCreep([TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL], undefined, {
 						priority: 'TowerDrainer',
-						destination: params
+						destination: params,
+						homeRoom: spawn.room.name
 					});
 					if (Game.flags["DrainTurret"]) {
 						Game.flags["DrainTurret"].remove();

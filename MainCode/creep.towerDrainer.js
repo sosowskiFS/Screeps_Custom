@@ -5,6 +5,13 @@ var creep_towerDrainer = {
 
 		if (creep.room.name != creep.memory.destination) {
 			creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+		} else {
+			if (creep.hits == creep.hitsMax) {
+				creep.moveTo(Room.controller);
+			} else {
+				//Drawing fire
+				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom));
+			}
 		}
 	}
 };
