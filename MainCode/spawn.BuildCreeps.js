@@ -26,9 +26,9 @@ var spawn_BuildCreeps = {
 				priority: 'harvester',
 				sourceLocation: strSources[1]
 			});
-		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && salvagers.length == 0 && thisRoom.energyAvailable >= 550) {
 			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
-				if (thisRoom.energyAvailable >= 800 && salvagers.length == 0) {
+				if (thisRoom.energyAvailable >= 550 && salvagers.length == 0) {
 					var blockedRole = '';
 					if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
 						var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
