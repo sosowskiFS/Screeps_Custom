@@ -150,11 +150,13 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["Loot"]) {
-                var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
-                if (theDistance < roomDist) {
-                    roomDist = theDistance;
-                    roomName = thisRoom.name;
-                    instructionSpawn = Game.spawns[i];
+                if (thisRoom.storage) {
+                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
+                    if (theDistance < roomDist) {
+                        roomDist = theDistance;
+                        roomName = thisRoom.name;
+                        instructionSpawn = Game.spawns[i];
+                    }
                 }
             }
 
@@ -528,7 +530,7 @@ module.exports.loop = function() {
     }
 
     if (Game.flags["Loot"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '',instructionSpawn.room);
+        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', instructionSpawn.room);
     }
 
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
