@@ -279,7 +279,11 @@ var creep_farMining = {
 					} else {
 						creep.say('REEEEEEEEE', true);
 						if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0 && Foe.getActiveBodyparts(RANGED_ATTACK) == 0)) {
-							creep.moveTo(Foe);
+							if (creep.pos.getRangeTo(Game.flags[creep.memory.targetFlag]) > 20 && !room.controller.owner && !room.controller.reservation) {
+								creep.moveTo(Game.flags[creep.memory.targetFlag])
+							} else {
+								creep.moveTo(Foe);
+							}					
 							creep.rangedAttack(Foe);
 						} else {
 							var foeDirection = creep.pos.getDirectionTo(Foe);
