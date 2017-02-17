@@ -115,7 +115,7 @@ module.exports.loop = function() {
             //Execute special instruction written into console
             if (Game.flags["ClaimThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
-                if (theDistance < roomDist) {
+                if (theDistance <= roomDist) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
                     instructionSpawn = Game.spawns[i];
@@ -124,7 +124,7 @@ module.exports.loop = function() {
 
             if (Game.flags["BuildThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
-                if (theDistance < roomDist) {
+                if (theDistance <= roomDist) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
                     instructionSpawn = Game.spawns[i];
@@ -133,7 +133,7 @@ module.exports.loop = function() {
 
             if (Game.flags["DrainTurret"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["DrainTurret"].pos.roomName, thisRoom.name);
-                if (theDistance < roomDist) {
+                if (theDistance <= roomDist) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
                     instructionSpawn = Game.spawns[i];
@@ -141,18 +141,20 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["RemoveKebab"]) {
-                var theDistance = Game.map.getRoomLinearDistance(Game.flags["RemoveKebab"].pos.roomName, thisRoom.name);
-                if (theDistance < roomDist) {
-                    roomDist = theDistance;
-                    roomName = thisRoom.name;
-                    instructionSpawn = Game.spawns[i];
+                if (thisRoom.energyCapacityAvailable >= 3000) {
+                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["RemoveKebab"].pos.roomName, thisRoom.name);
+                    if (theDistance <= roomDist) {
+                        roomDist = theDistance;
+                        roomName = thisRoom.name;
+                        instructionSpawn = Game.spawns[i];
+                    }
                 }
             }
 
             if (Game.flags["Loot"]) {
                 if (thisRoom.storage) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist) {
+                    if (theDistance <= roomDist) {
                         roomDist = theDistance;
                         roomName = thisRoom.name;
                         instructionSpawn = Game.spawns[i];
