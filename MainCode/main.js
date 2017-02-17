@@ -532,7 +532,7 @@ module.exports.loop = function() {
     }
 
     if (Game.flags["Loot"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', instructionSpawn.room);
+        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', instructionSpawn.room.name);
     }
 
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
