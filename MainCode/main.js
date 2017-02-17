@@ -528,7 +528,7 @@ module.exports.loop = function() {
     }
 
     if (Game.flags["Loot"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["RemoveKebab"].pos.roomName);
+        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '',instructionSpawn.room);
     }
 
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
@@ -564,6 +564,8 @@ module.exports.loop = function() {
             creep_constructor.run(creep);
         } else if (creep.memory.priority == 'removeKebab') {
             creep_Kebab.run(creep);
+        } else if (creep.memory.priority == 'looter') {
+            creep_looter.run(creep);
         } else if (creep.memory.priority == 'helper') {
             creep_Helper.run(creep);
         } else if (creep.memory.priority == 'defender') {

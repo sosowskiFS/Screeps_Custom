@@ -90,17 +90,18 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'loot':
-				if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]) == OK) {
-					spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], undefined, {
-						priority: 'helper',
-						destination: params
-					});
-					console.log('Helper executed');
-					if (Game.flags[spawn.room.name + "SendHelper"]) {
-						Game.flags[spawn.room.name + "SendHelper"].remove();
+				var looters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'looter');
+				if (looters.length < 3) {
+					if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]) == OK) {
+						spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], undefined, {
+							priority: 'looter',
+							destination: params,
+							homeRoom: params2
+						});
+						console.log('Looter executed');
+					} else {
+						//console.log('Could not execute constructor. Spawn cannot create creep.');
 					}
-				} else {
-					//console.log('Could not execute constructor. Spawn cannot create creep.');
 				}
 				break;
 		}
