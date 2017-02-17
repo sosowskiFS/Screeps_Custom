@@ -279,7 +279,7 @@ var creep_farMining = {
 						}
 					} else {
 						creep.say('REEEEEEEEE', true);
-						if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0 && Foe.getActiveBodyparts(RANGED_ATTACK) == 0)) {
+						if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0)) {
 							if (creep.pos.getRangeTo(Game.flags[creep.memory.targetFlag]) > 20 && !creep.room.controller.owner && !creep.room.controller.reservation) {
 								creep.moveTo(Game.flags[creep.memory.targetFlag])
 							} else {
