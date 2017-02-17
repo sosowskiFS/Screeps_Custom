@@ -274,6 +274,7 @@ var creep_farMining = {
 						//Guard specific spot, fire at things nearby
 						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
 						if (creep.pos.getRangeTo(Foe) <= 3) {
+							creep.attack(Foe);
 							creep.rangedAttack(Foe);
 						}
 					} else {
@@ -283,7 +284,8 @@ var creep_farMining = {
 								creep.moveTo(Game.flags[creep.memory.targetFlag])
 							} else {
 								creep.moveTo(Foe);
-							}					
+							}
+							creep.attack(Foe);					
 							creep.rangedAttack(Foe);
 						} else {
 							var foeDirection = creep.pos.getDirectionTo(Foe);
@@ -315,6 +317,7 @@ var creep_farMining = {
 									break;
 							}
 							creep.move(evadeDirection);
+							creep.attack(Foe);
 							creep.rangedAttack(Foe);
 						}
 					}
