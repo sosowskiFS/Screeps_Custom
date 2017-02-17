@@ -11,13 +11,14 @@ var creep_Kebab = {
             while (Game.flags[flagName + flagCounter.toString()]) {
                 if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length == 0) {
                     //Wall removed, proceed to target
-                    var theTarget = Game.getObjectById(creep.memory.targetID)
-                    if (theTarget) {
-                        if(creep.attack(theTarget) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(theTarget);
+                    var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
+                    if (sitesOnTile.length) {
+                        if(creep.attack(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(sitesOnTile[0]);
                         }
                         break;
                     } else {
+                        Game.flags["RemoveKebab"].remove();
                         //Assume target is destroyed, vandalize.
                         var signResult = creep.signController(creep.room.controller,'https://www.youtube.com/watch?v=HgD8-Ree07I');
                         if (signResult == ERR_NOT_IN_RANGE) {

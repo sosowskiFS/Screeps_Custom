@@ -19,6 +19,7 @@ var creep_constructor = require('creep.constructor');
 var creep_Kebab = require('creep.removeKebab');
 var creep_Helper = require('creep.helper');
 var creep_towerDrainer = require('creep.towerDrainer');
+var creep_looter = require('creep.looter');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -141,6 +142,15 @@ module.exports.loop = function() {
 
             if (Game.flags["RemoveKebab"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["RemoveKebab"].pos.roomName, thisRoom.name);
+                if (theDistance < roomDist) {
+                    roomDist = theDistance;
+                    roomName = thisRoom.name;
+                    instructionSpawn = Game.spawns[i];
+                }
+            }
+
+            if (Game.flags["Loot"]) {
+                var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
                 if (theDistance < roomDist) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
@@ -514,10 +524,11 @@ module.exports.loop = function() {
     }
 
     if (Game.flags["RemoveKebab"]) {
-        var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
-        if (sitesOnTile.length) {
-            spawn_BuildInstruction.run(instructionSpawn, 'removeKebab', sitesOnTile[0].id, '', Game.flags["RemoveKebab"].pos.roomName);
-        }
+        spawn_BuildInstruction.run(instructionSpawn, 'removeKebab', Game.flags["RemoveKebab"].pos.roomName);
+    }
+
+    if (Game.flags["Loot"]) {
+        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["RemoveKebab"].pos.roomName);
     }
 
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
