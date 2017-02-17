@@ -556,35 +556,49 @@ module.exports.loop = function() {
     var preCreepCPU = Game.cpu.getUsed();
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        if (creep.memory.priority == 'farClaimer' || creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMule' || creep.memory.priority == 'farGuard' || creep.memory.priority == 'farClaimerNearDeath' || creep.memory.priority == 'farMinerNearDeath' || creep.memory.priority == 'farMuleNearDeath' || creep.memory.priority == 'farGuardNearDeath') {
-            creep_farMining.run(creep);
-        } else if (creep.memory.priority == 'claimer') {
-            creep_claimer.run(creep);
-        } else if (creep.memory.priority == 'vandal') {
-            creep_vandal.run(creep);
-        } else if (creep.memory.priority == 'TowerDrainer') {
-            creep_towerDrainer.run(creep);
-        } else if (creep.memory.priority == 'constructor') {
-            creep_constructor.run(creep);
-        } else if (creep.memory.priority == 'removeKebab') {
-            creep_Kebab.run(creep);
-        } else if (creep.memory.priority == 'looter') {
-            creep_looter.run(creep);
-        } else if (creep.memory.priority == 'helper') {
-            creep_Helper.run(creep);
-        } else if (creep.memory.priority == 'defender') {
-            creep_combat.run(creep, thisRoom);
-        } else {
-            if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
-                creep_work.run(creep);
-            } else {
-                if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
-                    //In case of emergency
+        switch (creep.memory.priority) {
+            case 'farClaimer':
+            case 'farMiner':
+            case 'farMule':
+            case 'farGuard':
+            case 'farClaimerNearDeath':
+            case 'farMinerNearDeath':
+            case 'farMuleNearDeath':
+            case 'farGuardNearDeath':
+                creep_farMining.run(creep);
+                break;
+            case 'claimer':
+                creep_claimer.run(creep);
+                break;
+            case 'TowerDrainer':
+                creep_towerDrainer.run(creep);
+                break;
+            case 'constructor':
+                creep_constructor.run(creep);
+                break;
+            case 'removeKebab':
+                creep_Kebab.run(creep);
+                break;
+            case 'looter':
+                creep_looter.run(creep);
+                break;
+            case 'helper':
+                creep_Helper.run(creep);
+                break;
+            case 'defender':
+                creep_combat.run(creep, thisRoom);
+                break;
+            default:
+                if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                     creep_work.run(creep);
                 } else {
-                    creep_work5.run(creep);
+                    if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
+                        //In case of emergency
+                        creep_work.run(creep);
+                    } else {
+                        creep_work5.run(creep);
+                    }
                 }
-            }
         }
     }
     //});
