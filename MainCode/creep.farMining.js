@@ -342,7 +342,7 @@ var creep_farMining = {
 							creep.rangedAttack(Foe);
 						}
 					}
-				} else {
+				} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
 					creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
 				}
 			}
