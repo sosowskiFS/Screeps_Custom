@@ -9,22 +9,27 @@ var creep_combat = {
 			//Move towards rampart
 			var flagName = creep.room.name + 'Rampart';
 			var flagCounter = 1;
+			var GotIt = false;
 			while (Game.flags[flagName + flagCounter.toString()]) {
 				if (Game.flags[flagName + flagCounter.toString()].pos.x == creep.pos.x && Game.flags[flagName + flagCounter.toString()].pos.y == creep.pos.y) {
 					break;
 				} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
 					creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
+					GotIt = true;
 					break;
 				} else {
 					flagCounter++;
 				}
 			}
 
-			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3);
-			if (Foe[0]) {
+			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+			if (Foe) {
 				creep.say('REEEEEEEEE', true);
-				creep.rangedAttack(Foe[0]);
-				creep.attack(Foe[0]);
+				creep.rangedAttack(Foe);
+				creep.attack(Foe);
+				if(!GotIt){
+					creep.moveTo(Foe);
+				}
 			}
 		} else {
 			//Not under attack, move to red flags marking ramparts
