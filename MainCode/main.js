@@ -198,6 +198,15 @@ module.exports.loop = function() {
                 Memory.roomsUnderAttack.push(thisRoom.name);
                 if (hostiles[0].owner.username == 'Invader') {
                     Memory.roomsPrepSalvager.push(thisRoom.name);
+                } else if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                    //No good combat code! SAFE MODE!
+                    if (!thisRoom.controller.safeMode) {
+                        thisRoom.controller.activateSafeMode();
+                    }
+                }
+            } else if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) >= 0 && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                if (!thisRoom.controller.safeMode) {
+                    thisRoom.controller.activateSafeMode();
                 }
             } else if (hostiles.length == 0) {
                 var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
