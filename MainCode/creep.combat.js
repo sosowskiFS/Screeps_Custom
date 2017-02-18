@@ -13,7 +13,7 @@ var creep_combat = {
 			while (Game.flags[flagName + flagCounter.toString()]) {
 				if (Game.flags[flagName + flagCounter.toString()].pos.x == creep.pos.x && Game.flags[flagName + flagCounter.toString()].pos.y == creep.pos.y) {
 					break;
-				} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0) {
+				} else if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_CREEPS).length == 0 || Game.flags[flagName + flagCounter.toString()].pos == creep.pos) {
 					creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
 					GotIt = true;
 					break;
