@@ -1,7 +1,7 @@
 var spawn_BuildCreeps5 = {
 	run: function(spawn, thisRoom, RoomCreeps) {
-		var strStorage = Memory.storageList[thisRoom.name];
-		var roomStorage = Game.getObjectById(strStorage[0]);
+		//var strStorage = Memory.storageList[thisRoom.name];
+		var roomStorage = thisRoom.storage
 		if (roomStorage) {
 			var formattedNumber = roomStorage.store[RESOURCE_ENERGY].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 			if (roomStorage.store[RESOURCE_ENERGY] == 420) {
@@ -101,7 +101,7 @@ var spawn_BuildCreeps5 = {
 					//reassign upgrade miner
 					upgradeMiners[0].drop(RESOURCE_ENERGY);
 					upgradeMiners[0].memory.jobSpecific = 'storageMiner';
-					upgradeMiners[0].memory.linkSource = strStorage[0];
+					upgradeMiners[0].memory.linkSource = thisRoom.storage.id
 					upgradeMiners[0].memory.mineSource = strSources[0];
 					upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
 					storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
@@ -122,12 +122,12 @@ var spawn_BuildCreeps5 = {
 			if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 				//In case of complete destruction, make a minimum viable worker
 				//Make sure 5+ work code has harvester backup path
-				if (Game.getObjectById(strStorage[0]).store[RESOURCE_ENERGY] >= 1100) {
+				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 1100) {
 					//There's enough in storage for a minimum and a miner. Spawn a crappy mule
 					spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 						priority: 'mule',
 						linkSource: strLinks[1],
-						storageSource: strStorage[0],
+						storageSource: thisRoom.storage.id,
 						terminalID: strTerminal[0],
 						fromSpawn: spawn.id
 					});
@@ -152,7 +152,7 @@ var spawn_BuildCreeps5 = {
 							if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
 								spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 									priority: 'salvager',
-									storageTarget: strStorage[0]
+									storageTarget: thisRoom.storage.id
 								});
 								Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
 							}
@@ -260,7 +260,7 @@ var spawn_BuildCreeps5 = {
 
 				if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule')) {
 					prioritizedRole = 'mule';
-					storageID = strStorage[0];
+					storageID = thisRoom.storage.id;
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
 					if (thisRoom.energyAvailable < muleConfigCost) {
@@ -273,7 +273,7 @@ var spawn_BuildCreeps5 = {
 							if (!blockedSubRole.includes('storageMiner')) {
 								prioritizedRole = 'miner';
 								creepSource = strSources[0];
-								connectedLink = strStorage[0];
+								connectedLink = thisRoom.storage.id;
 								jobSpecificPri = 'storageMiner';
 							}
 							break;
@@ -288,16 +288,16 @@ var spawn_BuildCreeps5 = {
 					}
 				} else if (mules.length < muleMax && !blockedRole.includes('mule')) {
 					prioritizedRole = 'mule';
-					storageID = strStorage[0];
+					storageID = thisRoom.storage.id;
 					connectedLink = strLinks[1];
 					creepSource = strTerminal[0];
 				} else if (upgraders.length < upgraderMax && !blockedRole.includes('upgrader')) {
 					prioritizedRole = 'upgrader';
-					storageID = strStorage[0];
+					storageID = thisRoom.storage.id;
 					connectedLink = strLinks[1];
 				} else if (repairers.length < repairMax && !blockedRole.includes('repair')) {
 					prioritizedRole = 'repair';
-					storageID = strStorage[0];
+					storageID = thisRoom.storage.id;
 				} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner')) {
 					prioritizedRole = 'mineralMiner';
 					storageID = strTerminal[0];
@@ -377,7 +377,7 @@ var spawn_BuildCreeps5 = {
 						spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
 							priority: 'mule',
 							linkSource: strLinks[1],
-							storageSource: strStorage[0],
+							storageSource: thisRoom.storage.id,
 							terminalID: strTerminal[0],
 							fromSpawn: spawn.id
 						});

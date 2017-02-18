@@ -254,7 +254,9 @@ var creep_farMining = {
 				});
 			}
 
-			creep.heal(creep);
+			if(creep.hits < creep.hitsMax){
+				creep.heal(creep);
+			}	
 
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
