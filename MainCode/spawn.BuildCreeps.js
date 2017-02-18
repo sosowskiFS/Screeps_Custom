@@ -7,6 +7,8 @@ var spawn_BuildCreeps = {
 		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
 		var repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
 
+		var defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
+
 		var harvesterMax = 3;
 		var builderMax = 2;
 		var upgraderMax = 2;
@@ -26,7 +28,7 @@ var spawn_BuildCreeps = {
 				priority: 'harvester',
 				sourceLocation: strSources[1]
 			});
-		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && thisRoom.energyAvailable >= 850) {
+		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && thisRoom.energyAvailable >= 850 && defenders.count < 2) {
 			//Try to produce millitary units
 
 			//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
