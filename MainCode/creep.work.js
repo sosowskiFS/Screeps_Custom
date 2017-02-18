@@ -11,10 +11,11 @@ var creep_work = {
 			}
 		}
 
-		if ((creep.memory.building && creep.carry.energy == 0) || (creep.memory.storing && creep.carry.energy == 0) || (creep.memory.upgrading && creep.carry.energy == 0)) {
+		if ((creep.memory.building && creep.carry.energy == 0) || (creep.memory.storing && creep.carry.energy == 0) || (creep.memory.upgrading && creep.carry.energy == 0) || (creep.memory.repairing && creep.carry.energy == 0)) {
 			creep.memory.building = false;
 			creep.memory.storing = false;
 			creep.memory.upgrading = false;
+			creep.memory.repairing = false;
 			creep.memory.structureTarget = undefined;
 		}
 		if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && !creep.memory.repairing && _.sum(creep.carry) == creep.carryCapacity) {
@@ -156,7 +157,6 @@ var creep_work = {
 					}
 				}
 			}
-
 		} else if (creep.memory.upgrading) {
 			if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
 				creep.moveTo(creep.room.controller, {
