@@ -17,7 +17,7 @@ var creep_work = {
 			creep.memory.upgrading = false;
 			creep.memory.structureTarget = undefined;
 		}
-		if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && _.sum(creep.carry) == creep.carryCapacity) {
+		if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && !creep.memory.repairing && _.sum(creep.carry) == creep.carryCapacity) {
 			switch (creep.memory.priority) {
 				case 'builder':
 					creep.memory.building = true;
@@ -31,6 +31,9 @@ var creep_work = {
 					creep.memory.upgrading = true;
 					creep.memory.structureTarget = undefined;
 					break;
+				case 'repair':
+					creep.memory.repairing = true;
+					creep.memory.structureTarget = undefined;
 				default:
 					//fucking what
 					creep.memory.building = true;
@@ -160,6 +163,47 @@ var creep_work = {
 					reusePath: 20
 				});
 			}
+		} else if (creep.memory.repairing) {
+			if (creep.memory.structureTarget) {
+				var thisStructure = Game.getObjectById(creep.memory.structureTarget);
+				if (thisStructure) {
+					if (thisStructure.hits == thisStructure.hitsMax) {
+						creep.memory.structureTarget = undefined;
+					} else {
+						if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(thisStructure, {
+								reusePath: 25
+							});
+						}
+						creep.room.visual.circle(thisStructure.pos, {
+							fill: 'transparent',
+							stroke: 'green',
+							radius: 0.75
+						});
+						var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+						creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
+							align: 'left',
+							color: '#7DE3B5',
+							size: 0.7
+						});
+					}
+				} else {
+					creep.memory.structureTarget = undefined;
+				}
+			} else {
+				var closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+					filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+				});
+				if (closestDamagedStructure.length > 0) {
+					closestDamagedStructure.sort(repairCompare);
+					creep.memory.structureTarget = closestDamagedStructure[0].id;
+					if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(closestDamagedStructure[0], {
+							reusePath: 25
+						});
+					}
+				}
+			}
 		} else {
 			//Harvest
 			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
@@ -234,6 +278,9 @@ var creep_work = {
 							case 'upgrader':
 								creep.memory.upgrading = true;
 								break;
+							case 'repair':
+								creep.memory.repairing = true;
+								break;
 							default:
 								//fucking what
 								creep.memory.building = true;
@@ -255,5 +302,13 @@ var creep_work = {
 		}
 	}
 };
+
+function repairCompare(a, b) {
+	if (a.hits < b.hits)
+		return -1;
+	if (a.hits > b.hits)
+		return 1;
+	return 0;
+}
 
 module.exports = creep_work;

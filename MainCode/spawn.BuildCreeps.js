@@ -5,12 +5,12 @@ var spawn_BuildCreeps = {
 		var harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
 		var builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
 		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
+		var repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
 
-		var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
-
-		var harvesterMax = 2;
-		var builderMax = 1;
+		var harvesterMax = 3;
+		var builderMax = 2;
 		var upgraderMax = 2;
+		var repairMax = 1;
 		//How many creeps can mine at once
 		var mineSpots = [2, 5];
 		//Add sources from N to S
@@ -104,7 +104,7 @@ var spawn_BuildCreeps = {
 				priority: 'defender'
 			});
 
-		} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax) && spawn.canCreateCreep(bestWorker) == OK) {
+		} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(bestWorker) == OK) {
 			var prioritizedRole = 'harvester';
 			if (harvesters.length < harvesterMax) {
 				prioritizedRole = 'harvester';
@@ -112,6 +112,8 @@ var spawn_BuildCreeps = {
 				prioritizedRole = 'upgrader';
 			} else if (builders.length < builderMax) {
 				prioritizedRole = 'builder';
+			} else if (repairers.length < repairMax) {
+				prioritizedRole = 'repair';
 			}
 
 			var creepSourceID = '';
