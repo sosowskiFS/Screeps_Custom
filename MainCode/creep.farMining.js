@@ -30,7 +30,9 @@ var creep_farMining = {
 				}
 
 				if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(creep.room.controller);
+					creep.moveTo(creep.room.controller, {
+						reusePath: 25
+					});
 				}
 			}
 		} else if (creep.memory.priority == 'farMiner' || creep.memory.priority == 'farMinerNearDeath') {
@@ -48,7 +50,9 @@ var creep_farMining = {
 			}
 
 			if (creep.room.name != creep.memory.destination) {
-				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+					reusePath: 25
+				});
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
@@ -67,7 +71,7 @@ var creep_farMining = {
 					if (mineTarget && _.sum(creep.carry) <= 35) {
 						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(mineTarget, {
-								reusePath: 5
+								reusePath: 25
 							});
 						}
 					}
@@ -84,7 +88,7 @@ var creep_farMining = {
 					if (mineTarget) {
 						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(mineTarget, {
-								reusePath: 5
+								reusePath: 25
 							});
 						}
 					}
@@ -97,7 +101,9 @@ var creep_farMining = {
 							creep.repair(thisUnit);
 						} else {
 							if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(thisUnit);
+								creep.moveTo(thisUnit, {
+									reusePath: 25
+								});
 							}
 						}
 					}
@@ -109,14 +115,18 @@ var creep_farMining = {
 							});
 							if (containers.length) {
 								if (creep.transfer(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-									creep.moveTo(containers[0]);
+									creep.moveTo(containers[0], {
+										reusePath: 25
+									});
 								}
 								creep.memory.storageUnit = containers[0].id;
 							} else {
 								var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 5)
 								if (sites.length) {
 									if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(sites[0]);
+										creep.moveTo(sites[0], {
+											reusePath: 25
+										});
 									}
 								} else {
 									//Create new container
@@ -148,13 +158,19 @@ var creep_farMining = {
 				if (droppedSources.length) {
 					//Pick up dropped energy from dead mules, etc.
 					if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(droppedSources[0]);
+						creep.moveTo(droppedSources[0], {
+							reusePath: 25
+						});
 					}
 				} else {
-					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+						reusePath: 25
+					});
 				}
 			} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 900) {
-				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom));
+				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
+					reusePath: 25
+				});
 			} else {
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
@@ -171,7 +187,9 @@ var creep_farMining = {
 					if (droppedSources.length) {
 						//Pick up dropped energy from dead mules, etc.
 						if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(droppedSources[0]);
+							creep.moveTo(droppedSources[0], {
+								reusePath: 25
+							});
 						}
 					} else {
 						//in farRoom, pick up container contents
@@ -181,7 +199,7 @@ var creep_farMining = {
 								if (thisContainer.store[RESOURCE_ENERGY] > 0) {
 									if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 										creep.moveTo(thisContainer, {
-											reusePath: 20,
+											reusePath: 25,
 											ignoreRoads: true
 										});
 									}
@@ -206,7 +224,7 @@ var creep_farMining = {
 							var thisSource = Game.getObjectById(creep.memory.mineSource);
 							if (thisSource) {
 								creep.moveTo(thisSource, {
-									reusePath: 20,
+									reusePath: 25,
 									ignoreRoads: true
 								});
 								if (creep.pos.inRangeTo(thisSource, 5)) {
@@ -218,7 +236,7 @@ var creep_farMining = {
 										creep.memory.containerTarget = containers[0].id;
 										if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 											creep.moveTo(containers[0], {
-												reusePath: 20,
+												reusePath: 25,
 												ignoreRoads: true
 											});
 										}
@@ -233,7 +251,7 @@ var creep_farMining = {
 					if (storageUnit) {
 						if (creep.transfer(storageUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(storageUnit, {
-								reusePath: 20,
+								reusePath: 25,
 								ignoreRoads: true
 							});
 						}
@@ -254,12 +272,14 @@ var creep_farMining = {
 				});
 			}
 
-			if(creep.hits < creep.hitsMax){
+			if (creep.hits < creep.hitsMax) {
 				creep.heal(creep);
-			}	
+			}
 
 			if (creep.room.name != creep.memory.destination) {
-				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+					reusePath: 25
+				});
 			} else {
 
 				if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
@@ -287,7 +307,7 @@ var creep_farMining = {
 								creep.moveTo(Game.flags[creep.memory.targetFlag])
 							} else {
 								creep.moveTo(Foe);
-							}				
+							}
 							creep.rangedAttack(Foe);
 						} else {
 							var foeDirection = creep.pos.getDirectionTo(Foe);
