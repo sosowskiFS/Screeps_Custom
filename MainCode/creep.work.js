@@ -37,7 +37,7 @@ var creep_work = {
 					creep.memory.structureTarget = undefined;
 				default:
 					//fucking what
-					creep.memory.building = true;
+					creep.memory.repairing = true;
 					creep.memory.structureTarget = undefined;
 					break;
 			}
@@ -283,7 +283,7 @@ var creep_work = {
 								break;
 							default:
 								//fucking what
-								creep.memory.building = true;
+								creep.memory.repairing = true;
 								break;
 						}
 					}
