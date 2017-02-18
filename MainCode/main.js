@@ -586,7 +586,7 @@ module.exports.loop = function() {
                 creep_Helper.run(creep);
                 break;
             case 'defender':
-                creep_combat.run(creep, thisRoom);
+                creep_combat.run(creep);
                 break;
             default:
                 if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {

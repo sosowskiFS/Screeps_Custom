@@ -1,11 +1,11 @@
 var creep_combat = {
 
 	/** @param {Creep} creep **/
-	run: function(creep, thisRoom, thisSpawn) {
+	run: function(creep) {
 		//Defensive-focused attack
 		//Only run this code if the room is being invaded, remain offline otherwise.
 		//(Saves running excess finds in peacetime)
-		if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+		if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
 			//Move towards rampart
 			var flagName = creep.room.name + 'Rampart';
 			var flagCounter = 1;
