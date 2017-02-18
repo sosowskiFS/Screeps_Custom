@@ -98,8 +98,13 @@ var spawn_BuildFarCreeps = {
 				//2500 Points
 				farMuleConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 			}
-			//1650 Points
-			var farClaimerConfig = [MOVE, MOVE, MOVE, CLAIM, CLAIM, CLAIM];
+			//1300 Points
+			var farClaimerConfig = [MOVE, MOVE, CLAIM, CLAIM];
+			if (thisRoom.energyCapacityAvailable >= 1950) {
+				//1950 Points
+				farClaimerConfig = [MOVE, MOVE, MOVE, CLAIM, CLAIM, CLAIM];
+			}
+
 			//1300 Points
 			var farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL];
 			if (thisRoom.energyCapacityAvailable >= 2500) {
