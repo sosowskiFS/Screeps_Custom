@@ -96,7 +96,7 @@ var creep_work5 = {
 
 				if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(creep.room.controller, {
-						reusePath: 20
+						reusePath: 25
 					});
 				}
 
@@ -104,7 +104,7 @@ var creep_work5 = {
 				if (linkTarget) {
 					if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(linkTarget, {
-							reusePath: 20
+							reusePath: 25
 						});
 					}
 				}
@@ -320,7 +320,7 @@ var creep_work5 = {
 						if (storageTarget.store[RESOURCE_ENERGY] >= 120) {
 							if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(storageTarget, {
-									reusePath: 20
+									reusePath: 25
 								});
 							}
 						} else {
@@ -328,7 +328,7 @@ var creep_work5 = {
 							if (spawnTarget) {
 								if (!creep.pos.isNearTo(spawnTarget)) {
 									creep.moveTo(spawnTarget, {
-										reusePath: 5
+										reusePath: 25
 									});
 								}
 							}
@@ -342,7 +342,7 @@ var creep_work5 = {
 						} else {
 							if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(thisStructure, {
-									reusePath: 20
+									reusePath: 25
 								});
 							}
 							creep.room.visual.circle(thisStructure.pos, {
@@ -369,7 +369,7 @@ var creep_work5 = {
 						creep.memory.structureTarget = closestDamagedStructure[0].id;
 						if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(closestDamagedStructure[0], {
-								reusePath: 20
+								reusePath: 25
 							});
 						}
 					}
@@ -393,7 +393,7 @@ var creep_work5 = {
 						if (thisExtractor.cooldown == 0) {
 							if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(thisMineral, {
-									reusePath: 20
+									reusePath: 25
 								});
 							}
 						}
@@ -415,17 +415,23 @@ var creep_work5 = {
 					creep.suicide();
 				} else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
 					if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(sources);
+						creep.moveTo(sources, {
+							reusePath: 25
+						});
 					}
 				}
 				if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) > 100) {
 					var storageTarget = creep.room.storage;
 					if (Object.keys(creep.carry).length > 1) {
 						if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(storageTarget);
+							creep.moveTo(storageTarget, {
+								reusePath: 25
+							});
 						}
 					} else if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(storageTarget);
+						creep.moveTo(storageTarget, {
+							reusePath: 25
+						});
 					}
 				}
 				break;

@@ -3,9 +3,13 @@ var creep_looter = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 500) {
-            creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+            creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                reusePath: 25
+            });
         } else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 500) {
-            creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom));
+            creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
+                reusePath: 25
+            });
         } else {
             if (_.sum(creep.carry) <= 500) {
                 //In far room, loot container
@@ -19,7 +23,7 @@ var creep_looter = {
                     } else {
                         if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(creep.room.storage, {
-                                reusePath: 20
+                                reusePath: 25
                             });
                         }
                     }
@@ -29,7 +33,7 @@ var creep_looter = {
                 if (creep.room.storage) {
                     if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(creep.room.storage, {
-                            reusePath: 5
+                            reusePath: 25
                         });
                     }
                 }
