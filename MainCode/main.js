@@ -599,7 +599,11 @@ module.exports.loop = function() {
                 break;
             default:
                 if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
-                    creep_work.run(creep);
+                    if (Game.spawns.length < 5) {
+                        creep_work.run(creep, 2);
+                    } else {
+                        creep_work.run(creep, 15);
+                    }                   
                 } else {
                     if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
                         //In case of emergency

@@ -1,7 +1,7 @@
 var creep_work = {
 
 	/** @param {Creep} creep **/
-	run: function(creep) {
+	run: function(creep, moveRecalc) {
 
 		if (creep.carry.energy > 0) {
 			//All creeps check for road under them and repair if needed.
@@ -57,7 +57,7 @@ var creep_work = {
 			if (savedTarget) {
 				if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(savedTarget, {
-						reusePath: 20
+						reusePath: moveRecalc
 					});
 				} else {
 					creep.memory.structureTarget = undefined;
@@ -68,7 +68,7 @@ var creep_work = {
 					creep.memory.structureTarget = targets.id;
 					if (creep.build(targets) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(targets, {
-							reusePath: 20
+							reusePath: moveRecalc
 						});
 					}
 				} else {
@@ -160,7 +160,7 @@ var creep_work = {
 		} else if (creep.memory.upgrading) {
 			if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
 				creep.moveTo(creep.room.controller, {
-					reusePath: 20
+					reusePath: moveRecalc
 				});
 			}
 		} else if (creep.memory.repairing) {
@@ -172,7 +172,7 @@ var creep_work = {
 					} else {
 						if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(thisStructure, {
-								reusePath: 25
+								reusePath: moveRecalc
 							});
 						}
 						creep.room.visual.circle(thisStructure.pos, {
@@ -199,7 +199,7 @@ var creep_work = {
 					creep.memory.structureTarget = closestDamagedStructure[0].id;
 					if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(closestDamagedStructure[0], {
-							reusePath: 25
+							reusePath: moveRecalc
 						});
 					}
 				}
@@ -212,7 +212,7 @@ var creep_work = {
 					if (savedTarget.store[RESOURCE_ENERGY] > 0) {
 						if (creep.withdraw(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(savedTarget, {
-								reusePath: 20
+								reusePath: moveRecalc
 							});
 						}
 					} else {
@@ -290,7 +290,7 @@ var creep_work = {
 					var harvestResult = creep.harvest(sources);
 					if (harvestResult == ERR_NOT_IN_RANGE) {
 						creep.moveTo(sources, {
-							reusePath: 20
+							reusePath: moveRecalc
 						});
 					} else if (harvestResult == ERR_INVALID_TARGET) {
 						if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
