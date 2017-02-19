@@ -342,6 +342,14 @@ var creep_farMining = {
 							creep.rangedAttack(Foe);
 						}
 					}
+				} else if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
+					var hSpawn = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
+					if (hSpawn) {
+						creep.moveTo(hSpawn);
+						creep.rangedAttack(hSpawn);
+					} else {
+						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
+					}
 				} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
 					creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
 				}
