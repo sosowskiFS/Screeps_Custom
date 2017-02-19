@@ -500,7 +500,7 @@ module.exports.loop = function() {
             spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
         }
 
-        if (Game.flags[thisRoom.name + "FarMining"]) {
+        if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
             //Run farMining spawn
             spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
         }
