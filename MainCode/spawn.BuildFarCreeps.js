@@ -108,9 +108,9 @@ var spawn_BuildFarCreeps = {
 			//760 Points (Level 3)
 			var farGuardConfig = [TOUGH, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, HEAL];
 
-			if (thisRoom.energyCapacityAvailable >= 1270) {
-				//1270 Points
-				var farGuardConfig = [TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, HEAL];
+			if (thisRoom.energyCapacityAvailable >= 1250) {
+				//1250 Points
+				var farGuardConfig = [TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
 			}
 
 			if (thisRoom.energyCapacityAvailable >= 2500) {
