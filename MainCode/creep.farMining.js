@@ -296,16 +296,25 @@ var creep_farMining = {
 				if (Foe) {
 					if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
 						//Guard specific spot, fire at things nearby
-						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
+						try {
+							creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
+						} catch (e) {
+							//Eat it
+						}
 						if (creep.pos.getRangeTo(Foe) <= 3) {
 							creep.rangedAttack(Foe);
 						}
 					} else {
 						creep.say('REEEEEEEEE', true);
 						if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0)) {
-							if (creep.pos.getRangeTo(Game.flags[creep.memory.targetFlag]) > 23 && !creep.room.controller.owner && !creep.room.controller.reservation) {
-								creep.moveTo(Game.flags[creep.memory.targetFlag])
-							} else {
+							try {
+								if (creep.pos.getRangeTo(Game.flags[creep.memory.targetFlag]) > 23 && !creep.room.controller.owner && !creep.room.controller.reservation) {
+									creep.moveTo(Game.flags[creep.memory.targetFlag])
+								} else {
+									creep.moveTo(Foe);
+								}
+							} catch (e) {
+								//No flag, move to foe
 								creep.moveTo(Foe);
 							}
 							creep.rangedAttack(Foe);
@@ -348,10 +357,16 @@ var creep_farMining = {
 						creep.moveTo(hSpawn);
 						creep.rangedAttack(hSpawn);
 					} else {
-						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
+						try {
+							creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
+						} catch (e) {
+							//Eat it
+						}						
 					}
-				} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-					creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
+				} else if (Game.flags[creep.memory.targetFlag]) {
+					if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
+						creep.moveTo(Game.flags[creep.memory.targetFlag]);
+					}				
 				}
 			}
 		}
