@@ -295,10 +295,10 @@ var creep_farMining = {
 					reusePath: 25
 				});
 			} else if (Foe) {
-				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || creep.getActiveBodyparts(RANGED_ATTACK) == 0) {
+				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0 && creep.hits == creep.hitsMax)) {
 					creep.moveTo(Foe);
 					creep.attack(Foe);
-					//creep.rangedAttack(Foe);
+					creep.rangedAttack(Foe);
 				} else {
 					var foeDirection = creep.pos.getDirectionTo(Foe);
 					var evadeDirection = TOP;
@@ -330,14 +330,14 @@ var creep_farMining = {
 					}
 					creep.move(evadeDirection);
 					creep.attack(Foe);
-					//creep.rangedAttack(Foe);
+					creep.rangedAttack(Foe);
 				}
 			} else if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
 				var hSpawn = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
 				if (hSpawn) {
 					creep.moveTo(hSpawn);
 					creep.attack(hSpawn);
-					//creep.rangedAttack(hSpawn);
+					creep.rangedAttack(hSpawn);
 				} else {
 					try {
 						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
