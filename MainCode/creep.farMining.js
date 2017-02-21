@@ -289,7 +289,12 @@ var creep_farMining = {
 			}
 
 			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-			if (Foe) {
+
+			if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
+				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+					reusePath: 25
+				});
+			} else if (Foe) {
 				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || creep.getActiveBodyparts(RANGED_ATTACK) == 0) {
 					creep.moveTo(Foe);
 					creep.attack(Foe);
