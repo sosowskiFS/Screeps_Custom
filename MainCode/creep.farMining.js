@@ -259,6 +259,7 @@ var creep_farMining = {
 				}
 			}
 		} else if (creep.memory.priority == 'farGuard' || creep.memory.priority == 'farGuardNearDeath') {
+			creep.notifyWhenAttacked(false);
 			if (creep.ticksToLive <= 70) {
 				creep.memory.priority == 'farGuardNearDeath';
 				creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
