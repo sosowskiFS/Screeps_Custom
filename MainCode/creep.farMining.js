@@ -290,62 +290,49 @@ var creep_farMining = {
 
 			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 			if (Foe) {
-				if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
-					//Guard specific spot, fire at things nearby
-					try {
-						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
-					} catch (e) {
-						//Eat it
-					}
-					if (creep.pos.getRangeTo(Foe) <= 3) {
-						creep.attack(Foe);
-						creep.rangedAttack(Foe);
-					}
+				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || creep.getActiveBodyparts(RANGED_ATTACK) == 0) {
+					creep.moveTo(Foe);
+					creep.attack(Foe);
+					//creep.rangedAttack(Foe);
 				} else {
-					if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0)) {
-						creep.moveTo(Foe);
-						creep.attack(Foe);
-						creep.rangedAttack(Foe);
-					} else {
-						var foeDirection = creep.pos.getDirectionTo(Foe);
-						var evadeDirection = TOP;
-						switch (foeDirection) {
-							case TOP:
-								evadeDirection = BOTTOM;
-								break;
-							case TOP_RIGHT:
-								evadeDirection = BOTTOM_LEFT;
-								break;
-							case RIGHT:
-								evadeDirection = LEFT;
-								break;
-							case BOTTOM_RIGHT:
-								evadeDirection = TOP_LEFT;
-								break;
-							case BOTTOM:
-								evadeDirection = TOP;
-								break;
-							case BOTTOM_LEFT:
-								evadeDirection = TOP_RIGHT;
-								break;
-							case LEFT:
-								evadeDirection = RIGHT;
-								break;
-							case TOP_LEFT:
-								evadeDirection = BOTTOM_RIGHT;
-								break;
-						}
-						creep.move(evadeDirection);
-						creep.attack(Foe);
-						creep.rangedAttack(Foe);
+					var foeDirection = creep.pos.getDirectionTo(Foe);
+					var evadeDirection = TOP;
+					switch (foeDirection) {
+						case TOP:
+							evadeDirection = BOTTOM;
+							break;
+						case TOP_RIGHT:
+							evadeDirection = BOTTOM_LEFT;
+							break;
+						case RIGHT:
+							evadeDirection = LEFT;
+							break;
+						case BOTTOM_RIGHT:
+							evadeDirection = TOP_LEFT;
+							break;
+						case BOTTOM:
+							evadeDirection = TOP;
+							break;
+						case BOTTOM_LEFT:
+							evadeDirection = TOP_RIGHT;
+							break;
+						case LEFT:
+							evadeDirection = RIGHT;
+							break;
+						case TOP_LEFT:
+							evadeDirection = BOTTOM_RIGHT;
+							break;
 					}
+					creep.move(evadeDirection);
+					creep.attack(Foe);
+					//creep.rangedAttack(Foe);
 				}
 			} else if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
 				var hSpawn = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
 				if (hSpawn) {
 					creep.moveTo(hSpawn);
 					creep.attack(hSpawn);
-					creep.rangedAttack(hSpawn);
+					//creep.rangedAttack(hSpawn);
 				} else {
 					try {
 						creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
