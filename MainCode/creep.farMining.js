@@ -301,33 +301,85 @@ var creep_farMining = {
 					creep.rangedAttack(Foe);
 				} else {
 					var foeDirection = creep.pos.getDirectionTo(Foe);
-					var evadeDirection = TOP;
-					switch (foeDirection) {
-						case TOP:
-							evadeDirection = BOTTOM;
-							break;
-						case TOP_RIGHT:
-							evadeDirection = BOTTOM_LEFT;
-							break;
-						case RIGHT:
-							evadeDirection = LEFT;
-							break;
-						case BOTTOM_RIGHT:
-							evadeDirection = TOP_LEFT;
-							break;
-						case BOTTOM:
-							evadeDirection = TOP;
-							break;
-						case BOTTOM_LEFT:
-							evadeDirection = TOP_RIGHT;
-							break;
-						case LEFT:
-							evadeDirection = RIGHT;
-							break;
-						case TOP_LEFT:
-							evadeDirection = BOTTOM_RIGHT;
-							break;
+					var evadeDirection = 1;
+					var loopCounter = 0;
+					var badDir = [];
+					var CanMove = false;
+					while (!CanMove || loopCounter <= 3) {
+						var modifiedPos = creep.pos;
+						switch (foeDirection) {
+							case 1:
+								evadeDirection = 5;
+								break;
+							case 2:
+								evadeDirection = 6;
+								break;
+							case 3:
+								evadeDirection = 7;
+								break;
+							case 4:
+								evadeDirection = 8;
+								break;
+							case 5:
+								evadeDirection = 1;
+								break;
+							case 6:
+								evadeDirection = 2;
+								break;
+							case 7:
+								evadeDirection = 3;
+								break;
+							case 8:
+								evadeDirection = 4;
+								break;
+						}
+						if (badDir.includes(evadeDirection)) {
+							evadeDirection = evadeDirection + loopCounter;
+							if (evadeDirection > 8) {
+								evadeDirection = evadeDirection - 8;
+							}
+						}
+						switch (evadeDirection) {
+							case 1:
+								modifiedPos.y++;
+								break;
+							case 2:
+								modifiedPos.y++;
+								modifiedPos.x--;
+								break;
+							case 3:
+								modifiedPos.x--;
+								break;
+							case 4:
+								modifiedPos.y--;
+								modifiedPos.x--;
+								break;
+							case 5:
+								modifiedPos.y--;
+								break;
+							case 6:
+								modifiedPos.y--;
+								modifiedPos.x++;
+								break;
+							case 7:
+								modifiedPos.x++;
+								break;
+							case 8:
+								modifiedPos.y++;
+								modifiedPos.x++;
+								break;
+						}
+						var targetTerrain = modifiedPos.lookFor(LOOK_TERRAIN);
+						if (targetTerrain) {
+							if (!OBSTACLE_OBJECT_TYPES.includes(targetTerrain.terrain)) {
+								CanMove = true;
+							} else {
+								badDir.push(evadeDirection);
+							}
+						}
+						loopCounter++;
 					}
+
 					creep.move(evadeDirection);
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
