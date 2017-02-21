@@ -295,7 +295,7 @@ var creep_farMining = {
 					reusePath: 25
 				});
 			} else if (Foe) {
-				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0 && creep.hits == creep.hitsMax)) {
+				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0)) {
 					creep.moveTo(Foe);
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
