@@ -30,6 +30,16 @@ var spawn_BuildCreeps = {
 
 			var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
+			//For Level 4
+			if (thisRoom.storage) {
+				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 10000) {
+					upgraderMax++;
+				}
+				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 20000) {
+					upgraderMax++;
+				}
+			}
+
 			if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 				//In case of complete destruction, make a minimum viable worker
 				spawn.createCreep(bareMinConfig, undefined, {
