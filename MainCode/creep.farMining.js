@@ -153,7 +153,7 @@ var creep_farMining = {
 				});
 			}
 
-			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 800) {
+			if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 600) {
 				var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 				if (droppedSources.length) {
 					//Pick up dropped energy from dead mules, etc.
@@ -167,7 +167,7 @@ var creep_farMining = {
 						reusePath: 25
 					});
 				}
-			} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 800) {
+			} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 600) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
 					reusePath: 25
 				});
@@ -182,7 +182,7 @@ var creep_farMining = {
 					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
-				if (_.sum(creep.carry) <= 800) {
+				if (_.sum(creep.carry) <= 600) {
 					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 10);
 					if (droppedSources.length) {
 						//Pick up dropped energy from dead mules, etc.
