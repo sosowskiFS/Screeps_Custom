@@ -11,6 +11,10 @@ var creep_work = {
 			}
 		}
 
+		if (!creep.memory.lastHP) {
+			creep.memory.lastHP = creep.hits;
+		}
+
 		if ((creep.memory.building && creep.carry.energy == 0) || (creep.memory.storing && creep.carry.energy == 0) || (creep.memory.upgrading && creep.carry.energy == 0) || (creep.memory.repairing && creep.carry.energy == 0)) {
 			creep.memory.building = false;
 			creep.memory.storing = false;
@@ -300,6 +304,18 @@ var creep_work = {
 				}
 			}
 		}
+
+		if (creep.memory.lastHP > creep.hits) {
+			var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+				filter: (structure) => {
+					return structure.structureType == STRUCTURE_SPAWN;
+				}
+			});
+			if (spawnTarget) {
+				creep.moveTo(spawnTarget);
+			}		
+		}
+		creep.memory.lastHP = creep.hits;
 	}
 };
 
