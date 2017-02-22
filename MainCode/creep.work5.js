@@ -23,6 +23,10 @@ var creep_work5 = {
 			}
 		}
 
+		if (!creep.memory.lastHP) {
+			creep.memory.lastHP = creep.hits;
+		}
+
 		switch (creep.memory.priority) {
 			case 'miner':
 			case 'minerNearDeath':
@@ -436,6 +440,18 @@ var creep_work5 = {
 				}
 				break;
 		}
+
+		if (creep.memory.lastHP > creep.hits) {
+			var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+				filter: (structure) => {
+					return structure.structureType == STRUCTURE_SPAWN;
+				}
+			});
+			if (spawnTarget) {
+				creep.moveTo(spawnTarget);
+			}
+		}
+		creep.memory.lastHP = creep.hits;
 	}
 };
 
