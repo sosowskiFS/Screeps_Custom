@@ -114,11 +114,7 @@ var creep_work = {
 				});
 				if (targets) {
 					creep.memory.structureTarget = targets.id;
-					if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(targets);
-					} else {
-						creep.memory.structureTarget = undefined;
-					}
+					creep.moveTo(targets);
 				} else {
 					targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (structure) => {
@@ -127,11 +123,7 @@ var creep_work = {
 					});
 					if (targets) {
 						creep.memory.structureTarget = targets.id;
-						if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(targets);
-						} else {
-							creep.memory.structureTarget = undefined;
-						}
+						creep.moveTo(targets);
 					} else {
 						//Containers call a different function to check contents
 						//(WHYYYYY)
@@ -143,11 +135,7 @@ var creep_work = {
 						});
 						if (containers && creep.memory.priority == 'harvester') {
 							creep.memory.structureTarget = containers.id;
-							if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(containers);
-							} else {
-								creep.memory.structureTarget = undefined;
-							}
+							creep.moveTo(containers);
 						} else if (creep.memory.priority == 'harvester') {
 							//Try to build first      
 							creep.memory.storing = false;
@@ -313,7 +301,7 @@ var creep_work = {
 			});
 			if (spawnTarget) {
 				creep.moveTo(spawnTarget);
-			}		
+			}
 		}
 		creep.memory.lastHP = creep.hits;
 	}
