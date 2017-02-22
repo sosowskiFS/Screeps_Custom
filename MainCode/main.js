@@ -76,6 +76,7 @@ module.exports.loop = function() {
 
     if (Game.flags["ToggleWar"]) {
         Memory.warMode = !Memory.warMode;
+        Game.flags["ToggleWar"].remove();
     }
 
     //Use experimental PathFinder
