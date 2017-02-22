@@ -60,6 +60,9 @@ module.exports.loop = function() {
         }
     }
 
+    //Set defaults on various memory values
+    memCheck();
+
     //Reset average CPU usage records on request
     if (Game.flags["ResetAverages"]) {
         Memory.totalTicksSpawnRecorded = 0;
@@ -71,11 +74,12 @@ module.exports.loop = function() {
         Game.flags["ResetAverages"].remove();
     }
 
+    if (Game.flags["ToggleWar"]) {
+        Memory.warMode = !Memory.warMode;
+    }
+
     //Use experimental PathFinder
     PathFinder.use(true);
-
-    //Set defaults on various memory values
-    memCheck();
 
     var roomDist = 999;
     var roomName = '';
@@ -93,6 +97,15 @@ module.exports.loop = function() {
         if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
             //Populate the room creeps memory.
             Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
+
+            //Note that warMode is on
+            if (Memory.warMode) {
+                thisRoom.visual.text("War Mode", 0, 49, {
+                    align: 'left',
+                    size: 2,
+                    color: '#7DE3B5'
+                });
+            }
 
             //Display the remaining progress of the controller
             var remainingEnergy = thisRoom.controller.progressTotal - thisRoom.controller.progress;
@@ -603,7 +616,7 @@ module.exports.loop = function() {
                         creep_work.run(creep, 2);
                     } else {
                         creep_work.run(creep, 15);
-                    }                   
+                    }
                 } else {
                     if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
                         //In case of emergency
@@ -675,6 +688,10 @@ function memCheck() {
     }
     if (!Memory.RoomsAt5) {
         Memory.RoomsAt5 = [];
+    }
+    //Boolean
+    if (Memory.warMode == null) {
+        Memory.warMode = false;
     }
     //Decimal
     if (!Memory.averageUsedCPU) {
