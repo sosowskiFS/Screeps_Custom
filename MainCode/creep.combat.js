@@ -5,6 +5,10 @@ var creep_combat = {
 		//Defensive-focused attack
 		//Only run this code if the room is being invaded, remain offline otherwise.
 		//(Saves running excess finds in peacetime)
+		if (creep.hits < creep.hitsMax) {
+			creep.heal(creep);
+		}
+
 		if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
 			//Move towards rampart
 			var flagName = creep.room.name + 'Rampart';
@@ -28,7 +32,7 @@ var creep_combat = {
 				creep.say('REEEEEEEEE', true);
 				creep.rangedAttack(Foe);
 				creep.attack(Foe);
-				if(!GotIt){
+				if (!GotIt) {
 					creep.moveTo(Foe);
 				}
 			}

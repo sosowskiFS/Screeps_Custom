@@ -67,18 +67,19 @@ var spawn_BuildCreeps = {
 				var MoveCount = 0;
 				var AttackCount = 0;
 				var RangedCount = 0;
+				var HealCount = 0;
 				var totalParts = 0;
 
 				var remainingEnergy = thisRoom.energyAvailable;
-				while ((remainingEnergy / 530) >= 1) {
+				while ((remainingEnergy / 560) >= 1) {
 					//switch (ChosenPriority) {
 					//case 'melee':
 					//ToughCount = ToughCount + 1;
 					MoveCount = MoveCount + 3;
-					AttackCount = AttackCount + 1;
-					RangedCount = RangedCount + 2;
+					AttackCount = AttackCount + 2;
+					HealCount = HealCount + 1;
 					totalParts = totalParts + 6;
-					remainingEnergy = remainingEnergy - 530;
+					remainingEnergy = remainingEnergy - 560;
 					//break;
 					//case 'ranged':
 					//MoveCount = MoveCount + 2;
