@@ -151,7 +151,7 @@ var creep_work5 = {
 					}
 				} else if (_.sum(creep.carry) > 0) {
 					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
-
+					var searchThisTick = false;
 					if (savedTarget) {
 						if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
 							//Only other blocker is build.
@@ -180,6 +180,7 @@ var creep_work5 = {
 								} else {
 									//assumed OK, drop target
 									creep.memory.structureTarget = undefined;
+									searchThisTick = true;
 								}
 							} else {
 								//Upgrading controller
@@ -214,13 +215,15 @@ var creep_work5 = {
 								});
 							} else if (creep.build(savedTarget) != OK) {
 								creep.memory.structureTarget = undefined;
+								searchThisTick = true;
 							}
 						}
 					} else {
 						creep.memory.structureTarget = undefined;
+						searchThisTick = true;
 					}
 					//Immediately find a new target if previous transfer worked
-					if (!creep.memory.structureTarget) {
+					if (!creep.memory.structureTarget || searchThisTick) {
 						var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
