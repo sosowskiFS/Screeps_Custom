@@ -382,6 +382,66 @@ var creep_work5 = {
 					}
 				}
 				break;
+			case 'supplier':
+				if (_.sum(creep.carry) == 0) {
+					//Get from storage
+					var storageTarget = creep.room.storage;
+					if (storageTarget) {
+						if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(storageTarget, {
+								reusePath: 25
+							});
+						}
+					}
+				} else {
+					var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						filter: (structure) => {
+							return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+						}
+					});
+					if (target) {
+						if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(target);
+						}
+				}
+				break;
+			case 'distributor':
+				if (_.sum(creep.carry) == 0) {
+					//Get from storage
+					var storageTarget = creep.room.storage;
+					if (storageTarget) {
+						if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(storageTarget, {
+								reusePath: 25
+							});
+						}
+					}
+				} else {
+					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+					if (savedTarget) {
+						if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(target);
+						} else {
+							creep.memory.structureTarget = undefined;
+						}
+					} else {
+						var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							filter: (structure) => {
+								return (structure.structureType == STRUCTURE_EXTENSION ||
+									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+							}
+						});
+						if (target) {
+							creep.memory.structureTarget = target;
+							if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(target);
+							} else {
+								creep.memory.structureTarget = undefined;
+							}
+						}
+					}
+				}
+				break;
 			case 'mineralMiner':
 				creep.room.visual.text("\u26CF\uD83D\uDDFB", creep.pos.x, creep.pos.y, {
 					align: 'left',
