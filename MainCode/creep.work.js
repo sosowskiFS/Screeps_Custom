@@ -15,14 +15,16 @@ var creep_work = {
 			creep.memory.lastHP = creep.hits;
 		}
 
-		if ((creep.memory.building && creep.carry.energy == 0) || (creep.memory.storing && creep.carry.energy == 0) || (creep.memory.upgrading && creep.carry.energy == 0) || (creep.memory.repairing && creep.carry.energy == 0)) {
+		if ((creep.memory.building && creep.carry.energy == 0) || (creep.memory.storing && creep.carry.energy == 0) || (creep.memory.upgrading && creep.carry.energy == 0) || (creep.memory.repairing && creep.carry.energy == 0) || (creep.memory.supplying && creep.carry.energy == 0) || (creep.memory.distributing && creep.carry.energy == 0)) {
 			creep.memory.building = false;
 			creep.memory.storing = false;
 			creep.memory.upgrading = false;
 			creep.memory.repairing = false;
+			creep.memory.supplying = false;
+			creep.memory.distributing = false;
 			creep.memory.structureTarget = undefined;
 		}
-		if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && !creep.memory.repairing && _.sum(creep.carry) == creep.carryCapacity) {
+		if (!creep.memory.building && !creep.memory.storing && !creep.memory.upgrading && !creep.memory.repairing && !creep.memory.supplying && !creep.memory.distributing && _.sum(creep.carry) == creep.carryCapacity) {
 			switch (creep.memory.priority) {
 				case 'builder':
 					creep.memory.building = true;
@@ -39,6 +41,15 @@ var creep_work = {
 				case 'repair':
 					creep.memory.repairing = true;
 					creep.memory.structureTarget = undefined;
+					break;
+				case 'supplier':
+					creep.memory.supplying = true;
+					creep.memory.structureTarget = undefined;
+					break;
+				case 'distributor':
+					creep.memory.distributing = true;
+					creep.memory.structureTarget = undefined;
+					break;
 				default:
 					//fucking what
 					creep.memory.repairing = true;
@@ -208,6 +219,42 @@ var creep_work = {
 					}
 				}
 			}
+		} else if (creep.memory.supplying) {
+			var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+				filter: (structure) => {
+					return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+				}
+			});
+			if (target) {
+				if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+					creep.moveTo(target);
+				}
+			}
+		} else if (creep.memory.distributing) {
+			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+				//If target is destroyed, this will prevent creep from locking up
+			if (savedTarget) {
+				if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+					creep.moveTo(savedTarget);
+				} else {
+					creep.memory.structureTarget = undefined;
+				}
+			} else {
+				var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+					filter: (structure) => {
+						return (structure.structureType == STRUCTURE_EXTENSION ||
+							structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+					}
+				});
+				if (target) {
+					creep.memory.structureTarget = targets.id;
+					if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(target);
+					} else {
+						creep.memory.structureTarget = undefined;
+					}
+				}
+			}
 		} else {
 			//Harvest
 			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
@@ -250,7 +297,7 @@ var creep_work = {
 						}
 					}
 				}
-				if (!targets) {
+				if (!targets && creep.memory.priority != 'supplier' && creep.memory.priority != 'distributor') {
 					//Mine it yourself
 					var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
 					if (sources) {
@@ -313,7 +360,7 @@ var creep_work = {
 			});
 			if (spawnTarget) {
 				creep.moveTo(spawnTarget);
-			}		
+			}
 		}
 		creep.memory.lastHP = creep.hits;
 	}

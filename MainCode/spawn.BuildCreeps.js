@@ -14,6 +14,8 @@ var spawn_BuildCreeps = {
 			var builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
 			var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
 			var repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
+			var suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
+			var distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
 
 			var defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
 
@@ -21,6 +23,8 @@ var spawn_BuildCreeps = {
 			var builderMax = 2;
 			var upgraderMax = 2;
 			var repairMax = 1;
+			var supplierMax = 0;
+			var distributorMax = 0;
 			//How many creeps can mine at once
 			var mineSpots = [2, 5];
 			//Add sources from N to S
@@ -32,8 +36,10 @@ var spawn_BuildCreeps = {
 
 			//For Level 4
 			if (thisRoom.storage) {
+				supplierMax++;
 				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 10000) {
 					upgraderMax++;
+					distributorMax++;
 				}
 				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 20000) {
 					upgraderMax++;
@@ -125,7 +131,7 @@ var spawn_BuildCreeps = {
 					priority: 'defender'
 				});
 
-			} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax) && spawn.canCreateCreep(bestWorker) == OK) {
+			} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax) && spawn.canCreateCreep(bestWorker) == OK) {
 				var prioritizedRole = 'harvester';
 				if (harvesters.length < harvesterMax) {
 					prioritizedRole = 'harvester';
@@ -135,6 +141,12 @@ var spawn_BuildCreeps = {
 					prioritizedRole = 'builder';
 				} else if (repairers.length < repairMax) {
 					prioritizedRole = 'repair';
+				} else if (suppliers.length < supplierMax) {
+					prioritizedRole = 'supplier';
+					bestWorker = [MOVE, CARRY, CARRY, CARRY, CARRY];
+				} else if (distributors.length < distributorMax) {
+					prioritizedRole = 'distributor';
+					bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 				}
 
 				var creepSourceID = '';
