@@ -218,10 +218,6 @@ module.exports.loop = function() {
                         thisRoom.controller.activateSafeMode();
                     }
                 }
-            } else if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) >= 0 && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
-                if (!thisRoom.controller.safeMode) {
-                    thisRoom.controller.activateSafeMode();
-                }
             } else if (hostiles.length == 0) {
                 var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
                 var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
