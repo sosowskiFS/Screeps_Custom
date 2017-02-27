@@ -1,7 +1,7 @@
 var tower_Operate = {
-    run: function(tower, thisRoom) {
+    run: function(tower, thisRoom, towerNumber) {
         var thisTower = Game.getObjectById(tower);
-        var towerRange = 15;
+        var towerRange = 25;
 
         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
         var salvagerPrepPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
@@ -14,7 +14,11 @@ var tower_Operate = {
             });
             if (closestHostile.length > 0) {
                 //Target healing creeps first
-                closestHostile.sort(towerPartsCompare);
+                if (towerNumber == 1) {
+                    closestHostile.sort(targetHealer);
+                } else {
+                    closestHostile.sort(targetOther);
+                }             
                 thisTower.attack(closestHostile[0]);
             }
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
@@ -33,10 +37,18 @@ var tower_Operate = {
 
 module.exports = tower_Operate;
 
-function towerPartsCompare(a, b) {
+function targetHealer(a, b) {
     if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
         return 1;
     if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
         return -1;
+    return 0;
+}
+
+function targetOther(a, b) {
+    if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
+        return -1;
+    if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
+        return 1;
     return 0;
 }
