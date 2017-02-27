@@ -78,6 +78,7 @@ var creep_work = {
 					creep.memory.structureTarget = undefined;
 				}
 			} else {
+				creep.memory.structureTarget = undefined;
 				var targets = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
 				if (targets) {
 					creep.memory.structureTarget = targets.id;
