@@ -37,9 +37,11 @@ var spawn_BuildCreeps = {
 			//For Level 4
 			if (thisRoom.storage) {
 				supplierMax++;
+				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 1000) {
+					distributorMax++;
+				}
 				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 10000) {
 					upgraderMax++;
-					distributorMax++;
 				}
 				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 20000) {
 					upgraderMax++;
@@ -143,7 +145,7 @@ var spawn_BuildCreeps = {
 					prioritizedRole = 'repair';
 				} else if (suppliers.length < supplierMax) {
 					prioritizedRole = 'supplier';
-					bestWorker = [MOVE, CARRY, CARRY, CARRY, CARRY];
+					bestWorker = [MOVE, CARRY, CARRY];
 				} else if (distributors.length < distributorMax) {
 					prioritizedRole = 'distributor';
 					bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];

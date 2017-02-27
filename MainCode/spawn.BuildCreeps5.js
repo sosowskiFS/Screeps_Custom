@@ -57,7 +57,7 @@ var spawn_BuildCreeps5 = {
 				readyForMineral = true;
 			}
 
-			var supplierConfig = [MOVE, CARRY, CARRY, CARRY, CARRY];
+			var supplierConfig = [MOVE, CARRY, CARRY, CARRY];
 			var distributorConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 
 			//950 Points
