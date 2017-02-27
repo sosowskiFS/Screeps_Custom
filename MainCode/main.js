@@ -156,7 +156,7 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["RemoveKebab"]) {
-                if (thisRoom.energyCapacityAvailable >= 3000) {
+                if (thisRoom.energyCapacityAvailable >= 1300) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["RemoveKebab"].pos.roomName, thisRoom.name);
                     if (theDistance <= roomDist) {
                         roomDist = theDistance;
