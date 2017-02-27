@@ -74,7 +74,7 @@ var creep_work = {
 					creep.moveTo(savedTarget, {
 						reusePath: moveRecalc
 					});
-				} else {
+				} else if (creep.build(savedTarget) != OK) {
 					creep.memory.structureTarget = undefined;
 				}
 			} else {
