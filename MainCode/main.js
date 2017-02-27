@@ -79,6 +79,16 @@ module.exports.loop = function() {
         Game.flags["ToggleWar"].remove();
     }
 
+
+    //Note that warMode is on
+    if (Memory.warMode) {
+        new RoomVisual().text("War Mode", 0, 49, {
+            align: 'left',
+            font: '2 Courier New',
+            color: '#7DE3B5'
+        });
+    }
+
     //Use experimental PathFinder
     PathFinder.use(true);
 
@@ -99,15 +109,6 @@ module.exports.loop = function() {
             //Populate the room creeps memory.
             Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
 
-            //Note that warMode is on
-            if (Memory.warMode) {
-                thisRoom.visual.text("War Mode", 0, 49, {
-                    align: 'left',
-                    size: 2,
-                    color: '#7DE3B5'
-                });
-            }
-
             //Display the remaining progress of the controller
             var remainingEnergy = thisRoom.controller.progressTotal - thisRoom.controller.progress;
             if (remainingEnergy > 0) {
@@ -115,13 +116,13 @@ module.exports.loop = function() {
                 if (remainingEnergy == 420) {
                     thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
                         align: 'left',
-                        size: 3,
+                        font: '3 Courier New',
                         color: '#7DE3B5'
                     });
                 } else {
                     thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
                         align: 'left',
-                        size: 1,
+                        font: '1 Courier New',
                         color: '#7DE3B5'
                     });
                 }

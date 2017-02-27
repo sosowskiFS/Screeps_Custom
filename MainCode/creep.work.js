@@ -199,7 +199,7 @@ var creep_work = {
 						creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
 							align: 'left',
 							color: '#7DE3B5',
-							size: 0.7
+							font: '0.7 Courier New'
 						});
 					}
 				} else {
