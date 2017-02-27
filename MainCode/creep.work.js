@@ -229,6 +229,8 @@ var creep_work = {
 				if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 					creep.moveTo(target);
 				}
+			} else if (Game.flags[creep.room.name + "Supply"] && creep.pos != Game.flags[creep.room.name + "Supply"].pos) {
+				creep.moveTo(Game.flags[creep.room.name + "Supply"]);
 			}
 		} else if (creep.memory.distributing) {
 			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
