@@ -1,7 +1,7 @@
 var tower_Operate = {
     run: function(tower, thisRoom, towerNumber) {
         var thisTower = Game.getObjectById(tower);
-        var towerRange = 25;
+        var towerRange = 70;
 
         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
         var salvagerPrepPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
