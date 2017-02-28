@@ -16,8 +16,12 @@ var tower_Operate = {
                     closestHostile.sort(targetHealer);
                 } else {
                     closestHostile.sort(targetOther);
-                }             
-                thisTower.attack(closestHostile[0]);
+                }
+                if (closestHostile[0].getActiveBodyparts(HEAL) >= 12 && thisTower.pos.getRangeTo(closestHostile[0]) > 15 && closestHostile[0].hits == closestHostile[0].hitsMax) {
+                    //Creep can outheal max range, do nothing. Will keep firing at creep until it's max HP again
+                } else {
+                    thisTower.attack(closestHostile[0]);
+                }                      
             }
         } else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
             //Save 50% of the tower's energy to use on repelling attackers
