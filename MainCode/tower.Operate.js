@@ -9,9 +9,7 @@ var tower_Operate = {
             towerRange = 70;
         }
         if (UnderAttackPos >= 0 && thisTower.energy > 0) {
-            var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, towerRange, {
-                filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
-            });
+            var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, towerRange);
             if (closestHostile.length > 0) {
                 //Target healing creeps first
                 if (towerNumber == 1) {
