@@ -293,6 +293,10 @@ var spawn_BuildCreeps5 = {
 							}
 							break;
 					}
+				} else if (distributors.length < distributorMax && !blockedRole.includes('distributor')) {
+					prioritizedRole = 'distributor';
+				} else if (suppliers.length < supplierMax && !blockedRole.includes('supplier')) {
+					prioritizedRole = 'supplier';
 				} else if (mules.length < muleMax && !blockedRole.includes('mule')) {
 					prioritizedRole = 'mule';
 					storageID = thisRoom.storage.id;
@@ -305,10 +309,6 @@ var spawn_BuildCreeps5 = {
 				} else if (repairers.length < repairMax && !blockedRole.includes('repair')) {
 					prioritizedRole = 'repair';
 					storageID = thisRoom.storage.id;
-				} else if (suppliers.length < supplierMax && !blockedRole.includes('supplier')) {
-					prioritizedRole = 'supplier';
-				} else if (distributors.length < distributorMax && !blockedRole.includes('distributor')) {
-					prioritizedRole = 'distributor';
 				} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner')) {
 					prioritizedRole = 'mineralMiner';
 					storageID = strTerminal[0];

@@ -137,15 +137,15 @@ var spawn_BuildCreeps = {
 				var prioritizedRole = 'harvester';
 				if (harvesters.length < harvesterMax) {
 					prioritizedRole = 'harvester';
+				} else if (suppliers.length < supplierMax) {
+					prioritizedRole = 'supplier';
+					bestWorker = [MOVE, CARRY, CARRY];
 				} else if (upgraders.length < upgraderMax) {
 					prioritizedRole = 'upgrader';
 				} else if (builders.length < builderMax) {
 					prioritizedRole = 'builder';
 				} else if (repairers.length < repairMax) {
 					prioritizedRole = 'repair';
-				} else if (suppliers.length < supplierMax) {
-					prioritizedRole = 'supplier';
-					bestWorker = [MOVE, CARRY, CARRY];
 				} else if (distributors.length < distributorMax) {
 					prioritizedRole = 'distributor';
 					bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
