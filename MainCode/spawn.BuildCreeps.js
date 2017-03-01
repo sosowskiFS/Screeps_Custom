@@ -133,7 +133,7 @@ var spawn_BuildCreeps = {
 					priority: 'defender'
 				});
 
-			} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax) && spawn.canCreateCreep(bestWorker) == OK) {
+			} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
 				var prioritizedRole = 'harvester';
 				if (distributors.length < distributorMax) {
 					prioritizedRole = 'distributor';
