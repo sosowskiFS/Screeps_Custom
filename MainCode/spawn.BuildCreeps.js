@@ -135,7 +135,10 @@ var spawn_BuildCreeps = {
 
 			} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax) && spawn.canCreateCreep(bestWorker) == OK) {
 				var prioritizedRole = 'harvester';
-				if (harvesters.length < harvesterMax) {
+				if (distributors.length < distributorMax) {
+					prioritizedRole = 'distributor';
+					bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+				} else if (harvesters.length < harvesterMax) {
 					prioritizedRole = 'harvester';
 				} else if (suppliers.length < supplierMax) {
 					prioritizedRole = 'supplier';
@@ -146,9 +149,6 @@ var spawn_BuildCreeps = {
 					prioritizedRole = 'builder';
 				} else if (repairers.length < repairMax) {
 					prioritizedRole = 'repair';
-				} else if (distributors.length < distributorMax) {
-					prioritizedRole = 'distributor';
-					bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 				}
 
 				var creepSourceID = '';
