@@ -396,7 +396,7 @@ var creep_work5 = {
 				} else {
 					var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (structure) => {
-							return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+							return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity - 150;
 						}
 					});
 					if (target) {

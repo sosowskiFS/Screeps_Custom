@@ -223,7 +223,7 @@ var creep_work = {
 		} else if (creep.memory.supplying) {
 			var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 				filter: (structure) => {
-					return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+					return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity - 150;
 				}
 			});
 			if (target) {
