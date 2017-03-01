@@ -19,6 +19,9 @@ var tower_Operate = {
                 }
                 if (closestHostile[0].getActiveBodyparts(HEAL) >= 12 && thisTower.pos.getRangeTo(closestHostile[0]) > 15 && closestHostile[0].hits == closestHostile[0].hitsMax) {
                     //Creep can outheal max range, do nothing. Will keep firing at creep until it's max HP again
+                    if (closestHostile[1]) {
+                        thisTower.attack(closestHostile[1]);
+                    }
                 } else {
                     thisTower.attack(closestHostile[0]);
                 }                      
