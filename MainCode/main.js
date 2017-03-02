@@ -85,7 +85,9 @@ module.exports.loop = function() {
         new RoomVisual().text("War Mode", 0, 49, {
             align: 'left',
             font: '2 Courier New',
-            color: '#7DE3B5'
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeWidth: 0.15
         });
     }
 
@@ -117,13 +119,17 @@ module.exports.loop = function() {
                     thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
                         align: 'left',
                         font: '3 Courier New',
-                        color: '#7DE3B5'
+                        color: '#FFFFFF',
+                        stroke: '#000000',
+                        strokeWidth: 0.15
                     });
                 } else {
                     thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
                         align: 'left',
                         font: '1 Courier New',
-                        color: '#7DE3B5'
+                        color: '#FFFFFF',
+                        stroke: '#000000',
+                        strokeWidth: 0.15
                     });
                 }
             }

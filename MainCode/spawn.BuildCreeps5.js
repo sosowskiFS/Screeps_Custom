@@ -8,13 +8,17 @@ var spawn_BuildCreeps5 = {
 				thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", roomStorage.pos.x + 1, roomStorage.pos.y, {
 					align: 'left',
 					font: '3 Courier New',
-					color: '#7DE3B5'
+					color: '#FFFFFF',
+					stroke: '#000000',
+					strokeWidth: 0.15
 				});
 			} else {
 				thisRoom.visual.text(formattedNumber, roomStorage.pos.x + 1, roomStorage.pos.y, {
 					align: 'left',
 					font: '0.7 Courier New',
-					color: '#7DE3B5'
+					color: '#FFFFFF',
+					stroke: '#000000',
+					strokeWidth: 0.15
 				});
 			}
 		}
@@ -420,7 +424,9 @@ var spawn_BuildCreeps5 = {
 			thisRoom.visual.text(' (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
 				align: 'left',
 				font: '1 Courier New',
-				color: '#7DE3B5'
+				color: '#FFFFFF',
+				stroke: '#000000',
+				strokeWidth: 0.15
 			});
 		}
 	}

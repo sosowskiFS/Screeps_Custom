@@ -200,8 +200,10 @@ var creep_work = {
 						var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 						creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
 							align: 'left',
-							color: '#7DE3B5',
-							font: '0.7 Courier New'
+							font: '0.7 Courier New',
+							color: '#FFFFFF',
+							stroke: '#000000',
+							strokeWidth: 0.15
 						});
 					}
 				} else {
