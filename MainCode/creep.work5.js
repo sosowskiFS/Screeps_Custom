@@ -419,7 +419,7 @@ var creep_work5 = {
 							});
 						}
 					}
-				} else {
+				} else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
 					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
 					if (savedTarget) {
 						if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
