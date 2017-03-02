@@ -420,61 +420,38 @@ var creep_work5 = {
 						}
 					}
 				} else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
-					/*var savedTarget = Game.getObjectById(creep.memory.structureTarget)
-					if (savedTarget) {
-						//creep.moveTo(savedTarget);
-						//creep.transfer(savedTarget, RESOURCE_ENERGY);
-						//creep.memory.structureTarget = undefined;
-						if (savedTarget.energy == savedTarget.energyCapacity) {
-							creep.memory.structureTarget = undefined;
-						} else if (creep.pos.isNearTo(savedTarget)) {
-							creep.transfer(savedTarget, RESOURCE_ENERGY);
-							creep.memory.transferTo = savedTarget.id;
-							creep.memory.structureTarget = undefined;
-						} else {
-							creep.moveTo(savedTarget);
-						}
-					}*/
-					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+					var savedTarget = Game.getObjectById(creep.memory.structureTarget);
+					var getNewStructure = false;
 					if (savedTarget) {
 						if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(savedTarget);
 						} else {
+							getNewStructure = true;
 							creep.memory.structureTarget = undefined;
-						}					
-					}
-					var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-						filter: (structure) => {
-							return (structure.structureType == STRUCTURE_EXTENSION ||
-								structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
 						}
-					});
+					}
+					var target = undefined;
+					if (getNewStructure) {
+						target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							filter: (structure) => {
+								return (structure.structureType == STRUCTURE_EXTENSION ||
+									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+							}
+						});
+					} else {
+						target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							filter: (structure) => {
+								return (structure.structureType == STRUCTURE_EXTENSION ||
+									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+							}
+						});
+					}
+
 					if (target) {
 						if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(target);
 							creep.memory.structureTarget = target.id;
-						} else {
-							var newTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-								filter: (structure) => {
-									return (structure.structureType == STRUCTURE_EXTENSION ||
-										structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-								}
-							});
-							if (newTarget) {
-								creep.moveTo(newTarget);
-								creep.memory.structureTarget = newTarget;
-							} else {
-								creep.memory.structureTarget = undefined;
-							}
-							
 						}
-						//creep.moveTo(target);
-						//creep.transfer(target, RESOURCE_ENERGY);
-
-						//if (creep.pos.isNearTo(target) && !didTransfer) {
-						//creep.transfer(target, RESOURCE_ENERGY);
-						//creep.memory.structureTarget = undefined;
-						//}
 					}
 
 				}
