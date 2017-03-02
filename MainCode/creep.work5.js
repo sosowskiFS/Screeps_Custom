@@ -435,6 +435,11 @@ var creep_work5 = {
 							creep.moveTo(savedTarget);
 						}
 					}*/
+					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+					if (savedTarget){
+						creep.transfer(savedTarget, RESOURCE_ENERGY);
+						creep.memory.structureTarget = undefined;
+					}
 					var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (structure) => {
 							return (structure.structureType == STRUCTURE_EXTENSION ||
@@ -443,8 +448,8 @@ var creep_work5 = {
 					});
 					if (target) {
 						creep.moveTo(target);
-						creep.transfer(target, RESOURCE_ENERGY);
-						//creep.memory.structureTarget = target.id;
+						//creep.transfer(target, RESOURCE_ENERGY);
+						creep.memory.structureTarget = target.id;
 						//if (creep.pos.isNearTo(target) && !didTransfer) {
 							//creep.transfer(target, RESOURCE_ENERGY);
 							//creep.memory.structureTarget = undefined;
