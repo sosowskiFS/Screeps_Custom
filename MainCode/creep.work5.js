@@ -420,21 +420,22 @@ var creep_work5 = {
 						}
 					}
 				} else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
-					var didTransfer = false;
+					var transferTarget = Game.getObjectById(creep.memory.transferTo);
+					if (transferTarget){
+						creep.transfer(transferTarget, RESOURCE_ENERGY);
+						creep.memory.transferTo = undefined;
+					}
 					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
-					if (savedTarget) {
-						if (!creep.pos.isNearTo(savedTarget)){
-							creep.moveTo(savedTarget);
-						}
+					if (savedTarget) {	
+						creep.moveTo(savedTarget);				
 						if (savedTarget.energy == savedTarget.energyCapacity){
 							creep.memory.structureTarget = undefined;
 						} else if (creep.pos.isNearTo(savedTarget)) {
-							creep.transfer(savedTarget, RESOURCE_ENERGY);
+							//creep.transfer(savedTarget, RESOURCE_ENERGY);
+							creep.memory.transferTo = savedTarget.id;
 							creep.memory.structureTarget = undefined;
-							didTransfer = true;
 						}
-					}
-					if (!creep.memory.structureTarget || (savedTarget && didTransfer)) {
+					} else {
 						var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
@@ -444,8 +445,9 @@ var creep_work5 = {
 						if (target) {
 							creep.moveTo(target);
 							creep.memory.structureTarget = target.id;
-							if (creep.pos.isNearTo(target) && !didTransfer) {
-								creep.transfer(target, RESOURCE_ENERGY);
+							if (creep.pos.isNearTo(target)) {
+								//creep.transfer(target, RESOURCE_ENERGY);
+								creep.memory.transferTo = savedTarget.id;
 								creep.memory.structureTarget = undefined;
 							}
 						}
