@@ -430,7 +430,7 @@ var creep_work5 = {
 							creep.memory.structureTarget = undefined;
 							didTransfer = true;
 						} else {
-							creep.moveTo(target);
+							creep.moveTo(savedTarget);
 						}
 					}
 					if (!creep.memory.structureTarget || (savedTarget && didTransfer)) {
