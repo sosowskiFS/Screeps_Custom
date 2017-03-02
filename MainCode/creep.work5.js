@@ -439,8 +439,9 @@ var creep_work5 = {
 					if (savedTarget) {
 						if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(savedTarget);
-						}
-						creep.memory.structureTarget = undefined;
+						} else {
+							creep.memory.structureTarget = undefined;
+						}					
 					}
 					var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (structure) => {
@@ -464,7 +465,8 @@ var creep_work5 = {
 								creep.memory.structureTarget = newTarget;
 							} else {
 								creep.memory.structureTarget = undefined;
-							}							
+							}
+							
 						}
 						//creep.moveTo(target);
 						//creep.transfer(target, RESOURCE_ENERGY);
