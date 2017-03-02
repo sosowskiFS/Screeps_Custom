@@ -420,14 +420,20 @@ var creep_work5 = {
 						}
 					}
 				} else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+					var didTransfer = false;
 					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
 					if (savedTarget) {
-						if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(target);
-						} else {
+						if (savedTarget.energy == savedTarget.energyCapacity){
 							creep.memory.structureTarget = undefined;
+						} else if (creep.pos.isNearTo(savedTarget)) {
+							creep.transfer(savedTarget, RESOURCE_ENERGY);
+							creep.memory.structureTarget = undefined;
+							didTransfer = true;
+						} else {
+							creep.moveTo(target);
 						}
-					} else {
+					}
+					if (!creep.memory.structureTarget || (savedTarget && didTransfer)) {
 						var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
@@ -436,13 +442,15 @@ var creep_work5 = {
 						});
 						if (target) {
 							creep.memory.structureTarget = target;
-							if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(target);
-							} else {
+							if (creep.pos.isNearTo(target) && !didTransfer) {
+								creep.transfer(target, RESOURCE_ENERGY);
 								creep.memory.structureTarget = undefined;
+							} else {
+								creep.moveTo(target);
 							}
 						}
 					}
+
 				}
 				break;
 			case 'mineralMiner':
