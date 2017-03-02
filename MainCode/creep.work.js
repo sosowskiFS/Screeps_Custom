@@ -234,30 +234,45 @@ var creep_work = {
 				creep.moveTo(Game.flags[creep.room.name + "Supply"]);
 			}
 		} else if (creep.memory.distributing) {
-			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+			if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+				var savedTarget = Game.getObjectById(creep.memory.structureTarget);
+				var getNewStructure = false;
 				//If target is destroyed, this will prevent creep from locking up
-			if (savedTarget) {
-				if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(savedTarget);
-				} else {
-					creep.memory.structureTarget = undefined;
-				}
-			} else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
-				var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-					filter: (structure) => {
-						return (structure.structureType == STRUCTURE_EXTENSION ||
-							structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-					}
-				});
-				if (target) {
-					creep.memory.structureTarget = target.id;
-					if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(target);
+				if (savedTarget) {
+					if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(savedTarget);
 					} else {
+						getNewStructure = true;
 						creep.memory.structureTarget = undefined;
 					}
 				}
+
+				var target = undefined;
+				if (getNewStructure) {
+					target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						filter: (structure) => {
+							return (structure.structureType == STRUCTURE_EXTENSION ||
+								structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+						}
+					});
+				} else {
+					target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						filter: (structure) => {
+							return (structure.structureType == STRUCTURE_EXTENSION ||
+								structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+						}
+					});
+				}
+
+				if (target) {			
+					if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(target);
+						creep.memory.structureTarget = target.id;
+					}
+				}
+
 			}
+
 		} else {
 			//Harvest
 			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
