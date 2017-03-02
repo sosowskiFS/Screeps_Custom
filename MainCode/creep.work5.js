@@ -371,7 +371,7 @@ var creep_work5 = {
 							creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
 								align: 'left',
 								color: '#7DE3B5',
-								font: '0.7 bold Courier New'
+								font: '0.7 Courier New'
 							});
 						}
 					} else {
