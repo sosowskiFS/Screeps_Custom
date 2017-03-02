@@ -393,6 +393,20 @@ var creep_work5 = {
 				}
 				break;
 			case 'supplier':
+			case 'supplierNearDeath':
+				if (creep.ticksToLive <= 20) {
+					creep.memory.priority = 'supplierNearDeath';
+					creep.room.visual.text("\u2620\uD83D\uDEF5", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				} else {
+					creep.room.visual.text("\uD83D\uDEF5", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				}
+
 				if (_.sum(creep.carry) == 0) {
 					//Get from storage
 					var storageTarget = creep.room.storage;
@@ -419,6 +433,20 @@ var creep_work5 = {
 				}
 				break;
 			case 'distributor':
+			case 'distributorNearDeath':
+				if (creep.ticksToLive <= 80) {
+					creep.memory.priority = 'distributorNearDeath';
+					creep.room.visual.text("\u2620\uD83D\uDC5F", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				} else {
+					creep.room.visual.text("\uD83D\uDC5F", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				}
+
 				if (_.sum(creep.carry) == 0) {
 					//Get from storage
 					var storageTarget = creep.room.storage;

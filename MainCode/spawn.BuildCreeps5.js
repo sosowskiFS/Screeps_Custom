@@ -417,7 +417,7 @@ var spawn_BuildCreeps5 = {
 			var spawnProgress = (spawn.spawning.needTime - spawn.spawning.remainingTime) + 1;
 			var percentageComplete = Math.floor((spawnProgress / spawn.spawning.needTime) * 100);
 
-			thisRoom.visual.text('   (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
+			thisRoom.visual.text(' (' + percentageComplete + '%)', spawn.pos.x + 1, spawn.pos.y, {
 				align: 'left',
 				font: '1 Courier New',
 				color: '#7DE3B5'
