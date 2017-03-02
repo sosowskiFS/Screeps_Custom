@@ -420,37 +420,35 @@ var creep_work5 = {
 						}
 					}
 				} else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
-					var transferTarget = Game.getObjectById(creep.memory.transferTo);
-					if (transferTarget){
-						creep.transfer(transferTarget, RESOURCE_ENERGY);
-						creep.memory.transferTo = undefined;
-					}
-					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
-					if (savedTarget) {	
-						creep.moveTo(savedTarget);				
-						if (savedTarget.energy == savedTarget.energyCapacity){
+					/*var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+					if (savedTarget) {
+						//creep.moveTo(savedTarget);
+						//creep.transfer(savedTarget, RESOURCE_ENERGY);
+						//creep.memory.structureTarget = undefined;
+						if (savedTarget.energy == savedTarget.energyCapacity) {
 							creep.memory.structureTarget = undefined;
 						} else if (creep.pos.isNearTo(savedTarget)) {
-							//creep.transfer(savedTarget, RESOURCE_ENERGY);
+							creep.transfer(savedTarget, RESOURCE_ENERGY);
 							creep.memory.transferTo = savedTarget.id;
 							creep.memory.structureTarget = undefined;
+						} else {
+							creep.moveTo(savedTarget);
 						}
-					} else {
-						var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-							filter: (structure) => {
-								return (structure.structureType == STRUCTURE_EXTENSION ||
-									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-							}
-						});
-						if (target) {
-							creep.moveTo(target);
-							creep.memory.structureTarget = target.id;
-							if (creep.pos.isNearTo(target)) {
-								creep.transfer(target, RESOURCE_ENERGY);
-								//creep.memory.transferTo = target.id;
-								creep.memory.structureTarget = undefined;
-							}
+					}*/
+					var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						filter: (structure) => {
+							return (structure.structureType == STRUCTURE_EXTENSION ||
+								structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
 						}
+					});
+					if (target) {
+						creep.moveTo(target);
+						creep.transfer(target, RESOURCE_ENERGY);
+						//creep.memory.structureTarget = target.id;
+						//if (creep.pos.isNearTo(target) && !didTransfer) {
+							//creep.transfer(target, RESOURCE_ENERGY);
+							//creep.memory.structureTarget = undefined;
+						//}
 					}
 
 				}
