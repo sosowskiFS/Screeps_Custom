@@ -447,7 +447,7 @@ var creep_work5 = {
 							creep.memory.structureTarget = target.id;
 							if (creep.pos.isNearTo(target)) {
 								//creep.transfer(target, RESOURCE_ENERGY);
-								creep.memory.transferTo = savedTarget.id;
+								creep.memory.transferTo = target.id;
 								creep.memory.structureTarget = undefined;
 							}
 						}
