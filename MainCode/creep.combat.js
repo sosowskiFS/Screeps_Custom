@@ -15,13 +15,13 @@ var creep_combat = {
 			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 			if (Foe) {
 				creep.rangedAttack(Foe);
-				creep.attack(Foe);
+				var attackResult = creep.attack(Foe);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
-				if (lookResult.length) {
+				if (attackResult == OK && lookResult.length) {
 					if (lookResult[0].structureType != STRUCTURE_RAMPART) {
 						creep.moveTo(Foe);
 					}
-				} else {
+				} else if (attackResult == ERR_NOT_IN_RANGE) {
 					creep.moveTo(Foe);
 				}
 			}
