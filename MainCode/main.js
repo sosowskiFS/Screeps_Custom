@@ -183,34 +183,6 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Memory.Instruction) {
-                switch (Memory.Instruction) {
-                    case 'claim':
-                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom);
-                        delete Memory.Instruction;
-                        delete Memory.InstructionOps;
-                        break;
-                    case 'vandalize':
-                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                        delete Memory.Instruction;
-                        delete Memory.InstructionOps;
-                        delete Memory.InstructionOps2;
-                        break;
-                    case 'construct':
-                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                        delete Memory.Instruction;
-                        delete Memory.InstructionOps;
-                        delete Memory.InstructionOps2;
-                        break;
-                    case 'removeKebab':
-                        spawn_BuildInstruction.run(Game.spawns[i], Memory.Instruction, Memory.InstructionOps, thisRoom, Memory.InstructionOps2);
-                        delete Memory.Instruction;
-                        delete Memory.InstructionOps;
-                        delete Memory.InstructionOps2;
-                        break;
-                }
-            }
-
             //Check for hostiles in this room
             var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
                 filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
