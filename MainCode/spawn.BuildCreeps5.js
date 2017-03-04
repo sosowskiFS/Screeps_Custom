@@ -54,10 +54,13 @@ var spawn_BuildCreeps5 = {
 			var strSources = Memory.sourceList[thisRoom.name];
 			var strLinks = Memory.linkList[thisRoom.name];
 			var strMineral = Memory.mineralList[thisRoom.name];
-			var strTerminal = Memory.terminalList[thisRoom.name];
+			var strTerminal = "";
+			if (thisRoom.terminal) {
+				strTerminal = thisRoom.terminal.id;
+			}
 			var strExtractor = Memory.extractorList[thisRoom.name];
 			var readyForMineral = false;
-			if (strExtractor[0] && strTerminal[0] && strMineral[0]) {
+			if (strExtractor[0] && thisRoom.terminal && strMineral[0]) {
 				readyForMineral = true;
 			}
 
@@ -139,7 +142,7 @@ var spawn_BuildCreeps5 = {
 						priority: 'mule',
 						linkSource: strLinks[1],
 						storageSource: thisRoom.storage.id,
-						terminalID: strTerminal[0],
+						terminalID: strTerminal,
 						fromSpawn: spawn.id
 					});
 				} else {
@@ -273,7 +276,7 @@ var spawn_BuildCreeps5 = {
 					prioritizedRole = 'mule';
 					storageID = thisRoom.storage.id;
 					connectedLink = strLinks[1];
-					creepSource = strTerminal[0];
+					creepSource = strTerminal;
 					if (thisRoom.energyAvailable < muleConfigCost) {
 						//Spawn a panicMule
 						muleConfig = [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
@@ -305,7 +308,7 @@ var spawn_BuildCreeps5 = {
 					prioritizedRole = 'mule';
 					storageID = thisRoom.storage.id;
 					connectedLink = strLinks[1];
-					creepSource = strTerminal[0];
+					creepSource = strTerminal;
 				} else if (upgraders.length < upgraderMax && !blockedRole.includes('upgrader')) {
 					prioritizedRole = 'upgrader';
 					storageID = thisRoom.storage.id;
@@ -315,7 +318,7 @@ var spawn_BuildCreeps5 = {
 					storageID = thisRoom.storage.id;
 				} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner')) {
 					prioritizedRole = 'mineralMiner';
-					storageID = strTerminal[0];
+					storageID = strTerminal;
 					creepSource = strMineral[0];
 					connectedLink = strExtractor[0];
 				}
@@ -409,7 +412,7 @@ var spawn_BuildCreeps5 = {
 							priority: 'mule',
 							linkSource: strLinks[1],
 							storageSource: thisRoom.storage.id,
-							terminalID: strTerminal[0],
+							terminalID: strTerminal,
 							fromSpawn: spawn.id
 						});
 						Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);

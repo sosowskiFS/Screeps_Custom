@@ -61,7 +61,9 @@ module.exports.loop = function() {
     }
 
     //Set defaults on various memory values
-    memCheck();
+    if (Game.time % 10000 == 0 || Game.flags["CheckMemory"]) {
+        memCheck();
+    }
 
     //Reset average CPU usage records on request
     if (Game.flags["ResetAverages"]) {
@@ -115,23 +117,13 @@ module.exports.loop = function() {
             var remainingEnergy = thisRoom.controller.progressTotal - thisRoom.controller.progress;
             if (remainingEnergy > 0) {
                 var formattedNumber = remainingEnergy.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                if (remainingEnergy == 420) {
-                    thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
-                        align: 'left',
-                        font: '3 Courier New',
-                        color: '#FFFFFF',
-                        stroke: '#000000',
-                        strokeWidth: 0.15
-                    });
-                } else {
-                    thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
-                        align: 'left',
-                        font: '1 Courier New',
-                        color: '#FFFFFF',
-                        stroke: '#000000',
-                        strokeWidth: 0.15
-                    });
-                }
+                thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
+                    align: 'left',
+                    font: '1 Courier New',
+                    color: '#FFFFFF',
+                    stroke: '#000000',
+                    strokeWidth: 0.15
+                });
             }
             //Execute special instruction written into console
             if (Game.flags["ClaimThis"]) {
@@ -230,7 +222,7 @@ module.exports.loop = function() {
             }
 
             //Get list of Sources
-            if (Game.time % 1000 == 0 || !Memory.sourceList[thisRoom.name]) {
+            if (!Memory.sourceList[thisRoom.name]) {
                 Memory.sourceList[thisRoom.name] = [];
                 var roomSources = thisRoom.find(FIND_SOURCES);
                 var reverseFlag = false;
@@ -296,21 +288,6 @@ module.exports.loop = function() {
                 }
             }
 
-            //Get list of Terminals
-            if (Game.time % 800 == 0 || !Memory.terminalList[thisRoom.name]) {
-                Memory.terminalList[thisRoom.name] = [];
-                var terminalLocations = thisRoom.find(FIND_MY_STRUCTURES, {
-                    filter: {
-                        structureType: STRUCTURE_TERMINAL
-                    }
-                });
-                if (terminalLocations) {
-                    if (terminalLocations.length > 0) {
-                        Memory.terminalList[thisRoom.name].push(terminalLocations[0].id);
-                    }
-                }
-            }
-
             //Get list of extractors
             if (Game.time % 800 == 0 || !Memory.extractorList[thisRoom.name]) {
                 Memory.extractorList[thisRoom.name] = [];
@@ -356,9 +333,9 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Memory.nukerList[thisRoom.name][0] && Memory.terminalList[thisRoom.name][0] && Game.time % 1000 == 0) {
+            if (Memory.nukerList[thisRoom.name][0] && thisRoom.terminal && Game.time % 1000 == 0) {
                 var thisNuker = Game.getObjectById(Memory.nukerList[thisRoom.name][0]);
-                var thisTerminal = Game.getObjectById(Memory.terminalList[thisRoom.name][0]);
+                var thisTerminal = thisRoom.terminal
 
                 if (thisNuker.ghodium < thisNuker.ghodiumCapacity && (thisTerminal.store[RESOURCE_GHODIUM] + thisNuker.ghodium) < thisNuker.ghodiumCapacity) {
                     //Buy more ghodium
@@ -376,8 +353,8 @@ module.exports.loop = function() {
             }
 
             //Review market data and sell to buy orders
-            if (Game.time % 1000 == 0 && Memory.terminalList[thisRoom.name][0]) {
-                market_buyers.run(thisRoom, Game.getObjectById(Memory.terminalList[thisRoom.name][0]), Memory.mineralList[thisRoom.name]);
+            if (Game.time % 1000 == 0 && thisRoom.terminal) {
+                market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
             }
 
             //Handle Links
@@ -700,9 +677,6 @@ function memCheck() {
     }
     if (!Memory.mineralList) {
         Memory.mineralList = new Object();
-    }
-    if (!Memory.terminalList) {
-        Memory.terminalList = new Object();
     }
     if (!Memory.extractorList) {
         Memory.extractorList = new Object();
