@@ -29,10 +29,6 @@ var spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
 var bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
 
-//Expansion
-var spawn_AutoExpand = require('spawn.AutoExpand');
-var lastControllerLevel = 1;
-
 //Towers
 var tower_Operate = require('tower.Operate');
 
