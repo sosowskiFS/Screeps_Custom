@@ -49,6 +49,17 @@ var creep_farMining = {
 				});
 			}
 
+			if (creep.hits < 400) {
+				//Determine if attacker is player, if so, delete flag.
+				var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
+					filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
+				});
+				if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && Game.flags[creep.memory.targetFlag]) {
+					Game.flags[creep.memory.targetFlag].remove();
+					Game.notify( creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username) ;
+				}
+			}
+
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
 					reusePath: 25
@@ -297,8 +308,8 @@ var creep_farMining = {
 			} else if (Foe && !creep.room.controller.safeMode) {
 				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0)) {
 					creep.moveTo(Foe, {
-							maxRooms: 1
-						});
+						maxRooms: 1
+					});
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
 				} else {

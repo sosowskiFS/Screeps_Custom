@@ -502,7 +502,7 @@ module.exports.loop = function() {
             FilteredOrders.sort(orderPriceCompare);
 
             if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
-                Game.notify('A subscription token was purchased for ' & FilteredOrders[0].price & ' credits');
+                Game.notify('A subscription token was purchased for ' + FilteredOrders[0].price + ' credits');
             }
         }
     }
