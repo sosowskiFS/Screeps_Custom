@@ -297,7 +297,7 @@ var creep_farMining = {
 			} else if (Foe) {
 				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0)) {
 					creep.moveTo(Foe, {
-							maxRooms = 1
+							maxRooms: 1
 						});
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
