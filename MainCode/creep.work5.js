@@ -534,7 +534,7 @@ var creep_work5 = {
 					}
 				}
 				break;
-			case 'salavger':
+			case 'salvager':
 				creep.room.visual.text("\uD83D\uDCB2", creep.pos.x, creep.pos.y, {
 					align: 'left',
 					color: '#7DE3B5'
