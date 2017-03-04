@@ -39,8 +39,6 @@ var tower_Operate = require('tower.Operate');
 //Market
 var market_buyers = require('market.FindBuyers');
 
-Memory.IgnoreRoadRooms = "E1N63"
-
 //const profiler = require('screeps-profiler');
 
 //Ctrl+Alt+f to autoformat documents.
