@@ -470,13 +470,16 @@ var creep_work5 = {
 				} else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
 					var savedTarget = Game.getObjectById(creep.memory.structureTarget);
 					var getNewStructure = false;
-					if (savedTarget) {
+					if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
 						if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(savedTarget);
 						} else {
 							getNewStructure = true;
 							creep.memory.structureTarget = undefined;
 						}
+					} else if (savedTarget) {
+						getNewStructure = true;
+						creep.memory.structureTarget = undefined;
 					}
 					if (!creep.memory.structureTarget) {
 						var target = undefined;
