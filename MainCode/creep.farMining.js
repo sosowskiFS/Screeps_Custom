@@ -294,7 +294,7 @@ var creep_farMining = {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
 					reusePath: 25
 				});
-			} else if (Foe) {
+			} else if (Foe && !creep.room.controller.safeMode) {
 				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0)) {
 					creep.moveTo(Foe, {
 							maxRooms: 1
