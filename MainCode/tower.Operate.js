@@ -26,7 +26,7 @@ var tower_Operate = {
                     thisTower.attack(closestHostile[0]);
                 }                      
             }
-        } else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
+        } else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) && (Game.time % 10 == 0) {
             //Save 50% of the tower's energy to use on repelling attackers
             var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
                 filter: (creep) => creep.hits < creep.hitsMax - 150

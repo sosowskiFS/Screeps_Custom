@@ -313,21 +313,6 @@ module.exports.loop = function() {
                 }
             }
 
-            //Get list of Storage Units
-            if (Game.time % 250 == 0 || !Memory.storageList[thisRoom.name]) {
-                Memory.storageList[thisRoom.name] = [];
-                var storageUnits = thisRoom.find(FIND_MY_STRUCTURES, {
-                    filter: {
-                        structureType: STRUCTURE_STORAGE
-                    }
-                });
-                if (storageUnits) {
-                    if (storageUnits.length > 0) {
-                        Memory.storageList[thisRoom.name].push(storageUnits[0].id);
-                    }
-                }
-            }
-
             //Get list of Minerals
             if (!Memory.mineralList[thisRoom.name]) {
                 Memory.mineralList[thisRoom.name] = [];
@@ -461,9 +446,9 @@ module.exports.loop = function() {
             }
 
             //Update advanced script rooms
-            if ((Memory.storageList[thisRoom.name].length > 0 && Memory.linkList[thisRoom.name].length == 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+            if ((thisRoom.storage && Memory.linkList[thisRoom.name].length == 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                 Memory.RoomsAt5.push(thisRoom.name)
-            } else if ((Memory.storageList[thisRoom.name].length == 0 && Memory.linkList[thisRoom.name].length < 2) && Memory.RoomsAt5.indexOf(thisRoom.name) != -1) {
+            } else if ((!thisRoom.storage || Memory.linkList[thisRoom.name].length < 2) && Memory.RoomsAt5.indexOf(thisRoom.name) != -1) {
                 //This room shouldn't be on this list
                 var thisRoomIndex = Memory.RoomsAt5.indexOf(thisRoom.name)
                 Memory.RoomsAt5.splice(thisRoomIndex, 1);
@@ -740,9 +725,6 @@ function memCheck() {
     }
     if (!Memory.linkList) {
         Memory.linkList = new Object();
-    }
-    if (!Memory.storageList) {
-        Memory.storageList = new Object();
     }
     if (!Memory.mineralList) {
         Memory.mineralList = new Object();
