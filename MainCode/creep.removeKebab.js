@@ -13,7 +13,7 @@ var creep_Kebab = {
                     //Wall removed, proceed to target
                     var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
                     if (sitesOnTile.length) {
-                        if(creep.attack(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
+                        if(creep.dismantle(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(sitesOnTile[0]);
                         }
                         break;
@@ -32,7 +32,7 @@ var creep_Kebab = {
                 } else if (creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos) && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length > 0) {
                     var thisWall = Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES);
                     if (thisWall[0]) {
-                        creep.attack(thisWall[0]);
+                        creep.dismantle(thisWall[0]);
                         break;
                     }
                 } else if (!creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos)) {
