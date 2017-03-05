@@ -57,6 +57,9 @@ module.exports.loop = function() {
     //Set defaults on various memory values
     if (Game.time % 10000 == 0 || Game.flags["CheckMemory"]) {
         memCheck();
+        if (Game.flags["CheckMemory"]) {
+            Game.flags["CheckMemory"].remove();
+        }
     }
 
     //Reset average CPU usage records on request
@@ -627,7 +630,7 @@ function memCheck() {
     if (Memory.warMode == null) {
         Memory.warMode = false;
     }
-    if (Memory.guardType == null){
+    if (Memory.guardType == null) {
         Memory.guardType = false;
     }
     //Decimal
