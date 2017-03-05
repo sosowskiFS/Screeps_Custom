@@ -51,7 +51,7 @@ var creep_farMining = {
 
 			if (creep.hits < 400) {
 				//Determine if attacker is player, if so, delete flag.
-				var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
+				var hostiles = creep.room.find(FIND_HOSTILE_CREEPS, {
 					filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
 				});
 				if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && Game.flags[creep.memory.targetFlag]) {
