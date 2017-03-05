@@ -11,7 +11,7 @@ var creep_Kebab = {
             while (Game.flags[flagName + flagCounter.toString()]) {
                 if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length == 0) {
                     //Wall removed, proceed to target
-                    if (Game.flags["Removekebab"]) {
+                    if (Game.flags["RemoveKebab"]) {
                         var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
                         if (sitesOnTile.length) {
                             if (creep.dismantle(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
