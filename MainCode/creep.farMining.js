@@ -313,35 +313,9 @@ var creep_farMining = {
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
 				} else {
-					var foeDirection = creep.pos.getDirectionTo(Foe);
-					var evadeDirection = TOP;
-					switch (foeDirection) {
-						case TOP:
-							evadeDirection = BOTTOM;
-							break;
-						case TOP_RIGHT:
-							evadeDirection = BOTTOM_LEFT;
-							break;
-						case RIGHT:
-							evadeDirection = LEFT;
-							break;
-						case BOTTOM_RIGHT:
-							evadeDirection = TOP_LEFT;
-							break;
-						case BOTTOM:
-							evadeDirection = TOP;
-							break;
-						case BOTTOM_LEFT:
-							evadeDirection = TOP_RIGHT;
-							break;
-						case LEFT:
-							evadeDirection = RIGHT;
-							break;
-						case TOP_LEFT:
-							evadeDirection = BOTTOM_RIGHT;
-							break;
-					}
-					creep.move(evadeDirection);
+					creep.moveTo(creep.room.controller, {
+						maxRooms: 1
+					});
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
 				}
