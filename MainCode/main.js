@@ -627,6 +627,9 @@ function memCheck() {
     if (Memory.warMode == null) {
         Memory.warMode = false;
     }
+    if (Memory.guardType == null){
+        Memory.guardType = false;
+    }
     //Decimal
     if (!Memory.averageUsedCPU) {
         Memory.averageUsedCPU = 0.0;
