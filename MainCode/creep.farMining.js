@@ -120,8 +120,8 @@ var creep_farMining = {
 					}
 				} else {
 					if (mineTarget) {
-						if (creep.pos.inRangeTo(mineTarget, 5)) {
-							var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
+						if (creep.pos.inRangeTo(mineTarget, 2)) {
+							var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
 								filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
 							});
 							if (containers.length) {
@@ -132,7 +132,7 @@ var creep_farMining = {
 								}
 								creep.memory.storageUnit = containers[0].id;
 							} else {
-								var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 5)
+								var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
 								if (sites.length) {
 									if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
 										creep.moveTo(sites[0], {
