@@ -293,7 +293,7 @@ var creep_farMining = {
 			}
 
 
-			if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
+			if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 				if (creep.room.controller.reservation.ticksToEnd <= 1000) {
 					Memory.FarClaimerNeeded[creep.room.name] = true;
 				} else {
@@ -305,11 +305,11 @@ var creep_farMining = {
 
 			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
 
-			if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
+			if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
 					reusePath: 25
 				});
-			} else if (Foe && !creep.room.controller.safeMode) {
+			} else if (creep.room.controller && Foe && !creep.room.controller.safeMode) {
 				if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0)) {
 					creep.moveTo(Foe, {
 						maxRooms: 1
@@ -367,7 +367,7 @@ var creep_farMining = {
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
 				}
-			} else if (creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
+			} else if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
 				var hSpawn = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
 				if (hSpawn) {
 					creep.moveTo(hSpawn);
@@ -386,7 +386,9 @@ var creep_farMining = {
 				});
 			} else if (Game.flags[creep.memory.targetFlag]) {
 				if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-					creep.moveTo(Game.flags[creep.memory.targetFlag]);
+					creep.moveTo(Game.flags[creep.memory.targetFlag], {
+						maxRooms: 1
+					});
 				}
 			}
 		}
