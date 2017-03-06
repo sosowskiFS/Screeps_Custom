@@ -20,15 +20,8 @@ var creep_Kebab = {
                             break;
                         } else {
                             Game.flags["RemoveKebab"].remove();
-                            //Assume target is destroyed, vandalize.
-                            var signResult = creep.signController(creep.room.controller, 'https://www.youtube.com/watch?v=HgD8-Ree07I');
-                            if (signResult == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.controller);
-                            } else if (signResult == OK) {
-                                //KEBAB REMOVED
-                                creep.suicide();
-                            }
-                            break;
+                            //KEBAB REMOVED
+                            creep.suicide();
                         }
                     } else {
                         flagCounter++;
