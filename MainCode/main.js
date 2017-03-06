@@ -197,7 +197,7 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Memory.roomsUnderAttack.indexOf(thisRoom.name) > -1) {
+            if (Memory.roomsUnderAttack.indexOf(thisRoom.name) > -1 && !thisRoom.controller.safeMode) {
                 Memory.attackDuration = Memory.attackDuration + 1;
                 if (Memory.attackDuration >= 500 && !Memory.warMode) {
                     Memory.warMode = true;
