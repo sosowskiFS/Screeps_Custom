@@ -56,7 +56,11 @@ var creep_farMining = {
 				});
 				if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && Game.flags[creep.memory.targetFlag]) {
 					Game.flags[creep.memory.targetFlag].remove();
-					Game.notify( creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username) ;
+					Game.notify( creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
+					if (!Memory.warMode) {
+						Memory.warMode = true;
+						Game.notify('War mode has been enabled.');
+					}
 				}
 			}
 
