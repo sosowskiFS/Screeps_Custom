@@ -154,8 +154,6 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			Memory.guardType = !Memory.guardType;
-
 			var prioritizedRole = '';
 			var roomTarget = '';
 			var flagName = '';
@@ -367,6 +365,7 @@ var spawn_BuildFarCreeps = {
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
+					Memory.guardType = !Memory.guardType;
 				}
 			}
 
