@@ -151,7 +151,7 @@ var spawn_BuildCreeps5 = {
 						sourceLocation: strSources[1]
 					});
 				}
-			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && (salvagers.length == 0 || defenders.length < 4)) {
+			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && (salvagers.length == 0 || defenders.length < 2)) {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
 					if (thisRoom.energyAvailable >= 800 && salvagers.length == 0) {
 						var blockedRole = '';
@@ -174,7 +174,7 @@ var spawn_BuildCreeps5 = {
 
 
 					}
-				} else if (thisRoom.energyAvailable >= 530) {
+				} else if (thisRoom.energyAvailable >= 660) {
 					//Try to produce millitary units
 
 					//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
