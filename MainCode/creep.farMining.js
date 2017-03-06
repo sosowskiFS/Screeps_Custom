@@ -354,10 +354,10 @@ var creep_farMining = {
 							x = 1
 							break;
 					}
-					if ((creep.pos.x + x) < 1 || (creep.pos.x + x) > 48){
+					if ((creep.pos.x + x) < 0 || (creep.pos.x + x) > 49){
 						x = 0;
 					}
-					if ((creep.pos.y + y) < 1 || (creep.pos.y + y) > 48){
+					if ((creep.pos.y + y) < 0 || (creep.pos.y + y) > 49){
 						y = 0;
 					}
 
