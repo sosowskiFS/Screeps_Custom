@@ -56,7 +56,7 @@ var creep_farMining = {
 				});
 				if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && Game.flags[creep.memory.targetFlag]) {
 					Game.flags[creep.memory.targetFlag].remove();
-					Game.notify( creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
+					Game.notify(creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
 					if (!Memory.warMode) {
 						Memory.warMode = true;
 						Game.notify('War mode has been enabled.');
@@ -317,7 +317,51 @@ var creep_farMining = {
 					creep.attack(Foe);
 					creep.rangedAttack(Foe);
 				} else {
-					creep.moveTo(creep.room.controller, {
+					var foeDirection = creep.pos.getDirectionTo(Foe);
+					var y = 0;
+					var x = 0;
+					switch (foeDirection) {
+						case TOP:
+							y = -1;
+							x = -1;
+							break;
+						case TOP_RIGHT:
+							y = -1;
+							x = -1;
+							break;
+						case RIGHT:
+							x = -1;
+							y = 1;
+							break;
+						case BOTTOM_RIGHT:
+							y = 1;
+							x = -1;
+							break;
+						case BOTTOM:
+							y = 1;
+							x = 1;
+							break;
+						case BOTTOM_LEFT:
+							y = 1;
+							x = 1;
+							break;
+						case LEFT:
+							x = 1;
+							y = -1;
+							break;
+						case TOP_LEFT:
+							y = -1;
+							x = 1
+							break;
+					}
+					if ((creep.pos.x + x) < 1 || (creep.pos.x + x) > 48){
+						x = 0;
+					}
+					if ((creep.pos.y + y) < 1 || (creep.pos.y + y) > 48){
+						y = 0;
+					}
+
+					creep.moveTo(x,y , {
 						maxRooms: 1
 					});
 					creep.attack(Foe);
