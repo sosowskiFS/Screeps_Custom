@@ -197,6 +197,16 @@ module.exports.loop = function() {
                 }
             }
 
+            if (Memory.roomsUnderAttack.indexOf(thisRoom.name) > -1) {
+                Memory.attackDuration = Memory.attackDuration + 1;
+                if (Memory.attackDuration >= 500 && !Memory.warMode) {
+                    Memory.warMode = true;
+                    Game.notify('War mode was enabled due to a long attack at ' + thisRoom.name + '.');
+                }
+            } else if (Memory.roomsUnderAttack.length == 0) {
+                Memory.attackDuration = 0;
+            }
+
             //Keep the towerList object updated
             if (Game.time % 100 == 0 || !Memory.towerList[thisRoom.name]) {
                 if (!Memory.towerList[thisRoom.name]) {
@@ -652,6 +662,9 @@ function memCheck() {
     }
     if (!Memory.totalTicksCreepRecorded) {
         Memory.totalTicksSpawnRecorded = 0;
+    }
+    if (!Memory.attackDuration) {
+        Memory.attackDuration = 0;
     }
     //Object
     if (!Memory.FarClaimerNeeded) {
