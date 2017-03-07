@@ -322,46 +322,52 @@ var creep_farMining = {
 					var x = 0;
 					switch (foeDirection) {
 						case TOP:
-							y = -1;
-							x = -1;
+							y = -3;
+							x = -3;
 							break;
 						case TOP_RIGHT:
-							y = -1;
-							x = -1;
+							y = -3;
+							x = -3;
 							break;
 						case RIGHT:
-							x = -1;
-							y = 1;
+							x = -3;
+							y = 3;
 							break;
 						case BOTTOM_RIGHT:
-							y = 1;
-							x = -1;
+							y = 3;
+							x = -3;
 							break;
 						case BOTTOM:
-							y = 1;
-							x = 1;
+							y = 3;
+							x = 3;
 							break;
 						case BOTTOM_LEFT:
-							y = 1;
-							x = 1;
+							y = 3;
+							x = 3;
 							break;
 						case LEFT:
-							x = 1;
-							y = -1;
+							x = 3;
+							y = -3;
 							break;
 						case TOP_LEFT:
-							y = -1;
-							x = 1
+							y = -3;
+							x = 3
 							break;
 					}
-					if ((creep.pos.x + x) < 0 || (creep.pos.x + x) > 49){
+					x = creep.pos.x + x;
+					if (x < 0) {
 						x = 0;
+					} else if (x > 49) {
+						x = 49;
 					}
-					if ((creep.pos.y + y) < 0 || (creep.pos.y + y) > 49){
+					y = creep.pos.y + y;
+					if (y < 0) {
 						y = 0;
+					} else if (y > 49) {
+						y = 49;
 					}
 
-					creep.moveTo(x,y , {
+					creep.moveTo(x, y, {
 						maxRooms: 1
 					});
 					creep.attack(Foe);
