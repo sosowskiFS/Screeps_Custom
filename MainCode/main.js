@@ -203,8 +203,14 @@ module.exports.loop = function() {
                     Memory.warMode = true;
                     Game.notify('War mode was enabled due to a long attack at ' + thisRoom.name + '.');
                 }
-            } else if (Memory.roomsUnderAttack.length == 0) {
+            } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1 && Memory.attackDuration >= 500 && Memory.roomsUnderAttack.length > 0 && !Game.flags[thisRoom.name + "eFarGuard"]) {
+                Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, thisRoom.name + "eFarGuard");
+            }
+             else if (Memory.roomsUnderAttack.length == 0) {
                 Memory.attackDuration = 0;
+                if (Game.flags[thisRoom.name + "eFarGuard"]) {
+                    Game.flags[thisRoom.name + "eFarGuard"].remove();
+                }
             }
 
             //Keep the towerList object updated

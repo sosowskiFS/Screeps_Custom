@@ -3,6 +3,11 @@ var spawn_BuildFarCreeps = {
 		if (!spawn.spawning) {
 			var controlledCreeps = Game.creeps;
 
+			var eFarGuards = [];
+			if (Memory.warMode) {
+				eFarGuards = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "eFarGuard");
+			}
+
 			var farMules = [];
 			var farClaimers = [];
 			var farMiners = [];
@@ -165,7 +170,15 @@ var spawn_BuildFarCreeps = {
 				blockedRole = Memory.creepInQue[RoomPointer + 1];
 			}
 
-			if (Game.flags[thisRoom.name + "FarMining"]) {
+			if (Memory.warMode) {
+				if (eFarGuards.length < 1 && Game.flags[thisroom.name + "eFarGuard"] && blockedRole != 'farGuard') {
+					prioritizedRole = 'farGuard';
+					roomTarget = Game.flags[thisRoom.name + "eFarGuard"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "eFarGuard"].name;
+				}
+			}
+
+			if (Game.flags[thisRoom.name + "FarMining"] && prioritizedRole == '') {
 				if (farMiners.length < 1 && blockedRole != 'farMiner') {
 					prioritizedRole = 'farMiner';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
