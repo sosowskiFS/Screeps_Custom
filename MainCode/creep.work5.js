@@ -506,6 +506,11 @@ var creep_work5 = {
 							}
 						}
 					}
+				} else {
+					var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+					if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
+						creep.moveTo(homeSpawn);
+					}
 				}
 				break;
 			case 'mineralMiner':

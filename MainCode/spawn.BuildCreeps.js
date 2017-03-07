@@ -160,7 +160,7 @@ var spawn_BuildCreeps = {
 				}
 				spawn.createCreep(bestWorker, undefined, {
 					priority: prioritizedRole,
-					fromSpawn: spawn,
+					fromSpawn: spawn.id,
 					sourceLocation: creepSourceID
 				});
 			}

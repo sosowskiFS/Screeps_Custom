@@ -274,6 +274,11 @@ var creep_work = {
 						}
 					}
 				}
+			} else {
+				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+				if (homeSpawn && !creep.pos.isNearTo(homeSpawn)){
+					creep.moveTo(homeSpawn);
+				}
 			}
 
 		} else {
