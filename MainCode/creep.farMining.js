@@ -292,6 +292,11 @@ var creep_farMining = {
 				creep.heal(creep);
 			}
 
+			if (Game.flags[creep.memory.targetFlag]) {
+				if (Game.flags[creep.memory.targetFlag].pos.roomName != creep.memory.destination) {
+					creep.memory.destination = Game.flags[creep.memory.targetFlag].pos.roomName;
+				}
+			}
 
 			if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 				if (creep.room.controller.reservation.ticksToEnd <= 1000) {
