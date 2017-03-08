@@ -205,8 +205,7 @@ module.exports.loop = function() {
                 }
             } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1 && Memory.attackDuration >= 500 && Memory.roomsUnderAttack.length > 0 && !Game.flags[thisRoom.name + "eFarGuard"]) {
                 Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, thisRoom.name + "eFarGuard");
-            }
-             else if (Memory.roomsUnderAttack.length == 0) {
+            } else if (Memory.roomsUnderAttack.length == 0) {
                 Memory.attackDuration = 0;
                 if (Game.flags[thisRoom.name + "eFarGuard"]) {
                     Game.flags[thisRoom.name + "eFarGuard"].remove();
@@ -460,15 +459,16 @@ module.exports.loop = function() {
             //}
         }
 
+        if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
+            //Run farMining spawn
+            spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+        }
+
+        //Last call will take priority for spawn
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
             spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
         } else {
             spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
-        }
-
-        if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
-            //Run farMining spawn
-            spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
         }
 
         Memory.RoomsRun.push(thisRoom.name);
