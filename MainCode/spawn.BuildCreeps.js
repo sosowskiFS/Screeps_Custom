@@ -53,7 +53,6 @@ var spawn_BuildCreeps = {
 					priority: 'harvester',
 					sourceLocation: strSources[1]
 				});
-				return true;
 			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= 850 && defenders.length < 2) {
 				//Try to produce millitary units
 
@@ -132,7 +131,6 @@ var spawn_BuildCreeps = {
 				spawn.createCreep(ChosenCreepSet, undefined, {
 					priority: 'defender'
 				});
-				return true;
 
 			} else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
 				var prioritizedRole = 'harvester';
@@ -165,7 +163,6 @@ var spawn_BuildCreeps = {
 					fromSpawn: spawn.id,
 					sourceLocation: creepSourceID
 				});
-				return true;
 			}
 		}
 	}

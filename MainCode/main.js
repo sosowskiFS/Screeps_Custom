@@ -460,14 +460,13 @@ module.exports.loop = function() {
             //}
         }
 
-        var isSpawning = false;
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
-            isSpawning = spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
+            spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
         } else {
-            isSpawning = spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
+            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
         }
 
-        if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"] && !isSpawning) {
+        if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
             //Run farMining spawn
             spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
         }
