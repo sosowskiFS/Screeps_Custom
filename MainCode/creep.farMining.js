@@ -292,6 +292,18 @@ var creep_farMining = {
 				creep.heal(creep);
 			}
 
+			//Recall guard into home room if it's under attack
+			if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 250 && Game.flags[creep.memory.targetFlag]) {
+				Game.flags[creep.memory.targetFlag].pos.createFlag(creep.memory.targetFlag + "TEMP");
+				Game.flags[creep.memory.targetFlag].remove();
+				var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
+				homePosition.createFlag(creep.memory.targetFlag);
+			} else if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"] && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) == -1) {
+				Game.flags[creep.memory.targetFlag].remove();
+				Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
+				Game.flags[creep.memory.targetFlag + "TEMP"].remove();
+			}
+
 			if (Game.flags[creep.memory.targetFlag]) {
 				if (Game.flags[creep.memory.targetFlag].pos.roomName != creep.memory.destination) {
 					creep.memory.destination = Game.flags[creep.memory.targetFlag].pos.roomName;
