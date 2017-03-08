@@ -301,7 +301,7 @@ var creep_farMining = {
 				}
 
 				//Recall guard into home room if it's under attack
-				if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 250 && Game.flags[creep.memory.targetFlag]) {
+				if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100 && Game.flags[creep.memory.targetFlag]) {
 					Game.flags[creep.memory.targetFlag].pos.createFlag(creep.memory.targetFlag + "TEMP");
 					Game.flags[creep.memory.targetFlag].remove();
 					var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
