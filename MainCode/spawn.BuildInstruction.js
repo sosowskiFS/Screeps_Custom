@@ -22,7 +22,7 @@ var spawn_BuildInstruction = {
 						destinations: params,
 						message: params2
 					});
-					console.log('Vandalize executed');
+					console.log('Vandalize executed from ' + spawn.room.name);
 				} else {
 					//console.log('Could not execute vandalize. Spawn cannot create creep.');
 				}
@@ -36,7 +36,7 @@ var spawn_BuildInstruction = {
 							siteID: params,
 							destination: params2
 						});
-						console.log('Construct executed');
+						console.log('Construct executed from ' + spawn.room.name);
 					} else {
 						//console.log('Could not execute constructor. Spawn cannot create creep.');
 					}
@@ -54,7 +54,7 @@ var spawn_BuildInstruction = {
 							priority: 'removeKebab',
 							destination: params
 						});
-						console.log('Kebab executed');
+						console.log('Kebab executed from ' + spawn.room.name);
 						//if (Game.flags["RemoveKebab"]) {
 						//Game.flags["RemoveKebab"].remove();
 						//}
@@ -82,7 +82,7 @@ var spawn_BuildInstruction = {
 						//if (Game.flags["DrainTurret"]) {
 						//Game.flags["DrainTurret"].remove();
 						//}
-						console.log('Tower Drain Executed');
+						console.log('Tower Drain Executed from ' + spawn.room.name);
 					}
 				}
 				break;
@@ -96,7 +96,7 @@ var spawn_BuildInstruction = {
 						priority: 'helper',
 						destination: params
 					});
-					console.log('Helper executed');
+					console.log('Helper executed from ' + spawn.room.name);
 					if (Game.flags[spawn.room.name + "SendHelper"]) {
 						Game.flags[spawn.room.name + "SendHelper"].remove();
 					}
@@ -117,7 +117,7 @@ var spawn_BuildInstruction = {
 							destination: params,
 							homeRoom: params2
 						});
-						console.log('Looter executed');
+						console.log('Looter executed from ' + spawn.room.name);
 					} else {
 						//console.log('Could not execute constructor. Spawn cannot create creep.');
 					}
