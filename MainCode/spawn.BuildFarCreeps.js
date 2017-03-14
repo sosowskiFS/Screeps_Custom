@@ -171,7 +171,7 @@ var spawn_BuildFarCreeps = {
 			}
 
 			if (Memory.warMode) {
-				if (eFarGuards.length < 1 && Game.flags[thisroom.name + "eFarGuard"] && blockedRole != 'farGuard') {
+				if (eFarGuards.length < 1 && Game.flags[thisRoom.name + "eFarGuard"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "eFarGuard"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "eFarGuard"].name;
