@@ -53,7 +53,7 @@ var creep_farMining = {
 					});
 				}
 
-				if (creep.hits < 400) {
+				if (creep.hits < 750) {
 					//Determine if attacker is player, if so, delete flag.
 					var hostiles = creep.room.find(FIND_HOSTILE_CREEPS, {
 						filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
