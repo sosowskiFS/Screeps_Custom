@@ -178,6 +178,14 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
+			if (Game.flags[thisRoom.name + "FarGuard"] && prioritizedRole == '') {
+				if (farGuards.length < 1 && Game.flags[thisRoom.name + "FarGuard"] && blockedRole != 'farGuard') {
+					prioritizedRole = 'farGuard';
+					roomTarget = Game.flags[thisRoom.name + "FarGuard"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard"].name;
+				}
+			}
+
 			if (Game.flags[thisRoom.name + "FarMining"] && prioritizedRole == '') {
 				if (farMiners.length < 1 && blockedRole != 'farMiner') {
 					prioritizedRole = 'farMiner';
@@ -195,11 +203,11 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			if (Game.flags[thisRoom.name + "FarGuard"] && prioritizedRole == '') {
-				if (farGuards.length < 1 && Game.flags[thisRoom.name + "FarGuard"] && blockedRole != 'farGuard') {
+			if (Game.flags[thisRoom.name + "FarGuard2"] && prioritizedRole == '') {
+				if (farGuards2.length < 1 && Game.flags[thisRoom.name + "FarGuard2"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
-					roomTarget = Game.flags[thisRoom.name + "FarGuard"].pos.roomName;
-					flagName = Game.flags[thisRoom.name + "FarGuard"].name;
+					roomTarget = Game.flags[thisRoom.name + "FarGuard2"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard2"].name;
 				}
 			}
 
@@ -220,11 +228,11 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			if (Game.flags[thisRoom.name + "FarGuard2"] && prioritizedRole == '') {
-				if (farGuards2.length < 1 && Game.flags[thisRoom.name + "FarGuard2"] && blockedRole != 'farGuard') {
+			if (Game.flags[thisRoom.name + "FarGuard3"] && prioritizedRole == '') {
+				if (farGuards3.length < 1 && Game.flags[thisRoom.name + "FarGuard3"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
-					roomTarget = Game.flags[thisRoom.name + "FarGuard2"].pos.roomName;
-					flagName = Game.flags[thisRoom.name + "FarGuard2"].name;
+					roomTarget = Game.flags[thisRoom.name + "FarGuard3"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard3"].name;
 				}
 			}
 
@@ -245,11 +253,11 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			if (Game.flags[thisRoom.name + "FarGuard3"] && prioritizedRole == '') {
-				if (farGuards3.length < 1 && Game.flags[thisRoom.name + "FarGuard3"] && blockedRole != 'farGuard') {
+			if (Game.flags[thisRoom.name + "FarGuard4"] && prioritizedRole == '') {
+				if (farGuards4.length < 1 && Game.flags[thisRoom.name + "FarGuard4"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
-					roomTarget = Game.flags[thisRoom.name + "FarGuard3"].pos.roomName;
-					flagName = Game.flags[thisRoom.name + "FarGuard3"].name;
+					roomTarget = Game.flags[thisRoom.name + "FarGuard4"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard4"].name;
 				}
 			}
 
@@ -270,14 +278,13 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			if (Game.flags[thisRoom.name + "FarGuard4"] && prioritizedRole == '') {
-				if (farGuards4.length < 1 && Game.flags[thisRoom.name + "FarGuard4"] && blockedRole != 'farGuard') {
+			if (Game.flags[thisRoom.name + "FarGuard5"] && prioritizedRole == '') {
+				if (farGuards5.length < 1 && Game.flags[thisRoom.name + "FarGuard5"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
-					roomTarget = Game.flags[thisRoom.name + "FarGuard4"].pos.roomName;
-					flagName = Game.flags[thisRoom.name + "FarGuard4"].name;
+					roomTarget = Game.flags[thisRoom.name + "FarGuard5"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard5"].name;
 				}
 			}
-
 
 			if (Game.flags[thisRoom.name + "FarMining5"] && prioritizedRole == '') {
 				if (farMiners5.length < 1 && blockedRole != 'farMiner') {
@@ -296,14 +303,13 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			if (Game.flags[thisRoom.name + "FarGuard5"] && prioritizedRole == '') {
-				if (farGuards5.length < 1 && Game.flags[thisRoom.name + "FarGuard5"] && blockedRole != 'farGuard') {
+			if (Game.flags[thisRoom.name + "FarGuard6"] && prioritizedRole == '') {
+				if (farGuards6.length < 1 && Game.flags[thisRoom.name + "FarGuard6"] && blockedRole != 'farGuard') {
 					prioritizedRole = 'farGuard';
-					roomTarget = Game.flags[thisRoom.name + "FarGuard5"].pos.roomName;
-					flagName = Game.flags[thisRoom.name + "FarGuard5"].name;
+					roomTarget = Game.flags[thisRoom.name + "FarGuard6"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard6"].name;
 				}
 			}
-
 
 			if (Game.flags[thisRoom.name + "FarMining6"] && prioritizedRole == '') {
 				if (farMiners6.length < 1 && blockedRole != 'farMiner') {
@@ -321,15 +327,6 @@ var spawn_BuildFarCreeps = {
 					flagName = Game.flags[thisRoom.name + "FarMining6"].name;
 				}
 			}
-
-			if (Game.flags[thisRoom.name + "FarGuard6"] && prioritizedRole == '') {
-				if (farGuards6.length < 1 && Game.flags[thisRoom.name + "FarGuard6"] && blockedRole != 'farGuard') {
-					prioritizedRole = 'farGuard';
-					roomTarget = Game.flags[thisRoom.name + "FarGuard6"].pos.roomName;
-					flagName = Game.flags[thisRoom.name + "FarGuard6"].name;
-				}
-			}
-
 
 			if (prioritizedRole != '') {
 				if (prioritizedRole == 'farClaimer') {
