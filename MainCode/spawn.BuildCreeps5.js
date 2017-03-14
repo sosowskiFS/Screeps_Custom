@@ -174,7 +174,7 @@ var spawn_BuildCreeps5 = {
 
 
 					}
-				} else if (thisRoom.energyAvailable >= 660) {
+				} else if (thisRoom.energyAvailable >= 590) {
 					//Try to produce millitary units
 
 					//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -198,15 +198,15 @@ var spawn_BuildCreeps5 = {
 					var totalParts = 0;
 
 					var remainingEnergy = thisRoom.energyAvailable;
-					while ((remainingEnergy / 660) >= 1) {
+					while ((remainingEnergy / 590) >= 1) {
 						//switch (ChosenPriority) {
 						//case 'melee':
 						//ToughCount = ToughCount + 1;
 						MoveCount = MoveCount + 4;
-						AttackCount = AttackCount + 2;
-						RangedCount = RangedCount + 2;
+						AttackCount = AttackCount + 3;
+						RangedCount = RangedCount + 1;
 						totalParts = totalParts + 6;
-						remainingEnergy = remainingEnergy - 660;
+						remainingEnergy = remainingEnergy - 590;
 						//break;
 						//case 'ranged':
 						//MoveCount = MoveCount + 2;
@@ -244,7 +244,7 @@ var spawn_BuildCreeps5 = {
 
 					if (ChosenCreepSet.length > 50) {
 						while (ChosenCreepSet.length > 50) {
-							ChosenCreepSet.splice(0, 1)
+							ChosenCreepSet.splice(0, 1);
 						}
 					}
 
