@@ -151,7 +151,7 @@ var spawn_BuildCreeps5 = {
 						sourceLocation: strSources[1]
 					});
 				}
-			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && (salvagers.length == 0 || defenders.length < 2)) {
+			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && (salvagers.length == 0 || defenders.length < 4)) {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
 					if (thisRoom.energyAvailable >= 800 && salvagers.length == 0) {
 						var blockedRole = '';
@@ -174,7 +174,7 @@ var spawn_BuildCreeps5 = {
 
 
 					}
-				} else if (thisRoom.energyAvailable >= 590) {
+				} else if (thisRoom.energyAvailable >= 520) {
 					//Try to produce millitary units
 
 					//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -198,15 +198,15 @@ var spawn_BuildCreeps5 = {
 					var totalParts = 0;
 
 					var remainingEnergy = thisRoom.energyAvailable;
-					while ((remainingEnergy / 590) >= 1) {
+					while ((remainingEnergy / 520) >= 1) {
 						//switch (ChosenPriority) {
 						//case 'melee':
 						//ToughCount = ToughCount + 1;
 						MoveCount = MoveCount + 4;
-						AttackCount = AttackCount + 3;
-						RangedCount = RangedCount + 1;
-						totalParts = totalParts + 6;
-						remainingEnergy = remainingEnergy - 590;
+						AttackCount = AttackCount + 4;
+						//RangedCount = RangedCount + 1;
+						totalParts = totalParts + 8;
+						remainingEnergy = remainingEnergy - 520;
 						//break;
 						//case 'ranged':
 						//MoveCount = MoveCount + 2;
