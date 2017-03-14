@@ -296,10 +296,6 @@ var creep_farMining = {
 					});
 				}
 
-				if (creep.hits < creep.hitsMax) {
-					creep.heal(creep);
-				}
-
 				//Recall guard into home room if it's under attack
 				if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100 && Game.flags[creep.memory.targetFlag] && !Game.flags[creep.memory.targetFlag + "TEMP"]) {
 					Game.flags[creep.memory.targetFlag].pos.createFlag(creep.memory.targetFlag + "TEMP");
@@ -341,7 +337,21 @@ var creep_farMining = {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
 						reusePath: 25
 					});
+					if (creep.hits < creep.hitsMax) {
+						creep.heal(creep);
+					}
 				} else if (creep.room.controller && Foe && !creep.room.controller.safeMode) {
+					if (creep.hits < creep.hitsMax) {
+						creep.heal(creep);
+					} else {
+						var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+							filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+						});
+						if (hurtAlly.length > 0) {
+							creep.heal(hurtAlly[0]);
+						}
+					}
+
 					if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0)) {
 						creep.moveTo(Foe, {
 							maxRooms: 1
@@ -414,16 +424,39 @@ var creep_farMining = {
 							//Eat it
 						}
 					}
+					if (creep.hits < creep.hitsMax) {
+						creep.heal(creep);
+					}
 				} else if (creep.room.name != creep.memory.destination) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
 						reusePath: 25
 					});
-				} else if (Game.flags[creep.memory.targetFlag]) {
-					if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-						creep.moveTo(Game.flags[creep.memory.targetFlag], {
-							maxRooms: 1
-						});
+					if (creep.hits < creep.hitsMax) {
+						creep.heal(creep);
 					}
+				} else if (Game.flags[creep.memory.targetFlag]) {
+					if (creep.hits < creep.hitsMax) {
+						creep.heal(creep);
+						if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
+							creep.moveTo(Game.flags[creep.memory.targetFlag], {
+								maxRooms: 1
+							});
+						}
+					} else {
+						var hurtAlly = creep.room.find(FIND_MY_CREEPS, {
+							filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+						});
+						if (hurtAlly.length > 0) {
+							creep.moveTo(hurtAlly[0]);
+							creep.heal(hurtAlly[0]);
+						} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
+							creep.moveTo(Game.flags[creep.memory.targetFlag], {
+								maxRooms: 1
+							});
+						}
+					}
+				} else if (creep.hits < creep.hitsMax) {
+					creep.heal(creep);
 				}
 				break;
 		}
