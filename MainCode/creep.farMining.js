@@ -355,7 +355,6 @@ var creep_farMining = {
 						switch (foeDirection) {
 							case TOP:
 								y = -3;
-								x = -3;
 								break;
 							case TOP_RIGHT:
 								y = -3;
@@ -363,7 +362,6 @@ var creep_farMining = {
 								break;
 							case RIGHT:
 								x = -3;
-								y = 3;
 								break;
 							case BOTTOM_RIGHT:
 								y = 3;
@@ -371,7 +369,6 @@ var creep_farMining = {
 								break;
 							case BOTTOM:
 								y = 3;
-								x = 3;
 								break;
 							case BOTTOM_LEFT:
 								y = 3;
@@ -379,7 +376,6 @@ var creep_farMining = {
 								break;
 							case LEFT:
 								x = 3;
-								y = -3;
 								break;
 							case TOP_LEFT:
 								y = -3;
