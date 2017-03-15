@@ -423,7 +423,7 @@ var creep_work5 = {
 					if (storageTarget) {
 						if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(storageTarget, {
-								reusePath: 25
+								reusePath: 2
 							});
 						}
 					}
