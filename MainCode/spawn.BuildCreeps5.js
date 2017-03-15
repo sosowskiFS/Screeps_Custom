@@ -79,6 +79,11 @@ var spawn_BuildCreeps5 = {
 				muleConfigCost = 1600;
 			}
 
+			var repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+			if (thisRoom.energyCapacityAvailable >= 1800) {
+				repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+			}
+
 			//800 Points
 			var upgraderConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
 			if (thisRoom.energyCapacityAvailable >= 1550) {
@@ -106,6 +111,7 @@ var spawn_BuildCreeps5 = {
 					if (thisRoom.energyCapacityAvailable >= 3000) {
 						muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 						muleConfigCost = 3000;
+						repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 					}
 				}
 				if (roomStorage.store[RESOURCE_ENERGY] >= 500000) {
@@ -360,8 +366,8 @@ var spawn_BuildCreeps5 = {
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						}
 					} else if (prioritizedRole == 'repair') {
-						if (spawn.canCreateCreep(muleConfig) == OK) {
-							spawn.createCreep(muleConfig, undefined, {
+						if (spawn.canCreateCreep(repairConfig) == OK) {
+							spawn.createCreep(repairConfig, undefined, {
 								priority: prioritizedRole,
 								storageSource: storageID,
 								fromSpawn: spawn.id
