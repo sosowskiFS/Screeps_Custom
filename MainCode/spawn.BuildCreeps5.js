@@ -66,7 +66,7 @@ var spawn_BuildCreeps5 = {
 
 			var supplierConfig = [MOVE, CARRY, CARRY, CARRY];
 			var distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-			if (thisRoom.energycapacityAvailable >= 2000) {
+			if (thisRoom.energyCapacityAvailable >= 2000) {
 				distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 			}
 
@@ -177,7 +177,7 @@ var spawn_BuildCreeps5 = {
 
 
 					}
-				} else if ((thisRoom.energyAvailable >= 520) && (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable)) {
+				} else if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable) {
 					//Try to produce millitary units
 
 					//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -201,15 +201,15 @@ var spawn_BuildCreeps5 = {
 					var totalParts = 0;
 
 					var remainingEnergy = thisRoom.energyAvailable;
-					while ((remainingEnergy / 520) >= 1) {
+					while ((remainingEnergy / 340) >= 1) {
 						//switch (ChosenPriority) {
 						//case 'melee':
 						//ToughCount = ToughCount + 1;
-						MoveCount = MoveCount + 4;
-						AttackCount = AttackCount + 4;
+						MoveCount = MoveCount + 2;
+						AttackCount = AttackCount + 3;
 						//RangedCount = RangedCount + 1;
-						totalParts = totalParts + 8;
-						remainingEnergy = remainingEnergy - 520;
+						totalParts = totalParts + 5;
+						remainingEnergy = remainingEnergy - 340;
 						//break;
 						//case 'ranged':
 						//MoveCount = MoveCount + 2;
