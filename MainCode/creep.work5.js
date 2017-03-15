@@ -173,7 +173,7 @@ var creep_work5 = {
 								}
 							} else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
 								//Storing in spawn/extension/tower
-								if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+								if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
 									creep.moveTo(savedTarget, {
 										reusePath: 5
 									});

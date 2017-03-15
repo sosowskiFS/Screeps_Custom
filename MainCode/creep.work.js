@@ -104,7 +104,7 @@ var creep_work = {
 				//If target is destroyed, this will prevent creep from locking up
 			var getNewStructure = false;
 			if (savedTarget) {
-				if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+				if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
 					creep.moveTo(savedTarget);
 				} else {
 					getNewStructure = true;
@@ -242,7 +242,7 @@ var creep_work = {
 				var getNewStructure = false;
 				//If target is destroyed, this will prevent creep from locking up
 				if (savedTarget) {
-					if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+					if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
 						creep.moveTo(savedTarget);
 					} else {
 						getNewStructure = true;
