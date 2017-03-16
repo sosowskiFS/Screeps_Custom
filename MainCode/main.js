@@ -94,6 +94,7 @@ module.exports.loop = function() {
     PathFinder.use(true);
 
     var roomDist = 999;
+    var roomEnergy = 0;
     var roomName = '';
     var instructionSpawn;
 
@@ -125,27 +126,30 @@ module.exports.loop = function() {
             //Execute special instruction written into console
             if (Game.flags["ClaimThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
-                if (theDistance <= roomDist) {
+                if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
+                    roomEnergy = thisRoom.energyCapacityAvailable;
                     instructionSpawn = Game.spawns[i];
                 }
             }
 
             if (Game.flags["BuildThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
-                if (theDistance <= roomDist) {
+                if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
+                    roomEnergy = thisRoom.energyCapacityAvailable;
                     instructionSpawn = Game.spawns[i];
                 }
             }
 
             if (Game.flags["DrainTurret"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["DrainTurret"].pos.roomName, thisRoom.name);
-                if (theDistance <= roomDist) {
+                if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
+                    roomEnergy = thisRoom.energyCapacityAvailable;
                     instructionSpawn = Game.spawns[i];
                 }
             }
@@ -153,9 +157,10 @@ module.exports.loop = function() {
             if (Game.flags["RemoveKebab"]) {
                 if (thisRoom.energyCapacityAvailable >= 1300) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["RemoveKebab"].pos.roomName, thisRoom.name);
-                    if (theDistance <= roomDist) {
+                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                         roomDist = theDistance;
                         roomName = thisRoom.name;
+                        roomEnergy = thisRoom.energyCapacityAvailable;
                         instructionSpawn = Game.spawns[i];
                     }
                 }
@@ -164,9 +169,10 @@ module.exports.loop = function() {
             if (Game.flags["Loot"]) {
                 if (thisRoom.storage) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
-                    if (theDistance <= roomDist) {
+                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                         roomDist = theDistance;
                         roomName = thisRoom.name;
+                        roomEnergy = thisRoom.energyCapacityAvailable;
                         instructionSpawn = Game.spawns[i];
                     }
                 }
