@@ -7,7 +7,7 @@ var spawn_BuildInstruction = {
 						priority: 'claimer',
 						destination: params
 					});
-					console.log('Claim executed');
+					console.log('Claim executed from ' + spawn.room.name);
 					if (Game.flags["ClaimThis"]) {
 						Game.flags["ClaimThis"].remove();
 					}
