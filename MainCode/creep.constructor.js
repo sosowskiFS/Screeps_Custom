@@ -21,7 +21,7 @@ var creep_constructor = {
                 }
             }
         } else {
-            if ((creep.carry.energy <= 20 && creep.hits < 2500) || (creep.carry.energy <= 40)) {
+            if ((creep.carry.energy <= 20 && creep.hits < 2500) || (creep.carry.energy <= 40 && creep.hits >= 2500)) {
                 //Upgrade the controller
                 if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller);
