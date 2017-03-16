@@ -340,7 +340,7 @@ var creep_farMining = {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					}
-				} else if (creep.room.controller && Foe && !creep.room.controller.safeMode) {
+				} else if (creep.room.controller && Foe) {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					} else {
