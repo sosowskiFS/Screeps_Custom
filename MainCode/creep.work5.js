@@ -191,9 +191,15 @@ var creep_work5 = {
 							} else {
 								//Upgrading controller
 								if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
-									creep.moveTo(savedTarget, {
-										reusePath: 20
-									});
+									if (Game.flags[creep.room.name + "Controller"]) {
+										creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+											reusePath: 20
+										});
+									} else {
+										creep.moveTo(savedTarget, {
+											reusePath: 20
+										});
+									}
 								} else {
 									//Check for nearby link and fill it if possible.
 									var links = creep.pos.findInRange(FIND_STRUCTURES, 3, {
@@ -307,9 +313,15 @@ var creep_work5 = {
 										//Upgrade
 										creep.memory.structureTarget = creep.room.controller.id;
 										if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(creep.room.controller, {
-												reusePath: 20
-											});
+											if (Game.flags[creep.room.name + "Controller"]) {
+												creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+													reusePath: 20
+												});
+											} else {
+												creep.moveTo(creep.room.controller, {
+													reusePath: 20
+												});
+											}
 										} else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
 											creep.suicide();
 										}
