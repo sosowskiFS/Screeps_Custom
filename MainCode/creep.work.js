@@ -176,9 +176,15 @@ var creep_work = {
 			}
 		} else if (creep.memory.upgrading) {
 			if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-				creep.moveTo(creep.room.controller, {
-					reusePath: moveRecalc
-				});
+				if (Game.flags[creep.room.name + "Controller"]) {
+					creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+						reusePath: moveRecalc
+					});
+				} else {
+					creep.moveTo(creep.room.controller, {
+						reusePath: moveRecalc
+					});
+				}
 			}
 		} else if (creep.memory.repairing) {
 			if (creep.memory.structureTarget) {
@@ -276,7 +282,7 @@ var creep_work = {
 				}
 			} else {
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
-				if (homeSpawn && !creep.pos.isNearTo(homeSpawn)){
+				if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
 					creep.moveTo(homeSpawn);
 				}
 			}
