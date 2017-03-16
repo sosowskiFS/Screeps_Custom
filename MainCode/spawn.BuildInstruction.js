@@ -30,8 +30,12 @@ var spawn_BuildInstruction = {
 			case 'construct':
 				var constructors = _.filter(Game.creeps, (creep) => creep.memory.priority == 'constructor');
 				if (constructors.length < 3) {
-					if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY]) == OK) {
-						spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY], undefined, {
+					var constructorConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY];
+					if (spawn.room.energyCapacityAvailable >= 2000) {
+						constructorConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+					}
+					if (spawn.canCreateCreep(constructorConfig) == OK) {
+						spawn.createCreep(constructorConfig, undefined, {
 							priority: 'constructor',
 							siteID: params,
 							destination: params2
