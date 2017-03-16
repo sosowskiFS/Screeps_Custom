@@ -99,9 +99,15 @@ var creep_work5 = {
 				}
 
 				if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-					creep.moveTo(creep.room.controller, {
-						reusePath: 25
-					});
+					if (Game.flags[creep.room.name + "Controller"]) {
+						creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+							reusePath: 25
+						});
+					} else {
+						creep.moveTo(creep.room.controller, {
+							reusePath: 25
+						});
+					}
 				}
 
 				var linkTarget = Game.getObjectById(creep.memory.linkSource);
