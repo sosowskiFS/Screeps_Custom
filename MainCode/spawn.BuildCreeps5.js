@@ -154,11 +154,13 @@ var spawn_BuildCreeps5 = {
 						terminalID: strTerminal,
 						fromSpawn: spawn.id
 					});
+					Memory.isSpawning = true;
 				} else {
 					spawn.createCreep(bareMinConfig, undefined, {
 						priority: 'harvester',
 						sourceLocation: strSources[1]
 					});
+					Memory.isSpawning = true;
 				}
 			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && (salvagers.length == 0 || defenders.length < 4)) {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
@@ -178,6 +180,7 @@ var spawn_BuildCreeps5 = {
 									storageTarget: thisRoom.storage.id
 								});
 								Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
+								Memory.isSpawning = true;
 							}
 						}
 
@@ -260,6 +263,7 @@ var spawn_BuildCreeps5 = {
 					spawn.createCreep(ChosenCreepSet, undefined, {
 						priority: 'defender'
 					});
+					Memory.isSpawning = true;
 				}
 			}
 			if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
@@ -343,6 +347,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+							Memory.isSpawning = true;
 						}
 					} else if (prioritizedRole == 'mule') {
 						if (spawn.canCreateCreep(muleConfig) == OK) {
@@ -354,6 +359,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+							Memory.isSpawning = true;
 						}
 					} else if (prioritizedRole == 'upgrader') {
 						if (spawn.canCreateCreep(upgraderConfig) == OK) {
@@ -364,6 +370,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+							Memory.isSpawning = true;
 						}
 					} else if (prioritizedRole == 'repair') {
 						if (spawn.canCreateCreep(repairConfig) == OK) {
@@ -373,6 +380,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+							Memory.isSpawning = true;
 						}
 					} else if (prioritizedRole == 'supplier') {
 						if (spawn.canCreateCreep(supplierConfig) == OK) {
@@ -381,6 +389,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+							Memory.isSpawning = true;
 						}
 					} else if (prioritizedRole == 'distributor') {
 						if (spawn.canCreateCreep(distributorConfig) == OK) {
@@ -389,6 +398,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+							Memory.isSpawning = true;
 						}
 					} else if (prioritizedRole == 'mineralMiner') {
 						if (spawn.canCreateCreep(mineralMinerConfig) == OK) {
@@ -400,6 +410,7 @@ var spawn_BuildCreeps5 = {
 								fromSpawn: spawn.id
 							});
 							Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+							Memory.isSpawning = true;
 						}
 					}
 				}
@@ -425,6 +436,7 @@ var spawn_BuildCreeps5 = {
 							fromSpawn: spawn.id
 						});
 						Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
+						Memory.isSpawning = true;
 					}
 				}
 			}

@@ -465,23 +465,32 @@ module.exports.loop = function() {
             //}
         }
 
-        if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
-            //Run farMining spawn
-            spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+        if (Memory.isSpawning == null) {
+            Memory.isSpawning = false;
         }
-
-        //Last call will take priority for spawn
-        if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
-            spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
-        } else {
-            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
-        }
-
-        Memory.RoomsRun.push(thisRoom.name);
 
         if (Game.flags[thisRoom.name + "SendHelper"]) {
             spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
         }
+
+        if (!Memory.isSpawning) {
+            if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
+            } else {
+                spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
+            }
+        }
+
+        if (!Memory.isSpawning) {
+            if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
+                //Run farMining spawn
+                spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+            }
+        }
+
+        Memory.isSpawning = false;
+
+        Memory.RoomsRun.push(thisRoom.name);
     }
 
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)

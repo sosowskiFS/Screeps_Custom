@@ -7,6 +7,7 @@ var spawn_BuildInstruction = {
 						priority: 'claimer',
 						destination: params
 					});
+					Memory.isSpawning = true;
 					console.log('Claim executed from ' + spawn.room.name);
 					if (Game.flags["ClaimThis"]) {
 						Game.flags["ClaimThis"].remove();
@@ -22,6 +23,7 @@ var spawn_BuildInstruction = {
 						destinations: params,
 						message: params2
 					});
+					Memory.isSpawning = true;
 					console.log('Vandalize executed from ' + spawn.room.name);
 				} else {
 					//console.log('Could not execute vandalize. Spawn cannot create creep.');
@@ -40,6 +42,7 @@ var spawn_BuildInstruction = {
 							siteID: params,
 							destination: params2
 						});
+						Memory.isSpawning = true;
 						console.log('Construct executed from ' + spawn.room.name);
 					} else {
 						//console.log('Could not execute constructor. Spawn cannot create creep.');
@@ -58,6 +61,7 @@ var spawn_BuildInstruction = {
 							priority: 'removeKebab',
 							destination: params
 						});
+						Memory.isSpawning = true;
 						console.log('Kebab executed from ' + spawn.room.name);
 						//if (Game.flags["RemoveKebab"]) {
 						//Game.flags["RemoveKebab"].remove();
@@ -86,6 +90,7 @@ var spawn_BuildInstruction = {
 						//if (Game.flags["DrainTurret"]) {
 						//Game.flags["DrainTurret"].remove();
 						//}
+						Memory.isSpawning = true;
 						console.log('Tower Drain Executed from ' + spawn.room.name);
 					}
 				}
@@ -100,6 +105,7 @@ var spawn_BuildInstruction = {
 						priority: 'helper',
 						destination: params
 					});
+					Memory.isSpawning = true;
 					console.log('Helper executed from ' + spawn.room.name);
 					if (Game.flags[spawn.room.name + "SendHelper"]) {
 						Game.flags[spawn.room.name + "SendHelper"].remove();
@@ -121,6 +127,7 @@ var spawn_BuildInstruction = {
 							destination: params,
 							homeRoom: params2
 						});
+						Memory.isSpawning = true;
 						console.log('Looter executed from ' + spawn.room.name);
 					} else {
 						//console.log('Could not execute constructor. Spawn cannot create creep.');
