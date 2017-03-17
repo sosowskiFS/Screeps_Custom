@@ -78,6 +78,11 @@ module.exports.loop = function() {
         Game.flags["ToggleWar"].remove();
     }
 
+    if (Game.flags["ResetAttackFlags"]) {
+        Memory.roomsUnderAttack = [];
+        Memory.attackDuration = 0;
+    }
+
 
     //Note that warMode is on
     if (Memory.warMode) {
