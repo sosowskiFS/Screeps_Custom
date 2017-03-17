@@ -590,6 +590,9 @@ module.exports.loop = function() {
             case 'looter':
                 creep_looter.run(creep);
                 break;
+            case 'vandal':
+                creep_vandal.run(creep);
+                break;
             case 'helper':
                 creep_Helper.run(creep);
                 break;
