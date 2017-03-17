@@ -355,7 +355,8 @@ var creep_work5 = {
 						if (storageTarget.store[RESOURCE_ENERGY] >= 120) {
 							if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(storageTarget, {
-									reusePath: 25
+									reusePath: 25,
+									maxRooms: 1
 								});
 							}
 						} else {
@@ -363,7 +364,8 @@ var creep_work5 = {
 							if (spawnTarget) {
 								if (!creep.pos.isNearTo(spawnTarget)) {
 									creep.moveTo(spawnTarget, {
-										reusePath: 25
+										reusePath: 25,
+										maxRooms: 1
 									});
 								}
 							}
@@ -377,7 +379,8 @@ var creep_work5 = {
 						} else {
 							if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(thisStructure, {
-									reusePath: 25
+									reusePath: 25,
+									maxRooms: 1
 								});
 							}
 							creep.room.visual.circle(thisStructure.pos, {
@@ -408,7 +411,8 @@ var creep_work5 = {
 						creep.memory.structureTarget = closestDamagedStructure[0].id;
 						if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(closestDamagedStructure[0], {
-								reusePath: 25
+								reusePath: 25,
+								maxRooms: 1
 							});
 						}
 					}
