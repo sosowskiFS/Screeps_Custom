@@ -9,22 +9,22 @@ var tower_Operate = {
             towerRange = 70;
         }
         if (UnderAttackPos >= 0 && thisTower.energy > 0) {
-            var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, towerRange);
-            if (closestHostile.length > 0) {
+            var closestHostile = thisTower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+            if (closestHostile) {
                 //Target healing creeps first
-                if (towerNumber == 1) {
+                /*if (towerNumber == 1) {
                     closestHostile.sort(targetHealer);
                 } else {
                     closestHostile.sort(targetOther);
-                }
-                if (closestHostile[0].getActiveBodyparts(HEAL) >= 12 && thisTower.pos.getRangeTo(closestHostile[0]) > 15 && closestHostile[0].hits == closestHostile[0].hitsMax) {
+                }*/
+                /*if (closestHostile.getActiveBodyparts(HEAL) >= 12 && thisTower.pos.getRangeTo(closestHostile) > 15 && closestHostile.hits == closestHostile.hitsMax) {
                     //Creep can outheal max range, do nothing. Will keep firing at creep until it's max HP again
                     if (closestHostile[1]) {
                         thisTower.attack(closestHostile[1]);
                     }
-                } else {
-                    thisTower.attack(closestHostile[0]);
-                }                      
+                } else {*/
+                    thisTower.attack(closestHostile);
+                //}                      
             }
         } else if ((thisTower.energy > (thisTower.energyCapacity * 0.5)) && (Game.time % 10 == 0)) {
             //Save 50% of the tower's energy to use on repelling attackers
