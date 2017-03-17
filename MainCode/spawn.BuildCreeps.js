@@ -26,7 +26,7 @@ var spawn_BuildCreeps = {
 			var supplierMax = 0;
 			var distributorMax = 0;
 			//How many creeps can mine at once
-			var mineSpots = [2, 5];
+			var mineSpots = [4, 5];
 			//Add sources from N to S
 			var strSources = Memory.sourceList[thisRoom.name];
 			var assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
