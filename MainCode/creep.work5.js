@@ -399,15 +399,9 @@ var creep_work5 = {
 					}
 				} else {
 					var closestDamagedStructure = [];
-					if (creep.room.controller.level >= 6) {
-						closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-							filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200) && (structure.hits > 1)
-						});
-					} else {
-						closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-							filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
-						});
-					}
+					closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+						filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+					});
 
 					if (closestDamagedStructure.length > 0) {
 						closestDamagedStructure.sort(repairCompare);
