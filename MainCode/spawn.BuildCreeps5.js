@@ -162,7 +162,7 @@ var spawn_BuildCreeps5 = {
 					});
 					Memory.isSpawning = true;
 				}
-			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && (salvagers.length == 0 || defenders.length < 4)) {
+			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && (salvagers.length == 0 || defenders.length < 3)) {
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
 					if (thisRoom.energyAvailable >= 800 && salvagers.length == 0) {
 						var blockedRole = '';
