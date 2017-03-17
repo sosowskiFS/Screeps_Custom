@@ -183,14 +183,12 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["SignThis"]) {
-                if (thisRoom.storage) {
-                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["SignThis"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                        roomDist = theDistance;
-                        roomName = thisRoom.name;
-                        roomEnergy = thisRoom.energyCapacityAvailable;
-                        instructionSpawn = Game.spawns[i];
-                    }
+                var theDistance = Game.map.getRoomLinearDistance(Game.flags["SignThis"].pos.roomName, thisRoom.name);
+                if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
+                    roomDist = theDistance;
+                    roomName = thisRoom.name;
+                    roomEnergy = thisRoom.energyCapacityAvailable;
+                    instructionSpawn = Game.spawns[i];
                 }
             }
 
