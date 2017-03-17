@@ -22,7 +22,7 @@ var spawn_BuildInstruction = {
 					if (spawn.canCreateCreep([TOUGH, MOVE]) == OK) {
 						spawn.createCreep([TOUGH, MOVE], undefined, {
 							priority: 'vandal',
-							message: "I come in peace! PM me to chat!"
+							message: "Expanding here!"
 						});
 						Memory.isSpawning = true;
 						console.log('Vandalize executed from ' + spawn.room.name);
