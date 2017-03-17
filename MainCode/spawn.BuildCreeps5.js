@@ -264,6 +264,9 @@ var spawn_BuildCreeps5 = {
 						priority: 'defender'
 					});
 					Memory.isSpawning = true;
+				} else {
+					//Lock out spawning other units until max defenders
+					Memory.isSpawning = true;
 				}
 			}
 			if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
