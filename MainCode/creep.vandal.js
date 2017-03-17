@@ -2,22 +2,24 @@ var creep_vandal = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (creep.memory.destinations.length > 0) {
-            if (creep.room.name != creep.memory.destinations[0]) {
-                creep.moveTo(new RoomPosition(34, 47, creep.memory.destinations[0]));
+        if (Game.flags["SignThis"]) {
+            if (creep.room.name != Game.flags["SignThis"].pos.roomName) {
+                creep.moveTo(new RoomPosition(25, 25, Game.flags["SignThis"].pos.roomName));
             } else {
                 var signResult = creep.signController(creep.room.controller, creep.memory.message);
                 if (signResult == ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller);
                 } else if (signResult == OK) {
-                    //Controller signed, remove destination and proceed
-                    creep.memory.destinations.splice(0, 1);
+                    //Controller signed, done
                     if (creep.memory.destinations == 0) {
                         //You're fuckin' done, kiddo.
+                        Game.flags["SignThis"].remove();
                         creep.suicide();
                     }
                 }
             }
+        } else {
+            creep.suicide();
         }
     }
 };

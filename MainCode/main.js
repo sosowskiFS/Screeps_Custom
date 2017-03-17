@@ -83,7 +83,6 @@ module.exports.loop = function() {
         Memory.attackDuration = 0;
     }
 
-
     //Note that warMode is on
     if (Memory.warMode) {
         new RoomVisual().text("War Mode", 0, 49, {
@@ -174,6 +173,18 @@ module.exports.loop = function() {
             if (Game.flags["Loot"]) {
                 if (thisRoom.storage) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
+                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
+                        roomDist = theDistance;
+                        roomName = thisRoom.name;
+                        roomEnergy = thisRoom.energyCapacityAvailable;
+                        instructionSpawn = Game.spawns[i];
+                    }
+                }
+            }
+
+            if (Game.flags["SignThis"]) {
+                if (thisRoom.storage) {
+                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["SignThis"].pos.roomName, thisRoom.name);
                     if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                         roomDist = theDistance;
                         roomName = thisRoom.name;
@@ -528,6 +539,10 @@ module.exports.loop = function() {
 
     if (Game.flags["Loot"]) {
         spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', instructionSpawn.room.name);
+    }
+
+    if (Game.flags["SignThis"]) {
+        spawn_BuildInstruction.run(instructionSpawn, 'vandalize', '', '', '');
     }
 
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {

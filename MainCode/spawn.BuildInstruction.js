@@ -17,16 +17,18 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'vandalize':
-				if (spawn.canCreateCreep([TOUGH, MOVE]) == OK) {
-					spawn.createCreep([TOUGH, MOVE], undefined, {
-						priority: 'vandal',
-						destinations: params,
-						message: params2
-					});
-					Memory.isSpawning = true;
-					console.log('Vandalize executed from ' + spawn.room.name);
-				} else {
-					//console.log('Could not execute vandalize. Spawn cannot create creep.');
+				var vandals = _.filter(Game.creeps, (creep) => creep.memory.priority == 'vandal');
+				if (vandals.length < 1) {
+					if (spawn.canCreateCreep([TOUGH, MOVE]) == OK) {
+						spawn.createCreep([TOUGH, MOVE], undefined, {
+							priority: 'vandal',
+							message: "I come in peace! PM me to chat!"
+						});
+						Memory.isSpawning = true;
+						console.log('Vandalize executed from ' + spawn.room.name);
+					} else {
+						//console.log('Could not execute vandalize. Spawn cannot create creep.');
+					}
 				}
 				break;
 			case 'construct':
