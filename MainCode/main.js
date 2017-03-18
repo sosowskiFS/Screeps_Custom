@@ -200,7 +200,7 @@ module.exports.loop = function() {
                 Memory.roomsUnderAttack.push(thisRoom.name);
                 if (hostiles[0].owner.username == 'Invader') {
                     Memory.roomsPrepSalvager.push(thisRoom.name);
-                } else if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                } else if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1 && hostiles[0].hits > 100) {
                     //No good combat code! SAFE MODE!
                     if (!thisRoom.controller.safeMode) {
                         thisRoom.controller.activateSafeMode();
