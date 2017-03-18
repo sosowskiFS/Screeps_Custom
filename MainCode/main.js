@@ -602,14 +602,14 @@ module.exports.loop = function() {
             default:
                 if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                     if (Game.spawns.length < 5) {
-                        creep_work.run(creep, 2);
+                        creep_work.run(creep, 5);
                     } else {
-                        creep_work.run(creep, 15);
+                        creep_work.run(creep, 5);
                     }
                 } else {
                     if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
                         //In case of emergency
-                        creep_work.run(creep);
+                        creep_work.run(creep, 5);
                     } else {
                         creep_work5.run(creep);
                     }
