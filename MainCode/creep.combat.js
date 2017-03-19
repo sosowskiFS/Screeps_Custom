@@ -13,7 +13,12 @@ var creep_combat = {
 			//Move towards Foe, stop at rampart
 
 			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-			if (Foe) {
+			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 10, {
+				filter: (structure) => {
+					return (structure.structureType == STRUCTURE_TOWER);
+				}
+			});
+			if (Foe && closestTower.length) {
 				creep.rangedAttack(Foe);
 				var attackResult = creep.attack(Foe);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
@@ -23,6 +28,11 @@ var creep_combat = {
 					}
 				} else if (attackResult == ERR_NOT_IN_RANGE) {
 					creep.moveTo(Foe);
+				}
+			} else {
+				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+				if (homeSpawn) {
+					creep.moveTo(homeSpawn);
 				}
 			}
 		}

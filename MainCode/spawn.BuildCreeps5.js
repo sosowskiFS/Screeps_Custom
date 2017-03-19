@@ -261,7 +261,8 @@ var spawn_BuildCreeps5 = {
 					}
 
 					spawn.createCreep(ChosenCreepSet, undefined, {
-						priority: 'defender'
+						priority: 'defender',
+						fromSpawn: spawn.id
 					});
 					Memory.isSpawning = true;
 				} else {
