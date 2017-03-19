@@ -22,19 +22,25 @@ var creep_combat = {
 			});
 			if (Foe.length) {
 				Foe.sort(targetOther);
-			}	
+			}
 			if (closeFoe && closestTower.length) {
 				creep.rangedAttack(closeFoe);
 				var attackResult = creep.attack(closeFoe);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 				if (lookResult.length) {
 					if (Foe[0].getActiveBodyparts(ATTACK) == 0 && Foe[0].getActiveBodyparts(RANGED_ATTACK) == 0) {
-						creep.moveTo(Foe[0]);
+						creep.moveTo(Foe[0], {
+							maxRooms: 1
+						});
 					} else if (lookResult[0].structureType != STRUCTURE_RAMPART) {
-						creep.moveTo(closeFoe);
+						creep.moveTo(closeFoe, {
+							maxRooms: 1
+						});
 					}
 				} else if (attackResult == ERR_NOT_IN_RANGE) {
-					creep.moveTo(closeFoe);
+					creep.moveTo(closeFoe, {
+						maxRooms: 1
+					});
 				}
 			} else if (Foe.length) {
 				creep.rangedAttack(Foe[0]);
@@ -43,9 +49,13 @@ var creep_combat = {
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 				if (homeSpawn) {
 					if (Foe[0].getActiveBodyparts(ATTACK) == 0 && Foe[0].getActiveBodyparts(RANGED_ATTACK) == 0) {
-						creep.moveTo(Foe[0]);
+						creep.moveTo(Foe[0], {
+							maxRooms: 1
+						});
 					} else if (lookResult.length && lookResult[0].structureType != STRUCTURE_RAMPART) {
-						creep.moveTo(homeSpawn);
+						creep.moveTo(homeSpawn, {
+							maxRooms: 1
+						});
 					}
 				}
 			} else {
