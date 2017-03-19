@@ -9,7 +9,7 @@ var tower_Operate = {
             towerRange = 70;
         }
         if (UnderAttackPos >= 0 && thisTower.energy > 0) {
-            var closestHostile = thisTower.pos.finInRange(FIND_HOSTILE_CREEPS, 50);
+            var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, 50);
             if (closestHostile.length) {
                 //Target healing creeps first
                     closestHostile.sort(targetOther);       
