@@ -120,19 +120,38 @@ var creep_work = {
 			if (!creep.memory.structureTarget) {
 				var targets = undefined;
 				if (getNewStructure) {
-					targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-						filter: (structure) => {
-							return (structure.structureType == STRUCTURE_EXTENSION ||
-								structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-						}
-					});
+					if (Memory.warMode) {
+						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							filter: (structure) => {
+								return (structure.structureType == STRUCTURE_EXTENSION ||
+									structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+							}
+						});
+					} else {
+						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							filter: (structure) => {
+								return (structure.structureType == STRUCTURE_EXTENSION ||
+									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+							}
+						});
+					}
+
 				} else {
-					targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-						filter: (structure) => {
-							return (structure.structureType == STRUCTURE_EXTENSION ||
-								structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-						}
-					});
+					if (Memory.warMode) {
+						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							filter: (structure) => {
+								return (structure.structureType == STRUCTURE_EXTENSION ||
+									structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+							}
+						});
+					} else {
+						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							filter: (structure) => {
+								return (structure.structureType == STRUCTURE_EXTENSION ||
+									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+							}
+						});
+					}
 				}
 
 				if (targets) {
