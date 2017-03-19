@@ -676,6 +676,9 @@ function memCheck() {
     if (!Memory.RoomsAt5) {
         Memory.RoomsAt5 = [];
     }
+    if (!Memory.hasFired) {
+        Memory.hasFired = [];
+    }
     //Boolean
     if (Memory.warMode == null) {
         Memory.warMode = false;

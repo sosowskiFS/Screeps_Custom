@@ -15,6 +15,14 @@ var tower_Operate = {
 			} else if (attackDuration >= 200) {
 				maxRange = 15;
 			}
+			if (Memory.hasFired.indexOf(tower) > -1) {
+				maxRange = maxRange + 5;
+				
+				var towerPos = Memory.hasFired.indexOf(tower);
+				if (towerPos >= 0) {
+					Memory.hasFired.splice(towerPos, 1);
+				}
+			}
 			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange);
 			if (closestHostile.length) {
 				//Target healing creeps first
@@ -24,6 +32,7 @@ var tower_Operate = {
 					//Probably a healer
 					if (closestHostile[1] && (closestHostile[1].getActiveBodyparts(HEAL) < 2 || thisTower.pos.getRangeTo(closestHostile[1]) < 15)) {
 						thisTower.attack(closestHostile[1]);
+						Memory.hasFired.push(tower);
 					} else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
 						var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
 							filter: (creep) => creep.hits < creep.hitsMax - 50
@@ -34,6 +43,7 @@ var tower_Operate = {
 					}
 				} else {
 					thisTower.attack(closestHostile[0]);
+					Memory.hasFired.push(tower);
 				}
 			} else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
 				//Save 50% of the tower's energy to use on repelling attackers
