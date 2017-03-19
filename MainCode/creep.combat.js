@@ -52,7 +52,7 @@ var creep_combat = {
 						creep.moveTo(Foe[0], {
 							maxRooms: 1
 						});
-					} else if (lookResult.length && lookResult[0].structureType != STRUCTURE_RAMPART) {
+					} else {
 						creep.moveTo(homeSpawn, {
 							maxRooms: 1
 						});
