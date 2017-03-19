@@ -12,30 +12,35 @@ var creep_combat = {
 		if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
 			//Move towards Foe, stop at rampart
 
-			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50);
+			var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+
 			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 8, {
 				filter: (structure) => {
 					return (structure.structureType == STRUCTURE_TOWER);
 				}
 			});
-			if (Foe && closestTower.length) {
-				creep.rangedAttack(Foe);
-				var attackResult = creep.attack(Foe);
+			if (closeFoe && closestTower.length) {
+				creep.rangedAttack(closeFoe);
+				var attackResult = creep.attack(closeFoe);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 				if (lookResult.length) {
 					if (lookResult[0].structureType != STRUCTURE_RAMPART) {
-						creep.moveTo(Foe);
+						creep.moveTo(closeFoe);
 					}
 				} else if (attackResult == ERR_NOT_IN_RANGE) {
-					creep.moveTo(Foe);
+					creep.moveTo(closeFoe);
 				}
-			} else if (Foe) {
-				creep.rangedAttack(Foe);
-				creep.attack(Foe);
+			} else if (Foe.length) {
+				Foe.sort(targetOther);
+				creep.rangedAttack(Foe[0]);
+				creep.attack(Foe[0]);
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 				if (homeSpawn) {
-					if (lookResult.length && lookResult[0].structureType != STRUCTURE_RAMPART) {
+					if (Foe[0].getActiveBodyparts(ATTACK) == 0 && Foe[0].getActiveBodyparts(RANGED_ATTACK) == 0) {
+						creep.moveTo(Foe[0]);
+					} else if (lookResult.length && lookResult[0].structureType != STRUCTURE_RAMPART) {
 						creep.moveTo(homeSpawn);
 					}
 				}
@@ -48,5 +53,13 @@ var creep_combat = {
 		}
 	}
 };
+
+function targetOther(a, b) {
+	if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
+		return 1;
+	if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
+		return -1;
+	return 0;
+}
 
 module.exports = creep_combat;
