@@ -22,7 +22,7 @@ var creep_combat = {
 				creep.rangedAttack(Foe);
 				var attackResult = creep.attack(Foe);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
-				if (attackResult == OK && lookResult.length) {
+				if (lookResult.length) {
 					if (lookResult[0].structureType != STRUCTURE_RAMPART) {
 						creep.moveTo(Foe);
 					}
