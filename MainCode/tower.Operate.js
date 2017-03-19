@@ -20,7 +20,7 @@ var tower_Operate = {
 						thisTower.attack(closestHostile[1]);
 					} else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
 						var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
-							filter: (creep) => creep.hits < creep.hitsMax - 150
+							filter: (creep) => creep.hits < creep.hitsMax - 50
 						});
 						if (closestDamagedCreep) {
 							thisTower.heal(closestDamagedCreep);
