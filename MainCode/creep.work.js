@@ -351,7 +351,7 @@ var creep_work = {
 						if (sources.amount < 100) {
 							sources = undefined;
 						} else {
-							creep.memory.structureTarget = sources;
+							creep.memory.structureTarget = sources.id;
 						}
 					}
 					if (!sources) {
@@ -362,7 +362,7 @@ var creep_work = {
 						if (sources.energy == 0) {
 							sources = undefined;
 						} else {
-							creep.memory.structureTarget = sources;
+							creep.memory.structureTarget = sources.id;
 						}
 					}
 					if (!sources) {
@@ -389,7 +389,7 @@ var creep_work = {
 								break;
 						}
 					} else {
-						creep.memory.structureTarget = sources;
+						creep.memory.structureTarget = sources.id;
 					}
 					var harvestResult = creep.harvest(sources);
 					if (harvestResult == ERR_NOT_IN_RANGE) {
