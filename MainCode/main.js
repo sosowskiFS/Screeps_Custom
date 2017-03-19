@@ -405,13 +405,11 @@ module.exports.loop = function() {
             //Handle Towers
             if (Memory.towerList[thisRoom.name]) {
                 if (Memory.towerList[thisRoom.name].length > 0) {
-                    var towerNumber = 1;
                     Memory.towerList[thisRoom.name].forEach(function(thisTower) {
                         //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
                         if (thisTower) {
-                            tower_Operate.run(thisTower, thisRoom, towerNumber);
+                            tower_Operate.run(thisTower, thisRoom, Memory.attackDuration);
                         }
-                        towerNumber++;
                     });
                 }
             }

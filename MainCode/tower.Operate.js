@@ -1,5 +1,5 @@
 var tower_Operate = {
-	run: function(tower, thisRoom, towerNumber) {
+	run: function(tower, thisRoom, attackDuration) {
 		var thisTower = Game.getObjectById(tower);
 		var towerRange = 70;
 
@@ -9,7 +9,13 @@ var tower_Operate = {
 			towerRange = 70;
 		}
 		if (UnderAttackPos >= 0 && thisTower.energy > 0) {
-			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, 20);
+			var maxRange = 20;
+			if (attackDuration >= 400){
+				maxRange = 10;
+			}else if (attackDuration >= 200) {
+				maxRange = 15;
+			}
+			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange);
 			if (closestHostile.length) {
 				//Target healing creeps first
 				closestHostile.sort(targetOther);
