@@ -341,19 +341,17 @@ var creep_work = {
 				}
 				if (!targets && creep.memory.priority != 'supplier' && creep.memory.priority != 'distributor') {
 					//Mine it yourself
-					var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+					/*var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
 					if (sources) {
 						//If it ain't worth pickin' up, fuck it.
 						if (sources.amount < 50) {
 							sources = undefined;
 						}
-					}
-					if (!sources) {
-						sources = Game.getObjectById(creep.memory.sourceLocation)
-						if (sources) {
-							if (sources.energy == 0) {
-								sources = undefined;
-							}
+					}*/
+					var sources = Game.getObjectById(creep.memory.sourceLocation)
+					if (sources) {
+						if (sources.energy == 0) {
+							sources = undefined;
 						}
 					}
 					if (!sources) {
