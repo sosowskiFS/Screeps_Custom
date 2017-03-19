@@ -315,6 +315,9 @@ var creep_work = {
 					var harvestResult = creep.harvest(savedTarget);
 					if (harvestResult == ERR_NOT_IN_RANGE) {
 						creep.moveTo(savedTarget);
+						if (savedTarget.energy == 0) {
+							creep.memory.structureTarget = undefined;
+						}
 					} else if (harvestResult == ERR_INVALID_TARGET) {
 						if (creep.pickup(savedTarget) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(savedTarget);
@@ -324,6 +327,7 @@ var creep_work = {
 					}
 				}
 			} else {
+				creep.memory.structureTarget = undefined;
 				var targets = undefined;
 				if (creep.memory.priority != 'harvester') {
 					var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -341,17 +345,24 @@ var creep_work = {
 				}
 				if (!targets && creep.memory.priority != 'supplier' && creep.memory.priority != 'distributor') {
 					//Mine it yourself
-					/*var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+					var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
 					if (sources) {
 						//If it ain't worth pickin' up, fuck it.
-						if (sources.amount < 50) {
+						if (sources.amount < 100) {
 							sources = undefined;
+						} else {
+							creep.memory.structureTarget = sources;
 						}
-					}*/
-					var sources = Game.getObjectById(creep.memory.sourceLocation)
+					}
+					if (!sources) {
+						sources = Game.getObjectById(creep.memory.sourceLocation)
+					}
+
 					if (sources) {
 						if (sources.energy == 0) {
 							sources = undefined;
+						} else {
+							creep.memory.structureTarget = sources;
 						}
 					}
 					if (!sources) {
@@ -377,6 +388,8 @@ var creep_work = {
 								creep.memory.repairing = true;
 								break;
 						}
+					} else {
+						creep.memory.structureTarget = sources;
 					}
 					var harvestResult = creep.harvest(sources);
 					if (harvestResult == ERR_NOT_IN_RANGE) {
