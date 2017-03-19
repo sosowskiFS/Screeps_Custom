@@ -90,9 +90,9 @@ function targetHealer(a, b) {
 }
 
 function targetOther(a, b) {
-	if (a.hits < b.hits)
-		return -1;
-	if (a.hits > b.hits)
+	if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
 		return 1;
+	if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
+		return -1;
 	return 0;
 }
