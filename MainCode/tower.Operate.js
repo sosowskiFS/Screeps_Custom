@@ -21,7 +21,7 @@ var tower_Operate = {
                     }
                 } else {
                     thisTower.attack(closestHostile[0]);
-                //}                      
+                }                      
             }
         } else if ((thisTower.energy > (thisTower.energyCapacity * 0.5)) && (Game.time % 10 == 0)) {
             //Save 50% of the tower's energy to use on repelling attackers
