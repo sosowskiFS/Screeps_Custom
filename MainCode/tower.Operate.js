@@ -22,7 +22,11 @@ var tower_Operate = {
 				maxRange = 40;
 			}
 			if (Memory.hasFired.indexOf(tower) > -1) {
-				maxRange = maxRange + 5;
+				if (maxRange <= 15) {
+					maxRange = maxRange + 10;
+				} else {
+					maxRange = maxRange + 5;
+				}
 
 				var towerPos = Memory.hasFired.indexOf(tower);
 				if (towerPos >= 0) {
