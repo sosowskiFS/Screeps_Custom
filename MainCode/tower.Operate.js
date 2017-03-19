@@ -9,15 +9,21 @@ var tower_Operate = {
 			towerRange = 70;
 		}
 		if (UnderAttackPos >= 0 && thisTower.energy > 0) {
-			var maxRange = 20;
+			var maxRange = 50;
 			if (attackDuration >= 100) {
 				maxRange = 10;
 			} else if (attackDuration >= 50) {
 				maxRange = 15;
+			} else if (attackDuration >= 35) {
+				maxRange = 20;
+			} else if (attackDuration >= 20) {
+				maxRange = 30;
+			} else if (attackDuration >= 10) {
+				maxRange = 40;
 			}
 			if (Memory.hasFired.indexOf(tower) > -1) {
 				maxRange = maxRange + 5;
-				
+
 				var towerPos = Memory.hasFired.indexOf(tower);
 				if (towerPos >= 0) {
 					Memory.hasFired.splice(towerPos, 1);
