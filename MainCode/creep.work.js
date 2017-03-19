@@ -301,6 +301,9 @@ var creep_work = {
 			//Harvest
 			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
 			if (savedTarget) {
+				if (creep.memory.waitingTimer >= 75) {
+					creep.memory.structureTarget = undefined;
+				}
 				if (savedTarget.structureType == STRUCTURE_CONTAINER || savedTarget.structureType == STRUCTURE_STORAGE) {
 					if (savedTarget.store[RESOURCE_ENERGY] > 0) {
 						if (creep.withdraw(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -318,6 +321,12 @@ var creep_work = {
 						if (savedTarget.energy == 0) {
 							creep.memory.structureTarget = undefined;
 						}
+						if (!creep.memory.waitingTimer) {
+							creep.memory.waitingTimer = 0;
+						}
+						creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
+					} else if (harvestResult == OK) {
+						creep.memory.waitingTimer = 0;
 					} else if (harvestResult == ERR_INVALID_TARGET) {
 						if (creep.pickup(savedTarget) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(savedTarget);
@@ -327,6 +336,7 @@ var creep_work = {
 					}
 				}
 			} else {
+				creep.memory.waitingTimer = 0;
 				creep.memory.structureTarget = undefined;
 				var targets = undefined;
 				if (creep.memory.priority != 'harvester') {
