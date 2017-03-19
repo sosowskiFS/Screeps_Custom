@@ -70,11 +70,16 @@ var creep_work = {
 			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
 				//site ID changes when construction is complete, simply check if valid.
 			if (savedTarget) {
-				if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
+				var buildResult = creep.build(savedTarget)
+				if (buildResult == ERR_NOT_IN_RANGE) {
 					creep.moveTo(savedTarget, {
 						reusePath: moveRecalc
 					});
-				} else if (creep.build(savedTarget) != OK) {
+				} else if (buildResult != OK) {
+					creep.memory.structureTarget = undefined;
+				} else if (buildResult == OK && savedTarget.structureType == STRUCTURE_RAMPART) {
+					creep.memory.building = false;
+					creep.memory.repairing = true;
 					creep.memory.structureTarget = undefined;
 				}
 			} else {
