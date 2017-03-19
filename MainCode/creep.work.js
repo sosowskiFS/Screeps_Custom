@@ -80,6 +80,7 @@ var creep_work = {
 				} else if (buildResult == OK && savedTarget.structureType == STRUCTURE_RAMPART) {
 					creep.memory.building = false;
 					creep.memory.repairing = true;
+					creep.memory.holdOneTick = true;
 					creep.memory.structureTarget = undefined;
 				}
 			} else {
@@ -192,47 +193,51 @@ var creep_work = {
 				}
 			}
 		} else if (creep.memory.repairing) {
-			if (creep.memory.structureTarget) {
-				var thisStructure = Game.getObjectById(creep.memory.structureTarget);
-				if (thisStructure) {
-					if (thisStructure.hits == thisStructure.hitsMax) {
-						creep.memory.structureTarget = undefined;
+			if (!creep.memory.holdOneTick) {
+				if (creep.memory.structureTarget) {
+					var thisStructure = Game.getObjectById(creep.memory.structureTarget);
+					if (thisStructure) {
+						if (thisStructure.hits == thisStructure.hitsMax) {
+							creep.memory.structureTarget = undefined;
+						} else {
+							if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(thisStructure, {
+									reusePath: moveRecalc
+								});
+							}
+							creep.room.visual.circle(thisStructure.pos, {
+								fill: 'transparent',
+								stroke: 'green',
+								radius: 0.75
+							});
+							var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+							creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
+								align: 'left',
+								font: '0.7 Courier New',
+								color: '#FFFFFF',
+								stroke: '#000000',
+								strokeWidth: 0.15
+							});
+						}
 					} else {
-						if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(thisStructure, {
+						creep.memory.structureTarget = undefined;
+					}
+				} else {
+					var closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+						filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+					});
+					if (closestDamagedStructure.length > 0) {
+						closestDamagedStructure.sort(repairCompare);
+						creep.memory.structureTarget = closestDamagedStructure[0].id;
+						if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(closestDamagedStructure[0], {
 								reusePath: moveRecalc
 							});
 						}
-						creep.room.visual.circle(thisStructure.pos, {
-							fill: 'transparent',
-							stroke: 'green',
-							radius: 0.75
-						});
-						var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-						creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
-							align: 'left',
-							font: '0.7 Courier New',
-							color: '#FFFFFF',
-							stroke: '#000000',
-							strokeWidth: 0.15
-						});
 					}
-				} else {
-					creep.memory.structureTarget = undefined;
 				}
 			} else {
-				var closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-					filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
-				});
-				if (closestDamagedStructure.length > 0) {
-					closestDamagedStructure.sort(repairCompare);
-					creep.memory.structureTarget = closestDamagedStructure[0].id;
-					if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(closestDamagedStructure[0], {
-							reusePath: moveRecalc
-						});
-					}
-				}
+				creep.memory.holdOneTick = false;
 			}
 		} else if (creep.memory.supplying) {
 			var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
