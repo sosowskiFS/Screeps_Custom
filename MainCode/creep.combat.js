@@ -35,7 +35,7 @@ var creep_combat = {
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 				if (homeSpawn) {
-					if (lookResult[0].structureType != STRUCTURE_RAMPART) {
+					if (lookResult.length && lookResult[0].structureType != STRUCTURE_RAMPART) {
 						creep.moveTo(homeSpawn);
 					}
 				}
