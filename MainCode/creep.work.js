@@ -368,6 +368,9 @@ var creep_work = {
 					if (!sources) {
 						sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
 					}
+					if (!sources) {
+						creep.memory.structureTarget = undefined;
+					}
 					if (!sources && creep.carry.energy > 0) {
 						//At this point there is nothing to gather. Start creeps on their jobs.
 						switch (creep.memory.priority) {
