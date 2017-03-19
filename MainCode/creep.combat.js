@@ -20,19 +20,23 @@ var creep_combat = {
 					return (structure.structureType == STRUCTURE_TOWER);
 				}
 			});
+			if (Foe.length) {
+				Foe.sort(targetOther);
+			}	
 			if (closeFoe && closestTower.length) {
 				creep.rangedAttack(closeFoe);
 				var attackResult = creep.attack(closeFoe);
 				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 				if (lookResult.length) {
-					if (lookResult[0].structureType != STRUCTURE_RAMPART) {
+					if (Foe[0].getActiveBodyparts(ATTACK) == 0 && Foe[0].getActiveBodyparts(RANGED_ATTACK) == 0) {
+						creep.moveTo(Foe[0]);
+					} else if (lookResult[0].structureType != STRUCTURE_RAMPART) {
 						creep.moveTo(closeFoe);
 					}
 				} else if (attackResult == ERR_NOT_IN_RANGE) {
 					creep.moveTo(closeFoe);
 				}
 			} else if (Foe.length) {
-				Foe.sort(targetOther);
 				creep.rangedAttack(Foe[0]);
 				creep.attack(Foe[0]);
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn);
