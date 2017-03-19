@@ -13,7 +13,7 @@ var creep_combat = {
 			//Move towards Foe, stop at rampart
 
 			var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
-			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 10, {
+			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 8, {
 				filter: (structure) => {
 					return (structure.structureType == STRUCTURE_TOWER);
 				}
