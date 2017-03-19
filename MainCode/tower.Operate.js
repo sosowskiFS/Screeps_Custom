@@ -10,9 +10,9 @@ var tower_Operate = {
 		}
 		if (UnderAttackPos >= 0 && thisTower.energy > 0) {
 			var maxRange = 20;
-			if (attackDuration >= 400){
+			if (attackDuration >= 400) {
 				maxRange = 10;
-			}else if (attackDuration >= 200) {
+			} else if (attackDuration >= 200) {
 				maxRange = 15;
 			}
 			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange);
@@ -34,6 +34,14 @@ var tower_Operate = {
 					}
 				} else {
 					thisTower.attack(closestHostile[0]);
+				}
+			} else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
+				//Save 50% of the tower's energy to use on repelling attackers
+				var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
+					filter: (creep) => creep.hits < creep.hitsMax - 150
+				});
+				if (closestDamagedCreep) {
+					thisTower.heal(closestDamagedCreep);
 				}
 			}
 		} else if ((thisTower.energy > (thisTower.energyCapacity * 0.5)) && (Game.time % 10 == 0)) {
