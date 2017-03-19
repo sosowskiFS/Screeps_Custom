@@ -32,9 +32,12 @@ var creep_combat = {
 			} else if (Foe) {
 				creep.rangedAttack(Foe);
 				creep.attack(Foe);
-				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn);
+				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 				if (homeSpawn) {
-					creep.moveTo(homeSpawn);
+					if (lookResult[0].structureType != STRUCTURE_RAMPART) {
+						creep.moveTo(homeSpawn);
+					}
 				}
 			} else {
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
