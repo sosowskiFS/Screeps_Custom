@@ -64,6 +64,11 @@ var creep_combat = {
 					creep.moveTo(homeSpawn);
 				}
 			}
+		} else {
+			var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+			if (homeSpawn) {
+				creep.moveTo(homeSpawn);
+			}
 		}
 	}
 };
