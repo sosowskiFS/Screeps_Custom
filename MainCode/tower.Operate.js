@@ -10,9 +10,9 @@ var tower_Operate = {
 		}
 		if (UnderAttackPos >= 0 && thisTower.energy > 0) {
 			var maxRange = 20;
-			if (attackDuration >= 400) {
+			if (attackDuration >= 100) {
 				maxRange = 10;
-			} else if (attackDuration >= 200) {
+			} else if (attackDuration >= 50) {
 				maxRange = 15;
 			}
 			if (Memory.hasFired.indexOf(tower) > -1) {
