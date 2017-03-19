@@ -29,6 +29,13 @@ var creep_combat = {
 				} else if (attackResult == ERR_NOT_IN_RANGE) {
 					creep.moveTo(Foe);
 				}
+			} else if (Foe) {
+				creep.rangedAttack(Foe);
+				creep.attack(Foe);
+				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+				if (homeSpawn) {
+					creep.moveTo(homeSpawn);
+				}
 			} else {
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
 				if (homeSpawn) {
