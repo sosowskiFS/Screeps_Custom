@@ -90,9 +90,17 @@ function targetHealer(a, b) {
 }
 
 function targetOther(a, b) {
-	if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
+	if ((a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL)) && (a.hits > b.hits))
 		return 1;
-	if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
+	if ((a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL)) && (a.hits < b.hits))
+		return 1;
+	if ((a.getActiveBodyparts(HEAL) == b.getActiveBodyparts(HEAL)) && (a.hits > b.hits))
+		return 1;
+	if ((a.getActiveBodyparts(HEAL) == b.getActiveBodyparts(HEAL)) && (a.hits < b.hits))
+		return -1;
+	if ((a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL)) && (a.hits > b.hits))
+		return -1;
+	if ((a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL)) && (a.hits < b.hits))
 		return -1;
 	return 0;
 }
