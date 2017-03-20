@@ -47,9 +47,9 @@ var spawn_BuildCreeps = {
 				}
 			}
 
-			var defenderEnergyLim = 680;
+			var defenderEnergyLim = 780;
 			if(thisRoom.controller.level == 4) {
-				defenderEnergyLim = 1020;
+				defenderEnergyLim = 1170;
 			}
 
 			if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
@@ -84,15 +84,15 @@ var spawn_BuildCreeps = {
 				var totalParts = 0;
 
 				var remainingEnergy = thisRoom.energyAvailable;
-				while ((remainingEnergy / 340) >= 1) {
+				while ((remainingEnergy / 390) >= 1) {
 					//switch (ChosenPriority) {
 					//case 'melee':
 					//ToughCount = ToughCount + 1;
-					MoveCount = MoveCount + 2;
+					MoveCount = MoveCount + 3;
 					AttackCount = AttackCount + 3;
 					//RangedCount = RangedCount + 1;
-					totalParts = totalParts + 5;
-					remainingEnergy = remainingEnergy - 340;
+					totalParts = totalParts + 6;
+					remainingEnergy = remainingEnergy - 390;
 					//break;
 					//case 'ranged':
 					//MoveCount = MoveCount + 2;
