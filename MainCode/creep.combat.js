@@ -43,6 +43,8 @@ var creep_combat = {
 					});
 				}
 			} else if (Foe.length) {
+				creep.rangedAttack(closeFoe);
+				creep.attack(closeFoe);
 				creep.rangedAttack(Foe[0]);
 				creep.attack(Foe[0]);
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn);
