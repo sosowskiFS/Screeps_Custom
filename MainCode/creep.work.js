@@ -441,7 +441,7 @@ var creep_work = {
 		}
 
 		var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 10, {
-			filter: (creep) => (creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0)
+			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 		});
 
 		if (Foe.length || creep.memory.lastHP > creep.hits) {

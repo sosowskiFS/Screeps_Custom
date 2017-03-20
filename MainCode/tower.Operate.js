@@ -33,7 +33,9 @@ var tower_Operate = {
 					Memory.hasFired.splice(towerPos, 1);
 				}
 			}
-			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange);
+			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange, {
+				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+			});
 			if (closestHostile.length) {
 				//Target healing creeps first
 				closestHostile.sort(targetOther);

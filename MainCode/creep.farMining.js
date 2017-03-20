@@ -331,7 +331,9 @@ var creep_farMining = {
 					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
-				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+				});
 
 				if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {

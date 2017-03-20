@@ -1,12 +1,4 @@
-//Instructions:
-//require('special').specialInstruction('claim', [PathOfRooms]);
-//require('special').specialInstruction('vandalize', [ArrayOfRooms], 'message');
-//require('special').specialInstruction('construct', 'constructionID', [PathOfRooms]);
-//require('special').specialInstruction('removeKebab', 'enemySpawnID', [PathOfRooms]);
-
-//require('special').specialInstruction('construct', '58705347da857f0660495253', ['E3N60', 'E4N60', 'E4N61', 'E4N62'])
-
-//require('special').specialInstruction('removeKebab', '58366a7b84afc9937e209535', ['E3N60', 'E2N60', 'E2N61', 'E1N61', 'E0N61', 'E0N62', 'E0N63', 'E1N63', 'E2N63']);
+//Whitelist ['cyberblast','SirLovi','Asku','Kazume','Noxeth','MrDave','Telemac','Xephael','Zoiah','fsck-u','FaceWound','forkmantis','Migaaresno','xAix1999','silentpoots','arguinyano','OokieCookie','OverlordQ','Nibinhilion','Crowsbane','Yew','BogdanBiv','s1akr','Pandabear41','Logmadr','Patrik','novice','Conquest','ofirl','GeorgeBerkeley','TTR','tynstar','K-C','Hoekynl','Sunri5e','AgOrange','distantcam','Lisp','bbdMinimbl','Twill','Logxen','miR','Spedwards','Krazyfuq','Icesory','chobobobo','deft-code','mmmd','DKPlugins','pavelnieks','buckley310','almaravarion','SSH','Perrytheplatypus','Jnesselr','ryagas','xXtheguy52Xx','SEATURTLEKING','DasBrain','C00k1e_93','Currency','Vykook','shedletsky','Aranatha','Montblanc']
 
 //Creeps
 var creep_work = require('creep.work');
@@ -193,7 +185,9 @@ module.exports.loop = function() {
             }
 
             //Check for hostiles in this room
-            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS);
+            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
+                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+            });
             if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
                 if (hostiles[0].owner.username == 'Invader') {
@@ -676,6 +670,9 @@ function memCheck() {
     }
     if (!Memory.hasFired) {
         Memory.hasFired = [];
+    }
+    if (!Memory.whiteList) {
+        Memory.whiteList = ['cyberblast', 'SirLovi', 'Asku', 'Kazume', 'Noxeth', 'MrDave', 'Telemac', 'Xephael', 'Zoiah', 'fsck-u', 'FaceWound', 'forkmantis', 'Migaaresno', 'xAix1999', 'silentpoots', 'arguinyano', 'OokieCookie', 'OverlordQ', 'Nibinhilion', 'Crowsbane', 'Yew', 'BogdanBiv', 's1akr', 'Pandabear41', 'Logmadr', 'Patrik', 'novice', 'Conquest', 'ofirl', 'GeorgeBerkeley', 'TTR', 'tynstar', 'K-C', 'Hoekynl', 'Sunri5e', 'AgOrange', 'distantcam', 'Lisp', 'bbdMinimbl', 'Twill', 'Logxen', 'miR', 'Spedwards', 'Krazyfuq', 'Icesory', 'chobobobo', 'deft-code', 'mmmd', 'DKPlugins', 'pavelnieks', 'buckley310', 'almaravarion', 'SSH', 'Perrytheplatypus', 'Jnesselr', 'ryagas', 'xXtheguy52Xx', 'SEATURTLEKING', 'DasBrain', 'C00k1e_93', 'Currency', 'Vykook', 'shedletsky', 'Aranatha', 'Montblanc'];
     }
     //Boolean
     if (Memory.warMode == null) {

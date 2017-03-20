@@ -12,8 +12,12 @@ var creep_combat = {
 		if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
 			//Move towards Foe, stop at rampart
 
-			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50);
-			var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50, {
+				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+			});
+			var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+			});
 
 			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 8, {
 				filter: (structure) => {
