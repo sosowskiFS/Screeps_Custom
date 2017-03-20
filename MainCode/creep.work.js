@@ -440,7 +440,11 @@ var creep_work = {
 			}
 		}
 
-		if (creep.memory.lastHP > creep.hits) {
+		var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 10, {
+			filter: (creep) => (creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0)
+		});
+
+		if (Foe.length || creep.memory.lastHP > creep.hits) {
 			var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 				filter: (structure) => {
 					return structure.structureType == STRUCTURE_SPAWN;
