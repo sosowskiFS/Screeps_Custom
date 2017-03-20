@@ -47,6 +47,11 @@ var spawn_BuildCreeps = {
 				}
 			}
 
+			var defenderEnergyLim = 680;
+			if(thisRoom.controller.level == 4) {
+				defenderEnergyLim = 1020;
+			}
+
 			if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 				//In case of complete destruction, make a minimum viable worker
 				spawn.createCreep(bareMinConfig, undefined, {
@@ -54,7 +59,7 @@ var spawn_BuildCreeps = {
 					sourceLocation: strSources[1]
 				});
 				Memory.isSpawning = true;
-			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= 680 && defenders.length < 2) {
+			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= defenderEnergyLim && defenders.length < 2 && harvesters.length >= harvesterMax) {
 				//Try to produce millitary units
 
 				//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
