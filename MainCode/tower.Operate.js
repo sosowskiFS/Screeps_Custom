@@ -38,7 +38,7 @@ var tower_Operate = {
 				//Target healing creeps first
 				closestHostile.sort(targetOther);
 				//closestHostile.sort(targetHealer);
-				if (closestHostile[0].getActiveBodyparts(HEAL) >= 2 && thisTower.pos.getRangeTo(closestHostile[0]) > 15 && closestHostile[0].hits == closestHostile[0].hitsMax) {
+				if (closestHostile[0].getActiveBodyparts(HEAL) >= 4  && thisTower.pos.getRangeTo(closestHostile[0]) > 15 && closestHostile[0].hits == closestHostile[0].hitsMax) {
 					//Probably a healer
 					if (closestHostile[1] && (closestHostile[1].getActiveBodyparts(HEAL) < 2 || thisTower.pos.getRangeTo(closestHostile[1]) < 15)) {
 						thisTower.attack(closestHostile[1]);
