@@ -2,18 +2,21 @@ var spawn_BuildInstruction = {
 	run: function(spawn, instruction, params, thisRoom = '', params2 = '') {
 		switch (instruction) {
 			case 'claim':
-				if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
-					spawn.createCreep([MOVE, CLAIM], undefined, {
-						priority: 'claimer',
-						destination: params
-					});
-					Memory.isSpawning = true;
-					console.log('Claim executed from ' + spawn.room.name);
-					if (Game.flags["ClaimThis"]) {
-						Game.flags["ClaimThis"].remove();
+				var claimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'claimer');
+				if (claimers.length < 1) {
+					if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
+						spawn.createCreep([MOVE, CLAIM], undefined, {
+							priority: 'claimer',
+							destination: params
+						});
+						Memory.isSpawning = true;
+						console.log('Claim executed from ' + spawn.room.name);
+						if (Game.flags["ClaimThis"]) {
+							Game.flags["ClaimThis"].remove();
+						}
+					} else {
+						//console.log('Could not execute claim. Spawn cannot create creep.');
 					}
-				} else {
-					//console.log('Could not execute claim. Spawn cannot create creep.');
 				}
 				break;
 			case 'vandalize':
