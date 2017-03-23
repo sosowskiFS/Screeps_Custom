@@ -45,7 +45,8 @@ var spawn_BuildInstruction = {
 						spawn.createCreep(constructorConfig, undefined, {
 							priority: 'constructor',
 							siteID: params,
-							destination: params2
+							destination: params2,
+							homeRoom: spawn.room.name
 						});
 						Memory.isSpawning = true;
 						console.log('Construct executed from ' + spawn.room.name);
