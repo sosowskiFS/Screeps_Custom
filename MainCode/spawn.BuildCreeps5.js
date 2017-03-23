@@ -66,21 +66,21 @@ var spawn_BuildCreeps5 = {
 
 			var supplierConfig = [MOVE, CARRY, CARRY, CARRY];
 			var distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-			if (thisRoom.energyCapacityAvailable >= 2000) {
+			if (roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 100000 && thisRoom.energyCapacityAvailable >= 2000) {
 				distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 			}
 
 			//950 Points
 			var muleConfigCost = 950;
 			var muleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
-			if (thisRoom.energyCapacityAvailable >= 1600) {
+			if (roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 100000 && thisRoom.energyCapacityAvailable >= 1600) {
 				//1600 Points
 				muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 				muleConfigCost = 1600;
 			}
 
 			var repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-			if (thisRoom.energyCapacityAvailable >= 1800) {
+			if (roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 100000 && thisRoom.energyCapacityAvailable >= 1800) {
 				repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 			}
 
@@ -94,7 +94,7 @@ var spawn_BuildCreeps5 = {
 
 			var roomMineral = Game.getObjectById(strMineral[0]);
 			if (roomStorage) {
-				if (roomStorage.store[RESOURCE_ENERGY] >= 100000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 200000) {
 					//Add another mule for resource management
 					muleMax++;
 					if (thisRoom.energyCapacityAvailable >= 2300) {
@@ -102,11 +102,11 @@ var spawn_BuildCreeps5 = {
 						upgraderConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 					}
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 200000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 300000) {
 					//speed up that repairing a bit
 					repairMax++;
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 300000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 400000) {
 					//Bigger Mules/Repairers
 					if (thisRoom.energyCapacityAvailable >= 3000) {
 						muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
