@@ -101,22 +101,26 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'helper':
-				var helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-				if (spawn.room.energyCapacityAvailable >= 2000) {
-					helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-				}
-				if (spawn.canCreateCreep(helperConfig) == OK) {
-					spawn.createCreep(helperConfig, undefined, {
-						priority: 'helper',
-						destination: params
-					});
-					Memory.isSpawning = true;
-					console.log('Helper executed from ' + spawn.room.name);
-					if (Game.flags[spawn.room.name + "SendHelper"]) {
-						Game.flags[spawn.room.name + "SendHelper"].remove();
+				var helpers = _.filter(Game.creeps, (creep) => creep.memory.previousPriority == 'helper');
+				if (helpers.length < 3) {
+					var helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+					if (spawn.room.energyCapacityAvailable >= 2000) {
+						helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 					}
-				} else {
-					//console.log('Could not execute constructor. Spawn cannot create creep.');
+					if (spawn.canCreateCreep(helperConfig) == OK) {
+						spawn.createCreep(helperConfig, undefined, {
+							priority: 'helper',
+							destination: params,
+							previousPriority: 'helper'
+						});
+						Memory.isSpawning = true;
+						console.log('Helper executed from ' + spawn.room.name);
+						/*if (Game.flags[spawn.room.name + "SendHelper"]) {
+							Game.flags[spawn.room.name + "SendHelper"].remove();
+						}*/
+					} else {
+						//console.log('Could not execute constructor. Spawn cannot create creep.');
+					}
 				}
 				break;
 			case 'loot':
