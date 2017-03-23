@@ -16,7 +16,6 @@ var creep_Kebab = {
                         if (creep.dismantle(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
                             creep.moveTo(sitesOnTile[0]);
                         }
-                        break;
                     } else {
                         Game.flags["RemoveKebab"].remove();
                         //KEBAB REMOVED
@@ -29,11 +28,9 @@ var creep_Kebab = {
                 var thisWall = Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES);
                 if (thisWall[0]) {
                     creep.dismantle(thisWall[0]);
-                    break;
                 }
             } else if (Game.flags[flagName + flagCounter.toString()] && !creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos)) {
                 creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
-                break;
             } else {
                 flagCounter++;
             }
