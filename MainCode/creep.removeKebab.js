@@ -8,36 +8,34 @@ var creep_Kebab = {
             //Move towards wall
             var flagName = creep.room.name + 'eWall';
             var flagCounter = 1;
-            while (Game.flags[flagName + flagCounter.toString()]) {
-                if (Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length == 0) {
-                    //Wall removed, proceed to target
-                    if (Game.flags["RemoveKebab"]) {
-                        var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
-                        if (sitesOnTile.length) {
-                            if (creep.dismantle(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(sitesOnTile[0]);
-                            }
-                            break;
-                        } else {
-                            Game.flags["RemoveKebab"].remove();
-                            //KEBAB REMOVED
-                            creep.suicide();
+            if (Game.flags[flagName + flagCounter.toString()] && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length == 0) {
+                //Wall removed, proceed to target
+                if (Game.flags["RemoveKebab"]) {
+                    var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
+                    if (sitesOnTile.length) {
+                        if (creep.dismantle(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(sitesOnTile[0]);
                         }
-                    } else {
-                        flagCounter++;
-                    }
-                } else if (creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos) && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length > 0) {
-                    var thisWall = Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES);
-                    if (thisWall[0]) {
-                        creep.dismantle(thisWall[0]);
                         break;
+                    } else {
+                        Game.flags["RemoveKebab"].remove();
+                        //KEBAB REMOVED
+                        creep.suicide();
                     }
-                } else if (!creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos)) {
-                    creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
-                    break;
                 } else {
                     flagCounter++;
                 }
+            } else if (Game.flags[flagName + flagCounter.toString()] && creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos) && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length > 0) {
+                var thisWall = Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES);
+                if (thisWall[0]) {
+                    creep.dismantle(thisWall[0]);
+                    break;
+                }
+            } else if (Game.flags[flagName + flagCounter.toString()] && !creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos)) {
+                creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
+                break;
+            } else {
+                flagCounter++;
             }
         }
     }
