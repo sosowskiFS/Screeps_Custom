@@ -66,7 +66,7 @@ var spawn_BuildCreeps5 = {
 
 			var supplierConfig = [MOVE, CARRY, CARRY, CARRY];
 			var distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-			if (roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 100000 && thisRoom.energyCapacityAvailable >= 2000) {
+			if (roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 200000 && thisRoom.energyCapacityAvailable >= 2000) {
 				distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 			}
 
