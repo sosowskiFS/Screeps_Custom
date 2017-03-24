@@ -190,7 +190,7 @@ module.exports.loop = function() {
             });
             if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
                 Memory.roomsUnderAttack.push(thisRoom.name);
-                if (hostiles[0].owner.username == 'Invader' || hostiles[0].hitsMax <= 100) {
+                if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
                     Memory.roomsPrepSalvager.push(thisRoom.name);
                 } else if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
                     //No good combat code! SAFE MODE!
