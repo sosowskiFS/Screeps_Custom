@@ -423,7 +423,7 @@ var creep_work = {
 								creep.memory.repairing = true;
 								break;
 						}
-					} else {
+					} else if (sources) {
 						creep.memory.structureTarget = sources.id;
 					}
 					var harvestResult = creep.harvest(sources);
