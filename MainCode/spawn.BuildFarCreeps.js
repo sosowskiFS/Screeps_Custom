@@ -112,10 +112,14 @@ var spawn_BuildFarCreeps = {
 
 
 			//1300 Points
-			var farClaimerConfig = [MOVE, MOVE, CLAIM, CLAIM];
+			var farClaimerConfig = [CLAIM, CLAIM, MOVE, MOVE];
+			if (thisRoom.energyCapacityAvailable >= 2600) {
+				//2600 Points
+				farClaimerConfig = [CLAIM, CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE, MOVE];
+			}
 			if (thisRoom.energyCapacityAvailable >= 1950) {
 				//1950 Points
-				farClaimerConfig = [MOVE, MOVE, MOVE, CLAIM, CLAIM, CLAIM];
+				farClaimerConfig = [CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE];
 			}
 
 			//760 Points (Level 3)
