@@ -591,7 +591,7 @@ var creep_work5 = {
 				break;
 		}
 
-		var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 10, {
+		var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 		});
 
