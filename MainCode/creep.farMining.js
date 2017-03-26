@@ -364,7 +364,7 @@ var creep_farMining = {
 						}
 					}
 
-					if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
+					if (creep.pos.getRangeTo(closeFoe) > 2 || (closeFoe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
 						creep.moveTo(Foe[0], {
 							maxRooms: 1
 						});
