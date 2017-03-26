@@ -506,7 +506,7 @@ var creep_farMining = {
 						});
 						if (hurtAlly.length > 0) {
 							creep.moveTo(hurtAlly[0]);
-							creep.ranmugedHeal(hurtAlly[0]);
+							creep.rangedHeal(hurtAlly[0]);
 							creep.heal(hurtAlly[0]);
 						} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
 							creep.moveTo(Game.flags[creep.memory.targetFlag], {
