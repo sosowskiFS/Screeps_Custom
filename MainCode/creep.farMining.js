@@ -335,9 +335,12 @@ var creep_farMining = {
 					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
-				var Foe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50, {
 					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 				});
+				if (Foe.length) {
+					Foe.sort(targetAttacker);
+				}
 
 				if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
@@ -346,7 +349,7 @@ var creep_farMining = {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					}
-				} else if (creep.room.controller && Foe) {
+				} else if (creep.room.controller && Foe.length) {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					} else {
@@ -358,14 +361,14 @@ var creep_farMining = {
 						}
 					}
 
-					if (creep.pos.getRangeTo(Foe) > 3 || (Foe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
-						creep.moveTo(Foe, {
+					if (creep.pos.getRangeTo(Foe[0]) > 3 || (Foe[0].getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
+						creep.moveTo(Foe[0], {
 							maxRooms: 1
 						});
-						creep.attack(Foe);
-						creep.rangedAttack(Foe);
+						creep.attack(Foe[0]);
+						creep.rangedAttack(Foe[0]);
 					} else {
-						var foeDirection = creep.pos.getDirectionTo(Foe);
+						var foeDirection = creep.pos.getDirectionTo(Foe[0]);
 						var y = 0;
 						var x = 0;
 						switch (foeDirection) {
@@ -414,8 +417,8 @@ var creep_farMining = {
 						creep.moveTo(x, y, {
 							maxRooms: 1
 						});
-						creep.attack(Foe);
-						creep.rangedAttack(Foe);
+						creep.attack(Foe[0]);
+						creep.rangedAttack(Foe[0]);
 					}
 				} else if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
 					var hSpawn = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
@@ -485,4 +488,13 @@ function evadeAttacker(creep) {
 		}
 	}
 }
+
+function targetAttacker(a, b) {
+	if (a.getActiveBodyparts(ATTACK) > b.getActiveBodyparts(ATTACK))
+		return -1;
+	if (a.getActiveBodyparts(ATTACK) < b.getActiveBodyparts(ATTACK))
+		return 1;
+	return 0;
+}
+
 module.exports = creep_farMining;
