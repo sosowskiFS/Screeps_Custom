@@ -601,7 +601,7 @@ function evadeAttacker(creep) {
 
 	if (Foe.length) {
 		var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-			filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) &&!Memory.whiteList.includes(eCreep.owner.username))
 		});
 		var foeDirection = creep.pos.getDirectionTo(closeFoe);
 		var y = 0;
