@@ -197,6 +197,7 @@ var creep_farMining = {
 							reusePath: 25
 						});
 					}
+					evadeAttacker(creep);
 				} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > creep.carryCapacity - 50) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
 						reusePath: 25
@@ -213,7 +214,7 @@ var creep_farMining = {
 					}
 
 					if (_.sum(creep.carry) <= creep.carryCapacity - 50) {
-						var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 10);
+						var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 7);
 						if (droppedSources.length && !Memory.warMode) {
 							//Pick up dropped energy from dead mules, etc.
 							if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
@@ -275,6 +276,7 @@ var creep_farMining = {
 								}
 							}
 						}
+						evadeAttacker(creep);
 					} else {
 						//in home room, drop off energy
 						var storageUnit = Game.getObjectById(creep.memory.storageSource)
@@ -286,9 +288,9 @@ var creep_farMining = {
 								});
 							}
 						}
+						evadeAttacker(creep);
 					}
 				}
-				evadeAttacker(creep);
 				break;
 			case 'farGuard':
 			case 'farGuardNearDeath':
@@ -601,7 +603,7 @@ function evadeAttacker(creep) {
 
 	if (Foe.length) {
 		var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) &&!Memory.whiteList.includes(eCreep.owner.username))
+			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 		});
 		var foeDirection = creep.pos.getDirectionTo(closeFoe);
 		var y = 0;
