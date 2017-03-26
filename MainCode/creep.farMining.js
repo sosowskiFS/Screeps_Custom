@@ -335,7 +335,7 @@ var creep_farMining = {
 					Memory.FarClaimerNeeded[creep.room.name] = true;
 				}
 
-				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50, {
+				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
 					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 				});
 				var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
@@ -352,11 +352,13 @@ var creep_farMining = {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					}
-				} else if (creep.room.controller && Foe.length) {
+				} else if (creep.room.controller && closeFoe) {
 					var closeRangeResult = creep.rangedAttack(closeFoe);
 					creep.attack(closeFoe);
-					creep.attack(Foe[0]);
-					creep.rangedAttack(Foe[0]);
+					if (Foe.length) {
+						creep.attack(Foe[0]);
+						creep.rangedAttack(Foe[0]);
+					}
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					} else {
@@ -366,18 +368,18 @@ var creep_farMining = {
 						if (hurtAlly.length > 0) {
 							if (closeRangeResult != OK) {
 								creep.rangedHeal(hurtAlly[0]);
-							}				
+							}
 							creep.heal(hurtAlly[0]);
 						}
 					}
 
 					if (creep.pos.getRangeTo(closeFoe) > 2 || (closeFoe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
 						if (creep.getActiveBodyparts(RANGED_ATTACK) > 0 && closeRangeResult == ERR_NOT_IN_RANGE) {
-							creep.moveTo(Foe[0], {
+							creep.moveTo(closeFoe, {
 								maxRooms: 1
 							});
 						} else {
-							creep.moveTo(Foe[0], {
+							creep.moveTo(closeFoe, {
 								maxRooms: 1
 							});
 						}
