@@ -287,17 +287,32 @@ var creep_farMining = {
 			case 'farGuard':
 			case 'farGuardNearDeath':
 				creep.notifyWhenAttacked(false);
-				if (creep.ticksToLive <= 70) {
-					creep.memory.priority = 'farGuardNearDeath';
-					creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
+				if (Memory.warMode) {
+					if (creep.ticksToLive <= 150) {
+						creep.memory.priority = 'farGuardNearDeath';
+						creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
+							align: 'left',
+							color: '#7DE3B5'
+						});
+					} else {
+						creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
+							align: 'left',
+							color: '#7DE3B5'
+						});
+					}
 				} else {
-					creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
+					if (creep.ticksToLive <= 70) {
+						creep.memory.priority = 'farGuardNearDeath';
+						creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
+							align: 'left',
+							color: '#7DE3B5'
+						});
+					} else {
+						creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
+							align: 'left',
+							color: '#7DE3B5'
+						});
+					}
 				}
 
 				//Recall guard into home room if it's under attack
