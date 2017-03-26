@@ -357,7 +357,6 @@ var creep_farMining = {
 					creep.attack(closeFoe);
 					creep.attack(Foe[0]);
 					creep.rangedAttack(Foe[0]);
-
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					} else {
@@ -365,7 +364,9 @@ var creep_farMining = {
 							filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
 						});
 						if (hurtAlly.length > 0) {
-							creep.rangedHeal(hurtAlly[0]);
+							if (closeRangeResult != OK) {
+								creep.rangedHeal(hurtAlly[0]);
+							}				
 							creep.heal(hurtAlly[0]);
 						}
 					}
