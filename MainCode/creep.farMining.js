@@ -434,33 +434,33 @@ var creep_farMining = {
 						}
 						x = creep.pos.x + x;
 						y = creep.pos.y + y;
-						if (x < 0) {
-							x = 0;
-							if (y < 25 && y > 0) {
+						if (x < 1) {
+							x = 1;
+							if (y < 25 && y > 1) {
 								y = y - 1;
-							} else if (y < 49) {
+							} else if (y < 48) {
 								y = y + 1;
 							}
-						} else if (x > 49) {
-							x = 49;
-							if (y < 25 && y > 0) {
+						} else if (x > 48) {
+							x = 48;
+							if (y < 25 && y > 1) {
 								y = y - 1;
-							} else if (y < 49) {
+							} else if (y < 48) {
 								y = y + 1;
 							}
 						}
-						if (y < 0) {
-							y = 0;
-							if (x < 25 && x > 0) {
+						if (y < 1) {
+							y = 1;
+							if (x < 25 && x > 1) {
 								x = x - 1;
-							} else if (x < 49) {
+							} else if (x < 48) {
 								x = x + 1;
 							}
-						} else if (y > 49) {
-							y = 49;
-							if (x < 25 && x > 0) {
+						} else if (y > 48) {
+							y = 48;
+							if (x < 25 && x > 1) {
 								x = x - 1;
-							} else if (x < 49) {
+							} else if (x < 48) {
 								x = x + 1;
 							}
 						}
