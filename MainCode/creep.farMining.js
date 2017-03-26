@@ -35,6 +35,12 @@ var creep_farMining = {
 						creep.moveTo(creep.room.controller, {
 							reusePath: 25
 						});
+					} else {
+						if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
+							creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
+						} else if (!creep.room.controller.sign) {
+							creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
+						}
 					}
 				}
 
