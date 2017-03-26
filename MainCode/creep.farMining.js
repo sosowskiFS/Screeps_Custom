@@ -353,6 +353,11 @@ var creep_farMining = {
 						creep.heal(creep);
 					}
 				} else if (creep.room.controller && Foe.length) {
+					var closeRangeResult = creep.rangedAttack(closeFoe);
+					creep.attack(closeFoe);
+					creep.attack(Foe[0]);
+					creep.rangedAttack(Foe[0]);
+
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					} else {
@@ -360,15 +365,12 @@ var creep_farMining = {
 							filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
 						});
 						if (hurtAlly.length > 0) {
-							if (creep.getActiveBodyparts(RANGED_ATTACK) == 0) {
-								creep.rangedHeal(hurtAlly[0]);
-							}
+							creep.rangedHeal(hurtAlly[0]);
 							creep.heal(hurtAlly[0]);
 						}
 					}
 
 					if (creep.pos.getRangeTo(closeFoe) > 2 || (closeFoe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
-						var closeRangeResult = creep.rangedAttack(closeFoe);
 						if (creep.getActiveBodyparts(RANGED_ATTACK) > 0 && closeRangeResult == ERR_NOT_IN_RANGE) {
 							creep.moveTo(Foe[0], {
 								maxRooms: 1
@@ -378,9 +380,6 @@ var creep_farMining = {
 								maxRooms: 1
 							});
 						}
-						creep.attack(closeFoe);
-						creep.attack(Foe[0]);
-						creep.rangedAttack(Foe[0]);
 					} else {
 						var foeDirection = creep.pos.getDirectionTo(closeFoe);
 						var y = 0;
@@ -431,10 +430,6 @@ var creep_farMining = {
 						creep.moveTo(x, y, {
 							maxRooms: 1
 						});
-						creep.rangedAttack(closeFoe);
-						creep.attack(closeFoe);
-						creep.attack(Foe[0]);
-						creep.rangedAttack(Foe[0]);
 					}
 				} else if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
 					var hSpawn = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
