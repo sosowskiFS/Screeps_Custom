@@ -338,6 +338,9 @@ var creep_farMining = {
 				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50, {
 					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 				});
+				var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+				});
 				if (Foe.length) {
 					Foe.sort(targetAttacker);
 				}
@@ -361,14 +364,16 @@ var creep_farMining = {
 						}
 					}
 
-					if (creep.pos.getRangeTo(Foe[0]) > 3 || (Foe[0].getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
+					if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
 						creep.moveTo(Foe[0], {
 							maxRooms: 1
 						});
+						creep.rangedAttack(closeFoe);
+						creep.attack(closeFoe);
 						creep.attack(Foe[0]);
 						creep.rangedAttack(Foe[0]);
 					} else {
-						var foeDirection = creep.pos.getDirectionTo(Foe[0]);
+						var foeDirection = creep.pos.getDirectionTo(closeFoe);
 						var y = 0;
 						var x = 0;
 						switch (foeDirection) {
@@ -417,6 +422,8 @@ var creep_farMining = {
 						creep.moveTo(x, y, {
 							maxRooms: 1
 						});
+						creep.rangedAttack(closeFoe);
+						creep.attack(closeFoe);
 						creep.attack(Foe[0]);
 						creep.rangedAttack(Foe[0]);
 					}
