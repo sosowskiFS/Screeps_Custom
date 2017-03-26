@@ -356,10 +356,11 @@ var creep_farMining = {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					} else {
-						var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+						var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
 							filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
 						});
 						if (hurtAlly.length > 0) {
+							creep.rangedHeal(hurtAlly[0]);
 							creep.heal(hurtAlly[0]);
 						}
 					}
@@ -470,6 +471,7 @@ var creep_farMining = {
 						});
 						if (hurtAlly.length > 0) {
 							creep.moveTo(hurtAlly[0]);
+							creep.rangedHeal(hurtAlly[0]);
 							creep.heal(hurtAlly[0]);
 						} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
 							creep.moveTo(Game.flags[creep.memory.targetFlag], {
