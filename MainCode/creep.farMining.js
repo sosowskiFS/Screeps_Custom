@@ -177,7 +177,7 @@ var creep_farMining = {
 					});
 				}
 
-				if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 600) {
+				if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= creep.carryCapacity - 50) {
 					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 					if (droppedSources.length) {
 						//Pick up dropped energy from dead mules, etc.
@@ -191,7 +191,7 @@ var creep_farMining = {
 							reusePath: 25
 						});
 					}
-				} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 600) {
+				} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > creep.carryCapacity - 50) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
 						reusePath: 25
 					});
@@ -206,7 +206,7 @@ var creep_farMining = {
 						Memory.FarClaimerNeeded[creep.room.name] = true;
 					}
 
-					if (_.sum(creep.carry) <= 600) {
+					if (_.sum(creep.carry) <= creep.carryCapacity - 50) {
 						var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 10);
 						if (droppedSources.length && !Memory.warMode) {
 							//Pick up dropped energy from dead mules, etc.
@@ -485,7 +485,7 @@ var creep_farMining = {
 						});
 						if (hurtAlly.length > 0) {
 							creep.moveTo(hurtAlly[0]);
-							creep.rangedHeal(hurtAlly[0]);
+							creep.ranmugedHeal(hurtAlly[0]);
 							creep.heal(hurtAlly[0]);
 						} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
 							creep.moveTo(Game.flags[creep.memory.targetFlag], {
