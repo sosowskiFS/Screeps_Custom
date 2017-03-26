@@ -597,9 +597,7 @@ function evadeAttacker(creep) {
 			}
 		}
 
-		creep.moveTo(x, y, {
-			maxRooms: 1
-		});
+		creep.moveTo(x, y);
 	}
 }
 
