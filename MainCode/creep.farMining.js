@@ -37,6 +37,8 @@ var creep_farMining = {
 						});
 					}
 				}
+
+				evadeAttacker(creep);
 				break;
 			case 'farMiner':
 			case 'farMinerNearDeath':
@@ -158,6 +160,7 @@ var creep_farMining = {
 						}
 					}
 				}
+				evadeAttacker(creep);
 				break;
 			case 'farMule':
 			case 'farMuleNearDeath':
@@ -279,6 +282,7 @@ var creep_farMining = {
 						}
 					}
 				}
+				evadeAttacker(creep);
 				break;
 			case 'farGuard':
 			case 'farGuardNearDeath':
@@ -464,4 +468,21 @@ var creep_farMining = {
 		}
 	}
 };
+
+function evadeAttacker(creep) {
+	var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
+		filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+	});
+
+	if (Foe.length || creep.memory.lastHP > creep.hits) {
+		var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+			filter: (structure) => {
+				return structure.structureType == STRUCTURE_SPAWN;
+			}
+		});
+		if (spawnTarget) {
+			creep.moveTo(spawnTarget);
+		}
+	}
+}
 module.exports = creep_farMining;
