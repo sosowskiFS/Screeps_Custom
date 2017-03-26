@@ -33,6 +33,9 @@ var tower_Operate = {
 					Memory.hasFired.splice(towerPos, 1);
 				}
 			}
+			if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 50000) {
+				maxRange = maxRange + 10;
+			}
 			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange, {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 			});
