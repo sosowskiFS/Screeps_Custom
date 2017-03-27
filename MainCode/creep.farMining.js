@@ -336,7 +336,12 @@ var creep_farMining = {
 					if (Game.flags[creep.memory.targetFlag]) {
 						Game.flags[creep.memory.targetFlag].remove();
 					}
-					Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
+					try {
+						Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
+					} catch (e) {
+						Game.notify('Cannot replace a temp guard flag - ' + creep.memory.targetFlag + '.');
+					}	
+
 					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos == Game.flags[creep.memory.targetFlag + "TEMP"].pos) {
 						Game.flags[creep.memory.targetFlag + "TEMP"].remove();
 					}
