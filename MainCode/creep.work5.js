@@ -591,12 +591,9 @@ var creep_work5 = {
 				break;
 		}
 
-		var Foe = [];
-		if (Memory.roomsUnderAttack.indexOf(creep.room.name) > -1) {
-			Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
-				filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
-			});
-		}
+		var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
+			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+		});
 
 		if (Foe.length || creep.memory.lastHP > creep.hits) {
 			var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
