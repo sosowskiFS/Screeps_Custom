@@ -103,7 +103,9 @@ module.exports.loop = function() {
     var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
     if (towers.length) {
         for (var y = 0; y < towers.length; y++) {
-            tower_Operate.run(towers[y], Memory.attackDuration);
+            if (towers[y]) {
+                tower_Operate.run(towers[y], Memory.attackDuration);
+            }
         }
     }
 
