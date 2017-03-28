@@ -336,7 +336,8 @@ var creep_farMining = {
 					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
 						Game.flags[creep.memory.targetFlag].remove();
 						Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);	
-						Game.flags[creep.memory.targetFlag + "TEMP"].remove();
+					} else if (!Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
+						Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
 					}
 				}
 
