@@ -340,13 +340,21 @@ var creep_farMining = {
 							Game.flags[creep.memory.targetFlag].remove();
 						}					
 					} else if (!Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
-						Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
+						try {
+							Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
+						} catch (e) {
+
+						}					
 					}
 				}
 
 				if (Game.flags[creep.memory.targetFlag]) {
 					if (Game.flags[creep.memory.targetFlag].pos.roomName != creep.memory.destination) {
 						creep.memory.destination = Game.flags[creep.memory.targetFlag].pos.roomName;
+					}
+				} else if (Game.flags[creep.memory.targetFlag + "TEMP"]) {
+					if (Game.flags[creep.memory.targetFlag + "TEMP"].pos.roomName != creep.memory.destination) {
+						creep.memory.destination = Game.flags[creep.memory.targetFlag + "TEMP"].pos.roomName;
 					}
 				}
 
