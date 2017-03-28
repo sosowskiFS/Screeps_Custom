@@ -100,13 +100,6 @@ module.exports.loop = function() {
     //Log average CPU for spawn processes in memory.
     var preSpawnCPU = Game.cpu.getUsed();
 
-    var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
-    if (towers.length) {
-        for (var y = 0; y < towers.length; y++) {
-            tower_Operate.run(towers[y], Memory.attackDuration);
-        }
-    }
-
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         var controllerLevel = thisRoom.controller.level;
@@ -480,6 +473,13 @@ module.exports.loop = function() {
         Memory.isSpawning = false;
 
         Memory.RoomsRun.push(thisRoom.name);
+    }
+
+    var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
+    if (towers.length) {
+        for (var y = 0; y < towers.length; y++) {
+            tower_Operate.run(towers[y], Memory.attackDuration);
+        }
     }
 
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
