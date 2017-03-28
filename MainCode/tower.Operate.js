@@ -1,6 +1,6 @@
 var tower_Operate = {
-	run: function(tower, thisRoom, attackDuration) {
-		var thisTower = Game.getObjectById(tower);
+	run: function(tower attackDuration) {
+		var thisTower = Game.getObjectById(tower.id);
 		var thisRoom = tower.room;
 		var towerRange = 70;
 		var healerRange = 15;
