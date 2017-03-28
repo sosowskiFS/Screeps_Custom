@@ -103,6 +103,7 @@ module.exports.loop = function() {
     for (var u in Game.rooms) {
         if (Game.rooms[u].controller && Game.rooms[u].controller.owner == 'Montblanc') {
             //Keep the towerList object updated
+            var thisRoom = Game.rooms[u];
             if (Game.time % 100 == 0 || !Memory.towerList[thisRoom.name]) {
                 if (!Memory.towerList[thisRoom.name]) {
                     Memory.towerList[thisRoom.name] = [];
