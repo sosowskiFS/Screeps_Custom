@@ -437,47 +437,50 @@ module.exports.loop = function() {
 
     var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
     if (towers.length) {
+        var alreadySearched = [];
         for (var y = 0; y < towers.length; y++) {
-            //Check for hostiles in this room
-            var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
-                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-            });
-            if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
-                Memory.roomsUnderAttack.push(towers[y].room.name);
-                if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
-                    Memory.roomsPrepSalvager.push(towers[y].room.name);
-                } else if (Memory.RoomsAt5.indexOf(towers[y].room.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
-                    //No good combat code! SAFE MODE!
-                    if (!towers[y].room.controller.safeMode) {
-                        towers[y].room.controller.activateSafeMode();
+            if (alreadySearched.indexOf(towers[y].room.name) < 0) {
+                //Check for hostiles in this room
+                var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
+                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                });
+                if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
+                    Memory.roomsUnderAttack.push(towers[y].room.name);
+                    if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
+                        Memory.roomsPrepSalvager.push(towers[y].room.name);
+                    } else if (Memory.RoomsAt5.indexOf(towers[y].room.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
+                        //No good combat code! SAFE MODE!
+                        if (!towers[y].room.controller.safeMode) {
+                            towers[y].room.controller.activateSafeMode();
+                        }
+                    }
+                } else if (hostiles.length == 0) {
+                    var UnderAttackPos = Memory.roomsUnderAttack.indexOf(towers[y].room.name);
+                    var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
+                    if (UnderAttackPos >= 0) {
+                        Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+                    }
+                    if (salvagerPos >= 0) {
+                        Memory.roomsPrepSalvager.splice(salvagerPos, 1);
                     }
                 }
-            } else if (hostiles.length == 0) {
-                var UnderAttackPos = Memory.roomsUnderAttack.indexOf(towers[y].room.name);
-                var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
-                if (UnderAttackPos >= 0) {
-                    Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
-                }
-                if (salvagerPos >= 0) {
-                    Memory.roomsPrepSalvager.splice(salvagerPos, 1);
-                }
-            }
 
-            if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) > -1 && !towers[y].room.controller.safeMode) {
-                Memory.attackDuration = Memory.attackDuration + 1;
-                if (Memory.attackDuration >= 250 && !Memory.warMode) {
-                    Memory.warMode = true;
-                    Game.notify('War mode was enabled due to a long attack at ' + towers[y].room.name + '.');
+                if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) > -1 && !towers[y].room.controller.safeMode) {
+                    Memory.attackDuration = Memory.attackDuration + 1;
+                    if (Memory.attackDuration >= 250 && !Memory.warMode) {
+                        Memory.warMode = true;
+                        Game.notify('War mode was enabled due to a long attack at ' + towers[y].room.name + '.');
+                    }
+                } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
+                    Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
+                } else if (Memory.roomsUnderAttack.length == 0) {
+                    Memory.attackDuration = 0;
+                    if (Game.flags[towers[y].room.name + "eFarGuard"]) {
+                        Game.flags[towers[y].room.name + "eFarGuard"].remove();
+                    }
                 }
-            } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
-                Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
-            } else if (Memory.roomsUnderAttack.length == 0) {
-                Memory.attackDuration = 0;
-                if (Game.flags[towers[y].room.name + "eFarGuard"]) {
-                    Game.flags[towers[y].room.name + "eFarGuard"].remove();
-                }
+                alreadySearched.push(towers[y].room.name);
             }
-
             tower_Operate.run(towers[y], Memory.attackDuration);
         }
     }
