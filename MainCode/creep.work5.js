@@ -352,7 +352,7 @@ var creep_work5 = {
 					//Get from storage
 					var storageTarget = creep.room.storage;
 					if (storageTarget) {
-						if (storageTarget.store[RESOURCE_ENERGY] >= 120) {
+						if (storageTarget.store[RESOURCE_ENERGY] >= 200) {
 							if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(storageTarget, {
 									reusePath: 25,
