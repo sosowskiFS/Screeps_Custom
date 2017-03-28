@@ -100,6 +100,13 @@ module.exports.loop = function() {
     //Log average CPU for spawn processes in memory.
     var preSpawnCPU = Game.cpu.getUsed();
 
+    var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
+    if (towers.length) {
+        for (var y = 0; y < towers.length; y++) {
+            tower_Operate.run(towers[y], Memory.attackDuration);
+        }
+    }
+
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         var controllerLevel = thisRoom.controller.level;
@@ -402,18 +409,6 @@ module.exports.loop = function() {
                             roomLink.transferEnergy(receiveLink);
                         }
                     }
-                }
-            }
-
-            //Handle Towers
-            if (Memory.towerList[thisRoom.name]) {
-                if (Memory.towerList[thisRoom.name].length > 0) {
-                    Memory.towerList[thisRoom.name].forEach(function(thisTower) {
-                        //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        if (thisTower) {
-                            tower_Operate.run(thisTower, thisRoom, Memory.attackDuration);
-                        }
-                    });
                 }
             }
 
