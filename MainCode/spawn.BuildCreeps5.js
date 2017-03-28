@@ -30,20 +30,20 @@ var spawn_BuildCreeps5 = {
 			}
 			//var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
-			var miners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source
-			var upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
-			var storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
+			var miners = _.filter(Game.creeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source
+			var upgradeMiners = _.filter(Game.creeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
+			var storageMiners = _.filter(Game.creeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
 
-			var mules = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mule'); //Stores in spawn/towers, builds, upgrades
-			var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader'); //Kinda important, and stuff.
-			var mineralMiners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mineralMiner');
-			var repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
-			var suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
-			var distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
+			var mules = _.filter(Game.creeps, (creep) => creep.memory.priority == 'mule'); //Stores in spawn/towers, builds, upgrades
+			var upgraders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'upgrader'); //Kinda important, and stuff.
+			var mineralMiners = _.filter(Game.creeps, (creep) => creep.memory.priority == 'mineralMiner');
+			var repairers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'repair');
+			var suppliers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'supplier');
+			var distributors = _.filter(Game.creeps, (creep) => creep.memory.priority == 'distributor');
 
-			var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
+			var salvagers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'salvager');
 
-			var defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
+			var defenders = _.filter(Game.creeps, (creep) => creep.memory.priority == 'defender');
 
 			var minerMax = 2;
 			var muleMax = 1;
