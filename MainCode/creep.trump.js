@@ -35,7 +35,7 @@ var creep_trump = {
 				} else {
 					var closestDamagedStructure = [];
 					closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-						filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hits < 100000)
+						filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hits < 50000)
 					});
 
 					if (closestDamagedStructure.length > 0) {
