@@ -152,7 +152,7 @@ var spawn_BuildInstruction = {
 						trumpConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 					}
 					if (spawn.canCreateCreep(trumpConfig) == OK) {
-						spawn.createCreep(trumpConfig undefined, {
+						spawn.createCreep(trumpConfig, undefined, {
 							priority: 'trump',
 							destination: params,
 							homeRoom: params2
