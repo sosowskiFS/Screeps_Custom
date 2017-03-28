@@ -100,6 +100,83 @@ module.exports.loop = function() {
     //Log average CPU for spawn processes in memory.
     var preSpawnCPU = Game.cpu.getUsed();
 
+    for (var u in Game.rooms) {
+        if (Game.rooms[u].controller && Game.rooms[u].controller.owner == 'Montblanc') {
+            //Keep the towerList object updated
+            if (Game.time % 100 == 0 || !Memory.towerList[thisRoom.name]) {
+                if (!Memory.towerList[thisRoom.name]) {
+                    Memory.towerList[thisRoom.name] = [];
+                }
+                var roomTowers = thisRoom.find(FIND_MY_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_TOWER
+                    }
+                });
+                if (roomTowers) {
+                    var towerCounter = 0;
+                    while (roomTowers[towerCounter]) {
+                        if (Memory.towerList[thisRoom.name].indexOf(roomTowers[towerCounter].id) == -1) {
+                            Memory.towerList[thisRoom.name].push(roomTowers[towerCounter].id)
+                        }
+                        towerCounter++;
+                    }
+                }
+            }
+
+            //Check for hostiles in this room
+            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
+                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+            });
+            if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
+                Memory.roomsUnderAttack.push(thisRoom.name);
+                if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
+                    Memory.roomsPrepSalvager.push(thisRoom.name);
+                } else if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
+                    //No good combat code! SAFE MODE!
+                    if (!thisRoom.controller.safeMode) {
+                        thisRoom.controller.activateSafeMode();
+                    }
+                }
+            } else if (hostiles.length == 0) {
+                var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+                var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+                if (UnderAttackPos >= 0) {
+                    Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+                }
+                if (salvagerPos >= 0) {
+                    Memory.roomsPrepSalvager.splice(salvagerPos, 1);
+                }
+            }
+
+            if (Memory.roomsUnderAttack.indexOf(thisRoom.name) > -1 && !thisRoom.controller.safeMode) {
+                Memory.attackDuration = Memory.attackDuration + 1;
+                if (Memory.attackDuration >= 250 && !Memory.warMode) {
+                    Memory.warMode = true;
+                    Game.notify('War mode was enabled due to a long attack at ' + thisRoom.name + '.');
+                }
+            } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[thisRoom.name + "eFarGuard"]) {
+                Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, thisRoom.name + "eFarGuard");
+            } else if (Memory.roomsUnderAttack.length == 0) {
+                Memory.attackDuration = 0;
+                if (Game.flags[thisRoom.name + "eFarGuard"]) {
+                    Game.flags[thisRoom.name + "eFarGuard"].remove();
+                }
+            }
+
+            //Handle Towers
+            if (Memory.towerList[thisRoom.name]) {
+                if (Memory.towerList[thisRoom.name].length > 0) {
+                    Memory.towerList[thisRoom.name].forEach(function(thisTower) {
+                        //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
+                        if (thisTower) {
+                            tower_Operate.run(thisTower, thisRoom, Memory.attackDuration);
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     for (var i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         var controllerLevel = thisRoom.controller.level;
@@ -192,67 +269,6 @@ module.exports.loop = function() {
                     roomName = thisRoom.name;
                     roomEnergy = thisRoom.energyCapacityAvailable;
                     instructionSpawn = Game.spawns[i];
-                }
-            }
-
-            //Check for hostiles in this room
-            var hostiles = thisRoom.find(FIND_HOSTILE_CREEPS, {
-                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-            });
-            if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(thisRoom.name) === -1) {
-                Memory.roomsUnderAttack.push(thisRoom.name);
-                if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
-                    Memory.roomsPrepSalvager.push(thisRoom.name);
-                } else if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
-                    //No good combat code! SAFE MODE!
-                    if (!thisRoom.controller.safeMode) {
-                        thisRoom.controller.activateSafeMode();
-                    }
-                }
-            } else if (hostiles.length == 0) {
-                var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
-                var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
-                if (UnderAttackPos >= 0) {
-                    Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
-                }
-                if (salvagerPos >= 0) {
-                    Memory.roomsPrepSalvager.splice(salvagerPos, 1);
-                }
-            }
-
-            if (Memory.roomsUnderAttack.indexOf(thisRoom.name) > -1 && !thisRoom.controller.safeMode) {
-                Memory.attackDuration = Memory.attackDuration + 1;
-                if (Memory.attackDuration >= 250 && !Memory.warMode) {
-                    Memory.warMode = true;
-                    Game.notify('War mode was enabled due to a long attack at ' + thisRoom.name + '.');
-                }
-            } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[thisRoom.name + "eFarGuard"]) {
-                Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, thisRoom.name + "eFarGuard");
-            } else if (Memory.roomsUnderAttack.length == 0) {
-                Memory.attackDuration = 0;
-                if (Game.flags[thisRoom.name + "eFarGuard"]) {
-                    Game.flags[thisRoom.name + "eFarGuard"].remove();
-                }
-            }
-
-            //Keep the towerList object updated
-            if (Game.time % 100 == 0 || !Memory.towerList[thisRoom.name]) {
-                if (!Memory.towerList[thisRoom.name]) {
-                    Memory.towerList[thisRoom.name] = [];
-                }
-                var roomTowers = thisRoom.find(FIND_MY_STRUCTURES, {
-                    filter: {
-                        structureType: STRUCTURE_TOWER
-                    }
-                });
-                if (roomTowers) {
-                    var towerCounter = 0;
-                    while (roomTowers[towerCounter]) {
-                        if (Memory.towerList[thisRoom.name].indexOf(roomTowers[towerCounter].id) == -1) {
-                            Memory.towerList[thisRoom.name].push(roomTowers[towerCounter].id)
-                        }
-                        towerCounter++;
-                    }
                 }
             }
 
@@ -402,18 +418,6 @@ module.exports.loop = function() {
                             roomLink.transferEnergy(receiveLink);
                         }
                     }
-                }
-            }
-
-            //Handle Towers
-            if (Memory.towerList[thisRoom.name]) {
-                if (Memory.towerList[thisRoom.name].length > 0) {
-                    Memory.towerList[thisRoom.name].forEach(function(thisTower) {
-                        //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        if (thisTower) {
-                            tower_Operate.run(thisTower, thisRoom, Memory.attackDuration);
-                        }
-                    });
                 }
             }
 
