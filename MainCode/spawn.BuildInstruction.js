@@ -151,7 +151,7 @@ var spawn_BuildInstruction = {
 					if (spawn.room.energyCapacityAvailable >= 1800) {
 						trumpConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 					}
-					if (spawn.canCreateCreep(trumpConfig == OK) {
+					if (spawn.canCreateCreep(trumpConfig) == OK) {
 						spawn.createCreep(trumpConfig undefined, {
 							priority: 'trump',
 							destination: params,
