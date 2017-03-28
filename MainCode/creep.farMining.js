@@ -333,16 +333,9 @@ var creep_farMining = {
 					var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
 					homePosition.createFlag(creep.memory.targetFlag);
 				} else if (Game.flags[creep.memory.targetFlag + "TEMP"] && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) == -1) {
-					if (Game.flags[creep.memory.targetFlag]) {
+					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
 						Game.flags[creep.memory.targetFlag].remove();
-					}
-					try {
-						Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
-					} catch (e) {
-						Game.notify('Cannot replace a temp guard flag - ' + creep.memory.targetFlag + '.');
-					}	
-
-					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos == Game.flags[creep.memory.targetFlag + "TEMP"].pos) {
+						Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);	
 						Game.flags[creep.memory.targetFlag + "TEMP"].remove();
 					}
 				}
