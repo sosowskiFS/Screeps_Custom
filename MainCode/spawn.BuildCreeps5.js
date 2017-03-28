@@ -189,7 +189,7 @@ var spawn_BuildCreeps5 = {
 
 
 					}
-				} else if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable && Foe.length) {
+				} else if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable && (Foe.length || defenders.length < 1)) {
 					//Try to produce millitary units
 
 					//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
