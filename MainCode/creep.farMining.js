@@ -338,13 +338,13 @@ var creep_farMining = {
 							Game.flags[creep.memory.targetFlag + "TEMP"].remove();
 						} else {
 							Game.flags[creep.memory.targetFlag].remove();
-						}					
+						}
 					} else if (!Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
 						try {
 							Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
 						} catch (e) {
 
-						}					
+						}
 					}
 				}
 
@@ -552,22 +552,6 @@ var creep_farMining = {
 						creep.moveTo(x, y, {
 							maxRooms: 1
 						});
-					}
-				} else if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
-					var hSpawn = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
-					if (hSpawn) {
-						creep.moveTo(hSpawn);
-						creep.attack(hSpawn);
-						creep.rangedAttack(hSpawn);
-					} else {
-						try {
-							creep.moveTo(Game.flags[creep.memory.targetFlag].pos);
-						} catch (e) {
-							//Eat it
-						}
-					}
-					if (creep.hits < creep.hitsMax) {
-						creep.heal(creep);
 					}
 				} else if (creep.room.name != creep.memory.destination) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
