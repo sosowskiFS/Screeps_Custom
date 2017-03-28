@@ -405,18 +405,6 @@ module.exports.loop = function() {
                 }
             }
 
-            //Handle Towers
-            if (Memory.towerList[thisRoom.name]) {
-                if (Memory.towerList[thisRoom.name].length > 0) {
-                    Memory.towerList[thisRoom.name].forEach(function(thisTower) {
-                        //tower_Operate.run(thisTower.id, RAMPART_HITS_MAX[controllerLevel], thisRoom);
-                        if (thisTower) {
-                            tower_Operate.run(thisTower, thisRoom, Memory.attackDuration);
-                        }
-                    });
-                }
-            }
-
             //Handle Power Spawn
             if (Memory.powerSpawnList[thisRoom.name][0]) {
                 var thisPowerSpawn = Game.getObjectById(Memory.powerSpawnList[thisRoom.name][0]);
@@ -506,6 +494,12 @@ module.exports.loop = function() {
         Memory.isSpawning = false;
 
         Memory.RoomsRun.push(thisRoom.name);
+    }
+
+    for (var s in Game.structures) {
+        if (Game.structures[s].structureType == STRUCTURE_TOWER) {
+            tower_Operate.run(thisTower, Memory.attackDuration);
+        }
     }
 
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
