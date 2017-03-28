@@ -52,7 +52,7 @@ var creep_trump = {
 						if (Game.flags["WallThis"]) {
 							Game.flags["WallThis"].remove();
 						} else {
-							creep.suicide();
+							//creep.suicide();
 						}
 					}
 				}
