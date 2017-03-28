@@ -103,9 +103,7 @@ module.exports.loop = function() {
     var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
     if (towers.length) {
         for (var y = 0; y < towers.length; y++) {
-            if (towers[y]) {
-                tower_Operate.run(towers[y], Memory.attackDuration);
-            }
+            tower_Operate.run(towers[y], Memory.attackDuration);
         }
     }
 
@@ -241,27 +239,6 @@ module.exports.loop = function() {
                 Memory.attackDuration = 0;
                 if (Game.flags[thisRoom.name + "eFarGuard"]) {
                     Game.flags[thisRoom.name + "eFarGuard"].remove();
-                }
-            }
-
-            //Keep the towerList object updated
-            if (Game.time % 100 == 0 || !Memory.towerList[thisRoom.name]) {
-                if (!Memory.towerList[thisRoom.name]) {
-                    Memory.towerList[thisRoom.name] = [];
-                }
-                var roomTowers = thisRoom.find(FIND_MY_STRUCTURES, {
-                    filter: {
-                        structureType: STRUCTURE_TOWER
-                    }
-                });
-                if (roomTowers) {
-                    var towerCounter = 0;
-                    while (roomTowers[towerCounter]) {
-                        if (Memory.towerList[thisRoom.name].indexOf(roomTowers[towerCounter].id) == -1) {
-                            Memory.towerList[thisRoom.name].push(roomTowers[towerCounter].id)
-                        }
-                        towerCounter++;
-                    }
                 }
             }
 
@@ -731,9 +708,6 @@ function memCheck() {
     }
     if (!Memory.PriceList) {
         Memory.PriceList = new Object();
-    }
-    if (!Memory.towerList) {
-        Memory.towerList = new Object();
     }
     if (!Memory.sourceList) {
         Memory.sourceList = new Object();

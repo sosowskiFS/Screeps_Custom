@@ -1,6 +1,5 @@
 var tower_Operate = {
 	run: function(tower, attackDuration) {
-		var thisTower = Game.getObjectById(tower.id);
 		var thisRoom = tower.room;
 		var towerRange = 70;
 		var healerRange = 15;
@@ -10,7 +9,7 @@ var tower_Operate = {
 		if (salvagerPrepPos >= 0) {
 			towerRange = 70;
 		}
-		if (UnderAttackPos >= 0 && thisTower.energy > 0) {
+		if (UnderAttackPos >= 0 && tower.energy > 0) {
 			var maxRange = 50;
 			if (attackDuration >= 100) {
 				maxRange = 10;
@@ -39,46 +38,46 @@ var tower_Operate = {
 				maxRange = maxRange + 10;
 				healerRange = 20;
 			}
-			var closestHostile = thisTower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange, {
+			var closestHostile = tower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange, {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 			});
 			if (closestHostile.length) {
 				//Target healing creeps first
 				closestHostile.sort(targetOther);
 				//closestHostile.sort(targetHealer);
-				if (closestHostile[0].getActiveBodyparts(HEAL) >= 2 && thisTower.pos.getRangeTo(closestHostile[0]) > healerRange && closestHostile[0].hits == closestHostile[0].hitsMax) {
+				if (closestHostile[0].getActiveBodyparts(HEAL) >= 2 && tower.pos.getRangeTo(closestHostile[0]) > healerRange && closestHostile[0].hits == closestHostile[0].hitsMax) {
 					//Probably a healer
-					if (closestHostile[1] && (closestHostile[1].getActiveBodyparts(HEAL) < 2 || thisTower.pos.getRangeTo(closestHostile[1]) < healerRange)) {
-						thisTower.attack(closestHostile[1]);
+					if (closestHostile[1] && (closestHostile[1].getActiveBodyparts(HEAL) < 2 || tower.pos.getRangeTo(closestHostile[1]) < healerRange)) {
+						tower.attack(closestHostile[1]);
 						Memory.hasFired.push(thisRoom.name);
-					} else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
-						var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
+					} else if (tower.energy > (tower.energyCapacity * 0.5)) {
+						var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
 							filter: (creep) => creep.hits < creep.hitsMax - 50
 						});
 						if (closestDamagedCreep) {
-							thisTower.heal(closestDamagedCreep);
+							tower.heal(closestDamagedCreep);
 						}
 					}
 				} else {
-					thisTower.attack(closestHostile[0]);
+					tower.attack(closestHostile[0]);
 					Memory.hasFired.push(thisRoom.name);
 				}
-			} else if (thisTower.energy > (thisTower.energyCapacity * 0.5)) {
+			} else if (tower.energy > (tower.energyCapacity * 0.5)) {
 				//Save 50% of the tower's energy to use on repelling attackers
-				var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
+				var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
 					filter: (creep) => creep.hits < creep.hitsMax - 50
 				});
 				if (closestDamagedCreep) {
-					thisTower.heal(closestDamagedCreep);
+					tower.heal(closestDamagedCreep);
 				}
 			}
-		} else if ((thisTower.energy > (thisTower.energyCapacity * 0.5)) && (Game.time % 10 == 0)) {
+		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % 10 == 0)) {
 			//Save 50% of the tower's energy to use on repelling attackers
-			var closestDamagedCreep = thisTower.pos.findClosestByRange(FIND_MY_CREEPS, {
+			var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
 				filter: (creep) => creep.hits < creep.hitsMax - 150
 			});
 			if (closestDamagedCreep) {
-				thisTower.heal(closestDamagedCreep);
+				tower.heal(closestDamagedCreep);
 			}
 		}
 		//Enable to see tower coverage
