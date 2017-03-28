@@ -8,6 +8,7 @@ var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
 var creep_constructor = require('creep.constructor');
+var creep_trump = require('creep.trump');
 var creep_Kebab = require('creep.removeKebab');
 var creep_Helper = require('creep.helper');
 var creep_towerDrainer = require('creep.towerDrainer');
@@ -176,6 +177,16 @@ module.exports.loop = function() {
 
             if (Game.flags["SignThis"]) {
                 var theDistance = Game.map.getRoomLinearDistance(Game.flags["SignThis"].pos.roomName, thisRoom.name);
+                if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
+                    roomDist = theDistance;
+                    roomName = thisRoom.name;
+                    roomEnergy = thisRoom.energyCapacityAvailable;
+                    instructionSpawn = Game.spawns[i];
+                }
+            }
+
+            if (Game.flags["WallThis"]) {
+                var theDistance = Game.map.getRoomLinearDistance(Game.flags["WallThis"].pos.roomName, thisRoom.name);
                 if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                     roomDist = theDistance;
                     roomName = thisRoom.name;
@@ -533,6 +544,10 @@ module.exports.loop = function() {
         spawn_BuildInstruction.run(instructionSpawn, 'vandalize', '', '', '');
     }
 
+    if (Game.flags["WallThis"]) {
+        spawn_BuildInstruction.run(instructionSpawn, 'trump', Game.flags["WallThis"].pos.roomName, '', instructionSpawn.room.name);
+    }
+
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
         //Periodically look for cheap subscription tokens
         var availableCredits = Game.market.credits
@@ -588,6 +603,9 @@ module.exports.loop = function() {
                 break;
             case 'defender':
                 creep_combat.run(creep);
+                break;
+            case 'trump':
+                creep_trump.run(creep);
                 break;
             default:
                 if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {

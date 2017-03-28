@@ -144,6 +144,26 @@ var spawn_BuildInstruction = {
 					}
 				}
 				break;
+			case 'trump':
+				var trumps = _.filter(Game.creeps, (creep) => creep.memory.priority == 'trump');
+				if (trumps.length < 3) {
+					var trumpConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+					if (spawn.room.energyCapacityAvailable >= 1800) {
+						trumpConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+					}
+					if (spawn.canCreateCreep(trumpConfig == OK) {
+						spawn.createCreep(trumpConfig undefined, {
+							priority: 'trump',
+							destination: params,
+							homeRoom: params2
+						});
+						Memory.isSpawning = true;
+						console.log('America will be great again thanks to ' + spawn.room.name);
+					} else {
+						//console.log('Could not execute constructor. Spawn cannot create creep.');
+					}
+				}
+				break;
 		}
 	}
 };
