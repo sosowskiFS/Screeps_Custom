@@ -33,6 +33,12 @@ var spawn_BuildCreeps = {
 
 			var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
+			if (strSources.length == 1) {
+				harvesterMax = 2;
+				builderMax = 1;
+				upgraderMax = 1;
+			}
+
 			//For Level 4
 			if (thisRoom.storage) {
 				supplierMax++;
