@@ -48,16 +48,24 @@ var spawn_BuildCreeps = {
 			}
 
 			var defenderEnergyLim = 780;
-			if(thisRoom.controller.level == 4) {
+			if (thisRoom.controller.level == 4) {
 				defenderEnergyLim = 1170;
 			}
 
 			if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 				//In case of complete destruction, make a minimum viable worker
-				spawn.createCreep(bareMinConfig, undefined, {
-					priority: 'harvester',
-					sourceLocation: strSources[1]
-				});
+				if (strSources.length > 1) {
+					spawn.createCreep(bareMinConfig, undefined, {
+						priority: 'harvester',
+						sourceLocation: strSources[1]
+					});
+				} else {
+					spawn.createCreep(bareMinConfig, undefined, {
+						priority: 'harvester',
+						sourceLocation: strSources[0]
+					});
+				}
+
 				Memory.isSpawning = true;
 			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= defenderEnergyLim && defenders.length < 2 && harvesters.length >= harvesterMax) {
 				//Try to produce millitary units
@@ -161,7 +169,11 @@ var spawn_BuildCreeps = {
 				var creepSourceID = '';
 				if ((assignedSlot1.length) >= Math.ceil(mineSpots[0] * 1.2)) {
 					//Assign spot 2
-					creepSourceID = strSources[1];
+					if (strSources.length > 1) {
+						creepSourceID = strSources[1];
+					} else {
+						creepSourceID = strSources[0];
+					}
 				} else {
 					//Assign spot 1
 					creepSourceID = strSources[0];
