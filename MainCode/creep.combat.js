@@ -19,7 +19,7 @@ var creep_combat = {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 			});
 
-			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 15, {
+			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 20, {
 				filter: (structure) => {
 					return (structure.structureType == STRUCTURE_TOWER);
 				}
