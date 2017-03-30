@@ -69,9 +69,13 @@ var creep_combat = {
 								});
 							}
 						} else {
-							creep.moveTo(homeSpawn, {
-								maxRooms: 1
-							});
+							if (lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART) {
+
+							} else if (homeSpawn) {
+								creep.moveTo(homeSpawn, {
+									maxRooms: 1
+								});
+							}
 						}
 					}
 				}
