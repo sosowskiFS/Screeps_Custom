@@ -45,9 +45,9 @@ var tower_Operate = {
 				//Target healing creeps first
 				closestHostile.sort(targetOther);
 				//closestHostile.sort(targetHealer);
-				if (closestHostile[0].getActiveBodyparts(HEAL) >= 2 && tower.pos.getRangeTo(closestHostile[0]) > healerRange && closestHostile[0].hits == closestHostile[0].hitsMax) {
+				if (closestHostile[0].getActiveBodyparts(HEAL) >= 3 && closestHostile[0].getActiveBodyparts(ATTACK) == 0 && tower.pos.getRangeTo(closestHostile[0]) > healerRange && closestHostile[0].hits == closestHostile[0].hitsMax) {
 					//Probably a healer
-					if (closestHostile[1] && (closestHostile[1].getActiveBodyparts(HEAL) < 2 || tower.pos.getRangeTo(closestHostile[1]) < healerRange)) {
+					if (closestHostile[1] && ((closestHostile[1].getActiveBodyparts(HEAL) < 3 && closestHostile[0].getActiveBodyparts(ATTACK) != 0) || tower.pos.getRangeTo(closestHostile[1]) < healerRange)) {
 						tower.attack(closestHostile[1]);
 						Memory.hasFired.push(thisRoom.name);
 					} else if (tower.energy > (tower.energyCapacity * 0.5)) {
