@@ -7,11 +7,11 @@ var creep_combat = {
 		//(Saves running excess finds in peacetime)
 		if (creep.hits < creep.hitsMax) {
 			creep.heal(creep);
-		}
+		}	
 
 		if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
 			//Move towards Foe, stop at rampart
-
+			var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50, {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 			});
@@ -24,8 +24,6 @@ var creep_combat = {
 					return (structure.structureType == STRUCTURE_TOWER);
 				}
 			});
-
-			var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 
 			if (Foe.length) {
 				Foe.sort(targetOther);
@@ -88,6 +86,7 @@ var creep_combat = {
 				}
 			}
 		} else {
+			var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
 			var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
 			if (lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART) {
 
