@@ -43,24 +43,26 @@ var tower_Operate = {
 			});
 			if (closestHostile.length) {
 				//Target healing creeps first
-				closestHostile.sort(targetOther);
+				//closestHostile.sort(targetOther);
 				//closestHostile.sort(targetHealer);
-				if (closestHostile[0].getActiveBodyparts(HEAL) >= 3 && closestHostile[0].getActiveBodyparts(ATTACK) == 0 && tower.pos.getRangeTo(closestHostile[0]) > healerRange && closestHostile[0].hits == closestHostile[0].hitsMax) {
-					//Probably a healer
-					if (closestHostile[1] && ((closestHostile[1].getActiveBodyparts(HEAL) < 3 && closestHostile[0].getActiveBodyparts(ATTACK) != 0) || tower.pos.getRangeTo(closestHostile[1]) < healerRange)) {
-						tower.attack(closestHostile[1]);
+				closestHostile = _.sortBy(closestHostile, h => tower.pos.getRangeTo(h));
+				for (var i in closestHostile) {
+					if (closestHostile[i].getActiveBodyparts(HEAL) >= 3 && closestHostile[i].getActiveBodyparts(ATTACK) == 0 && tower.pos.getRangeTo(closestHostile[i]) > healerRange && closestHostile[i].hits == closestHostile[i].hitsMax) {
+						//Probably a healer, continue loop
+					} else {
+						tower.attack(closestHostile[i]);
 						Memory.hasFired.push(thisRoom.name);
-					} else if (tower.energy > (tower.energyCapacity * 0.5)) {
-						var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
-							filter: (creep) => creep.hits < creep.hitsMax - 50
-						});
-						if (closestDamagedCreep) {
-							tower.heal(closestDamagedCreep);
-						}
+						break;
 					}
-				} else {
-					tower.attack(closestHostile[0]);
-					Memory.hasFired.push(thisRoom.name);
+				}
+
+				if (Memory.hasFired.indexOf(thisRoom.name) == -1 && tower.energy > (tower.energyCapacity * 0.5)) {
+					var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
+						filter: (creep) => creep.hits < creep.hitsMax - 50
+					});
+					if (closestDamagedCreep) {
+						tower.heal(closestDamagedCreep);
+					}
 				}
 			} else if (tower.energy > (tower.energyCapacity * 0.5)) {
 				//Save 50% of the tower's energy to use on repelling attackers
