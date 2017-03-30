@@ -413,32 +413,32 @@ var creep_farMining = {
 							var x = 0;
 							switch (foeDirection) {
 								case TOP:
-									y = -3;
+									y = -2;
 									break;
 								case TOP_RIGHT:
-									y = -3;
-									x = -3;
+									y = -2;
+									x = -2;
 									break;
 								case RIGHT:
-									x = -3;
+									x = -2;
 									break;
 								case BOTTOM_RIGHT:
-									y = 3;
-									x = -3;
+									y = 2;
+									x = -2;
 									break;
 								case BOTTOM:
-									y = 3;
+									y = 2;
 									break;
 								case BOTTOM_LEFT:
-									y = 3;
-									x = 3;
+									y = 2;
+									x = 2;
 									break;
 								case LEFT:
-									x = 3;
+									x = 2;
 									break;
 								case TOP_LEFT:
-									y = -3;
-									x = 3
+									y = -2;
+									x = 2
 									break;
 							}
 							x = creep.pos.x + x;
@@ -488,32 +488,32 @@ var creep_farMining = {
 						var x = 0;
 						switch (foeDirection) {
 							case TOP:
-								y = -3;
+								y = -2;
 								break;
 							case TOP_RIGHT:
-								y = -3;
-								x = -3;
+								y = -2;
+								x = -2;
 								break;
 							case RIGHT:
-								x = -3;
+								x = -2;
 								break;
 							case BOTTOM_RIGHT:
-								y = 3;
-								x = -3;
+								y = 2;
+								x = -2;
 								break;
 							case BOTTOM:
-								y = 3;
+								y = 2;
 								break;
 							case BOTTOM_LEFT:
-								y = 3;
-								x = 3;
+								y = 2;
+								x = 2;
 								break;
 							case LEFT:
-								x = 3;
+								x = 2;
 								break;
 							case TOP_LEFT:
-								y = -3;
-								x = 3
+								y = -2;
+								x = 2
 								break;
 						}
 						x = creep.pos.x + x;
@@ -604,32 +604,32 @@ function evadeAttacker(creep) {
 		var x = 0;
 		switch (foeDirection) {
 			case TOP:
-				y = -3;
+				y = -2;
 				break;
 			case TOP_RIGHT:
-				y = -3;
-				x = -3;
+				y = -2;
+				x = -2;
 				break;
 			case RIGHT:
-				x = -3;
+				x = -2;
 				break;
 			case BOTTOM_RIGHT:
-				y = 3;
-				x = -3;
+				y = 2;
+				x = -2;
 				break;
 			case BOTTOM:
-				y = 3;
+				y = 2;
 				break;
 			case BOTTOM_LEFT:
-				y = 3;
-				x = 3;
+				y = 2;
+				x = 2;
 				break;
 			case LEFT:
-				x = 3;
+				x = 2;
 				break;
 			case TOP_LEFT:
-				y = -3;
-				x = 3
+				y = -2;
+				x = 2
 				break;
 		}
 		x = creep.pos.x + x;
