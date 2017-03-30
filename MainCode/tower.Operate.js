@@ -2,7 +2,7 @@ var tower_Operate = {
 	run: function(tower, attackDuration) {
 		var thisRoom = tower.room;
 		var towerRange = 70;
-		var healerRange = 15;
+		var healerRange = 10;
 
 		var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
 		var salvagerPrepPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
@@ -36,7 +36,7 @@ var tower_Operate = {
 			}
 			if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 50000) {
 				maxRange = maxRange + 10;
-				healerRange = 20;
+				healerRange = 15;
 			}
 			var closestHostile = tower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange, {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
@@ -47,7 +47,7 @@ var tower_Operate = {
 				//closestHostile.sort(targetHealer);
 				closestHostile = _.sortBy(closestHostile, h => tower.pos.getRangeTo(h));
 				for (var i in closestHostile) {
-					if (closestHostile[i].getActiveBodyparts(HEAL) >= 3 && closestHostile[i].getActiveBodyparts(ATTACK) == 0 && tower.pos.getRangeTo(closestHostile[i]) > healerRange && closestHostile[i].hits == closestHostile[i].hitsMax) {
+					if (closestHostile[i].getActiveBodyparts(HEAL) >= 4 && closestHostile[i].getActiveBodyparts(ATTACK) == 0 && tower.pos.getRangeTo(closestHostile[i]) > healerRange && closestHostile[i].hits == closestHostile[i].hitsMax) {
 						//Probably a healer, continue loop
 					} else {
 						tower.attack(closestHostile[i]);
