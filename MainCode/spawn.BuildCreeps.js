@@ -34,7 +34,7 @@ var spawn_BuildCreeps = {
 			var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
 			if (strSources.length == 1) {
-				harvesterMax = 2;
+				harvesterMax = 1;
 				builderMax = 1;
 				upgraderMax = 1;
 			}
