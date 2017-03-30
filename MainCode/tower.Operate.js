@@ -49,7 +49,7 @@ var tower_Operate = {
 				for (var i in closestHostile) {
 					if (closestHostile[i].getActiveBodyparts(HEAL) >= 4 && closestHostile[i].getActiveBodyparts(ATTACK) == 0 && tower.pos.getRangeTo(closestHostile[i]) > healerRange && closestHostile[i].hits == closestHostile[i].hitsMax) {
 						//Probably a healer, continue loop
-					} else {
+					} else if (tower.pos.getRangeTo(closestHostile[i]) <= maxRange) {
 						tower.attack(closestHostile[i]);
 						Memory.hasFired.push(thisRoom.name);
 						break;
