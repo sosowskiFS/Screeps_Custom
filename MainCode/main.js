@@ -195,6 +195,13 @@ module.exports.loop = function() {
                 }
             }
 
+            if (Game.flags["Assault"] && thisRoom.name == 'E89N83') {
+                roomDist = 0;
+                roomName = thisRoom.name;
+                roomEnergy = thisRoom.energyCapacityAvailable;
+                instructionSpawn = Game.spawns[i];
+            }
+
             //Get list of Sources
             if (!Memory.sourceList[thisRoom.name]) {
                 Memory.sourceList[thisRoom.name] = [];
@@ -523,6 +530,10 @@ module.exports.loop = function() {
 
     if (Game.flags["WallThis"]) {
         spawn_BuildInstruction.run(instructionSpawn, 'trump', Game.flags["WallThis"].pos.roomName, '', instructionSpawn.room.name);
+    }
+
+    if (Game.flags["Assault"]) {
+        spawn_BuildInstruction.run(instructionSpawn, 'assault', Game.flags["Assault"].pos.roomName, '', instructionSpawn.room.name);
     }
 
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {

@@ -164,6 +164,42 @@ var spawn_BuildInstruction = {
 					}
 				}
 				break;
+			case 'assault':
+				var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker');
+				var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer');
+				if (attackers.length < 1) {
+					var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+					if (spawn.canCreateCreep(attackerConfig) == OK) {
+						spawn.createCreep(attackerConfig, undefined, {
+							priority: 'assattacker',
+							destination: params,
+							homeRoom: params2
+						});
+						Memory.isSpawning = true;
+						console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+					} else {
+						//console.log('Could not execute constructor. Spawn cannot create creep.');
+					}
+				} else if (healers.length < 2) {
+					var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+					var attackerName = '';
+					if (attackers[0]) {
+						attackerName = attackers[0].name
+					}
+					if (spawn.canCreateCreep(healerConfig) == OK) {
+						spawn.createCreep(healerConfig, undefined, {
+							priority: 'asshealer',
+							destination: params,
+							homeRoom: params2,
+							attackerName: attackerName
+						});
+						Memory.isSpawning = true;
+						console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+					} else {
+						//console.log('Could not execute constructor. Spawn cannot create creep.');
+					}
+				}
+				break;
 		}
 	}
 };
