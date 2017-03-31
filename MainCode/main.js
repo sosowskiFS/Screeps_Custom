@@ -595,6 +595,13 @@ module.exports.loop = function() {
             case 'trump':
                 creep_trump.run(creep);
                 break;
+            case 'assattacker':
+
+                break;
+
+            case 'asshealer':
+
+                break
             default:
                 if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                     if (Game.spawns.length < 5) {
