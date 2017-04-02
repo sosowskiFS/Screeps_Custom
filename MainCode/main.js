@@ -14,6 +14,7 @@ var creep_Helper = require('creep.helper');
 var creep_towerDrainer = require('creep.towerDrainer');
 var creep_looter = require('creep.looter');
 var creep_assattacker = require('creep.assattacker');
+var creep_asshealer = require('creep.asshealer');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -599,10 +600,9 @@ module.exports.loop = function() {
             case 'assattacker':
                 creep_assattacker.run(creep);
                 break;
-
             case 'asshealer':
-
-                break
+                creep_asshealer.run(creep);
+                break;
             default:
                 if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                     if (Game.spawns.length < 5) {
