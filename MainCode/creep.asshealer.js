@@ -16,7 +16,9 @@ var creep_asshealer = {
                 }
                 creep.moveTo(xTarget, yTarget);
             } else {
-                creep.moveTo(targetAttacker[0]);
+                creep.moveTo(targetAttacker[0], {
+                    ignoreCreeps: true
+                });
             }
 
             if (targetAttacker[0].hits < targetAttacker[0].hitsMax) {
