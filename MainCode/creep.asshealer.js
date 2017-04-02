@@ -3,6 +3,8 @@ var creep_asshealer = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
+        creep.heal(creep);
+
         var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
         if (targetAttacker.length) {
             if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
