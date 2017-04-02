@@ -21,7 +21,7 @@ var creep_asshealer = {
                 });
             }
 
-            if (creep.hits < creep.hitsMax - 100) {
+            if (creep.hits < creep.hitsMax - 99) {
                 creep.heal(creep);
             } else if (targetAttacker[0].hits < targetAttacker[0].hitsMax) {
                 if (creep.pos.getRangeTo(targetAttacker[0]) > 1) {
