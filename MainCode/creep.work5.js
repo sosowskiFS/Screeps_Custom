@@ -138,10 +138,30 @@ var creep_work5 = {
 					var storageTarget = creep.room.storage;
 					var getFromStorage = true;
 					if (creep.room.terminal && creep.room.energyAvailable == creep.room.energyCapacityAvailable) {
-						if (Game.flags["HealLab"] && Game.flags["HealLab"].pos.roomName == creep.pos.roomName) {
+						if (Game.flags["HealLab"] && Game.flags["HealLab"].pos.roomName == creep.pos.roomName && (RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE in creep.room.terminal.store)) {
 							var thisLab = Game.flags["HealLab"].pos.lookFor(LOOK_STRUCTURES);
-							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity && (RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE in creep.room.terminal.store)) {
+							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity) {
 								if (creep.withdraw(creep.room.terminal, RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
+								getFromStorage = false;
+							}
+						} else if (Game.flags["ToughLab"] && Game.flags["ToughLab"].pos.roomName == creep.pos.roomName && (RESOURCE_CATALYZED_GHODIUM_ALKALIDE in creep.room.terminal.store)) {
+							var thisLab = Game.flags["ToughLab"].pos.lookFor(LOOK_STRUCTURES);
+							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity) {
+								if (creep.withdraw(creep.room.terminal, RESOURCE_CATALYZED_GHODIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
+								getFromStorage = false;
+							}
+						} else if (Game.flags["AttackLab"] && Game.flags["AttackLab"].pos.roomName == creep.pos.roomName && (RESOURCE_CATALYZED_UTRIUM_ACID in creep.room.terminal.store)) {
+							var thisLab = Game.flags["AttackLab"].pos.lookFor(LOOK_STRUCTURES);
+							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity) {
+								if (creep.withdraw(creep.room.terminal, RESOURCE_CATALYZED_UTRIUM_ACID) == ERR_NOT_IN_RANGE) {
 									creep.moveTo(creep.room.terminal, {
 										reusePath: 5
 									});
