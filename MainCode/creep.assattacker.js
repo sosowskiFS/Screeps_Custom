@@ -9,10 +9,6 @@ var creep_assattacker = {
         var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
-        if (closeFoe) {
-            //This attack will be overridden if attacking a structure
-            creep.attack(closeFoe);
-        }
 
         if (healerSquad.length && healerSquad.length < 2) {
             if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos.roomName != creep.pos.roomName) {
@@ -74,6 +70,11 @@ var creep_assattacker = {
             if (Game.flags["RallyHere"]) {
                 creep.moveTo(Game.flags["RallyHere"]);
             }
+        }
+
+        if (closeFoe) {
+            //prioritize foebashing
+            creep.attack(closeFoe);
         }
 
     }
