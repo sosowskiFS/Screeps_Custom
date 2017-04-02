@@ -46,17 +46,23 @@ var creep_assattacker = {
                     filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
                 });
                 if (eTowers.length) {
-                    creep.moveTo(eTowers[0]);
+                    creep.moveTo(eTowers[0], {
+                        ignoreDestructibleStructures: true
+                    });
                     creep.attack(eTowers[0]);
                 } else {
                     var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
                     if (eSpawns.length) {
-                        creep.moveTo(eSpawns[0]);
+                        creep.moveTo(eSpawns[0], {
+                            ignoreDestructibleStructures: true
+                        });
                         creep.attack(eSpawns[0]);
                     } else {
                         var eStructures = creep.room.find(FIND_HOSTILE_STRUCTURES)
                         if (eStructures.length) {
-                            creep.moveTo(eStructures[0]);
+                            creep.moveTo(eStructures[0], {
+                                ignoreDestructibleStructures: true
+                            });
                             creep.attack(eStructures[0]);
                         } else if (closeFoe) {
                             creep.moveTo(closeFoe);
