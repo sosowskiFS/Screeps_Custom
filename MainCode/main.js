@@ -13,6 +13,7 @@ var creep_Kebab = require('creep.removeKebab');
 var creep_Helper = require('creep.helper');
 var creep_towerDrainer = require('creep.towerDrainer');
 var creep_looter = require('creep.looter');
+var creep_assattacker = require('creep.assattacker');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -596,7 +597,7 @@ module.exports.loop = function() {
                 creep_trump.run(creep);
                 break;
             case 'assattacker':
-
+                creep_assattacker.run(creep);
                 break;
 
             case 'asshealer':
