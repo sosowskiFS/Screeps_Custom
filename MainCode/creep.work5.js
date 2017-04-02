@@ -204,6 +204,28 @@ var creep_work5 = {
 								dumpMinerals = false;
 							}
 						}
+						if (creep.carry[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] && Game.flags["ToughLab"] && Game.flags["ToughLab"].pos.roomName == creep.pos.roomName) {
+							var thisLab = Game.flags["ToughLab"].pos.lookFor(LOOK_STRUCTURES);
+							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity) {
+								if (creep.transfer(thisLab[0], RESOURCE_CATALYZED_GHODIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(thisLab[0], {
+										reusePath: 5
+									});
+								}
+								dumpMinerals = false;
+							}
+						}
+						if (creep.carry[RESOURCE_CATALYZED_UTRIUM_ACID] && Game.flags["AttackLab"] && Game.flags["AttackLab"].pos.roomName == creep.pos.roomName) {
+							var thisLab = Game.flags["AttackLab"].pos.lookFor(LOOK_STRUCTURES);
+							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity) {
+								if (creep.transfer(thisLab[0], RESOURCE_CATALYZED_UTRIUM_ACID) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(thisLab[0], {
+										reusePath: 5
+									});
+								}
+								dumpMinerals = false;
+							}
+						}
 						if (dumpMinerals && creep.room.terminal) {
 							if (Object.keys(creep.carry).length > 1) {
 								if (creep.transfer(creep.room.terminal, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
