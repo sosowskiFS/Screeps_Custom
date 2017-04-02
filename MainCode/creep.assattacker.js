@@ -50,6 +50,10 @@ var creep_assattacker = {
                     }
                 }
             }
+        } else {
+            if (Game.flags["RallyHere"]) {
+                moveTo(Game.flags["RallyHere"]);
+            }
         }
 
     }
