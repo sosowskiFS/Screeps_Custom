@@ -194,7 +194,7 @@ var spawn_BuildInstruction = {
 							attackerName: attackerName
 						});
 						Memory.isSpawning = true;
-						console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+						console.log('HEAL. SHIT. UP. ' + spawn.room.name);
 					} else {
 						//console.log('Could not execute constructor. Spawn cannot create creep.');
 					}

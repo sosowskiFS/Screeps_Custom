@@ -136,7 +136,21 @@ var creep_work5 = {
 				if (_.sum(creep.carry) == 0) {
 					creep.memory.structureTarget = undefined;
 					var storageTarget = creep.room.storage;
-					if (storageTarget) {
+					var getFromStorage = true;
+					if (creep.room.terminal) {
+						if (Game.flags["HealLab"] && Game.flags["HealLab"].pos.roomName == creep.pos.roomName) {
+							var thisLab = Game.flags["HealLab"].pos.lookFor(LOOK_STRUCTURES);
+							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity && (RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE in creep.room.terminal.store)) {
+								if (creep.withdraw(creep.room.terminal, RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
+								getFromStorage = false;
+							}
+						}
+					}
+					if (storageTarget && getFromStorage) {
 						if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
 							//Get from container
 							if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -156,176 +170,217 @@ var creep_work5 = {
 						}
 					}
 				} else if (_.sum(creep.carry) > 0) {
-					var savedTarget = Game.getObjectById(creep.memory.structureTarget)
-					var getNewStructure = false;
-					if (savedTarget) {
-						if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
-							//Only other blocker is build.
-							creep.repair(savedTarget);
-
-							if (creep.memory.lookForNewRampart) {
-								creep.memory.structureTarget = undefined;
-								creep.memory.lookForNewRampart = undefined;
-								var newRampart = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-									filter: (structure) => (structure.structureType == STRUCTURE_RAMPART) && (structure.hits == 1)
-								});
-								if (newRampart) {
-									creep.memory.structureTarget = newRampart.id;
-									if (creep.repair(newRampart) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(newRampart, {
-											reusePath: 5
-										});
-									}
-								}
-							} else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
-								//Storing in spawn/extension/tower
-								if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
-									creep.moveTo(savedTarget, {
+					if (creep.carry[RESOURCE_ENERGY] == 0) {
+						//Carrying minerals, determine what to do.
+						var dumpMinerals = true;
+						if (creep.carry[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE] && Game.flags["HealLab"] && Game.flags["HealLab"].pos.roomName == creep.pos.roomName) {
+							var thisLab = Game.flags["HealLab"].pos.lookFor(LOOK_STRUCTURES);
+							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity) {
+								if (creep.transfer(thisLab[0], RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(thisLab[0], {
 										reusePath: 5
 									});
-								} else {
-									//assumed OK, drop target
-									creep.memory.structureTarget = undefined;
-									getNewStructure = true;
 								}
-							} else {
-								//Upgrading controller
-								if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
-									if (Game.flags[creep.room.name + "Controller"]) {
-										creep.moveTo(Game.flags[creep.room.name + "Controller"], {
-											reusePath: 20
+								dumpMinerals = false;
+							}
+						}
+						if (dumpMinerals && creep.room.terminal) {
+							if (Object.keys(creep.carry).length > 1) {
+								if (creep.transfer(creep.room.terminal, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
+							} else if (creep.transfer(creep.room.terminal, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.terminal, {
+									reusePath: 5
+								});
+							}
+						} else if (dumpMinerals && !creep.room.terminal && creep.room.storage) {
+							if (Object.keys(creep.carry).length > 1) {
+								if (creep.transfer(creep.room.storage, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.storage, {
+										reusePath: 5
+									});
+								}
+							} else if (creep.transfer(creep.room.storage, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.storage, {
+									reusePath: 5
+								});
+							}
+						}
+					} else {
+						var savedTarget = Game.getObjectById(creep.memory.structureTarget)
+						var getNewStructure = false;
+						if (savedTarget) {
+							if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
+								//Only other blocker is build.
+								creep.repair(savedTarget);
+
+								if (creep.memory.lookForNewRampart) {
+									creep.memory.structureTarget = undefined;
+									creep.memory.lookForNewRampart = undefined;
+									var newRampart = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+										filter: (structure) => (structure.structureType == STRUCTURE_RAMPART) && (structure.hits == 1)
+									});
+									if (newRampart) {
+										creep.memory.structureTarget = newRampart.id;
+										if (creep.repair(newRampart) == ERR_NOT_IN_RANGE) {
+											creep.moveTo(newRampart, {
+												reusePath: 5
+											});
+										}
+									}
+								} else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
+									//Storing in spawn/extension/tower
+									if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
+										creep.moveTo(savedTarget, {
+											reusePath: 5
 										});
 									} else {
-										creep.moveTo(savedTarget, {
-											reusePath: 20
-										});
+										//assumed OK, drop target
+										creep.memory.structureTarget = undefined;
+										getNewStructure = true;
 									}
 								} else {
-									//Check for nearby link and fill it if possible.
-									var links = creep.pos.findInRange(FIND_STRUCTURES, 3, {
-										filter: {
-											structureType: STRUCTURE_LINK
+									//Upgrading controller
+									if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
+										if (Game.flags[creep.room.name + "Controller"]) {
+											creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+												reusePath: 20
+											});
+										} else {
+											creep.moveTo(savedTarget, {
+												reusePath: 20
+											});
 										}
-									});
-									if (links) {
-										if (links.length > 0) {
-											if (links[0].energy < 400) {
-												if (creep.transfer(links[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-													creep.moveTo(links[0]);
+									} else {
+										//Check for nearby link and fill it if possible.
+										var links = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+											filter: {
+												structureType: STRUCTURE_LINK
+											}
+										});
+										if (links) {
+											if (links.length > 0) {
+												if (links[0].energy < 400) {
+													if (creep.transfer(links[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+														creep.moveTo(links[0]);
+													}
 												}
 											}
 										}
 									}
+									//Do repair for new ramparts
+									creep.repair(savedTarget);
 								}
-								//Do repair for new ramparts
-								creep.repair(savedTarget);
-							}
-						} else {
-							if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(savedTarget, {
-									reusePath: 5
-								});
-							} else if (creep.build(savedTarget) != OK) {
-								creep.memory.structureTarget = undefined;
-							}
-						}
-					} else {
-						creep.memory.structureTarget = undefined;
-					}
-					//Immediately find a new target if previous transfer worked
-					if (!creep.memory.structureTarget) {
-						var targets = undefined;
-						if (getNewStructure) {
-							targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-								filter: (structure) => {
-									return (structure.structureType == STRUCTURE_EXTENSION ||
-										structure.structureType == STRUCTURE_SPAWN ||
-										structure.structureType == STRUCTURE_TOWER ||
-										structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-								}
-							});
-						} else {
-							targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-								filter: (structure) => {
-									return (structure.structureType == STRUCTURE_EXTENSION ||
-										structure.structureType == STRUCTURE_SPAWN ||
-										structure.structureType == STRUCTURE_TOWER ||
-										structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
-								}
-							});
-						}
-
-						if (targets) {
-							creep.memory.structureTarget = targets.id;
-							if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(targets);
 							} else {
-								creep.memory.structureTarget = undefined;
+								if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(savedTarget, {
+										reusePath: 5
+									});
+								} else if (creep.build(savedTarget) != OK) {
+									creep.memory.structureTarget = undefined;
+								}
 							}
 						} else {
-							//Level8 Structures
-							var targets2;
-							if (creep.room.controller.level == 8) {
-								targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+							creep.memory.structureTarget = undefined;
+						}
+						//Immediately find a new target if previous transfer worked
+						if (!creep.memory.structureTarget) {
+							var targets = undefined;
+							if (getNewStructure) {
+								targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 									filter: (structure) => {
-										return (structure.structureType == STRUCTURE_POWER_SPAWN ||
-											structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
+										return (structure.structureType == STRUCTURE_EXTENSION ||
+											structure.structureType == STRUCTURE_SPAWN ||
+											structure.structureType == STRUCTURE_TOWER ||
+											structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+									}
+								});
+							} else {
+								targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+									filter: (structure) => {
+										return (structure.structureType == STRUCTURE_EXTENSION ||
+											structure.structureType == STRUCTURE_SPAWN ||
+											structure.structureType == STRUCTURE_TOWER ||
+											structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
 									}
 								});
 							}
-							if (targets2) {
-								creep.memory.structureTarget = targets2.id;
-								if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-									creep.moveTo(targets2);
+
+							if (targets) {
+								creep.memory.structureTarget = targets.id;
+								if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(targets);
 								} else {
 									creep.memory.structureTarget = undefined;
 								}
 							} else {
-								//Store in terminal
-								terminalTarget = Game.getObjectById(creep.memory.terminalID)
-								if (terminalTarget) {
-									if (terminalTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 100000 ) {
-										creep.memory.structureTarget = terminalTarget.id;
-										if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(terminalTarget, {
-												reusePath: 20
-											});
+								//Level8 Structures
+								var targets2;
+								if (creep.room.controller.level == 8) {
+									targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+										filter: (structure) => {
+											return (structure.structureType == STRUCTURE_POWER_SPAWN ||
+												structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
 										}
-									} else {
-										terminalTarget = undefined;
-									}
+									});
 								}
-								if (!terminalTarget) {
-									//Build
-									var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
-									if (targets2) {
-										creep.memory.structureTarget = targets2.id;
-										if (targets2.structureType == STRUCTURE_RAMPART) {
-											creep.memory.lookForNewRampart = true;
-										}
-
-										if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(targets2, {
-												reusePath: 20
-											});
-										} else if (creep.build(targets2) == ERR_NO_BODYPART) {
-											creep.suicide();
-										}
+								if (targets2) {
+									creep.memory.structureTarget = targets2.id;
+									if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+										creep.moveTo(targets2);
 									} else {
-										//Upgrade
-										creep.memory.structureTarget = creep.room.controller.id;
-										if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-											if (Game.flags[creep.room.name + "Controller"]) {
-												creep.moveTo(Game.flags[creep.room.name + "Controller"], {
-													reusePath: 20
-												});
-											} else {
-												creep.moveTo(creep.room.controller, {
+										creep.memory.structureTarget = undefined;
+									}
+								} else {
+									//Store in terminal
+									terminalTarget = Game.getObjectById(creep.memory.terminalID)
+									if (terminalTarget) {
+										if (terminalTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 100000) {
+											creep.memory.structureTarget = terminalTarget.id;
+											if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+												creep.moveTo(terminalTarget, {
 													reusePath: 20
 												});
 											}
-										} else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
-											creep.suicide();
+										} else {
+											terminalTarget = undefined;
+										}
+									}
+									if (!terminalTarget) {
+										//Build
+										var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+										if (targets2) {
+											creep.memory.structureTarget = targets2.id;
+											if (targets2.structureType == STRUCTURE_RAMPART) {
+												creep.memory.lookForNewRampart = true;
+											}
+
+											if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
+												creep.moveTo(targets2, {
+													reusePath: 20
+												});
+											} else if (creep.build(targets2) == ERR_NO_BODYPART) {
+												creep.suicide();
+											}
+										} else {
+											//Upgrade
+											creep.memory.structureTarget = creep.room.controller.id;
+											if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+												if (Game.flags[creep.room.name + "Controller"]) {
+													creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+														reusePath: 20
+													});
+												} else {
+													creep.moveTo(creep.room.controller, {
+														reusePath: 20
+													});
+												}
+											} else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
+												creep.suicide();
+											}
 										}
 									}
 								}
