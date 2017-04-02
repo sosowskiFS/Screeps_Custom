@@ -21,9 +21,15 @@ var creep_assattacker = {
                     creep.moveTo(25, 25);
                 }
             } else {
-                creep.moveTo(Game.flags["RallyHere"]);
+                if (!creep.memory.getoutOfStartRoom) {
+                    creep.moveTo(Game.flags["RallyHere"]);
+                } else {
+                    creep.moveTo(Game.flags["Assault"]);
+                }         
             }
         } else if (healerSquad.length && healerSquad.length == 2) {
+            creep.memory.getOutOfStartRoom = true;
+
             if (Game.flags["Assault"] && Game.flags["Assault"].pos.roomName != creep.pos.roomName) {
                 creep.moveTo(new RoomPosition(25, 25, Game.flags["Assault"].pos.roomName));
             } else {
