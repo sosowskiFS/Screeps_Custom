@@ -185,18 +185,18 @@ var spawn_BuildInstruction = {
 					var attackerName = '';
 					if (attackers[0]) {
 						attackerName = attackers[0].name
-					}
-					if (spawn.canCreateCreep(healerConfig) == OK) {
-						spawn.createCreep(healerConfig, undefined, {
-							priority: 'asshealer',
-							destination: params,
-							homeRoom: params2,
-							attackerName: attackerName
-						});
-						Memory.isSpawning = true;
-						console.log('HEAL. SHIT. UP. ' + spawn.room.name);
-					} else {
-						//console.log('Could not execute constructor. Spawn cannot create creep.');
+						if (spawn.canCreateCreep(healerConfig) == OK) {
+							spawn.createCreep(healerConfig, undefined, {
+								priority: 'asshealer',
+								destination: params,
+								homeRoom: params2,
+								attackerName: attackerName
+							});
+							Memory.isSpawning = true;
+							console.log('HEAL. SHIT. UP. ' + spawn.room.name);
+						} else {
+							//console.log('Could not execute constructor. Spawn cannot create creep.');
+						}
 					}
 				}
 				break;
