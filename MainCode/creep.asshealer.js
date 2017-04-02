@@ -5,7 +5,12 @@ var creep_asshealer = {
 
         var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
         if (targetAttacker.length) {
-            creep.moveTo(targetAttacker[0]);
+            if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                creep.moveTo(25, 25);
+            } else {
+                creep.moveTo(targetAttacker[0]);
+            }
+
             if (targetAttacker[0].hits < targetAttacker[0].hitsMax) {
                 creep.heal(targetAttacker[0]);
                 creep.rangedHeal(targetAttacker[0]);
