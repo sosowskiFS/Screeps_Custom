@@ -240,7 +240,8 @@ var creep_work5 = {
 								filter: (structure) => {
 									return (structure.structureType == STRUCTURE_EXTENSION ||
 										structure.structureType == STRUCTURE_SPAWN ||
-										structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+										structure.structureType == STRUCTURE_TOWER ||
+										structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
 								}
 							});
 						} else {
@@ -248,7 +249,8 @@ var creep_work5 = {
 								filter: (structure) => {
 									return (structure.structureType == STRUCTURE_EXTENSION ||
 										structure.structureType == STRUCTURE_SPAWN ||
-										structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+										structure.structureType == STRUCTURE_TOWER ||
+										structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
 								}
 							});
 						}
@@ -282,7 +284,7 @@ var creep_work5 = {
 								//Store in terminal
 								terminalTarget = Game.getObjectById(creep.memory.terminalID)
 								if (terminalTarget) {
-									if (terminalTarget.store[RESOURCE_ENERGY] < 50000) {
+									if (terminalTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 100000 ) {
 										creep.memory.structureTarget = terminalTarget.id;
 										if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 											creep.moveTo(terminalTarget, {
