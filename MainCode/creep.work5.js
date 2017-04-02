@@ -137,7 +137,7 @@ var creep_work5 = {
 					creep.memory.structureTarget = undefined;
 					var storageTarget = creep.room.storage;
 					var getFromStorage = true;
-					if (creep.room.terminal) {
+					if (creep.room.terminal && creep.room.energyAvailable == creep.room.energyCapacityAvailable) {
 						if (Game.flags["HealLab"] && Game.flags["HealLab"].pos.roomName == creep.pos.roomName) {
 							var thisLab = Game.flags["HealLab"].pos.lookFor(LOOK_STRUCTURES);
 							if (thisLab.length && thisLab[0].mineralAmount < thisLab[0].mineralCapacity && (RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE in creep.room.terminal.store)) {
