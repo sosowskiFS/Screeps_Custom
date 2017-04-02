@@ -21,25 +21,23 @@ var creep_asshealer = {
                 });
             }
 
-            if (targetAttacker[0].hits < targetAttacker[0].hitsMax) {
+            if (creep.hits < creep.hitsMax - 100) {
+                creep.heal(creep);
+            } else if (targetAttacker[0].hits < targetAttacker[0].hitsMax) {
                 if (creep.pos.getRangeTo(targetAttacker[0]) > 1) {
                     creep.rangedHeal(targetAttacker[0]);
                 } else {
                     creep.heal(targetAttacker[0]);
                 }
             } else {
-                if (creep.hits < creep.hitsMax) {
-                    creep.heal(creep);
-                } else {
-                    var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-                    });
-                    if (hurtAlly.length > 0) {
-                        if (creep.pos.getRangeTo(hurtAlly[0]) > 1) {
-                            creep.rangedHeal(hurtAlly[0]);
-                        } else {
-                            creep.heal(hurtAlly[0]);
-                        }
+                var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+                    filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+                });
+                if (hurtAlly.length > 0) {
+                    if (creep.pos.getRangeTo(hurtAlly[0]) > 1) {
+                        creep.rangedHeal(hurtAlly[0]);
+                    } else {
+                        creep.heal(hurtAlly[0]);
                     }
                 }
             }
