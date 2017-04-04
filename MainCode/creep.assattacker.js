@@ -83,7 +83,7 @@ var creep_assattacker = {
             if (Game.flags["RallyHere"] && !creep.memory.getOutOfStartRoom) {
                 creep.moveTo(Game.flags["RallyHere"]);
             } else {
-                creep.moveTo(Game.flags["Assault"]);
+                //creep.moveTo(Game.flags["Assault"]);
             }
         }
 
