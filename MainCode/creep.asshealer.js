@@ -2,6 +2,20 @@ var creep_asshealer = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        var unboostedTough = 0;
+        var unboostedHeal = 0;
+
+        creep.body.forEach(function(thisPart) {
+            if (thisPart.type == HEAL && !thisPart.boost){
+                unboostedHeal = unboostedHeal + 1;
+            }
+
+            if (thisPart.type == TOUGH && !thisPart.boost){
+                unboostedTough = unboostedTough + 1;
+            }
+        });
+
+        console.log("unboosted heal : " + unboostedHeal + "| unboosted Tough : " + unboostedTough);
 
         var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
         if (targetAttacker.length) {
