@@ -15,8 +15,6 @@ var creep_distractor = {
         }
         evadeAttacker(creep);
     }
-}
-
 };
 
 function evadeAttacker(creep) {
