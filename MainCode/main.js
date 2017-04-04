@@ -608,6 +608,9 @@ module.exports.loop = function() {
             case 'asshealer':
                 creep_asshealer.run(creep);
                 break;
+            case 'distractor':
+                creep_distractor.run(creep);
+                break;
             default:
                 if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                     if (Game.spawns.length < 5) {
