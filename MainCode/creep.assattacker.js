@@ -3,6 +3,19 @@ var creep_assattacker = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
+        var unboostedTough = 0;
+        var unboostedAttack = 0;
+
+        creep.body.forEach(function(thisPart) {
+            if (thisPart.type == ATTACK && !thisPart.boost) {
+                unboostedAttack = unboostedAttack + 1;
+            }
+
+            if (thisPart.type == TOUGH && !thisPart.boost) {
+                unboostedTough = unboostedTough + 1;
+            }
+        });
+
         var healerSquad = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
             filter: (mCreep) => (mCreep.memory.priority == "asshealer")
         });
