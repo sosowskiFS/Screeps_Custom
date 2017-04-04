@@ -18,7 +18,7 @@ var creep_assattacker = {
 
         var squadSearchRange = 2;
         if (Game.flags["Assault"] && Game.flags["Assault"].pos.roomName == creep.pos.roomName) {
-            squadSearchRange = 1;
+            squadSearchRange = 2;
         }
 
         var healerSquad = creep.pos.findInRange(FIND_MY_CREEPS, squadSearchRange, {
@@ -36,13 +36,17 @@ var creep_assattacker = {
                     var yTarget = 0;
                     if (creep.pos.x == 0) {
                         xTarget = 1;
+                        yTarget = creep.pos.y;
                     } else if (creep.pos.x == 49) {
                         xTarget = 48;
+                        yTarget = creep.pos.y;
                     }
                     if (creep.pos.y == 0) {
                         yTarget = 1;
+                        xTarget = creep.pos.x;
                     } else if (creep.pos.y = 49) {
                         yTarget = 48;
+                        xTarget = creep.pos.x;
                     }
                     creep.moveTo(xTarget, yTarget);
                 }
