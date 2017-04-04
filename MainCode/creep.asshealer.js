@@ -34,7 +34,8 @@ var creep_asshealer = {
                     creep.moveTo(targetAttacker[0]);
                 } else {
                     creep.moveTo(targetAttacker[0], {
-                        ignoreCreeps: true
+                        ignoreCreeps: true,
+                        reusePath: 0
                     });
                 }
 
