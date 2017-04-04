@@ -24,18 +24,19 @@ var creep_asshealer = {
                 var yTarget = 0;
                 if (creep.pos.x == 0) {
                     xTarget = 1;
+                    yTarget = creep.pos.y;
                 } else if (creep.pos.x == 49) {
                     xTarget = 48;
+                    yTarget = creep.pos.y;
                 }
                 if (creep.pos.y == 0) {
                     yTarget = 1;
+                    xTarget = creep.pos.x;
                 } else if (creep.pos.y = 49) {
                     yTarget = 48;
+                    xTarget = creep.pos.x;
                 }
                 creep.moveTo(xTarget, yTarget);
-                if (targetAttacker[0].room.name == creep.room.name) {
-                    creep.moveTo(targetAttacker[0]);
-                }
             } else {
                 if (creep.room.name == creep.memory.homeRoom || creep.room.name == creep.memory.destination) {
                     creep.moveTo(targetAttacker[0], {
