@@ -19,40 +19,51 @@ var creep_asshealer = {
 
         var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
         if (targetAttacker.length) {
-            if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+            if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker[0].room.name == creep.room.name) {
                 var xTarget = 0;
                 var yTarget = 0;
                 if (creep.pos.x == 0) {
-                    xTarget = 1;
+                    xTarget = 2;
                     yTarget = creep.pos.y;
                 } else if (creep.pos.x == 49) {
-                    xTarget = 48;
+                    xTarget = 47;
                     yTarget = creep.pos.y;
                 }
                 if (creep.pos.y == 0) {
-                    yTarget = 1;
+                    yTarget = 2;
                     xTarget = creep.pos.x;
                 } else if (creep.pos.y == 49) {
-                    yTarget = 48;
+                    yTarget = 47;
                     xTarget = creep.pos.x;
                 }
-                if (creep.room.controller) {
-                    creep.moveTo(creep.room.controller);
-                } else {
-                    creep.moveTo(xTarget, yTarget);
-                }
+
+                creep.moveTo(xTarget, yTarget);
             } else {
                 if (creep.room.name == creep.memory.homeRoom || creep.room.name == creep.memory.destination) {
-                    creep.moveTo(targetAttacker[0], {
-                        reusePath: 0
-                    });
+                    if (targetAttacker[0].room.name == creep.room.name) {
+                        creep.moveTo(targetAttacker[0], {
+                            reusePath: 0,
+                            maxRooms: 1
+                        });
+                    } else {
+                        creep.moveTo(targetAttacker[0], {
+                            reusePath: 0
+                        });
+                    }
                 } else {
-                    creep.moveTo(targetAttacker[0], {
-                        ignoreCreeps: true,
-                        reusePath: 0
-                    });
+                    if (targetAttacker[0].room.name == creep.room.name) {
+                        creep.moveTo(targetAttacker[0], {
+                            ignoreCreeps: true,
+                            reusePath: 0,
+                            maxRooms: 1
+                        });
+                    } else {
+                        creep.moveTo(targetAttacker[0], {
+                            ignoreCreeps: true,
+                            reusePath: 0
+                        });
+                    }
                 }
-
             }
 
             if (creep.hits < creep.hitsMax - 99) {
@@ -83,7 +94,7 @@ var creep_asshealer = {
                 filter: (mCreep) => (mCreep.memory.priority == "assattacker")
             });
             if (newTarget.length) {
-                creep.memory.attackerName == newTarget[0].name;
+                creep.memory.attackerName = newTarget[0].name;
             }
         }
     }

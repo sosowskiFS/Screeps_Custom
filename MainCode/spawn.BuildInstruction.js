@@ -168,7 +168,9 @@ var spawn_BuildInstruction = {
 				var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker');
 				var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer');
 				if (attackers.length < 1) {
-					var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+					//var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+					//Testing movement config
+					var attackerConfig = [TOUGH, TOUGH, MOVE, MOVE];
 					if (spawn.canCreateCreep(attackerConfig) == OK) {
 						spawn.createCreep(attackerConfig, undefined, {
 							priority: 'assattacker',
@@ -181,7 +183,9 @@ var spawn_BuildInstruction = {
 						//console.log('Could not execute constructor. Spawn cannot create creep.');
 					}
 				} else if (healers.length < 2) {
-					var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+					//var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+					//Testing movement config
+					var healerConfig = [TOUGH, MOVE];
 					var attackerName = '';
 					if (attackers[0]) {
 						attackerName = attackers[0].name
