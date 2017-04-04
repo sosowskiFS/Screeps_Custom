@@ -15,7 +15,7 @@ var creep_asshealer = {
             }
         });
 
-        console.log("unboosted heal : " + unboostedHeal + "| unboosted Tough : " + unboostedTough);
+        //console.log("unboosted heal : " + unboostedHeal + "| unboosted Tough : " + unboostedTough);
 
         var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
         if (targetAttacker.length) {
