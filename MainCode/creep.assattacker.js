@@ -28,7 +28,7 @@ var creep_assattacker = {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
-        if (healerSquad.length && healerSquad.length < 2) {
+        if (healerSquad.length < 2) {
             if (creep.memory.getOutOfStartRoom) {
                 //Probably in a new room, hold.
                 if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
@@ -53,7 +53,7 @@ var creep_assattacker = {
             } else {
                 creep.moveTo(Game.flags["RallyHere"]);
             }
-        } else if (healerSquad.length && healerSquad.length == 2) {
+        } else if (healerSquad.length == 2) {
             creep.memory.getOutOfStartRoom = true;
 
             if (Game.flags["Assault"] && Game.flags["Assault"].pos.roomName != creep.pos.roomName) {
