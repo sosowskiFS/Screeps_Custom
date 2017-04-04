@@ -84,6 +84,8 @@ var creep_assattacker = {
                             creep.attack(eStructures[0]);
                         } else if (closeFoe) {
                             creep.moveTo(closeFoe);
+                        } else if (Game.flags["Assault"]) {
+                            creep.moveTo(Game.flags["Assault"]);
                         }
                     }
                 }
