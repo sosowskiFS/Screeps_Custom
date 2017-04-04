@@ -6,11 +6,11 @@ var creep_asshealer = {
         var unboostedHeal = 0;
 
         creep.body.forEach(function(thisPart) {
-            if (thisPart.type == HEAL && !thisPart.boost){
+            if (thisPart.type == HEAL && !thisPart.boost) {
                 unboostedHeal = unboostedHeal + 1;
             }
 
-            if (thisPart.type == TOUGH && !thisPart.boost){
+            if (thisPart.type == TOUGH && !thisPart.boost) {
                 unboostedTough = unboostedTough + 1;
             }
         });
@@ -30,9 +30,14 @@ var creep_asshealer = {
                 }
                 creep.moveTo(xTarget, yTarget);
             } else {
-                creep.moveTo(targetAttacker[0], {
-                    ignoreCreeps: true
-                });
+                if (creep.room.name == creep.memory.homeRoom) {
+                    creep.moveTo(targetAttacker[0]);
+                } else {
+                    creep.moveTo(targetAttacker[0], {
+                        ignoreCreeps: true
+                    });
+                }
+
             }
 
             if (creep.hits < creep.hitsMax - 99) {
