@@ -31,24 +31,28 @@ var creep_assattacker = {
         if (healerSquad.length && healerSquad.length < 2) {
             if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos.roomName != creep.pos.roomName) {
                 //Probably in a new room, hold.
-                if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
-                    var xTarget = 0;
-                    var yTarget = 0;
-                    if (creep.pos.x == 0) {
-                        xTarget = 1;
-                        yTarget = creep.pos.y;
-                    } else if (creep.pos.x == 49) {
-                        xTarget = 48;
-                        yTarget = creep.pos.y;
+                if (creep.room.controller) {
+                    creep.moveTo(creep.room.controller);
+                } else {
+                    if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                        var xTarget = 0;
+                        var yTarget = 0;
+                        if (creep.pos.x == 0) {
+                            xTarget = 1;
+                            yTarget = creep.pos.y;
+                        } else if (creep.pos.x == 49) {
+                            xTarget = 48;
+                            yTarget = creep.pos.y;
+                        }
+                        if (creep.pos.y == 0) {
+                            yTarget = 1;
+                            xTarget = creep.pos.x;
+                        } else if (creep.pos.y == 49) {
+                            yTarget = 48;
+                            xTarget = creep.pos.x;
+                        }
+                        creep.moveTo(xTarget, yTarget);
                     }
-                    if (creep.pos.y == 0) {
-                        yTarget = 1;
-                        xTarget = creep.pos.x;
-                    } else if (creep.pos.y == 49) {
-                        yTarget = 48;
-                        xTarget = creep.pos.x;
-                    }
-                    creep.moveTo(xTarget, yTarget);
                 }
             } else {
                 if (!creep.memory.getOutOfStartRoom) {
