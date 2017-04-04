@@ -19,13 +19,17 @@ var creep_asshealer = {
 
         var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
         if (targetAttacker.length) {
-            if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && (targetAttacker[0].room.name == creep.room.name)) {
-                var xTarget = 1;
-                var yTarget = 1;
-                if (creep.pos.x == 49) {
+            if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                var xTarget = 0;
+                var yTarget = 0;
+                if (creep.pos.x == 0) {
+                    xTarget = 1;
+                } else if (creep.pos.x == 49) {
                     xTarget = 48;
                 }
-                if (creep.pos.y = 49) {
+                if (creep.pos.y == 0) {
+                    yTarget = 1;
+                } else if (creep.pos.y = 49) {
                     yTarget = 48;
                 }
                 creep.moveTo(xTarget, yTarget);
