@@ -33,6 +33,9 @@ var creep_asshealer = {
                     yTarget = 48;
                 }
                 creep.moveTo(xTarget, yTarget);
+                if (targetAttacker[0].room.name == creep.room.name) {
+                    creep.moveTo(targetAttacker[0]);
+                }
             } else {
                 if (creep.room.name == creep.memory.homeRoom || creep.room.name == creep.memory.destination) {
                     creep.moveTo(targetAttacker[0], {
