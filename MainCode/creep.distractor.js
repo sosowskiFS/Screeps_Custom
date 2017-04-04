@@ -2,16 +2,17 @@ var creep_distractor = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+            filter: (eCreep) => (eCreep.getActiveBodyparts(ATTACK) == 0 && !Memory.whiteList.includes(eCreep.owner.username))
+        });
+        if (closeFoe) {
+            creep.attack(closeFoe);
+        }
+
         if (creep.room.name != creep.memory.destination) {
             creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
         } else if (Game.flags[creep.memory.targetFlag]) {
             creep.moveTo(Game.flags[creep.memory.targetFlag]);
-            var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-                filter: (eCreep) => (eCreep.getActiveBodyparts(ATTACK) == 0 && !Memory.whiteList.includes(eCreep.owner.username))
-            });
-            if (closeFoe) {
-                creep.attack(closeFoe);
-            }
         }
         evadeAttacker(creep);
     }
