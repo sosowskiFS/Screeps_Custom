@@ -15,6 +15,7 @@ var creep_towerDrainer = require('creep.towerDrainer');
 var creep_looter = require('creep.looter');
 var creep_assattacker = require('creep.assattacker');
 var creep_asshealer = require('creep.asshealer');
+var creep_distractor = require('creep.distractor');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -422,6 +423,10 @@ module.exports.loop = function() {
 
         if (Game.flags[thisRoom.name + "SendHelper"]) {
             spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
+        }
+
+        if (Game.flags[thisRoom.name + "Distract"]) {
+            spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '' , Game.flags[thisRoom.name + "Distract"].name);
         }
 
         if (!Memory.isSpawning) {

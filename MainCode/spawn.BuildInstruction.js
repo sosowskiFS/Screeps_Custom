@@ -200,6 +200,24 @@ var spawn_BuildInstruction = {
 					}
 				}
 				break;
+			case 'distract':
+				var distractors = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'distractor' && creep.memory.homeRoom == spawn.room.name));
+				if (distractors.length < 1) {
+					var distractConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK];
+					if (spawn.canCreateCreep(distractConfig) == OK) {
+						spawn.createCreep(distractConfig, undefined, {
+							priority: 'distractor',
+							destination: params,
+							homeRoom: spawn.room.name,
+							targetFlag: params2
+						});
+						Memory.isSpawning = true;
+						console.log('Keep em busy, ' + spawn.room.name);
+					} else {
+						//console.log('Could not execute constructor. Spawn cannot create creep.');
+					}
+				}
+				break;
 		}
 	}
 };
