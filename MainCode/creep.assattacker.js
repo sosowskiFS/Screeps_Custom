@@ -44,7 +44,7 @@ var creep_assattacker = {
                     if (creep.pos.y == 0) {
                         yTarget = 1;
                         xTarget = creep.pos.x;
-                    } else if (creep.pos.y = 49) {
+                    } else if (creep.pos.y == 49) {
                         yTarget = 48;
                         xTarget = creep.pos.x;
                     }
