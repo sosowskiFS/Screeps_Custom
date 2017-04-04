@@ -17,9 +17,6 @@ var creep_assattacker = {
         });
 
         var squadSearchRange = 2;
-        if (Game.flags["Assault"] && Game.flags["Assault"].pos.roomName == creep.pos.roomName) {
-            squadSearchRange = 1;
-        }
 
         var healerSquad = creep.pos.findInRange(FIND_MY_CREEPS, squadSearchRange, {
             filter: (mCreep) => (mCreep.memory.priority == "asshealer")
