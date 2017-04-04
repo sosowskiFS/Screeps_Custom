@@ -42,7 +42,6 @@ var creep_asshealer = {
                 if (creep.room.name == creep.memory.homeRoom || creep.room.name == creep.memory.destination) {
                     if (targetAttacker[0].room.name == creep.room.name) {
                         creep.moveTo(targetAttacker[0], {
-                            reusePath: 0,
                             maxRooms: 1
                         });
                     } else {
