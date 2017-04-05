@@ -560,6 +560,37 @@ var creep_farMining = {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					}
+				} else if (creep.room.controller && creep.room.controller.owner != "Montblanc") {
+					if (creep.hits < creep.hitsMax) {
+						creep.heal(creep);
+					}
+
+					//In target room
+					var eTowers = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+						filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy > 0)
+					});
+					if (eTowers.length) {
+						creep.moveTo(eTowers[0], {
+							ignoreDestructibleStructures: true
+						});
+						creep.attack(eTowers[0]);
+					} else {
+						var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
+						if (eSpawns.length) {
+							creep.moveTo(eSpawns[0], {
+								ignoreDestructibleStructures: true
+							});
+							creep.attack(eSpawns[0]);
+						} else {
+							var eStructures = creep.room.find(FIND_HOSTILE_STRUCTURES)
+							if (eStructures.length) {
+								creep.moveTo(eStructures[0], {
+									ignoreDestructibleStructures: true
+								});
+								creep.attack(eStructures[0]);
+							}
+						}
+					}
 				} else if (Game.flags[creep.memory.targetFlag]) {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
