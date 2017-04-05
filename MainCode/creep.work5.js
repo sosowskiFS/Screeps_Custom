@@ -377,35 +377,34 @@ var creep_work5 = {
 										creep.memory.structureTarget = undefined;
 									}
 								} else {
-									//Store in terminal
-									terminalTarget = Game.getObjectById(creep.memory.terminalID)
-									if (terminalTarget) {
-										if (terminalTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 100000) {
-											creep.memory.structureTarget = terminalTarget.id;
-											if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-												creep.moveTo(terminalTarget, {
-													reusePath: 20
-												});
-											}
-										} else {
-											terminalTarget = undefined;
+									//Build
+									targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+									if (targets2) {
+										creep.memory.structureTarget = targets2.id;
+										if (targets2.structureType == STRUCTURE_RAMPART) {
+											creep.memory.lookForNewRampart = true;
 										}
-									}
-									if (!terminalTarget) {
-										//Build
-										var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
-										if (targets2) {
-											creep.memory.structureTarget = targets2.id;
-											if (targets2.structureType == STRUCTURE_RAMPART) {
-												creep.memory.lookForNewRampart = true;
-											}
 
-											if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
-												creep.moveTo(targets2, {
-													reusePath: 20
-												});
-											} else if (creep.build(targets2) == ERR_NO_BODYPART) {
-												creep.suicide();
+										if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
+											creep.moveTo(targets2, {
+												reusePath: 20
+											});
+										} else if (creep.build(targets2) == ERR_NO_BODYPART) {
+											creep.suicide();
+										}
+									} else {
+										//Store in terminal
+										var terminalTarget = Game.getObjectById(creep.memory.terminalID)
+										if (terminalTarget) {
+											if (terminalTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 100000) {
+												creep.memory.structureTarget = terminalTarget.id;
+												if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+													creep.moveTo(terminalTarget, {
+														reusePath: 20
+													});
+												}
+											} else {
+												terminalTarget = undefined;
 											}
 										} else {
 											//Upgrade
