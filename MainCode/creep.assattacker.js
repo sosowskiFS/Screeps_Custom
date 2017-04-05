@@ -86,14 +86,14 @@ var creep_assattacker = {
                             });
                             creep.attack(eSpawns[0]);
                         } else {
-                            var eStructures = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+                            var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER)
                             });
-                            if (eStructures.length) {
-                                creep.moveTo(eStructures[0], {
+                            if (eStructures) {
+                                creep.moveTo(eStructures, {
                                     ignoreDestructibleStructures: true
                                 });
-                                creep.attack(eStructures[0]);
+                                creep.attack(eStructures);
                             } else if (closeFoe) {
                                 creep.moveTo(closeFoe);
                             } else if (Game.flags["Assault"]) {
