@@ -83,7 +83,7 @@ var spawn_BuildCreeps5 = {
 			}
 
 			var repairConfig = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-			if (roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 200000 && thisRoom.energyCapacityAvailable >= 1800) {
+			if (roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 400000 && thisRoom.energyCapacityAvailable >= 1800) {
 				repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 			}
 
@@ -105,11 +105,11 @@ var spawn_BuildCreeps5 = {
 						upgraderConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 					}
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 400000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 500000) {
 					//speed up that repairing a bit
 					repairMax++;
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 500000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 600000) {
 					//Bigger Mules/Repairers
 					if (thisRoom.energyCapacityAvailable >= 3000) {
 						muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -117,7 +117,7 @@ var spawn_BuildCreeps5 = {
 						repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 					}
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 600000) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 700000) {
 					//HOW MUCH MUST I CRANK IT UP?
 					repairMax++;
 					muleMax++;
