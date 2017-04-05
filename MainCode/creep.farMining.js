@@ -183,6 +183,19 @@ var creep_farMining = {
 					});
 				}
 
+				if (creep.carry.energy > 0) {
+					//All creeps check for road under them and repair if needed.
+					var someSite = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+					if (someSite) {
+						creep.build(someSite);
+					} else {
+						var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
+						if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 100) && someStructure[0].structureType == STRUCTURE_ROAD) {
+							creep.repair(someStructure[0]);
+						}
+					}
+				}
+
 				if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= creep.carryCapacity - 50) {
 					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 					if (droppedSources.length) {
