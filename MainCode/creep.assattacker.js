@@ -31,7 +31,7 @@ var creep_assattacker = {
                 creep.moveTo(thisLab[0]);
                 thisLab[0].boostCreep(creep);
             }
-        } else if (unboostedAttck > 0 && Game.flags["AttackLab"] && Game.flags["Assault"] && Game.flags["DoBoost"]) {
+        } else if (unboostedAttack > 0 && Game.flags["AttackLab"] && Game.flags["Assault"] && Game.flags["DoBoost"]) {
             var thisLab = Game.flags["AttackLab"].pos.lookFor(LOOK_STRUCTURES);
             if (thisLab.length && thisLab[0].mineralAmount > 0) {
                 creep.moveTo(thisLab[0]);
