@@ -1,14 +1,10 @@
 var tower_Operate = {
 	run: function(tower, attackDuration) {
 		var thisRoom = tower.room;
-		var towerRange = 70;
 		var healerRange = 10;
 
 		var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
 		var salvagerPrepPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
-		if (salvagerPrepPos >= 0) {
-			towerRange = 70;
-		}
 		if (UnderAttackPos >= 0 && tower.energy > 0) {
 			var maxRange = 50;
 			if (attackDuration >= 100) {
@@ -37,6 +33,10 @@ var tower_Operate = {
 			if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 50000) {
 				maxRange = maxRange + 10;
 				healerRange = 15;
+			}
+
+			if (salvagerPrepPos >= 0) {
+				maxRange = 70;
 			}
 			var closestHostile = tower.pos.findInRange(FIND_HOSTILE_CREEPS, maxRange, {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
