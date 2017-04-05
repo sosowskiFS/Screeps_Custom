@@ -12,13 +12,23 @@ var creep_constructor = {
 			if (creep.room.name != creep.memory.destination) {
 				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
 			} else {
-				sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
 
+				var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
 				if (sources) {
-					if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
-						creep.moveTo(sources);
+					if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(sources, {
+							reusePath: 25
+						});
+					}
+				} else {
+					sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
+					if (sources) {
+						if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(sources);
+						}
 					}
 				}
+
 			}
 		} else {
 			if ((creep.carry.energy <= 20 && creep.hits < 2500 && creep.room.controller.level < 2)) {
