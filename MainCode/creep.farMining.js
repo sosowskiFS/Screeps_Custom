@@ -582,7 +582,9 @@ var creep_farMining = {
 							});
 							creep.attack(eSpawns[0]);
 						} else {
-							var eStructures = creep.room.find(FIND_HOSTILE_STRUCTURES)
+							var eStructures = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+                                filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER);
+                            });
 							if (eStructures.length) {
 								creep.moveTo(eStructures[0], {
 									ignoreDestructibleStructures: true
