@@ -71,7 +71,7 @@ var creep_assattacker = {
                 } else {
                     //In target room
                     var eTowers = creep.room.find(FIND_HOSTILE_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
+                        filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy > 0)
                     });
                     if (eTowers.length) {
                         creep.moveTo(eTowers[0], {
