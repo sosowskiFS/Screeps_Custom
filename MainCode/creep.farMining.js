@@ -243,8 +243,7 @@ var creep_farMining = {
 									if (thisContainer.store[RESOURCE_ENERGY] > 0) {
 										if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 											creep.moveTo(thisContainer, {
-												reusePath: 25,
-												ignoreRoads: true
+												reusePath: 25
 											});
 										}
 									} else {
@@ -268,8 +267,7 @@ var creep_farMining = {
 								var thisSource = Game.getObjectById(creep.memory.mineSource);
 								if (thisSource) {
 									creep.moveTo(thisSource, {
-										reusePath: 25,
-										ignoreRoads: true
+										reusePath: 25
 									});
 									if (creep.pos.inRangeTo(thisSource, 5)) {
 										//Search for container
@@ -280,8 +278,7 @@ var creep_farMining = {
 											creep.memory.containerTarget = containers[0].id;
 											if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 												creep.moveTo(containers[0], {
-													reusePath: 25,
-													ignoreRoads: true
+													reusePath: 25
 												});
 											}
 										}
@@ -296,8 +293,7 @@ var creep_farMining = {
 						if (storageUnit) {
 							if (creep.transfer(storageUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(storageUnit, {
-									reusePath: 25,
-									ignoreRoads: true
+									reusePath: 25
 								});
 							}
 						}
