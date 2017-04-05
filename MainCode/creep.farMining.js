@@ -196,7 +196,7 @@ var creep_farMining = {
 					}
 				}
 
-				if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= creep.carryCapacity - 50) {
+				if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= creep.carryCapacity - 300) {
 					var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 					if (droppedSources.length) {
 						//Pick up dropped energy from dead mules, etc.
@@ -211,7 +211,7 @@ var creep_farMining = {
 						});
 					}
 					evadeAttacker(creep);
-				} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > creep.carryCapacity - 50) {
+				} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > creep.carryCapacity - 300) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
 						reusePath: 25
 					});
@@ -226,7 +226,7 @@ var creep_farMining = {
 						Memory.FarClaimerNeeded[creep.room.name] = true;
 					}
 
-					if (_.sum(creep.carry) <= creep.carryCapacity - 50) {
+					if (_.sum(creep.carry) <= creep.carryCapacity - 300) {
 						var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 7);
 						if (droppedSources.length && !Memory.warMode) {
 							//Pick up dropped energy from dead mules, etc.
