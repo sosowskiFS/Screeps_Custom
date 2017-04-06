@@ -183,9 +183,21 @@ var creep_farMining = {
 					});
 				}
 
+				if (creep.memory.lastRoom != creep.room.name) {
+					var someSites = creep.room.find(FIND_CONSTRUCTION_SITES);
+					if (someSites.length) {
+						creep.memory.lookForSites = true;
+					} else {
+						creep.memory.lookForSites = false;
+					}
+				}
+
 				if (creep.carry.energy > 0) {
 					//All creeps check for road under them and repair if needed.
-					var someSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
+					var someSite = [];
+					if (creep.memory.lookForSites) {
+						someSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
+					}
 					if (someSite.length) {
 						creep.build(someSite[0]);
 					} else {
@@ -300,6 +312,7 @@ var creep_farMining = {
 						evadeAttacker(creep);
 					}
 				}
+				creep.memory.lastRoom = creep.room.name;
 				break;
 			case 'farGuard':
 			case 'farGuardNearDeath':
