@@ -11,10 +11,6 @@ var creep_work = {
 			}
 		}
 
-		if (!creep.memory.lastHP) {
-			creep.memory.lastHP = creep.hits;
-		}
-
 		if ((creep.memory.building && creep.carry.energy == 0) || (creep.memory.storing && creep.carry.energy == 0) || (creep.memory.upgrading && creep.carry.energy == 0) || (creep.memory.repairing && creep.carry.energy == 0) || (creep.memory.supplying && creep.carry.energy == 0) || (creep.memory.distributing && creep.carry.energy == 0)) {
 			creep.memory.building = false;
 			creep.memory.storing = false;
@@ -449,7 +445,7 @@ var creep_work = {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 		});
 
-		if (Foe.length || creep.memory.lastHP > creep.hits) {
+		if (Foe.length) {
 			var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 				filter: (structure) => {
 					return structure.structureType == STRUCTURE_SPAWN;
@@ -459,7 +455,6 @@ var creep_work = {
 				creep.moveTo(spawnTarget);
 			}
 		}
-		creep.memory.lastHP = creep.hits;
 	}
 };
 

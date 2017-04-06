@@ -23,10 +23,6 @@ var creep_work5 = {
 			}
 		}
 
-		if (!creep.memory.lastHP) {
-			creep.memory.lastHP = creep.hits;
-		}
-
 		switch (creep.memory.priority) {
 			case 'miner':
 			case 'minerNearDeath':
@@ -693,7 +689,7 @@ var creep_work5 = {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 		});
 
-		if (Foe.length || creep.memory.lastHP > creep.hits) {
+		if (Foe.length) {
 			var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 				filter: (structure) => {
 					return structure.structureType == STRUCTURE_SPAWN;
@@ -703,7 +699,6 @@ var creep_work5 = {
 				creep.moveTo(spawnTarget);
 			}
 		}
-		creep.memory.lastHP = creep.hits;
 	}
 };
 
