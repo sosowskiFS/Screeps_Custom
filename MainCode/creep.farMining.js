@@ -193,8 +193,6 @@ var creep_farMining = {
 					}
 				}
 
-				var ignoreRoadValue = false;
-
 				if (creep.carry.energy > 0) {
 					//All creeps check for road under them and repair if needed.
 					var someSite = [];
@@ -209,8 +207,6 @@ var creep_farMining = {
 							creep.repair(someStructure[0]);
 						}
 					}
-				} else {
-					ignoreRoadValue = true;
 				}
 
 				if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= creep.carryCapacity - 300) {
@@ -219,21 +215,18 @@ var creep_farMining = {
 						//Pick up dropped energy from dead mules, etc.
 						if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(droppedSources[0], {
-								reusePath: 25,
-								ignoreRoads: ignoreRoadValue
+								reusePath: 25
 							});
 						}
 					} else {
 						creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-							reusePath: 25,
-							ignoreRoads: ignoreRoadValue
+							reusePath: 25
 						});
 					}
 					evadeAttacker(creep);
 				} else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > creep.carryCapacity - 300) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
-						reusePath: 25,
-						ignoreRoads: ignoreRoadValue
+						reusePath: 25
 					});
 				} else {
 					if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
@@ -252,8 +245,7 @@ var creep_farMining = {
 							//Pick up dropped energy from dead mules, etc.
 							if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(droppedSources[0], {
-									reusePath: 25,
-									ignoreRoads: ignoreRoadValue
+									reusePath: 25
 								});
 							}
 						} else {
@@ -264,16 +256,12 @@ var creep_farMining = {
 									if (thisContainer.store[RESOURCE_ENERGY] > 0) {
 										if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 											creep.moveTo(thisContainer, {
-												reusePath: 25,
-												ignoreRoads: ignoreRoadValue
+												reusePath: 25
 											});
 										}
 									} else {
 										//Wait by controller
-										creep.moveTo(creep.room.controller, {
-											reusePath: 25,
-											ignoreRoads: ignoreRoadValue
-										});
+										creep.moveTo(creep.room.controller);
 									}
 
 								}
@@ -292,8 +280,7 @@ var creep_farMining = {
 								var thisSource = Game.getObjectById(creep.memory.mineSource);
 								if (thisSource) {
 									creep.moveTo(thisSource, {
-										reusePath: 25,
-										ignoreRoads: ignoreRoadValue
+										reusePath: 25
 									});
 									if (creep.pos.inRangeTo(thisSource, 5)) {
 										//Search for container
@@ -304,8 +291,7 @@ var creep_farMining = {
 											creep.memory.containerTarget = containers[0].id;
 											if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 												creep.moveTo(containers[0], {
-													reusePath: 25,
-													ignoreRoads: ignoreRoadValue
+													reusePath: 25
 												});
 											}
 										}
@@ -320,8 +306,7 @@ var creep_farMining = {
 						if (storageUnit) {
 							if (creep.transfer(storageUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(storageUnit, {
-									reusePath: 25,
-									ignoreRoads: ignoreRoadValue
+									reusePath: 25
 								});
 							}
 						}
