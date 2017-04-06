@@ -183,7 +183,8 @@ var creep_farMining = {
 					});
 				}
 
-				if (creep.memory.lastRoom != creep.room.name) {
+				if (!creep.memory.lastRoom || creep.memory.lastRoom != creep.room.name) {
+					creep.memory.lastRoom = creep.room.name;
 					var someSites = creep.room.find(FIND_CONSTRUCTION_SITES);
 					if (someSites.length) {
 						creep.memory.lookForSites = true;
@@ -312,7 +313,6 @@ var creep_farMining = {
 						evadeAttacker(creep);
 					}
 				}
-				creep.memory.lastRoom = creep.room.name;
 				break;
 			case 'farGuard':
 			case 'farGuardNearDeath':
