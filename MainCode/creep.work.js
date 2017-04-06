@@ -305,6 +305,16 @@ var creep_work = {
 						}
 					}
 				}
+			} else if (_.sum(creep.carry) < creep.carryCapacity) {
+				//Get from storage
+				var storageTarget = creep.room.storage;
+				if (storageTarget) {
+					if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+						creep.moveTo(storageTarget, {
+							reusePath: 2
+						});
+					}
+				}
 			} else {
 				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
 				if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
