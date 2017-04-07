@@ -402,7 +402,9 @@ var creep_work5 = {
 											} else {
 												terminalTarget = undefined;
 											}
-										} else {
+										}
+										
+										if (!terminalTarget) {
 											//Upgrade
 											creep.memory.structureTarget = creep.room.controller.id;
 											if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
