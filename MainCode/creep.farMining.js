@@ -439,7 +439,7 @@ var creep_farMining = {
 							}
 						}
 
-						if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) == 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
+						if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) > 1) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
 							if (Foe.length && Foe[0].getActiveBodyparts(ATTACK) > creep.getActiveBodyparts(ATTACK) && creep.pos.getRangeTo(Foe[0]) <= 3) {
 								var foeDirection = creep.pos.getDirectionTo(Foe[0]);
 								var y = 0;
