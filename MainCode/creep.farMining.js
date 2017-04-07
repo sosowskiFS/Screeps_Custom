@@ -213,7 +213,7 @@ var creep_farMining = {
 					}
 				}
 
-				if (_.sum(creep.carry) > creep.carryCapacity - 300 && !creep.memory.storing) {
+				if ((_.sum(creep.carry) > creep.carryCapacity - 300 || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 120)) && !creep.memory.storing) {
 					creep.memory.storing = true;
 				} else if (_.sum(creep.carry) == 0 && creep.memory.storing) {
 					creep.memory.storing = false;
