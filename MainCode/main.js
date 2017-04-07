@@ -135,7 +135,7 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["BuildThis"]) {
-                if (thisRoom.energyCapacityAvailable >= 1000) {
+                if (thisRoom.energyCapacityAvailable >= 1250) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
                     if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                         roomDist = theDistance;
