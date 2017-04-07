@@ -418,8 +418,25 @@ var creep_farMining = {
 						creep.heal(creep);
 					}
 				} else if (creep.room.controller && closeFoe) {
-					if ((!Memory.warMode && closeFoe.owner.username != "ThyReaper") || Memory.warMode) {
-						var closeRangeResult = creep.rangedAttack(closeFoe);
+					//closeFoe.owner.username != "ThyReaper"
+					var closeRangeresult = "";
+
+					if (closeFoe.owner.username == "ThyReaper" && closeFoe.getActiveBodyparts(ATTACK) == 0 && creep.getActiveBodyparts(RANGED_ATTACK) == 0) {
+						if (creep.hits < creep.hitsMax) {
+							creep.heal(creep);
+						} else {
+							var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+								filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+							});
+							if (hurtAlly.length > 0) {
+								if (closeRangeResult != OK) {
+									creep.rangedHeal(hurtAlly[0]);
+								}
+								creep.heal(hurtAlly[0]);
+							}
+						}
+					} else {
+						closeRangeResult = creep.rangedAttack(closeFoe);
 						creep.attack(closeFoe);
 						if (Foe.length) {
 							creep.attack(Foe[0]);
@@ -438,85 +455,12 @@ var creep_farMining = {
 								creep.heal(hurtAlly[0]);
 							}
 						}
+					}
 
-						if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) > 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
-							if (Foe.length && Foe[0].getActiveBodyparts(ATTACK) > creep.getActiveBodyparts(ATTACK) && creep.pos.getRangeTo(Foe[0]) <= 3) {
-								var foeDirection = creep.pos.getDirectionTo(Foe[0]);
-								var y = 0;
-								var x = 0;
-								switch (foeDirection) {
-									case TOP:
-										y = -2;
-										break;
-									case TOP_RIGHT:
-										y = -2;
-										x = -2;
-										break;
-									case RIGHT:
-										x = -2;
-										break;
-									case BOTTOM_RIGHT:
-										y = 2;
-										x = -2;
-										break;
-									case BOTTOM:
-										y = 2;
-										break;
-									case BOTTOM_LEFT:
-										y = 2;
-										x = 2;
-										break;
-									case LEFT:
-										x = 2;
-										break;
-									case TOP_LEFT:
-										y = -2;
-										x = 2
-										break;
-								}
-								x = creep.pos.x + x;
-								y = creep.pos.y + y;
-								if (x < 1) {
-									x = 1;
-									if (y < 25 && y > 1) {
-										y = y - 1;
-									} else if (y < 48) {
-										y = y + 1;
-									}
-								} else if (x > 48) {
-									x = 48;
-									if (y < 25 && y > 1) {
-										y = y - 1;
-									} else if (y < 48) {
-										y = y + 1;
-									}
-								}
-								if (y < 1) {
-									y = 1;
-									if (x < 25 && x > 1) {
-										x = x - 1;
-									} else if (x < 48) {
-										x = x + 1;
-									}
-								} else if (y > 48) {
-									y = 48;
-									if (x < 25 && x > 1) {
-										x = x - 1;
-									} else if (x < 48) {
-										x = x + 1;
-									}
-								}
 
-								creep.moveTo(x, y, {
-									maxRooms: 1
-								});
-							} else {
-								creep.moveTo(closeFoe, {
-									maxRooms: 1
-								});
-							}
-						} else {
-							var foeDirection = creep.pos.getDirectionTo(closeFoe);
+					if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) > 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
+						if (Foe.length && Foe[0].getActiveBodyparts(ATTACK) > creep.getActiveBodyparts(ATTACK) && creep.pos.getRangeTo(Foe[0]) <= 3) {
+							var foeDirection = creep.pos.getDirectionTo(Foe[0]);
 							var y = 0;
 							var x = 0;
 							switch (foeDirection) {
@@ -585,7 +529,81 @@ var creep_farMining = {
 							creep.moveTo(x, y, {
 								maxRooms: 1
 							});
+						} else {
+							creep.moveTo(closeFoe, {
+								maxRooms: 1
+							});
 						}
+					} else {
+						var foeDirection = creep.pos.getDirectionTo(closeFoe);
+						var y = 0;
+						var x = 0;
+						switch (foeDirection) {
+							case TOP:
+								y = -2;
+								break;
+							case TOP_RIGHT:
+								y = -2;
+								x = -2;
+								break;
+							case RIGHT:
+								x = -2;
+								break;
+							case BOTTOM_RIGHT:
+								y = 2;
+								x = -2;
+								break;
+							case BOTTOM:
+								y = 2;
+								break;
+							case BOTTOM_LEFT:
+								y = 2;
+								x = 2;
+								break;
+							case LEFT:
+								x = 2;
+								break;
+							case TOP_LEFT:
+								y = -2;
+								x = 2
+								break;
+						}
+						x = creep.pos.x + x;
+						y = creep.pos.y + y;
+						if (x < 1) {
+							x = 1;
+							if (y < 25 && y > 1) {
+								y = y - 1;
+							} else if (y < 48) {
+								y = y + 1;
+							}
+						} else if (x > 48) {
+							x = 48;
+							if (y < 25 && y > 1) {
+								y = y - 1;
+							} else if (y < 48) {
+								y = y + 1;
+							}
+						}
+						if (y < 1) {
+							y = 1;
+							if (x < 25 && x > 1) {
+								x = x - 1;
+							} else if (x < 48) {
+								x = x + 1;
+							}
+						} else if (y > 48) {
+							y = 48;
+							if (x < 25 && x > 1) {
+								x = x - 1;
+							} else if (x < 48) {
+								x = x + 1;
+							}
+						}
+
+						creep.moveTo(x, y, {
+							maxRooms: 1
+						});
 					}
 				} else if (creep.room.name != creep.memory.destination) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
