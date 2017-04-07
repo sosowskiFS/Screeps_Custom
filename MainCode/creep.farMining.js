@@ -48,7 +48,7 @@ var creep_farMining = {
 				break;
 			case 'farMiner':
 			case 'farMinerNearDeath':
-				if (creep.ticksToLive <= 60) {
+				if (creep.ticksToLive <= 100) {
 					creep.memory.priority = 'farMinerNearDeath';
 					creep.room.visual.text("\u2620\u27A1\u26CF", creep.pos.x, creep.pos.y, {
 						align: 'left',
