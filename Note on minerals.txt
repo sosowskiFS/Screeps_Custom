@@ -1,0 +1,8 @@
+6 labs dedicated to mineral production specified by flag, remaining 3 at max level dedicated to boost distribution.
+
+Boosts to distribute -
+Pri 1 - UH Attack for defenders
+Pri 2 - GH Upgrade for upgraders
+Pri 3 - LH Repair for repairers
+Pri 4 - GO Tough for attack squads
+Pri 5 - LO Heal for attack squads
