@@ -25,7 +25,7 @@ var spawn_BuildInstruction = {
 					if (spawn.canCreateCreep([TOUGH, MOVE]) == OK) {
 						spawn.createCreep([TOUGH, MOVE], undefined, {
 							priority: 'vandal',
-							message: "I come in peace, PM to chat! Member of OCS."
+							message: "I come in peace, PM to chat! Member of OCS, but not a user of the scripts! චᆽච"
 						});
 						Memory.isSpawning = true;
 						console.log('Vandalize executed from ' + spawn.room.name);

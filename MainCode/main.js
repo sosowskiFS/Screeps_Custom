@@ -135,12 +135,14 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["BuildThis"]) {
-                var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
-                if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                    roomDist = theDistance;
-                    roomName = thisRoom.name;
-                    roomEnergy = thisRoom.energyCapacityAvailable;
-                    instructionSpawn = Game.spawns[i];
+                if (thisRoom.energyCapacityAvailable >= 1000) {
+                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
+                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
+                        roomDist = theDistance;
+                        roomName = thisRoom.name;
+                        roomEnergy = thisRoom.energyCapacityAvailable;
+                        instructionSpawn = Game.spawns[i];
+                    }
                 }
             }
 
@@ -426,7 +428,7 @@ module.exports.loop = function() {
         }
 
         if (Game.flags[thisRoom.name + "Distract"]) {
-            spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '' , Game.flags[thisRoom.name + "Distract"].name);
+            spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '', Game.flags[thisRoom.name + "Distract"].name);
         }
 
         if (!Memory.isSpawning) {
