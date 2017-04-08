@@ -421,7 +421,7 @@ var creep_farMining = {
 					//closeFoe.owner.username != "ThyReaper"
 					var closeRangeresult = "";
 
-					if (closeFoe.owner.username == "ThyReaper" && closeFoe.getActiveBodyparts(ATTACK) == 0 && creep.getActiveBodyparts(RANGED_ATTACK) == 0) {
+					if (closeFoe.owner.username == "ThyReaper" && closeFoe.getActiveBodyparts(ATTACK) == 0 && closeFoe.getActiveBodyparts(RANGED_ATTACK) == 0) {
 						if (creep.hits < creep.hitsMax) {
 							creep.heal(creep);
 						} else {
