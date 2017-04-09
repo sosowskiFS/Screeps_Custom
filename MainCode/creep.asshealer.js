@@ -35,7 +35,7 @@ var creep_asshealer = {
                 creep.memory._move = targetAttacker[0].memory._move;
 
                 creep.moveTo(targetAttacker[0], {
-                    noPathFinding: true;
+                    noPathFinding: true
                 })
                 /*if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker[0].room.name == creep.room.name) {
                     var xTarget = 0;
