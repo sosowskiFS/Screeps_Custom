@@ -31,13 +31,7 @@ var creep_asshealer = {
         } else {
             var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
             if (targetAttacker.length) {
-                creep.memory._move = targetAttacker.memory._move;
-
-                creep.moveTo(targetAttacker[0], {
-                    noPathFinding: true
-                })
-
-                /*if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker[0].room.name == creep.room.name) {
+                if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker[0].room.name == creep.room.name) {
                     var xTarget = 0;
                     var yTarget = 0;
                     if (creep.pos.x == 0) {
@@ -82,7 +76,7 @@ var creep_asshealer = {
                             });
                         }
                     }
-                }*/
+                }
 
                 if (creep.hits < creep.hitsMax - 99) {
                     creep.heal(creep);
