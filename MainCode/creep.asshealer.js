@@ -31,57 +31,49 @@ var creep_asshealer = {
         } else {
             var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
             if (targetAttacker.length) {
-                if (creep.pos.inRangeTo(targetAttacker[0], 2)) {
-                    creep.memory._move = targetAttacker[0].memory._move;
-                    creep.moveTo(creep.memory._move.dest.x, creep.memory._move.dest.y, {
-                        ignoreCreeps: true,
-                        reusePath: 0
-                    });
-                } else {
-                    if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker[0].room.name == creep.room.name) {
-                        var xTarget = 0;
-                        var yTarget = 0;
-                        if (creep.pos.x == 0) {
-                            xTarget = 2;
-                            yTarget = creep.pos.y;
-                        } else if (creep.pos.x == 49) {
-                            xTarget = 47;
-                            yTarget = creep.pos.y;
-                        }
-                        if (creep.pos.y == 0) {
-                            yTarget = 2;
-                            xTarget = creep.pos.x;
-                        } else if (creep.pos.y == 49) {
-                            yTarget = 47;
-                            xTarget = creep.pos.x;
-                        }
+                if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker[0].room.name == creep.room.name) {
+                    var xTarget = 0;
+                    var yTarget = 0;
+                    if (creep.pos.x == 0) {
+                        xTarget = 2;
+                        yTarget = creep.pos.y;
+                    } else if (creep.pos.x == 49) {
+                        xTarget = 47;
+                        yTarget = creep.pos.y;
+                    }
+                    if (creep.pos.y == 0) {
+                        yTarget = 2;
+                        xTarget = creep.pos.x;
+                    } else if (creep.pos.y == 49) {
+                        yTarget = 47;
+                        xTarget = creep.pos.x;
+                    }
 
-                        creep.moveTo(xTarget, yTarget);
-                    } else {
-                        if (creep.room.controller && creep.room.controller.owner == "Montblanc") {
-                            if (targetAttacker[0].room.name == creep.room.name) {
-                                creep.moveTo(targetAttacker[0], {
-                                    reusePath: 2,
-                                    maxRooms: 1
-                                });
-                            } else {
-                                creep.moveTo(targetAttacker[0], {
-                                    reusePath: 0
-                                });
-                            }
+                    creep.moveTo(xTarget, yTarget);
+                } else {
+                    if (creep.room.controller && creep.room.controller.owner == "Montblanc") {
+                        if (targetAttacker[0].room.name == creep.room.name) {
+                            creep.moveTo(targetAttacker[0], {
+                                reusePath: 2,
+                                maxRooms: 1
+                            });
                         } else {
-                            if (targetAttacker[0].room.name == creep.room.name) {
-                                creep.moveTo(targetAttacker[0], {
-                                    ignoreCreeps: true,
-                                    reusePath: 0,
-                                    maxRooms: 1
-                                });
-                            } else {
-                                creep.moveTo(targetAttacker[0], {
-                                    ignoreCreeps: true,
-                                    reusePath: 0
-                                });
-                            }
+                            creep.moveTo(targetAttacker[0], {
+                                reusePath: 0
+                            });
+                        }
+                    } else {
+                        if (targetAttacker[0].room.name == creep.room.name) {
+                            creep.moveTo(targetAttacker[0], {
+                                ignoreCreeps: true,
+                                reusePath: 0,
+                                maxRooms: 1
+                            });
+                        } else {
+                            creep.moveTo(targetAttacker[0], {
+                                ignoreCreeps: true,
+                                reusePath: 0
+                            });
                         }
                     }
                 }
