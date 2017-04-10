@@ -326,7 +326,7 @@ var creep_work = {
 			//Harvest
 			var savedTarget = Game.getObjectById(creep.memory.structureTarget)
 			if (savedTarget) {
-				if (creep.memory.waitingTimer >= 25) {
+				if (creep.memory.waitingTimer >= 75) {
 					creep.memory.structureTarget = undefined;
 				}
 				if (savedTarget.structureType == STRUCTURE_CONTAINER || savedTarget.structureType == STRUCTURE_STORAGE) {
@@ -365,7 +365,7 @@ var creep_work = {
 				creep.memory.structureTarget = undefined;
 				var targets = undefined;
 				if (creep.memory.priority != 'harvester') {
-					targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+					var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
 						filter: (structure) => {
 							return (structure.structureType == STRUCTURE_CONTAINER ||
 								structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] > 0;
@@ -378,7 +378,7 @@ var creep_work = {
 						}
 					}
 				}
-				if (!targets && creep.memory.priority != 'supplier' && creep.memory.priority != 'distributor' && creep.memory.priority != 'harvester') {
+				if (!targets && creep.memory.priority != 'supplier' && creep.memory.priority != 'distributor') {
 					//Mine it yourself
 					var sources = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
 					if (Memory.warMode) {
@@ -440,63 +440,6 @@ var creep_work = {
 					} else if (harvestResult == ERR_INVALID_TARGET) {
 						if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(sources);
-						}
-					}
-				} else if (creep.memory.priority == 'harvester') {
-					var sources = Game.getObjectById(creep.memory.sourceLocation);
-					if (sources) {
-						if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(sources, {
-								reusePath: 5
-							});
-						}
-
-						if (creep.memory.storageUnit) {
-							var thisUnit = Game.getObjectById(creep.memory.storageUnit);
-							if (thisUnit) {
-								if (thisUnit.hits < thisUnit.hitsMax) {
-									creep.repair(thisUnit);
-								} else {
-									if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(thisUnit, {
-											reusePath: 25
-										});
-									}
-								}
-							}
-						} else {
-							if (creep.pos.inRangeTo(sources, 2)) {
-								var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
-									filter: (structure) => (structure.structureType == STRUCTURE_CONTAINER ||
-										structure.structureType == STRUCTURE_STORAGE)
-								});
-								if (containers.length) {
-									if (containers.length > 1 && containers[0].structureType == STRUCTURE_CONTAINER) {
-										containers[0].destroy();
-									} else {
-										if (creep.transfer(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(containers[0], {
-												reusePath: 25
-											});
-										}
-										creep.memory.storageUnit = containers[0].id;
-									}
-								} else {
-									var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
-									if (sites.length) {
-										if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(sites[0], {
-												reusePath: 25
-											});
-										}
-									} else {
-										//Create new container
-										if (creep.pos.isNearTo(sources)) {
-											creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER)
-										}
-									}
-								}
-							}
 						}
 					}
 				} else {
