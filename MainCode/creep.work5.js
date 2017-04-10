@@ -301,7 +301,7 @@ var creep_work5 = {
 										});
 										if (links) {
 											if (links.length > 0) {
-												if (links[0].energy < 400) {
+												if (links[0].energy < 100) {
 													if (creep.transfer(links[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 														creep.moveTo(links[0]);
 													}
