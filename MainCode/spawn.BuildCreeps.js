@@ -19,12 +19,12 @@ var spawn_BuildCreeps = {
 
 			var defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
 
-			var harvesterMax = 3;
+			var harvesterMax = 2;
 			var builderMax = 2;
 			var upgraderMax = 2;
 			var repairMax = 1;
 			var supplierMax = 0;
-			var distributorMax = 0;
+			var distributorMax = 1;
 			//How many creeps can mine at once
 			var mineSpots = [4, 5];
 			//Add sources from N to S
@@ -42,9 +42,6 @@ var spawn_BuildCreeps = {
 			//For Level 4
 			if (thisRoom.storage) {
 				supplierMax++;
-				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 1000) {
-					distributorMax++;
-				}
 				if (thisRoom.storage.store[RESOURCE_ENERGY] >= 10000) {
 					upgraderMax++;
 				}
@@ -173,23 +170,33 @@ var spawn_BuildCreeps = {
 				}
 
 				var creepSourceID = '';
-				if ((assignedSlot1.length) >= Math.ceil(mineSpots[0] * 1.2)) {
+				if (assignedSlot1.length && prioritizedRole = 'harvester') {
 					//Assign spot 2
 					if (strSources.length > 1) {
 						creepSourceID = strSources[1];
 					} else {
 						creepSourceID = strSources[0];
 					}
-				} else {
+				} else if (prioritizedRole = 'harvester') {
 					//Assign spot 1
 					creepSourceID = strSources[0];
 				}
-				spawn.createCreep(bestWorker, undefined, {
-					priority: prioritizedRole,
-					fromSpawn: spawn.id,
-					sourceLocation: creepSourceID
-				});
-				Memory.isSpawning = true;
+
+				if (creepSourceID != '') {
+					spawn.createCreep(bestWorker, undefined, {
+						priority: prioritizedRole,
+						fromSpawn: spawn.id,
+						sourceLocation: creepSourceID
+					});
+					Memory.isSpawning = true;
+				} else {
+					spawn.createCreep(bestWorker, undefined, {
+						priority: prioritizedRole,
+						fromSpawn: spawn.id
+					});
+					Memory.isSpawning = true;
+				}
+
 			}
 		}
 	}
