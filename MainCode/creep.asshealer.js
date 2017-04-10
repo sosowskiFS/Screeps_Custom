@@ -32,9 +32,7 @@ var creep_asshealer = {
             var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
             if (targetAttacker.length) {
                 if (creep.pos.inRangeTo(targetAttacker[0], 2)) {
-                    if (!creep.memory._move) {
-                        creep.memory._move = targetAttacker[0].memory._move;
-                    }
+                    creep.memory._move = targetAttacker[0].memory._move;
                     creep.moveTo(creep.memory._move.dest.x, creep.memory._move.dest.y, {
                         noPathFinding: true
                     })
