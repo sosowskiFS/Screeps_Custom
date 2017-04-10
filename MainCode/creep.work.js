@@ -466,7 +466,7 @@ var creep_work = {
 							}
 						} else {
 							if (creep.pos.inRangeTo(sources, 2)) {
-								var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
+								var containers = creep.pos.findInRange(FIND_STRUCTURES, 3, {
 									filter: (structure) => (structure.structureType == STRUCTURE_CONTAINER ||
 										structure.structureType == STRUCTURE_STORAGE)
 								});
