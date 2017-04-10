@@ -170,7 +170,7 @@ var spawn_BuildCreeps = {
 				}
 
 				var creepSourceID = '';
-				if (assignedSlot1.length && prioritizedRole = 'harvester') {
+				if (assignedSlot1.length && prioritizedRole == 'harvester') {
 					//Assign spot 2
 					if (strSources.length > 1) {
 						creepSourceID = strSources[1];
