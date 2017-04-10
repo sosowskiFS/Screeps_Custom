@@ -102,7 +102,7 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'helper':
-				var helpers = _.filter(Game.creeps, (creep) => creep.memory.previousPriority == 'helper');
+				var helpers = _.filter(Game.creeps, (creep) => (creep.memory.previousPriority == 'helper' && creep.memory.fromRoom == spawn.room.name));
 				if (helpers.length < 3) {
 					var helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 					if (spawn.room.energyCapacityAvailable >= 2000) {
@@ -112,7 +112,8 @@ var spawn_BuildInstruction = {
 						spawn.createCreep(helperConfig, undefined, {
 							priority: 'helper',
 							destination: params,
-							previousPriority: 'helper'
+							previousPriority: 'helper',
+							fromRoom: spawn.room.name
 						});
 						Memory.isSpawning = true;
 						console.log('Helper executed from ' + spawn.room.name);
