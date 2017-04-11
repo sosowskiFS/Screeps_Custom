@@ -529,9 +529,13 @@ var creep_farMining = {
 								maxRooms: 1
 							});
 						} else {
-							creep.moveTo(closeFoe, {
-								maxRooms: 1
-							});
+							if (closeFoe.owner.username == "ThyReaper" && closeFoe.getActiveBodyparts(ATTACK) == 0 && closeFoe.getActiveBodyparts(RANGED_ATTACK) == 0) {
+
+							} else {
+								creep.moveTo(closeFoe, {
+									maxRooms: 1
+								});
+							}
 						}
 					} else {
 						var foeDirection = creep.pos.getDirectionTo(closeFoe);
