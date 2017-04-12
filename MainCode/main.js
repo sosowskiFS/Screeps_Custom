@@ -383,35 +383,23 @@ module.exports.loop = function() {
             }
 
             //Check through flags to see if far mining has been requested
-            if (Game.flags[thisRoom.name + "FarMining"]) {
-                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining"].pos.roomName]) {
-                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining"].pos.roomName] = false;
-                }
+            if (Game.flags[thisRoom.name + "FarMining"] && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining"].pos.roomName] == null) {
+                Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining"].pos.roomName] = false;
             }
-            if (Game.flags[thisRoom.name + "FarMining2"]) {
-                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining2"].pos.roomName]) {
-                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining2"].pos.roomName] = false;
-                }
+            if (Game.flags[thisRoom.name + "FarMining2"] && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining2"].pos.roomName] == null) {
+                Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining2"].pos.roomName] = false;
             }
-            if (Game.flags[thisRoom.name + "FarMining3"]) {
-                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName]) {
-                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName] = false;
-                }
+            if (Game.flags[thisRoom.name + "FarMining3"] && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName] == null) {
+                Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName] = false;
             }
-            if (Game.flags[thisRoom.name + "FarMining4"]) {
-                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining4"].pos.roomName]) {
-                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining4"].pos.roomName] = false;
-                }
+            if (Game.flags[thisRoom.name + "FarMining4"] && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining4"].pos.roomName] == null) {
+                Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining4"].pos.roomName] = false;
             }
-            if (Game.flags[thisRoom.name + "FarMining5"]) {
-                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName]) {
-                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName] = false;
-                }
+            if (Game.flags[thisRoom.name + "FarMining5"] && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName] == null) {
+                Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName] = false;
             }
-            if (Game.flags[thisRoom.name + "FarMining6"]) {
-                if (!Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining6"].pos.roomName]) {
-                    Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining6"].pos.roomName] = false;
-                }
+            if (Game.flags[thisRoom.name + "FarMining6"] && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining6"].pos.roomName] == null) {
+                Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining6"].pos.roomName] = false;
             }
 
             //if (Game.flags[thisRoom.name + "FarGuard"]) {
