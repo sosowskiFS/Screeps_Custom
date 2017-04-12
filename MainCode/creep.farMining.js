@@ -530,7 +530,11 @@ var creep_farMining = {
 							});
 						} else {
 							if (closeFoe.owner.username == "ThyReaper" && closeFoe.getActiveBodyparts(ATTACK) == 0 && closeFoe.getActiveBodyparts(RANGED_ATTACK) == 0) {
-
+								if (Game.flags[creep.memory.targetFlag] && creep.pos != Game.flags[creep.memory.targetFlag].pos) {
+									creep.moveTo(Game.flags[creep.memory.targetFlag], {
+										maxRooms: 1
+									});
+								}
 							} else {
 								creep.moveTo(closeFoe, {
 									maxRooms: 1
