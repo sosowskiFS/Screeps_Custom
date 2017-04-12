@@ -5,7 +5,11 @@ var creep_farMining = {
 		switch (creep.memory.priority) {
 			case 'farClaimer':
 			case 'farClaimerNearDeath':
-				if (creep.ticksToLive <= 20) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 5;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'farClaimerNearDeath';
 					creep.room.visual.text("\u2620\u27A1\uD83D\uDEA9", creep.pos.x, creep.pos.y, {
 						align: 'left',
@@ -48,7 +52,11 @@ var creep_farMining = {
 				break;
 			case 'farMiner':
 			case 'farMinerNearDeath':
-				if (creep.ticksToLive <= 100) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 5;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'farMinerNearDeath';
 					creep.room.visual.text("\u2620\u27A1\u26CF", creep.pos.x, creep.pos.y, {
 						align: 'left',
@@ -170,7 +178,11 @@ var creep_farMining = {
 				break;
 			case 'farMule':
 			case 'farMuleNearDeath':
-				if (creep.ticksToLive <= 170) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 5;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'farMuleNearDeath';
 					creep.room.visual.text("\u2620\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
 						align: 'left',
@@ -327,32 +339,26 @@ var creep_farMining = {
 			case 'farGuard':
 			case 'farGuardNearDeath':
 				creep.notifyWhenAttacked(false);
-				if (Memory.warMode) {
-					if (creep.ticksToLive <= 150) {
-						creep.memory.priority = 'farGuardNearDeath';
-						creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
-							align: 'left',
-							color: '#7DE3B5'
-						});
+
+				if (!creep.memory.deathWarn) {
+					if (Memory.warMode) {
+						creep.memory.deathWarn = _.size(creep.body) * 6;
 					} else {
-						creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
-							align: 'left',
-							color: '#7DE3B5'
-						});
+						creep.memory.deathWarn = _.size(creep.body) * 5;
 					}
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
+					creep.memory.priority = 'farGuardNearDeath';
+					creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
 				} else {
-					if (creep.ticksToLive <= 70) {
-						creep.memory.priority = 'farGuardNearDeath';
-						creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
-							align: 'left',
-							color: '#7DE3B5'
-						});
-					} else {
-						creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
-							align: 'left',
-							color: '#7DE3B5'
-						});
-					}
+					creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
 				}
 
 				//Recall guard into home room if it's under attack

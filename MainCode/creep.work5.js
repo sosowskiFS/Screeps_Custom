@@ -26,7 +26,11 @@ var creep_work5 = {
 		switch (creep.memory.priority) {
 			case 'miner':
 			case 'minerNearDeath':
-				if (creep.ticksToLive <= 60) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 4;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'minerNearDeath';
 					creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
 					creep.room.visual.text("\u2620\u26CF", creep.pos.x, creep.pos.y, {
@@ -81,7 +85,11 @@ var creep_work5 = {
 				break;
 			case 'upgrader':
 			case 'upgraderNearDeath':
-				if (creep.ticksToLive <= 60) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 4;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'upgraderNearDeath';
 					creep.room.visual.text("\u2620\uD83D\uDC46", creep.pos.x, creep.pos.y, {
 						align: 'left',
@@ -117,7 +125,11 @@ var creep_work5 = {
 				break;
 			case 'mule':
 			case 'muleNearDeath':
-				if (creep.ticksToLive <= 60) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 4;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'muleNearDeath';
 					creep.room.visual.text("\u2620\uD83D\uDC02", creep.pos.x, creep.pos.y, {
 						align: 'left',
@@ -403,7 +415,7 @@ var creep_work5 = {
 												terminalTarget = undefined;
 											}
 										}
-										
+
 										if (!terminalTarget) {
 											//Upgrade
 											creep.memory.structureTarget = creep.room.controller.id;
@@ -430,7 +442,11 @@ var creep_work5 = {
 				break;
 			case 'repair':
 			case 'repairNearDeath':
-				if (creep.ticksToLive <= 60) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 4;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'repairNearDeath';
 					creep.room.visual.text("\u2620\uD83D\uDEE0", creep.pos.x, creep.pos.y, {
 						align: 'left',
@@ -516,7 +532,11 @@ var creep_work5 = {
 				break;
 			case 'supplier':
 			case 'supplierNearDeath':
-				if (creep.ticksToLive <= 20) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 4;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'supplierNearDeath';
 					creep.room.visual.text("\u2620\uD83D\uDEF5", creep.pos.x, creep.pos.y, {
 						align: 'left',
@@ -556,7 +576,11 @@ var creep_work5 = {
 				break;
 			case 'distributor':
 			case 'distributorNearDeath':
-				if (creep.ticksToLive <= 80) {
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 4;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
 					creep.memory.priority = 'distributorNearDeath';
 					creep.room.visual.text("\u2620\uD83D\uDC5F", creep.pos.x, creep.pos.y, {
 						align: 'left',
