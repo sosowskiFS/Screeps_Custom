@@ -97,25 +97,21 @@ var spawn_BuildCreeps5 = {
 
 			var roomMineral = Game.getObjectById(strMineral[0]);
 			if (roomStorage) {
+				if (roomStorage.store[RESOURCE_ENERGY] >= 250000 && thisRoom.energyCapacityAvailable >= 2300) {
+					upgraderConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+				}
 				if (roomStorage.store[RESOURCE_ENERGY] >= 300000) {
 					//Add another mule for resource management
 					muleMax++;
-					if (thisRoom.energyCapacityAvailable >= 2300) {
-						//1950 Points
-						upgraderConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-					}
 				}
 				if (roomStorage.store[RESOURCE_ENERGY] >= 500000) {
 					//speed up that repairing a bit
 					repairMax++;
 				}
-				if (roomStorage.store[RESOURCE_ENERGY] >= 600000) {
-					//Bigger Mules/Repairers
-					if (thisRoom.energyCapacityAvailable >= 3000) {
-						muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-						muleConfigCost = 3000;
-						repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-					}
+				if (roomStorage.store[RESOURCE_ENERGY] >= 600000 && thisRoom.energyCapacityAvailable >= 3000) {
+					muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+					muleConfigCost = 3000;
+					repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 				}
 				if (roomStorage.store[RESOURCE_ENERGY] >= 700000) {
 					//HOW MUCH MUST I CRANK IT UP?
@@ -167,7 +163,7 @@ var spawn_BuildCreeps5 = {
 				}
 			} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && defenders.length < 3) {
 				var Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
-					filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0 ) && !Memory.whiteList.includes(eCreep.owner.username))
+					filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 				});
 				if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
 					if (thisRoom.energyAvailable >= 800 && salvagers.length == 0) {
