@@ -101,7 +101,7 @@ module.exports.loop = function() {
         //Loop through all spawns
 
         //Log average CPU for spawn processes in memory.
-        var preSpawnCPU = Game.cpu.getUsed();
+        //var preSpawnCPU = Game.cpu.getUsed();
 
         for (var i in Game.spawns) {
             var thisRoom = Game.spawns[i].room;
@@ -489,10 +489,10 @@ module.exports.loop = function() {
             }
         }
 
-        //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
+        /*//Average(new) = Average(old) + (value(new) - average(old)) / size(new)
         Memory.totalTicksSpawnRecorded = Memory.totalTicksSpawnRecorded + 1;
         var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
-        Memory.averageUsedSpawnCPU = Memory.averageUsedSpawnCPU + ((totalSpawnCPU - Memory.averageUsedSpawnCPU) / Memory.totalTicksSpawnRecorded)
+        Memory.averageUsedSpawnCPU = Memory.averageUsedSpawnCPU + ((totalSpawnCPU - Memory.averageUsedSpawnCPU) / Memory.totalTicksSpawnRecorded)*/
 
         Memory.RoomsRun = [];
         Memory.roomCreeps = new Object();
@@ -551,7 +551,7 @@ module.exports.loop = function() {
 
         //Globally controlls all creeps in all rooms
         //Log average CPU for creep processes in memory.
-        var preCreepCPU = Game.cpu.getUsed();
+        //var preCreepCPU = Game.cpu.getUsed();
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
             switch (creep.memory.priority) {
@@ -619,7 +619,7 @@ module.exports.loop = function() {
             }
         }
 
-        //Log average creep CPU usage
+        /*//Log average creep CPU usage
         Memory.totalTicksCreepRecorded = Memory.totalTicksCreepRecorded + 1;
         var totalCreepCPU = Game.cpu.getUsed() - preCreepCPU;
         Memory.averageUsedCreepCPU = Memory.averageUsedCreepCPU + ((totalCreepCPU - Memory.averageUsedCreepCPU) / Memory.totalTicksCreepRecorded)
@@ -628,7 +628,7 @@ module.exports.loop = function() {
         var thisTickCPU = Game.cpu.getUsed();
         //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
         Memory.totalTicksRecorded = Memory.totalTicksRecorded + 1;
-        Memory.averageUsedCPU = Memory.averageUsedCPU + ((thisTickCPU - Memory.averageUsedCPU) / Memory.totalTicksRecorded)
+        Memory.averageUsedCPU = Memory.averageUsedCPU + ((thisTickCPU - Memory.averageUsedCPU) / Memory.totalTicksRecorded)*/
 
     });
 
