@@ -1,27 +1,6 @@
 var spawn_BuildCreeps5 = {
 	run: function(spawn, thisRoom, RoomCreeps) {
 		//var strStorage = Memory.storageList[thisRoom.name];
-		var roomStorage = thisRoom.storage
-		if (roomStorage) {
-			var formattedNumber = roomStorage.store[RESOURCE_ENERGY].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-			if (roomStorage.store[RESOURCE_ENERGY] == 420) {
-				thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", roomStorage.pos.x + 1, roomStorage.pos.y, {
-					align: 'left',
-					font: '3 Courier New',
-					color: '#FFFFFF',
-					stroke: '#000000',
-					strokeWidth: 0.15
-				});
-			} else {
-				thisRoom.visual.text(formattedNumber, roomStorage.pos.x + 1, roomStorage.pos.y, {
-					align: 'left',
-					font: '0.7 Courier New',
-					color: '#FFFFFF',
-					stroke: '#000000',
-					strokeWidth: 0.15
-				});
-			}
-		}
 
 		if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
 			//Clear creep from que array

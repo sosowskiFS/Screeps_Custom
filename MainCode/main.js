@@ -405,6 +405,27 @@ module.exports.loop = function() {
             //if (Game.flags[thisRoom.name + "FarGuard"]) {
             //Memory.FarGuardNeeded[thisRoom.name] = true;
             //}
+
+            if (thisRoom.storage) {
+                var formattedNumber = thisRoom.storage.store[RESOURCE_ENERGY].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                if (thisRoom.storage.store[RESOURCE_ENERGY] == 420) {
+                    thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", thisRoom.storage.pos.x + 1, thisRoom.storage.pos.y, {
+                        align: 'left',
+                        font: '3 Courier New',
+                        color: '#FFFFFF',
+                        stroke: '#000000',
+                        strokeWidth: 0.15
+                    });
+                } else {
+                    thisRoom.visual.text(formattedNumber, thisRoom.storage.pos.x + 1, thisRoom.storage.pos.y, {
+                        align: 'left',
+                        font: '0.7 Courier New',
+                        color: '#FFFFFF',
+                        stroke: '#000000',
+                        strokeWidth: 0.15
+                    });
+                }
+            }
         }
 
         if (Memory.isSpawning == null) {
