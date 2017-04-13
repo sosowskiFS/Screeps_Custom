@@ -411,26 +411,32 @@ module.exports.loop = function() {
             Memory.isSpawning = false;
         }
 
-        if (Game.flags[thisRoom.name + "SendHelper"]) {
-            spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
-        }
-
-        if (Game.flags[thisRoom.name + "Distract"]) {
-            spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '', Game.flags[thisRoom.name + "Distract"].name);
-        }
-
-        if (!Memory.isSpawning) {
-            if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
-                spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
-            } else {
-                spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
+        if (Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0) {
+            if (Game.flags[thisRoom.name + "SendHelper"]) {
+                spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
             }
-        }
 
-        if (!Memory.isSpawning) {
-            if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
-                //Run farMining spawn
-                spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+            if (Game.flags[thisRoom.name + "Distract"]) {
+                spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '', Game.flags[thisRoom.name + "Distract"].name);
+            }
+
+            if (!Memory.isSpawning) {
+                if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+                    spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
+                } else {
+                    spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
+                }
+            }
+
+            if (!Memory.isSpawning) {
+                if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
+                    //Run farMining spawn
+                    spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+                }
+            }
+
+            if (!Memory.isSpawning) {
+                Memory.NoSpawnNeeded.push(thisRoom.name);
             }
         }
 
@@ -495,6 +501,7 @@ module.exports.loop = function() {
     Memory.averageUsedSpawnCPU = Memory.averageUsedSpawnCPU + ((totalSpawnCPU - Memory.averageUsedSpawnCPU) / Memory.totalTicksSpawnRecorded)
 
     Memory.RoomsRun = [];
+    Memory.NoSpawnNeeded = [];
     Memory.roomCreeps = new Object();
     //Memory.creepInQue = [];
 
@@ -666,6 +673,10 @@ function memCheck() {
         Memory.RoomsRun = [];
         console.log('RoomsRun Defaulted');
     }
+    if (!Memory.NoSpawnNeeded) {
+        Memory.NoSpawnNeeded = [];
+        console.log('NoSpawnNeeded Defaulted');
+    }
     if (!Memory.creepInQue) {
         Memory.creepInQue = [];
         console.log('creepInQue Defaulted');
@@ -685,7 +696,7 @@ function memCheck() {
         Memory.hasFired = [];
     }
     if (!Memory.whiteList) {
-        Memory.whiteList = ['DomNomNom','Kotarou','ICED_COFFEE','TiffanyTrump','demawi','o4kapuk','mute','shadow_bird','ben2','Jibol','ThyReaper','ART999'];
+        Memory.whiteList = ['DomNomNom', 'Kotarou', 'ICED_COFFEE', 'TiffanyTrump', 'demawi', 'o4kapuk', 'mute', 'shadow_bird', 'ben2', 'Jibol', 'ThyReaper', 'ART999'];
     }
     //Boolean
     if (Memory.warMode == null) {
