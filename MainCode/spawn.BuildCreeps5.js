@@ -1,6 +1,7 @@
 var spawn_BuildCreeps5 = {
 	run: function(spawn, thisRoom, RoomCreeps) {
 		//var strStorage = Memory.storageList[thisRoom.name];
+		var roomStorage = thisRoom.storage
 
 		if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
 			//Clear creep from que array
