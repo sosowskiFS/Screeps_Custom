@@ -61,15 +61,19 @@ var spawn_BuildCreeps = {
 			if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 				//In case of complete destruction, make a minimum viable worker
 				if (strSources.length > 1) {
-					spawn.createCreep(bareMinConfig, undefined, {
-						priority: 'harvester',
-						sourceLocation: strSources[1]
-					});
+					if (spawn.canCreateCreep(bareMinConfig) == OK) {
+						spawn.createCreep(bareMinConfig, undefined, {
+							priority: 'harvester',
+							sourceLocation: strSources[1]
+						});
+					}
 				} else {
-					spawn.createCreep(bareMinConfig, undefined, {
-						priority: 'harvester',
-						sourceLocation: strSources[0]
-					});
+					if (spawn.canCreateCreep(bareMinConfig) == OK) {
+						spawn.createCreep(bareMinConfig, undefined, {
+							priority: 'harvester',
+							sourceLocation: strSources[0]
+						});
+					}
 				}
 
 				Memory.isSpawning = true;
@@ -184,11 +188,13 @@ var spawn_BuildCreeps = {
 					//Assign spot 1
 					creepSourceID = strSources[0];
 				}
-				spawn.createCreep(bestWorker, undefined, {
-					priority: prioritizedRole,
-					fromSpawn: spawn.id,
-					sourceLocation: creepSourceID
-				});
+				if (spawn.canCreateCreep(bestWorker) == OK) {
+					spawn.createCreep(bestWorker, undefined, {
+						priority: prioritizedRole,
+						fromSpawn: spawn.id,
+						sourceLocation: creepSourceID
+					});
+				}
 				Memory.isSpawning = true;
 			}
 		}
