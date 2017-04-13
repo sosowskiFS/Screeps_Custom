@@ -685,7 +685,7 @@ function memCheck() {
         Memory.hasFired = [];
     }
     if (!Memory.whiteList) {
-        Memory.whiteList = ['ThyReaper'];
+        Memory.whiteList = ['DomNomNom','Kotarou','ICED_COFFEE','TiffanyTrump','demawi','o4kapuk','mute','shadow_bird','ben2','Jibol','ThyReaper','ART999'];
     }
     //Boolean
     if (Memory.warMode == null) {
