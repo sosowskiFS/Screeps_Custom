@@ -424,42 +424,25 @@ var creep_farMining = {
 						creep.heal(creep);
 					}
 				} else if (creep.room.controller && closeFoe) {
-					//closeFoe.owner.username != "ThyReaper"
 					var closeRangeresult = "";
 
-					if (closeFoe.owner.username == "ThyReaper" && closeFoe.getActiveBodyparts(ATTACK) == 0 && closeFoe.getActiveBodyparts(RANGED_ATTACK) == 0) {
-						if (creep.hits < creep.hitsMax) {
-							creep.heal(creep);
-						} else {
-							var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-								filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-							});
-							if (hurtAlly.length > 0) {
-								if (closeRangeResult != OK) {
-									creep.rangedHeal(hurtAlly[0]);
-								}
-								creep.heal(hurtAlly[0]);
-							}
-						}
+					closeRangeResult = creep.rangedAttack(closeFoe);
+					creep.attack(closeFoe);
+					if (Foe.length) {
+						creep.attack(Foe[0]);
+						creep.rangedAttack(Foe[0]);
+					}
+					if (creep.hits < creep.hitsMax) {
+						creep.heal(creep);
 					} else {
-						closeRangeResult = creep.rangedAttack(closeFoe);
-						creep.attack(closeFoe);
-						if (Foe.length) {
-							creep.attack(Foe[0]);
-							creep.rangedAttack(Foe[0]);
-						}
-						if (creep.hits < creep.hitsMax) {
-							creep.heal(creep);
-						} else {
-							var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-								filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-							});
-							if (hurtAlly.length > 0) {
-								if (closeRangeResult != OK) {
-									creep.rangedHeal(hurtAlly[0]);
-								}
-								creep.heal(hurtAlly[0]);
+						var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+							filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+						});
+						if (hurtAlly.length > 0) {
+							if (closeRangeResult != OK) {
+								creep.rangedHeal(hurtAlly[0]);
 							}
+							creep.heal(hurtAlly[0]);
 						}
 					}
 
@@ -535,17 +518,9 @@ var creep_farMining = {
 								maxRooms: 1
 							});
 						} else {
-							if (closeFoe.owner.username == "ThyReaper" && closeFoe.getActiveBodyparts(ATTACK) == 0 && closeFoe.getActiveBodyparts(RANGED_ATTACK) == 0) {
-								if (Game.flags[creep.memory.targetFlag] && creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-									creep.moveTo(Game.flags[creep.memory.targetFlag], {
-										maxRooms: 1
-									});
-								}
-							} else {
-								creep.moveTo(closeFoe, {
-									maxRooms: 1
-								});
-							}
+							creep.moveTo(closeFoe, {
+								maxRooms: 1
+							});
 						}
 					} else {
 						var foeDirection = creep.pos.getDirectionTo(closeFoe);
