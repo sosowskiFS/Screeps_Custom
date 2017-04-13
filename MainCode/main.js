@@ -411,7 +411,7 @@ module.exports.loop = function() {
             Memory.isSpawning = false;
         }
 
-        if (Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0) {
+        if (Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
             if (Game.flags[thisRoom.name + "SendHelper"]) {
                 spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
             }
@@ -438,6 +438,18 @@ module.exports.loop = function() {
             if (!Memory.isSpawning) {
                 Memory.NoSpawnNeeded.push(thisRoom.name);
             }
+        } else if (Game.spawns[i].spawning) {
+            //Add a visual for spawn progress
+            var spawnProgress = (Game.spawns[i].spawning.needTime - Game.spawns[i].spawning.remainingTime) + 1;
+            var percentageComplete = Math.floor((spawnProgress / Game.spawns[i].spawning.needTime) * 100);
+
+            thisRoom.visual.text(' (' + percentageComplete + '%)', Game.spawns[i].pos.x + 1, Game.spawns[i].pos.y, {
+                align: 'left',
+                font: '1 Courier New',
+                color: '#FFFFFF',
+                stroke: '#000000',
+                strokeWidth: 0.15
+            });
         }
 
         Memory.isSpawning = false;
