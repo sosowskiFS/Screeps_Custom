@@ -231,7 +231,7 @@ module.exports.loop = function() {
                     }
                     if (reverseFlag) {
                         //Wipe sources to be rechecked too
-                        Memory.sourceList[thisRoom.name] = [];
+                        Memory.sourceList[thisRoom.name] = undefined;
                         Memory.linkList[thisRoom.name].reverse();
                     }
                 }
