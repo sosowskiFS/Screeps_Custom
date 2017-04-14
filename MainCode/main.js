@@ -207,6 +207,36 @@ module.exports.loop = function() {
                 instructionSpawn = Game.spawns[i];
             }
 
+            //Get list of Links
+            if (Game.time % 1000 == 0 || !Memory.linkList[thisRoom.name]) {
+                Memory.linkList[thisRoom.name] = [];
+                var roomLinks = thisRoom.find(FIND_MY_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_LINK
+                    }
+                });
+                var reverseFlag = false;
+                if (roomLinks) {
+                    var linkCounter = 0;
+                    while (roomLinks[linkCounter]) {
+                        if (Memory.linkList[thisRoom.name].indexOf(roomLinks[linkCounter].id) == -1) {
+                            Memory.linkList[thisRoom.name].push(roomLinks[linkCounter].id)
+                        }
+                        //If there is no source nearby, this should not be #1
+                        var nearSources = roomLinks[linkCounter].pos.findInRange(FIND_SOURCES, 3);
+                        if (linkCounter == 0 && nearSources.length == 0) {
+                            reverseFlag = true;
+                        }
+                        linkCounter++;
+                    }
+                    if (reverseFlag) {
+                        //Wipe sources to be rechecked too
+                        Memory.sourceList[thisRoom.name] = [];
+                        Memory.linkList[thisRoom.name].reverse();
+                    }
+                }
+            }
+
             //Get list of Sources
             if (!Memory.sourceList[thisRoom.name]) {
                 Memory.sourceList[thisRoom.name] = [];
@@ -231,34 +261,6 @@ module.exports.loop = function() {
                     }
                     if (reverseFlag) {
                         Memory.sourceList[thisRoom.name].reverse();
-                    }
-                }
-            }
-
-            //Get list of Links
-            if (Game.time % 1000 == 0 || !Memory.linkList[thisRoom.name]) {
-                Memory.linkList[thisRoom.name] = [];
-                var roomLinks = thisRoom.find(FIND_MY_STRUCTURES, {
-                    filter: {
-                        structureType: STRUCTURE_LINK
-                    }
-                });
-                var reverseFlag = false;
-                if (roomLinks) {
-                    var linkCounter = 0;
-                    while (roomLinks[linkCounter]) {
-                        if (Memory.linkList[thisRoom.name].indexOf(roomLinks[linkCounter].id) == -1) {
-                            Memory.linkList[thisRoom.name].push(roomLinks[linkCounter].id)
-                        }
-                        //If there is no source nearby, this should not be #1
-                        var nearSources = roomLinks[linkCounter].pos.findInRange(FIND_SOURCES, 3);
-                        if (linkCounter == 0 && nearSources.length == 0) {
-                            reverseFlag = true;
-                        }
-                        linkCounter++;
-                    }
-                    if (reverseFlag) {
-                        Memory.linkList[thisRoom.name].reverse();
                     }
                 }
             }
