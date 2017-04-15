@@ -306,7 +306,7 @@ var creep_work5 = {
 										}
 									} else {
 										//Check for nearby link and fill it if possible.
-										var links = creep.pos.findInRange(FIND_STRUCTURES, 3, {
+										var links = creep.pos.findInRange(FIND_STRUCTURES, 5, {
 											filter: {
 												structureType: STRUCTURE_LINK
 											}
