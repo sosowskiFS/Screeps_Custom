@@ -308,7 +308,7 @@ var creep_work5 = {
 										//Check for nearby link and fill it if possible.
 										if (Memory.linkList[creep.room.name].length > 1) {
 											var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
-											if (upgraderLink && upgraderLink.energy < 100){
+											if (upgraderLink && upgraderLink.energy < 100) {
 												if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 													creep.moveTo(upgraderLink);
 												}
@@ -554,14 +554,12 @@ var creep_work5 = {
 						}
 					}
 				} else {
-					var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-						filter: (structure) => {
-							return (structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity - 150;
-						}
-					});
-					if (target) {
-						if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(target);
+					if (Memory.towerNeedEnergy[thisRoom.name].length) {
+						var target = Game.getObjectById(Memory.towerNeedEnergy[thisRoom.name][0]);
+						if (target) {
+							if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(target);
+							}
 						}
 					} else if (Game.flags[creep.room.name + "Supply"] && creep.pos != Game.flags[creep.room.name + "Supply"].pos) {
 						creep.moveTo(Game.flags[creep.room.name + "Supply"]);

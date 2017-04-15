@@ -2,6 +2,10 @@ var tower_Operate = {
 	run: function(tower, attackDuration) {
 		var thisRoom = tower.room;
 
+		if (!Memory.towerNeedEnergy[thisRoom.name]) {
+			Memory.towerNeedEnergy[thisRoom.name] = [];
+		}
+
 		var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
 		if (UnderAttackPos >= 0 && tower.energy > 0) {
 			var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
@@ -26,6 +30,13 @@ var tower_Operate = {
 			if (closestDamagedCreep) {
 				tower.heal(closestDamagedCreep);
 			}
+		}
+
+		if (tower.energy <= tower.energyCapacity - 150 && Memory.towerNeedEnergy[thisRoom.name].indexOf(tower.id) == -1) {
+			Memory.towerNeedEnergy[thisRoom.name].push(tower.id);
+		} else if (tower.energy > tower.energyCapacity - 150 && Memory.towerNeedEnergy[thisRoom.name].indexOf(tower.id) > -1) {
+			var thisTowerIndex = Memory.towerNeedEnergy[thisRoom.name].indexOf(tower.id)
+			Memory.towerNeedEnergy[thisRoom.name].splice(thisTowerIndex, 1);
 		}
 		//Enable to see tower coverage
 		//thisRoom.visual.rect(thisTower.pos.x - 15, thisTower.pos.y - 15, 30, 30, {fill: '#ff0019', opacity: 0.2});

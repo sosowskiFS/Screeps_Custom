@@ -800,6 +800,9 @@ function memCheck() {
     if (!Memory.roomCreeps) {
         Memory.roomCreeps = new Object();
     }
+    if (!Memory.towerNeedEnergy) {
+        Memory.towerNeedEnergy = new Object();
+    }
 }
 
 function orderPriceCompare(a, b) {
