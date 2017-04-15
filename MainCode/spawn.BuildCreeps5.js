@@ -315,7 +315,7 @@ var spawn_BuildCreeps5 = {
 			} else if (repairers.length < repairMax && !blockedRole.includes('repair')) {
 				prioritizedRole = 'repair';
 				storageID = thisRoom.storage.id;
-			} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner') && roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 100000) {
+			} else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner') && roomStorage && roomStorage.store[RESOURCE_ENERGY] >= 50000) {
 				prioritizedRole = 'mineralMiner';
 				storageID = strTerminal;
 				creepSource = strMineral[0];
