@@ -306,17 +306,11 @@ var creep_work5 = {
 										}
 									} else {
 										//Check for nearby link and fill it if possible.
-										var links = creep.pos.findInRange(FIND_STRUCTURES, 5, {
-											filter: {
-												structureType: STRUCTURE_LINK
-											}
-										});
-										if (links) {
-											if (links.length > 0) {
-												if (links[0].energy < 100) {
-													if (creep.transfer(links[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-														creep.moveTo(links[0]);
-													}
+										if (Memory.linkList[thisRoom.name].length > 1) {
+											var upgraderLink = Game.getObjectById(Memory.linkList[thisRoom.name][1]);
+											if (upgraderLink && upgraderLink.energy < 100){
+												if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+													creep.moveTo(upgraderLink);
 												}
 											}
 										}
