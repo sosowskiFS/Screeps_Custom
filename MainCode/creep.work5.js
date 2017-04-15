@@ -711,18 +711,27 @@ var creep_work5 = {
 				break;
 		}
 
-		var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
-			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
-		});
-
-		if (Foe.length) {
-			var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-				filter: (structure) => {
-					return structure.structureType == STRUCTURE_SPAWN;
-				}
+		if (Memory.roomsUnderAttack.indexOf(creep.room.name) > -1) {
+			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
+				filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 			});
-			if (spawnTarget) {
-				creep.moveTo(spawnTarget);
+
+			if (Foe.length) {
+				if (creep.memory.fromSpawn) {
+					var thisSpawn = Game.getObjectById(creep.memory.fromSpawn);
+					if (thisSpawn) {
+						creep.moveTo(spawnTarget);
+					}
+				} else {
+					var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						filter: (structure) => {
+							return structure.structureType == STRUCTURE_SPAWN;
+						}
+					});
+					if (spawnTarget) {
+						creep.moveTo(spawnTarget);
+					}
+				}
 			}
 		}
 	}
