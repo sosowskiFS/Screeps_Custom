@@ -119,8 +119,7 @@ var spawn_BuildFarCreeps = {
 			if (thisRoom.energyCapacityAvailable >= 2600) {
 				//2600 Points
 				farClaimerConfig = [CLAIM, CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE, MOVE];
-			}
-			if (thisRoom.energyCapacityAvailable >= 1950) {
+			} else if (thisRoom.energyCapacityAvailable >= 1950) {
 				//1950 Points
 				farClaimerConfig = [CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE];
 			}
