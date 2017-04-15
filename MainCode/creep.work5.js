@@ -554,8 +554,8 @@ var creep_work5 = {
 						}
 					}
 				} else {
-					if (Memory.towerNeedEnergy[thisRoom.name].length) {
-						var target = Game.getObjectById(Memory.towerNeedEnergy[thisRoom.name][0]);
+					if (Memory.towerNeedEnergy[creep.room.name].length) {
+						var target = Game.getObjectById(Memory.towerNeedEnergy[creep.room.name][0]);
 						if (target) {
 							if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(target);
