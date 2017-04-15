@@ -306,8 +306,8 @@ var creep_work5 = {
 										}
 									} else {
 										//Check for nearby link and fill it if possible.
-										if (Memory.linkList[thisRoom.name].length > 1) {
-											var upgraderLink = Game.getObjectById(Memory.linkList[thisRoom.name][1]);
+										if (Memory.linkList[creep.room.name].length > 1) {
+											var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
 											if (upgraderLink && upgraderLink.energy < 100){
 												if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 													creep.moveTo(upgraderLink);
