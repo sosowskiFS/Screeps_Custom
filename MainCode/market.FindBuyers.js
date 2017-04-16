@@ -2,9 +2,37 @@ var market_buyers = {
 
 	run: function(thisRoom, thisTerminal, thisMineral) {
 		var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
-		if (TerminalEnergy >= 100000) {
+
+		var neededMinerals = [];
+		//Check for production flags and request accordingly
+		if (Game.flags[thisRoom.name + "UHProducer"]) {
+			neededMinerals.push(RESOURCE_UTRIUM);
+			neededMinerals.push(RESOURCE_HYDROGEN);
+		}
+		if (Game.flags[thisRoom.name + "UH2OProducer"]) {
+			neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
+			neededMinerals.push(RESOURCE_HYDROXIDE);
+		}
+
+		for (var i in neededMinerals) {
+			if (!Memory.mineralNeed[neededMinerals[i]]) {
+				Memory.mineralNeed[neededMinerals[i]] = [];
+			}
+			if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < 10000) {
+				if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) == -1) {
+					Memory.mineralNeed[neededMinerals[i]].push(thisRoom.name);
+				}
+			} else if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) != -1) {
+				var thisRoomIndex = Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name)
+				Memory.mineralNeed[neededMinerals[i]].splice(thisRoomIndex, 1);
+			}
+		}
+
+		if (TerminalEnergy >= 50000) {
 			var currentMineral = Game.getObjectById(thisMineral);
 			var MaxSaleAmount = 30000;
+			var mineralInTerminal = thisTerminal.store[currentMineral.mineralType] - 20000;
+
 			if (mineralInTerminal > MaxSaleAmount) {
 				mineralInTerminal = MaxSaleAmount;
 			}
@@ -15,29 +43,6 @@ var market_buyers = {
 
 			//Memory.mineralNeed
 
-			var neededMinerals = [];
-			//Check for production flags and request accordingly
-			if (Game.flags[thisRoom.name + "UHProducer"]) {
-				neededMinerals.push(RESOURCE_UTRIUM);
-				neededMinerals.push(RESOURCE_HYDROGEN);
-			}
-			if (Game.flags[thisRoom.name + "UH2OProducer"]) {
-				neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
-				neededMinerals.push(RESOURCE_HYDROXIDE);
-			}
-
-			for (var i in neededMinerals) {
-				if (!Memory.mineralNeed[neededMinerals[i]]) {
-					Memory.mineralNeed[neededMinerals[i]] = [];
-				}
-				if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < 10000) {
-					Memory.mineralNeed[neededMinerals[i]].push(thisRoom.name);
-				} else if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) != -1) {
-					var thisRoomIndex = Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name)
-					Memory.mineralNeed[neededMinerals[i]].splice(thisRoomIndex, 1);
-				}
-			}
-
 			//Determine if excess minerals and distribute where needed
 			//Memory.needMin room name
 			//resource
@@ -47,10 +52,8 @@ var market_buyers = {
 					sendMineral(Memory.mineralNeed[y], thisTerminal, Memory.mineralNeed[y][0]);
 				}
 			}
-
-			var mineralInTerminal = thisTerminal.store[currentMineral.mineralType];
-
-			if (mineralInTerminal > 0) {
+			
+			if (mineralInTerminal > 20000 && TerminalEnergy >= 100000) {
 				var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
 				if (FilteredOrders.length > 0) {
 					FilteredOrders.sort(orderPriceCompare);
@@ -91,7 +94,9 @@ function sendMineral(thisMineral, thisTerminal, targetRoom) {
 				if (amountAvailable < neededAmount) {
 					neededAmount = amountAvailable
 				}
-				thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.");
+				if (neededAmount > 100) {
+					thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.");
+				}
 			}
 		}
 	}
