@@ -321,6 +321,8 @@ module.exports.loop = function() {
                 }
             }
 
+            //WELP
+
             if (Memory.nukerList[thisRoom.name][0] && thisRoom.terminal && Game.time % 1000 == 0) {
                 var thisNuker = Game.getObjectById(Memory.nukerList[thisRoom.name][0]);
                 var thisTerminal = thisRoom.terminal
