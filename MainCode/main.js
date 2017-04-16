@@ -803,6 +803,9 @@ function memCheck() {
     if (!Memory.towerNeedEnergy) {
         Memory.towerNeedEnergy = new Object();
     }
+    if (!Memory.mineralNeed) {
+        Memory.mineralNeed = new Object();
+    }
 }
 
 function orderPriceCompare(a, b) {

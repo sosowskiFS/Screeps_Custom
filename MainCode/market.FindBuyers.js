@@ -1,45 +1,106 @@
 var market_buyers = {
 
-    run: function(thisRoom, thisTerminal, thisMineral) {
-        var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
-        var currentMineral = Game.getObjectById(thisMineral);
-        var mineralInTerminal = thisTerminal.store[currentMineral.mineralType];
-        var MaxSaleAmount = 30000;
-        if (mineralInTerminal > MaxSaleAmount) {
-            mineralInTerminal = MaxSaleAmount;
-        }
-        if (!Memory.PriceList[currentMineral.mineralType]) {
-            //Initalize this memory object
-            Memory.PriceList[currentMineral.mineralType] = 0;
-        }
-        if (mineralInTerminal > 0 && TerminalEnergy >= 100000) {
-            var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
-            if (FilteredOrders.length > 0) {
-                FilteredOrders.sort(orderPriceCompare);
-                var tradeAmount = FilteredOrders[0].amount;
-                if (mineralInTerminal < tradeAmount) {
-                    tradeAmount = mineralInTerminal;
-                }
-                if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
-                    console.log('Successfully made a deal');
-                    Memory.PriceList[currentMineral.mineralType] = FilteredOrders[0].price;
-                }
-            } else {
-                //No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
-                if (Memory.PriceList[currentMineral.mineralType] > 0 && TerminalEnergy >= 100000) {
-                    Memory.PriceList[currentMineral.mineralType] = Memory.PriceList[currentMineral.mineralType] - 0.01;
-                }              
-            }
-        }
-    }
+	run: function(thisRoom, thisTerminal, thisMineral) {
+		var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
+		if (TerminalEnergy >= 100000) {
+			var currentMineral = Game.getObjectById(thisMineral);
+			var MaxSaleAmount = 30000;
+			if (mineralInTerminal > MaxSaleAmount) {
+				mineralInTerminal = MaxSaleAmount;
+			}
+			if (!Memory.PriceList[currentMineral.mineralType]) {
+				//Initalize this memory object
+				Memory.PriceList[currentMineral.mineralType] = 0;
+			}
+
+			//Memory.mineralNeed
+
+			var neededMinerals = [];
+			//Check for production flags and request accordingly
+			if (Game.flags[thisRoom.name + "UHProducer"]) {
+				neededMinerals.push(RESOURCE_UTRIUM);
+				neededMinerals.push(RESOURCE_HYDROGEN);
+			}
+			if (Game.flags[thisRoom.name + "UH2OProducer"]) {
+				neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
+				neededMinerals.push(RESOURCE_HYDROXIDE);
+			}
+
+			for (var i in neededMinerals) {
+				if (!Memory.mineralNeed[neededMinerals[i]]) {
+					Memory.mineralNeed[neededMinerals[i]] = [];
+				}
+				if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < 10000) {
+					Memory.mineralNeed[neededMinerals[i]].push(thisRoom.name);
+				} else if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) != -1) {
+					var thisRoomIndex = Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name)
+					Memory.mineralNeed[neededMinerals[i]].splice(thisRoomIndex, 1);
+				}
+			}
+
+			//Determine if excess minerals and distribute where needed
+			//Memory.needMin room name
+			//resource
+			for (var y in Memory.mineralNeed) {
+				//sendMineral(thisMineral, thisTerminal, targetRoom);
+				if (Memory.mineralNeed[y].length) {
+					sendMineral(Memory.mineralNeed[y], thisTerminal, Memory.mineralNeed[y][0]);
+				}
+			}
+
+			var mineralInTerminal = thisTerminal.store[currentMineral.mineralType];
+
+			if (mineralInTerminal > 0) {
+				var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
+				if (FilteredOrders.length > 0) {
+					FilteredOrders.sort(orderPriceCompare);
+					var tradeAmount = FilteredOrders[0].amount;
+					if (mineralInTerminal < tradeAmount) {
+						tradeAmount = mineralInTerminal;
+					}
+					if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
+						console.log('Successfully made a deal');
+						Memory.PriceList[currentMineral.mineralType] = FilteredOrders[0].price;
+					}
+				} else {
+					//No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
+					if (Memory.PriceList[currentMineral.mineralType] > 0) {
+						Memory.PriceList[currentMineral.mineralType] = Memory.PriceList[currentMineral.mineralType] - 0.01;
+					}
+				}
+			}
+		}
+
+	}
 };
 
 module.exports = market_buyers;
 
+function sendMineral(thisMineral, thisTerminal, targetRoom) {
+	if (thisTerminal.store[thisMineral] && thisTerminal.store[thisMineral] > 20000) {
+		var targetTerminal = Game.rooms[targetRoom].terminal
+		var amountAvailable = thisTerminal.store[thisMineral] - 20000;
+		if (amountAvailable > 20000) {
+			amountAvailable = 20000;
+		}
+		if (amountAvailable >= 100) {
+			if (targetTerminal && !targetTerminal.store[thisMineral]) {
+				thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.");
+			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < 20000) {
+				var neededAmount = 20000 - targetTerminal.store[thisMineral]
+				if (amountAvailable < neededAmount) {
+					neededAmount = amountAvailable
+				}
+				thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.");
+			}
+		}
+	}
+}
+
 function orderPriceCompare(a, b) {
-    if (a.price < b.price)
-        return 1;
-    if (a.price > b.price)
-        return -1;
-    return 0;
+	if (a.price < b.price)
+		return 1;
+	if (a.price > b.price)
+		return -1;
+	return 0;
 }
