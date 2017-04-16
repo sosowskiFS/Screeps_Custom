@@ -49,10 +49,10 @@ var market_buyers = {
 			for (var y in Memory.mineralNeed) {
 				//sendMineral(thisMineral, thisTerminal, targetRoom);
 				if (Memory.mineralNeed[y].length) {
-					sendMineral(Memory.mineralNeed[y], thisTerminal, Memory.mineralNeed[y][0]);
+					sendMineral(y, thisTerminal, Memory.mineralNeed[y][0]);
 				}
 			}
-			
+
 			if (mineralInTerminal > 20000 && TerminalEnergy >= 100000) {
 				var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
 				if (FilteredOrders.length > 0) {
