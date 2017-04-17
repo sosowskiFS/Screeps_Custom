@@ -52,9 +52,9 @@ var spawn_BuildCreeps5 = {
 				min3 = RESOURCE_HYDROXIDE;
 			}
 
-			var min1Count = min1 in creep.room.terminal.store;
-			var min2Count = min2 in creep.room.terminal.store;
-			var producedResult = min3 in creep.room.terminal.store;
+			var min1Count = min1 in thisRoom.terminal.store;
+			var min2Count = min2 in thisRoom.terminal.store;
+			var producedResult = min3 in thisRoom.terminal.store;
 			if (min1Count > 0 && min2Count > 0 && producedResult < 20000) {
 				labWorkerMax = 1;
 			}
