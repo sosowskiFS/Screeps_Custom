@@ -45,6 +45,17 @@ var spawn_BuildCreeps5 = {
 				min1 = RESOURCE_UTRIUM;
 				min2 = RESOURCE_HYDROGEN;
 				min3 = RESOURCE_UTRIUM_HYDRIDE;
+
+			} else if (Game.flags[thisRoom.name + "OHProducer"]) {
+				min1 = RESOURCE_OXYGEN;
+				min2 = RESOURCE_HYDROGEN;
+				min3 = RESOURCE_HYDROXIDE;
+			}
+
+			var min1Count = min1 in creep.room.terminal.store;
+			var min2Count = min2 in creep.room.terminal.store;
+			var producedResult = min3 in creep.room.terminal.store;
+			if (min1Count > 0 && min2Count > 0 && producedResult < 20000) {
 				labWorkerMax = 1;
 			}
 		}
@@ -419,7 +430,7 @@ var spawn_BuildCreeps5 = {
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						Memory.isSpawning = true;
 					}
-				} else if (prioritizedRole == 'labWorker'){
+				} else if (prioritizedRole == 'labWorker') {
 					if (spawn.canCreateCreep(labWorkerConfig) == OK) {
 						spawn.createCreep(labWorkerConfig, undefined, {
 							priority: prioritizedRole,

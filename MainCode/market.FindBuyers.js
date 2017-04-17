@@ -18,6 +18,10 @@ var market_buyers = {
 			neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
 			neededMinerals.push(RESOURCE_HYDROXIDE);
 		}
+		if (Game.flags[thisRoom.name + "OHProducer"]) {
+			neededMinerals.push(RESOURCE_OXYGEN);
+			neededMinerals.push(RESOURCE_HYDROGEN);
+		}
 
 		for (var i in neededMinerals) {
 			if (!Memory.mineralNeed[neededMinerals[i]]) {
