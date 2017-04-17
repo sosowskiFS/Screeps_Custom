@@ -19,16 +19,10 @@ var creep_combat = {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 			});
 
-			var closestTower = creep.pos.findInRange(FIND_STRUCTURES, 20, {
-				filter: (structure) => {
-					return (structure.structureType == STRUCTURE_TOWER);
-				}
-			});
-
 			if (Foe.length) {
 				Foe.sort(targetOther);
 			}
-			if (closeFoe && closestTower.length) {
+			if (closeFoe) {
 				creep.rangedAttack(closeFoe);
 				var attackResult = creep.attack(closeFoe);
 				if (lookResult.length) {
@@ -45,44 +39,6 @@ var creep_combat = {
 					creep.moveTo(closeFoe, {
 						maxRooms: 1
 					});
-				}
-			} else if (Foe.length) {
-				creep.rangedAttack(closeFoe);
-				var attackResult = creep.attack(closeFoe);
-				creep.rangedAttack(Foe[0]);
-				creep.attack(Foe[0]);
-				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn);
-				if (homeSpawn) {
-					if (Foe[0].getActiveBodyparts(ATTACK) == 0 && Foe[0].getActiveBodyparts(RANGED_ATTACK) == 0) {
-						creep.moveTo(Foe[0], {
-							maxRooms: 1
-						});
-					} else {
-						if (creep.room.controller.level >= 5) {
-							if (attackResult == OK && lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART) {
-
-							} else {
-								creep.moveTo(Foe[0], {
-									maxRooms: 1
-								});
-							}
-						} else {
-							if (lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART) {
-
-							} else if (homeSpawn) {
-								creep.moveTo(homeSpawn, {
-									maxRooms: 1
-								});
-							}
-						}
-					}
-				}
-			} else {
-				var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
-				if (lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART) {
-
-				} else if (homeSpawn) {
-					creep.moveTo(homeSpawn);
 				}
 			}
 		} else {
