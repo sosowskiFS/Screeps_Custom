@@ -304,7 +304,7 @@ module.exports.loop = function() {
                         Memory.labList[thisRoom.name].push(thisLab.id);
                     }
                 }
-                Memory.labList.sort();
+                Memory.labList[thisRoom.name].sort();
             }
 
             //Get list of power spawns
