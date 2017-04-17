@@ -58,7 +58,7 @@ var market_buyers = {
 			for (var y in Memory.mineralNeed) {
 				//sendMineral(thisMineral, thisTerminal, targetRoom);
 				if (Memory.mineralNeed[y].length) {
-					if (Memory.mineralNeed[y].indexOf(thisRoom.name) != -1) {
+					if (neededMinerals.indexOf(y) != -1) {
 						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
 					} else {
 						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
