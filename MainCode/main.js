@@ -291,6 +291,25 @@ module.exports.loop = function() {
                 }
             }
 
+            //Get list of labs
+            if (Game.time % 1000 == 0 || !Memory.labList[thisRoom.name]) {
+                Memory.labList[thisRoom.name] = [];
+                var labLocations = thisRoom.find(FIND_MY_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_EXTRACTOR
+                    }
+                });
+                if (labLocations) {
+                    var lCounter = 0;
+                    while (labLocations[lCounter]) {
+                        if (Memory.labList[thisRoom.name].indexOf(labLocations[labList].id) == -1) {
+                            Memory.labList[thisRoom.name].push(labLocations[labList].id);
+                        }
+                    }
+                    Memory.labList.sort();
+                }
+            }
+
             //Get list of power spawns
             if (Game.time % 2000 == 0 || !Memory.powerSpawnList[thisRoom.name]) {
                 Memory.powerSpawnList[thisRoom.name] = [];
@@ -341,7 +360,7 @@ module.exports.loop = function() {
             }
 
             //Review market data and sell to buy orders
-            if (Game.time % 1000 == 0 && thisRoom.terminal) {
+            if (Game.time % 500 == 0 && thisRoom.terminal) {
                 market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
             }
 
@@ -805,6 +824,9 @@ function memCheck() {
     }
     if (!Memory.mineralNeed) {
         Memory.mineralNeed = new Object();
+    }
+    if (!Memory.labList) {
+        Memory.labList = new Object();
     }
 }
 

@@ -709,6 +709,70 @@ var creep_work5 = {
 					}
 				}
 				break;
+			case 'labWorker':
+				creep.room.visual.text("\uD83D\uDD2C", creep.pos.x, creep.pos.y, {
+					align: 'left',
+					color: '#7DE3B5'
+				});
+
+				var lab1 = Game.getObjectById(creep.memory.lab1);
+				var lab2 = Game.getObjectById(creep.memory.lab2);
+				var lab3 = Game.getObjectById(creep.memory.lab3);
+				if (lab1 && lab2 && lab3) {
+					if (_.sum(creep.carry) == 0) {
+						var min1Amount = creep.memory.mineral1 in creep.room.terminal.store;
+						var min2Amount = creep.memory.mineral2 in creep.room.terminal.store;
+						var min3Amount = lab3.mineralAmount;
+						if (min3Amount >= 250) {
+							if (creep.withdraw(lab3, creep.memory.mineral3) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(lab3, {
+									reusePath: 5
+								});
+							}
+						} else if (min1Amount > 0 && lab1.mineralAmount < lab1.mineralCapacity - 250) {
+							if (creep.withdraw(creep.room.terminal, creep.memory.mineral1) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.terminal, {
+									reusePath: 5
+								});
+							}
+						} else if (min2Amount > 0 && lab2.mineralAmount < lab2.mineralCapacity - 250) {
+							if (creep.withdraw(creep.room.terminal, creep.memory.mineral2) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.terminal, {
+									reusePath: 5
+								});
+							}
+						} else {
+							//Wait by terminal
+							if (!creep.pos.isNearTo(creep.room.terminal)) {
+								creep.moveto(creep.room.termina, {
+									reusePath: 5
+								})
+							}
+						}
+					} else {
+						if (creep.carry[creep.memory.mineral1]) {
+							if (creep.transfer(lab1, creep.memory.mineral1) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(lab1, {
+									reusePath: 5
+								});
+							}
+						} else if (creep.carry[creep.memory.mineral2]) {
+							if (creep.transfer(lab2, creep.memory.mineral2) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(lab2, {
+									reusePath: 5
+								});
+							}
+						} else if (creep.carry[creep.memory.mineral3]) {
+							if (creep.transfer(creep.room.terminal, creep.memory.mineral3) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.terminal, {
+									reusePath: 5
+								});
+							}
+						}
+					}
+				}
+
+				break;
 		}
 
 		if (Memory.roomsUnderAttack.indexOf(creep.room.name) > -1) {

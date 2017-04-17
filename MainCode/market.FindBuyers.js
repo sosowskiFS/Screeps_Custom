@@ -4,6 +4,11 @@ var market_buyers = {
 		var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
 
 		var neededMinerals = [];
+
+		//Always requested minerals for boosts
+		neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
+		neededMinerals.push(RESOURCE_GHODIUM_ACID); //Upgrade boost
+		neededMinerals.push(RESOURCE_LEMERGIUM_ACID); //Repair boost
 		//Check for production flags and request accordingly
 		if (Game.flags[thisRoom.name + "UHProducer"]) {
 			neededMinerals.push(RESOURCE_UTRIUM);
@@ -53,7 +58,7 @@ var market_buyers = {
 				}
 			}
 
-			if (mineralInTerminal > 20000 && TerminalEnergy >= 100000) {
+			if (mineralInTerminal > 100 && TerminalEnergy >= 100000 && Game.time % 1000 == 0) {
 				var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == currentMineral.mineralType && order.type == ORDER_BUY && order.price >= Memory.PriceList[currentMineral.mineralType] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy)
 				if (FilteredOrders.length > 0) {
 					FilteredOrders.sort(orderPriceCompare);

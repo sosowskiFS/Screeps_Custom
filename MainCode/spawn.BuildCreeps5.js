@@ -21,6 +21,8 @@ var spawn_BuildCreeps5 = {
 		var suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
 		var distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
 
+		var labWorkers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'labWorker');
+
 		var salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
 
 		var defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
@@ -34,6 +36,18 @@ var spawn_BuildCreeps5 = {
 		}
 		var supplierMax = 1;
 		var distributorMax = 1;
+		var labWorkerMax = 0;
+		var min1 = '';
+		var min2 = '';
+		var min3 = '';
+		if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
+			if (Game.flags[thisRoom.name + "UHProducer"]) {
+				min1 = RESOURCE_UTRIUM;
+				min2 = RESOURCE_HYDROGEN;
+				min3 = RESOURCE_UTRIUM_HYDRIDE;
+				labWorkerMax = 1;
+			}
+		}
 		var strSources = Memory.sourceList[thisRoom.name];
 		var strLinks = Memory.linkList[thisRoom.name];
 		var strMineral = Memory.mineralList[thisRoom.name];
@@ -54,6 +68,8 @@ var spawn_BuildCreeps5 = {
 		} else if (thisRoom.controller.level > 7) {
 			var distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 		}
+
+		var labWorkerConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 		//950 Points
 		var muleConfigCost = 800;
@@ -322,6 +338,9 @@ var spawn_BuildCreeps5 = {
 				storageID = strTerminal;
 				creepSource = strMineral[0];
 				connectedLink = strExtractor[0];
+			} else if (labWorkers.length < labWorkerMax && !blockedRole.includes('labWorker')) {
+				prioritizedRole = 'labWorker';
+				storageID = strTerminal;
 			}
 
 			if (prioritizedRole != '') {
@@ -399,6 +418,19 @@ var spawn_BuildCreeps5 = {
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						Memory.isSpawning = true;
+					}
+				} else if (prioritizedRole == 'labWorker'){
+					if (spawn.canCreateCreep(labWorkerConfig) == OK) {
+						spawn.createCreep(labWorkerConfig, undefined, {
+							priority: prioritizedRole,
+							terminalID: storageID,
+							mineral1: min1,
+							lab1: Memory.labList[thisRoom.name][0],
+							mineral2: min2,
+							lab2: Memory.labList[thisRoom.name][1],
+							mineral3: min3,
+							lab3: Memory.labList[thisRoom.name][2],
+						})
 					}
 				}
 			}
