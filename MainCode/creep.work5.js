@@ -729,13 +729,13 @@ var creep_work5 = {
 									reusePath: 5
 								});
 							}
-						} else if (min1Amount > 0 && lab1.mineralAmount < lab1.mineralCapacity - 250) {
+						} else if (min1Amount > 0 && lab1.mineralAmount < lab1.mineralCapacity - 250 && lab1.mineralAmount <= lab2.mineralAmount) {
 							if (creep.withdraw(creep.room.terminal, creep.memory.mineral1) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
 								});
 							}
-						} else if (min2Amount > 0 && lab2.mineralAmount < lab2.mineralCapacity - 250) {
+						} else if (min2Amount > 0 && lab2.mineralAmount < lab2.mineralCapacity - 250 && lab2.mineralAmount <= lab1.mineralAmount) {
 							if (creep.withdraw(creep.room.terminal, creep.memory.mineral2) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
