@@ -441,7 +441,10 @@ var spawn_BuildCreeps5 = {
 							lab2: Memory.labList[thisRoom.name][1],
 							mineral3: min3,
 							lab3: Memory.labList[thisRoom.name][2],
-						})
+							fromSpawn: spawn.id
+						});
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+						Memory.isSpawning = true;
 					}
 				}
 			}
