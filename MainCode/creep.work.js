@@ -117,35 +117,39 @@ var creep_work = {
 				var targets = undefined;
 				if (getNewStructure) {
 					if (Memory.warMode) {
-						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-							}
+							},
+							algorithm: dijkstra
 						});
 					} else {
-						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-							}
+							},
+							algorithm: dijkstra
 						});
 					}
 
 				} else {
 					if (Memory.warMode) {
-						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
-							}
+							},
+							algorithm: dijkstra
 						});
 					} else {
-						targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-							}
+							},
+							algorithm: dijkstra
 						});
 					}
 				}
@@ -283,18 +287,20 @@ var creep_work = {
 				if (!creep.memory.structureTarget) {
 					var target = undefined;
 					if (getNewStructure) {
-						target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-							}
+							},
+							algorithm: dijkstra
 						});
 					} else {
-						target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+						target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-							}
+							},
+							algorithm: dijkstra
 						});
 					}
 
