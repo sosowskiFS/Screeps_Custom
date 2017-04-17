@@ -302,8 +302,8 @@ module.exports.loop = function() {
                 if (labLocations) {
                     var lCounter = 0;
                     while (labLocations[lCounter]) {
-                        if (Memory.labList[thisRoom.name].indexOf(labLocations[labList].id) == -1) {
-                            Memory.labList[thisRoom.name].push(labLocations[labList].id);
+                        if (Memory.labList[thisRoom.name].indexOf(labLocations[lCounter].id) == -1) {
+                            Memory.labList[thisRoom.name].push(labLocations[lCounter].id);
                         }
                     }
                     Memory.labList.sort();
