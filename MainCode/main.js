@@ -299,15 +299,12 @@ module.exports.loop = function() {
                         structureType: STRUCTURE_LAB
                     }
                 });
-                if (labLocations) {
-                    var lCounter = 0;
-                    while (labLocations[lCounter]) {
-                        if (Memory.labList[thisRoom.name].indexOf(labLocations[lCounter].id) == -1) {
-                            Memory.labList[thisRoom.name].push(labLocations[lCounter].id);
-                        }
+                for (var thisLab in labLocations) {
+                    if (Memory.labList[thisRoom.name].indexOf(thisLab.id) == -1) {
+                        Memory.labList[thisRoom.name].push(thisLab.id);
                     }
-                    Memory.labList.sort();
                 }
+                Memory.labList.sort();
             }
 
             //Get list of power spawns
