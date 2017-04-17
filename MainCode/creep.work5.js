@@ -744,7 +744,7 @@ var creep_work5 = {
 						} else {
 							//Wait by terminal
 							if (!creep.pos.isNearTo(creep.room.terminal)) {
-								creep.moveTo(creep.room.termina, {
+								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
 								})
 							}
