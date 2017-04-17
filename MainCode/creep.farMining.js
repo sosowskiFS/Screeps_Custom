@@ -348,7 +348,7 @@ var creep_farMining = {
 					}
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
 					creep.memory.priority = 'farGuardNearDeath';
 					creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
 						align: 'left',
