@@ -58,7 +58,11 @@ var market_buyers = {
 			for (var y in Memory.mineralNeed) {
 				//sendMineral(thisMineral, thisTerminal, targetRoom);
 				if (Memory.mineralNeed[y].length) {
-					sendMineral(y, thisTerminal, Memory.mineralNeed[y][0]);
+					if (Memory.mineralNeed[y].indexOf(thisRoom.name) != -1) {
+						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
+					} else {
+						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
+					}					
 				}
 			}
 
@@ -88,10 +92,13 @@ var market_buyers = {
 
 module.exports = market_buyers;
 
-function sendMineral(thisMineral, thisTerminal, targetRoom) {
+function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
 	if (thisTerminal.store[thisMineral]) {
 		var targetTerminal = Game.rooms[targetRoom].terminal
 		var amountAvailable = thisTerminal.store[thisMineral];
+		if (saveFlag) {
+			amountAvailable = thisTerminal.store[thisMineral] - 20000;
+		}
 		if (amountAvailable > 20000) {
 			amountAvailable = 20000;
 		}
