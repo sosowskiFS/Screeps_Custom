@@ -121,16 +121,14 @@ var creep_work = {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-							},
-							algorithm: dijkstra
+							}
 						});
 					} else {
 						targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-							},
-							algorithm: dijkstra
+							}
 						});
 					}
 
@@ -140,16 +138,14 @@ var creep_work = {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
-							},
-							algorithm: dijkstra
+							}
 						});
 					} else {
 						targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-							},
-							algorithm: dijkstra
+							}
 						});
 					}
 				}
@@ -291,16 +287,14 @@ var creep_work = {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-							},
-							algorithm: dijkstra
+							}
 						});
 					} else {
 						target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 							filter: (structure) => {
 								return (structure.structureType == STRUCTURE_EXTENSION ||
 									structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-							},
-							algorithm: dijkstra
+							}
 						});
 					}
 
