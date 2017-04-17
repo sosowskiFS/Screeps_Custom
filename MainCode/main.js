@@ -296,7 +296,7 @@ module.exports.loop = function() {
                 Memory.labList[thisRoom.name] = [];
                 var labLocations = thisRoom.find(FIND_MY_STRUCTURES, {
                     filter: {
-                        structureType: STRUCTURE_EXTRACTOR
+                        structureType: STRUCTURE_LAB
                     }
                 });
                 if (labLocations) {
