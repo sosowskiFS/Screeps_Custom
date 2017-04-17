@@ -300,8 +300,8 @@ module.exports.loop = function() {
                     }
                 });
                 for (var thisLab in labLocations) {
-                    if (Memory.labList[thisRoom.name].indexOf(thisLab.id) == -1) {
-                        Memory.labList[thisRoom.name].push(thisLab.id);
+                    if (Memory.labList[thisRoom.name].indexOf(labLocations[thisLab].id) == -1) {
+                        Memory.labList[thisRoom.name].push(labLocations[thisLab].id);
                     }
                 }
                 Memory.labList[thisRoom.name].sort();
