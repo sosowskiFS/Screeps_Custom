@@ -91,7 +91,7 @@ module.exports = market_buyers;
 function sendMineral(thisMineral, thisTerminal, targetRoom) {
 	if (thisTerminal.store[thisMineral] && thisTerminal.store[thisMineral] > 20000) {
 		var targetTerminal = Game.rooms[targetRoom].terminal
-		var amountAvailable = thisTerminal.store[thisMineral] - 20000;
+		var amountAvailable = thisTerminal.store[thisMineral];
 		if (amountAvailable > 20000) {
 			amountAvailable = 20000;
 		}
