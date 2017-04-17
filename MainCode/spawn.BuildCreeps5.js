@@ -55,7 +55,7 @@ var spawn_BuildCreeps5 = {
 			var min1Count = min1 in thisRoom.terminal.store;
 			var min2Count = min2 in thisRoom.terminal.store;
 			var producedResult = min3 in thisRoom.terminal.store;
-			if (min1Count > 0 && min2Count > 0 && producedResult < 20000) {
+			if (min1Count > 0 && min2Count > 0 && producedResult < 40000) {
 				labWorkerMax = 1;
 			}
 		}
