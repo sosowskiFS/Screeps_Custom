@@ -647,10 +647,9 @@ var creep_work5 = {
 				});
 
 				if (creep.memory.storeProduced == null && creep.memory.mineral4) {
+					creep.memory.storeProduced = false;
 					if ((creep.memory.mineral4 && creep.memory.mineral4 == creep.memory.mineral3) || (creep.memory.mineral5 && creep.memory.mineral5 == creep.memory.mineral3) || (creep.memory.mineral6 && creep.memory.mineral6 == creep.memory.mineral3)) {
 						creep.memory.storeProduced = true;
-					} else {
-						creep.memory.storeProduced = false;
 					}
 				} else {
 					creep.memory.storeProduced = false;
