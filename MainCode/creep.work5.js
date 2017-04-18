@@ -757,6 +757,8 @@ var creep_work5 = {
 									reusePath: 5
 								});
 							}
+						} else {
+							checkForMoreWork = true;
 						}
 					}
 				}
