@@ -22,6 +22,22 @@ var market_buyers = {
 			neededMinerals.push(RESOURCE_OXYGEN);
 			neededMinerals.push(RESOURCE_HYDROGEN);
 		}
+		if (Game.flags[thisRoom.name + "ZKProducer"]) {
+			neededMinerals.push(RESOURCE_ZYNTHIUM);
+			neededMinerals.push(RESOURCE_KEANIUM);
+		}
+		if (Game.flags[thisRoom.name + "LHProducer"]) {
+			neededMinerals.push(RESOURCE_LEMERGIUM);
+			neededMinerals.push(RESOURCE_HYDROGEN);
+		}
+		if (Game.flags[thisRoom.name + "ULProducer"]) {
+			neededMinerals.push(RESOURCE_UTRIUM);
+			neededMinerals.push(RESOURCE_LEMERGIUM);
+		}
+		if (Game.flags[thisRoom.name + "GProducer"]) {
+			neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE);
+			neededMinerals.push(RESOURCE_ZYNTHIUM_KEANITE);
+		}
 
 		for (var i in neededMinerals) {
 			if (!Memory.mineralNeed[neededMinerals[i]]) {
@@ -62,7 +78,7 @@ var market_buyers = {
 						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
 					} else {
 						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
-					}					
+					}
 				}
 			}
 
