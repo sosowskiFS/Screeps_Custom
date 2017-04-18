@@ -7,7 +7,7 @@ var creep_combat = {
 		//(Saves running excess finds in peacetime)
 		if (creep.hits < creep.hitsMax) {
 			creep.heal(creep);
-		}	
+		}
 
 		if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
 			//Move towards Foe, stop at rampart
@@ -21,25 +21,49 @@ var creep_combat = {
 
 			if (Foe.length) {
 				Foe.sort(targetOther);
-			}
-			if (closeFoe) {
-				creep.rangedAttack(closeFoe);
-				var attackResult = creep.attack(closeFoe);
-				if (lookResult.length) {
-					if (Foe[0].getActiveBodyparts(ATTACK) == 0 && Foe[0].getActiveBodyparts(RANGED_ATTACK) == 0) {
-						creep.moveTo(Foe[0], {
-							maxRooms: 1
-						});
-					} else if (lookResult[0].structureType != STRUCTURE_RAMPART) {
-						creep.moveTo(closeFoe, {
-							maxRooms: 1
-						});
-					}
-				} else if (attackResult == ERR_NOT_IN_RANGE) {
-					creep.moveTo(closeFoe, {
-						maxRooms: 1
+				var boostFlag = false;
+				if ((Foe[0].getActiveBodyparts(ATTACK) > 0 || Foe[0].getActiveBodyparts(RANGED_ATTACK) > 0 || Foe[0].getActiveBodyparts(WORK) > 0) && Foe[0].owner.username != 'Invader') {
+					Foe[0].body.forEach(function(thisPart) {
+						if (thisPart.boost) {
+							boostFlag = true;
+						}
 					});
 				}
+				if (boostFlag && creep.room.controller.level >= 7 && Memory.labList[thisRoom.name].length > 3) {
+					var attackLab = Game.getObjectById(Memory.labList[thisRoom.name][3]);
+					if (attackLab && attackLab.mineralAmount >= 900 && attackLab.energy >= 600) {
+						creep.memory.needBoosts = true;
+					} else {
+						creep.memory.needBoosts = false;
+					}
+				} else {
+					creep.memory.needBoosts = false;
+				}
+			}
+
+			var unboostedAttack = 0;
+			if (creep.memory.needBoosts && creep.room.controller.level >= 7) {
+				creep.body.forEach(function(thisPart) {
+					if (thisPart.type == ATTACK && !thisPart.boost) {
+						unboostedAttack = unboostedAttack + 1;
+					}
+				});
+			}
+
+			if (creep.memory.needBoosts && unboostedAttack > 0) {
+				var thisLab = Game.getObjectById(Memory.labList[thisRoom.name][3]);
+				if (thisLab) {
+					creep.moveTo(thisLab);
+					thisLab.boostCreep(creep);
+				} else {
+					creep.memory.needBoost = false;
+				}
+			} else if (closeFoe) {
+				creep.rangedAttack(closeFoe);
+				creep.attack(closeFoe);
+				creep.moveTo(closeFoe, {
+					maxRooms: 1
+				});
 			}
 		} else {
 			var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
