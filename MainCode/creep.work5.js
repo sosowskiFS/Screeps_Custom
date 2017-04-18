@@ -698,7 +698,9 @@ var creep_work5 = {
 								});
 							}
 						} else if (creep.carry[creep.memory.mineral3]) {
-							if (creep.transfer(creep.room.terminal, creep.memory.mineral3) == ERR_NOT_IN_RANGE) {
+							if ((creep.memory.mineral4 && creep.memory.mineral4 == creep.memory.mineral3) || (creep.memory.mineral5 && creep.memory.mineral5 == creep.memory.mineral3) || (creep.memory.mineral6 && creep.memory.mineral6 == creep.memory.mineral3)) {
+								checkForMoreWork = true;
+							} else if (creep.transfer(creep.room.terminal, creep.memory.mineral3) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
 								});
@@ -717,19 +719,19 @@ var creep_work5 = {
 					var min5Lab = lab4.mineralAmount;
 					var min6Lab = lab4.mineralAmount;
 					if (_.sum(creep.carry) == 0) {
-						if (min4Lab <= 500 && min4Amount > 0) {
+						if (min4Lab <= 2500 && min4Amount > 0) {
 							if (creep.withdraw(creep.room.terminal, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
 								});
 							}
-						} else if (min5Lab <= 500 && min5Amount > 0) {
+						} else if (min5Lab <= 2500 && min5Amount > 0) {
 							if (creep.withdraw(creep.room.terminal, creep.memory.mineral5) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
 								});
 							}
-						} else if (min6Lab <= 500 && min6Amount > 0) {
+						} else if (min6Lab <= 2500 && min6Amount > 0) {
 							if (creep.withdraw(creep.room.terminal, creep.memory.mineral6) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
@@ -740,22 +742,46 @@ var creep_work5 = {
 						}
 					} else {
 						if (creep.carry[creep.memory.mineral4]) {
-							if (creep.transfer(lab4, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(lab4, {
-									reusePath: 5
-								});
+							if (min4Lab > 2500) {
+								if (creep.transfer(creep.room.terminal, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
+							} else {
+								if (creep.transfer(lab4, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(lab4, {
+										reusePath: 5
+									});
+								}
 							}
 						} else if (creep.carry[creep.memory.mineral5]) {
-							if (creep.transfer(lab5, creep.memory.mineral5) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(lab5, {
-									reusePath: 5
-								});
+							if (min5Lab > 2500) {
+								if (creep.transfer(creep.room.terminal, creep.memory.mineral5) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
+							} else {
+								if (creep.transfer(lab5, creep.memory.mineral5) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(lab5, {
+										reusePath: 5
+									});
+								}
 							}
 						} else if (creep.carry[creep.memory.mineral6]) {
-							if (creep.transfer(lab6, creep.memory.mineral6) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(lab6, {
-									reusePath: 5
-								});
+							if (min46ab > 2500) {
+								if (creep.transfer(creep.room.terminal, creep.memory.mineral6) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
+							} else {
+								if (creep.transfer(lab6, creep.memory.mineral6) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(lab6, {
+										reusePath: 5
+									});
+								}
 							}
 						} else {
 							checkForMoreWork = true;
