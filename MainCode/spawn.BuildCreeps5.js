@@ -72,6 +72,10 @@ var spawn_BuildCreeps5 = {
 				min1 = RESOURCE_UTRIUM_LEMERGITE;
 				min2 = RESOURCE_ZYNTHIUM_KEANITE;
 				min3 = RESOURCE_GHODIUM;
+			} else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
+				min1 = RESOURCE_LEMERGIUM_HYDRIDE;
+				min2 = RESOURCE_HYDROXIDE;
+				min3 = RESOURCE_LEMERGIUM_ACID;
 			}
 
 			var min1Count = min1 in thisRoom.terminal.store;

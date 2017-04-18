@@ -38,6 +38,10 @@ var market_buyers = {
 			neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE);
 			neededMinerals.push(RESOURCE_ZYNTHIUM_KEANITE);
 		}
+		if (Game.flags[thisRoom.name + "LH2OProducer"]) {
+			neededMinerals.push(RESOURCE_LEMERGIUM_HYDRIDE);
+			neededMinerals.push(RESOURCE_HYDROXIDE);
+		}
 
 		for (var i in neededMinerals) {
 			if (!Memory.mineralNeed[neededMinerals[i]]) {
