@@ -159,7 +159,7 @@ var creep_work5 = {
 								var thisLab = Game.flags["ToughLab"].pos.lookFor(LOOK_STRUCTURES);
 								if (thisLab.length && thisLab[0].mineralAmount > 0) {
 									if (creep.withdraw(thisLab[0], RESOURCE_CATALYZED_GHODIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(thisLab[0] {
+										creep.moveTo(thisLab[0], {
 											reusePath: 5
 										});
 									}
