@@ -45,10 +45,13 @@ var spawn_BuildCreeps5 = {
 				min1 = RESOURCE_UTRIUM;
 				min2 = RESOURCE_HYDROGEN;
 				min3 = RESOURCE_UTRIUM_HYDRIDE;
-
 			} else if (Game.flags[thisRoom.name + "OHProducer"]) {
 				min1 = RESOURCE_OXYGEN;
 				min2 = RESOURCE_HYDROGEN;
+				min3 = RESOURCE_HYDROXIDE;
+			} else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
+				min1 = RESOURCE_UTRIUM_HYDRIDE;
+				min2 = RESOURCE_HYDROXIDE;
 				min3 = RESOURCE_HYDROXIDE;
 			}
 
