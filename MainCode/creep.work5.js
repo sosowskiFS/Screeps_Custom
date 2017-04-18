@@ -641,10 +641,23 @@ var creep_work5 = {
 				}
 				break;
 			case 'labWorker':
-				creep.room.visual.text("\uD83D\uDD2C", creep.pos.x, creep.pos.y, {
-					align: 'left',
-					color: '#7DE3B5'
-				});
+			case 'labWorkerNearDeath':
+				if (!creep.memory.deathWarn) {
+					creep.memory.deathWarn = _.size(creep.body) * 4;
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn) {
+					creep.memory.priority = 'labWorkerNearDeath';
+					creep.room.visual.text("\u2620\uD83D\uDD2C", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				} else {
+					creep.room.visual.text("\uD83D\uDD2C", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				}
 
 				if (creep.memory.storeProduced == null && creep.memory.mineral4) {
 					creep.memory.storeProduced = false;
@@ -668,7 +681,7 @@ var creep_work5 = {
 				}
 				var checkForMoreWork = false;
 				if (lab1 && lab2 && lab3) {
-					if (_.sum(creep.carry) == 0) {
+					if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
 						var min1Amount = creep.memory.mineral1 in creep.room.terminal.store;
 						var min2Amount = creep.memory.mineral2 in creep.room.terminal.store;
 						var min3Amount = lab3.mineralAmount;
@@ -737,7 +750,7 @@ var creep_work5 = {
 					var min4Lab = lab4.mineralAmount;
 					var min5Lab = lab5.mineralAmount;
 					var min6Lab = lab6.mineralAmount;
-					if (_.sum(creep.carry) == 0) {
+					if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
 						if (min4Lab <= 2500 && min4Amount > 0) {
 							if (creep.withdraw(creep.room.terminal, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
