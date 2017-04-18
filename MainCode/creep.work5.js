@@ -144,41 +144,7 @@ var creep_work5 = {
 				if (_.sum(creep.carry) == 0) {
 					creep.memory.structureTarget = undefined;
 					var storageTarget = creep.room.storage;
-					var getFromStorage = true;
-					if (creep.room.terminal && creep.room.energyAvailable == creep.room.energyCapacityAvailable) {
-						if (Game.flags["HealLab"] && Game.flags["HealLab"].pos.roomName == creep.pos.roomName) {
-							var thisLab = Game.flags["HealLab"].pos.lookFor(LOOK_STRUCTURES);
-							if (thisLab.length && thisLab[0].mineralAmount > 0) {
-								if (creep.withdraw(thisLab[0], RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
-									creep.moveTo(thisLab[0], {
-										reusePath: 5
-									});
-								}
-								getFromStorage = false;
-							} else if (Game.flags["ToughLab"] && Game.flags["ToughLab"].pos.roomName == creep.pos.roomName) {
-								var thisLab = Game.flags["ToughLab"].pos.lookFor(LOOK_STRUCTURES);
-								if (thisLab.length && thisLab[0].mineralAmount > 0) {
-									if (creep.withdraw(thisLab[0], RESOURCE_CATALYZED_GHODIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(thisLab[0], {
-											reusePath: 5
-										});
-									}
-									getFromStorage = false;
-								} else if (Game.flags["AttackLab"] && Game.flags["AttackLab"].pos.roomName == creep.pos.roomName) {
-									var thisLab = Game.flags["AttackLab"].pos.lookFor(LOOK_STRUCTURES);
-									if (thisLab.length && thisLab[0].mineralAmount > 0) {
-										if (creep.withdraw(thisLab[0], RESOURCE_CATALYZED_UTRIUM_ACID) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(thisLab[0], {
-												reusePath: 5
-											});
-										}
-										getFromStorage = false;
-									}
-								}
-							}
-						}
-					}
-					if (storageTarget && getFromStorage) {
+					if (storageTarget) {
 						if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
 							//Get from container
 							if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -199,33 +165,7 @@ var creep_work5 = {
 					}
 				} else if (_.sum(creep.carry) > 0) {
 					if (creep.carry[RESOURCE_ENERGY] == 0) {
-						//Carrying minerals, determine what to do.
-						var dumpMinerals = true;
-						if (creep.carry[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE] && Game.flags["HealLab"] && Game.flags["HealLab"].pos.roomName == creep.pos.roomName) {
-							if (creep.transfer(creep.room.terminal, RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(creep.room.terminal, {
-									reusePath: 5
-								});
-							}
-							dumpMinerals = false;
-						}
-						if (creep.carry[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] && Game.flags["ToughLab"] && Game.flags["ToughLab"].pos.roomName == creep.pos.roomName) {
-							if (creep.transfer(creep.room.terminal, RESOURCE_CATALYZED_GHODIUM_ALKALIDE) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(creep.room.terminal, {
-									reusePath: 5
-								});
-							}
-							dumpMinerals = false;
-						}
-						if (creep.carry[RESOURCE_CATALYZED_UTRIUM_ACID] && Game.flags["AttackLab"] && Game.flags["AttackLab"].pos.roomName == creep.pos.roomName) {
-							if (creep.transfer(creep.room.terminal, RESOURCE_CATALYZED_UTRIUM_ACID) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(creep.room.terminal, {
-									reusePath: 5
-								});
-							}
-							dumpMinerals = false;
-						}
-						if (dumpMinerals && creep.room.terminal) {
+						if (creep.room.terminal) {
 							if (Object.keys(creep.carry).length > 1) {
 								if (creep.transfer(creep.room.terminal, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
 									creep.moveTo(creep.room.terminal, {
@@ -237,7 +177,7 @@ var creep_work5 = {
 									reusePath: 5
 								});
 							}
-						} else if (dumpMinerals && !creep.room.terminal && creep.room.storage) {
+						} else if (!creep.room.terminal && creep.room.storage) {
 							if (Object.keys(creep.carry).length > 1) {
 								if (creep.transfer(creep.room.storage, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
 									creep.moveTo(creep.room.storage, {
@@ -709,6 +649,15 @@ var creep_work5 = {
 				var lab1 = Game.getObjectById(creep.memory.lab1);
 				var lab2 = Game.getObjectById(creep.memory.lab2);
 				var lab3 = Game.getObjectById(creep.memory.lab3);
+				var lab4 = undefined;
+				var lab5 = undefined;
+				var lab6 = undefined;
+				if (creep.memory.lab4) {
+					lab4 = Game.getObjectById(creep.memory.lab4);
+					lab5 = Game.getObjectById(creep.memory.lab5);
+					lab6 = Game.getObjectById(creep.memory.lab6);
+				}
+				var checkForMoreWork = false;
 				if (lab1 && lab2 && lab3) {
 					if (_.sum(creep.carry) == 0) {
 						var min1Amount = creep.memory.mineral1 in creep.room.terminal.store;
@@ -733,12 +682,7 @@ var creep_work5 = {
 								});
 							}
 						} else {
-							//Wait by terminal
-							if (!creep.pos.isNearTo(creep.room.terminal)) {
-								creep.moveTo(creep.room.terminal, {
-									reusePath: 5
-								})
-							}
+							checkForMoreWork = true;
 						}
 					} else {
 						if (creep.carry[creep.memory.mineral1]) {
@@ -760,6 +704,64 @@ var creep_work5 = {
 								});
 							}
 						}
+					}
+				}
+
+				if (checkForMoreWork && lab4 && lab5 && lab6) {
+					var min4Amount = creep.memory.mineral4 in creep.room.terminal.store;
+					var min5Amount = creep.memory.mineral5 in creep.room.terminal.store;
+					var min6Amount = creep.memory.mineral6 in creep.room.terminal.store;
+					var min4Lab = lab4.mineralAmount;
+					var min5Lab = lab4.mineralAmount;
+					var min6Lab = lab4.mineralAmount;
+					if (_.sum(creep.carry) == 0) {
+						if (min4Lab <= 500 && min4Amount > 0) {
+							if (creep.withdraw(creep.room.terminal, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.terminal, {
+									reusePath: 5
+								});
+							}
+						} else if (min5Lab <= 500 && min5Amount > 0) {
+							if (creep.withdraw(creep.room.terminal, creep.memory.mineral5) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.terminal, {
+									reusePath: 5
+								});
+							}
+						} else if (min6Lab <= 500 && min6Amount > 0) {
+							if (creep.withdraw(creep.room.terminal, creep.memory.mineral6) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(creep.room.terminal, {
+									reusePath: 5
+								});
+							}
+						} else {
+							checkForMoreWork = true;
+						}
+					} else {
+						if (creep.carry[creep.memory.mineral4]) {
+							if (creep.transfer(lab4, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(lab4, {
+									reusePath: 5
+								});
+							}
+						} else if (creep.carry[creep.memory.mineral5]) {
+							if (creep.transfer(lab5, creep.memory.mineral5) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(lab5, {
+									reusePath: 5
+								});
+							}
+						} else if (creep.carry[creep.memory.mineral6]) {
+							if (creep.transfer(lab6, creep.memory.mineral6) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(lab6, {
+									reusePath: 5
+								});
+							}
+						}
+					}
+				} else {
+					if (!creep.pos.isNearTo(creep.room.terminal)) {
+						creep.moveTo(creep.room.terminal, {
+							reusePath: 5
+						})
 					}
 				}
 

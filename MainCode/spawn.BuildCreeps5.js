@@ -40,6 +40,9 @@ var spawn_BuildCreeps5 = {
 		var min1 = '';
 		var min2 = '';
 		var min3 = '';
+		var min4 = RESOURCE_UTRIUM_ACID;
+		var min5 = RESOURCE_GHODIUM_ACID;
+		var min6 = RESOURCE_LEMERGIUM_ACID;
 		if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
 			if (Game.flags[thisRoom.name + "UHProducer"]) {
 				min1 = RESOURCE_UTRIUM;
@@ -435,17 +438,37 @@ var spawn_BuildCreeps5 = {
 					}
 				} else if (prioritizedRole == 'labWorker') {
 					if (spawn.canCreateCreep(labWorkerConfig) == OK) {
-						spawn.createCreep(labWorkerConfig, undefined, {
-							priority: prioritizedRole,
-							terminalID: storageID,
-							mineral1: min1,
-							lab1: Memory.labList[thisRoom.name][0],
-							mineral2: min2,
-							lab2: Memory.labList[thisRoom.name][1],
-							mineral3: min3,
-							lab3: Memory.labList[thisRoom.name][2],
-							fromSpawn: spawn.id
-						});
+						if (Memory.labList[thisRoom.name].length >= 6) {
+							spawn.createCreep(labWorkerConfig, undefined, {
+								priority: prioritizedRole,
+								terminalID: storageID,
+								mineral1: min1,
+								lab1: Memory.labList[thisRoom.name][0],
+								mineral2: min2,
+								lab2: Memory.labList[thisRoom.name][1],
+								mineral3: min3,
+								lab3: Memory.labList[thisRoom.name][2],
+								mineral4: min4,
+								lab4: Memory.labList[thisRoom.name][3],
+								mineral5: min5,
+								lab5: Memory.labList[thisRoom.name][4],
+								mineral6: min6,
+								lab6: Memory.labList[thisRoom.name][5],
+								fromSpawn: spawn.id
+							});
+						} else {
+							spawn.createCreep(labWorkerConfig, undefined, {
+								priority: prioritizedRole,
+								terminalID: storageID,
+								mineral1: min1,
+								lab1: Memory.labList[thisRoom.name][0],
+								mineral2: min2,
+								lab2: Memory.labList[thisRoom.name][1],
+								mineral3: min3,
+								lab3: Memory.labList[thisRoom.name][2],
+								fromSpawn: spawn.id
+							});
+						}
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 						Memory.isSpawning = true;
 					}
