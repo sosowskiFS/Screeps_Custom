@@ -646,6 +646,16 @@ var creep_work5 = {
 					color: '#7DE3B5'
 				});
 
+				if (creep.memory.storeProduced == null && creep.memory.mineral4) {
+					if ((creep.memory.mineral4 && creep.memory.mineral4 == creep.memory.mineral3) || (creep.memory.mineral5 && creep.memory.mineral5 == creep.memory.mineral3) || (creep.memory.mineral6 && creep.memory.mineral6 == creep.memory.mineral3)) {
+						creep.memory.storeProduced = true;
+					} else {
+						creep.memory.storeProduced = false;
+					}
+				} else {
+					creep.memory.storeProduced = false;
+				}
+
 				var lab1 = Game.getObjectById(creep.memory.lab1);
 				var lab2 = Game.getObjectById(creep.memory.lab2);
 				var lab3 = Game.getObjectById(creep.memory.lab3);
@@ -698,8 +708,18 @@ var creep_work5 = {
 								});
 							}
 						} else if (creep.carry[creep.memory.mineral3]) {
-							if ((creep.memory.mineral4 && creep.memory.mineral4 == creep.memory.mineral3) || (creep.memory.mineral5 && creep.memory.mineral5 == creep.memory.mineral3) || (creep.memory.mineral6 && creep.memory.mineral6 == creep.memory.mineral3)) {
-								checkForMoreWork = true;
+							if (creep.memory.storeProduced && lab4 && lab5 && lab6) {
+								if (creep.memory.mineral4 == creep.memory.mineral3 && lab4.mineralAmount <= 2500) {
+									checkForMoreWork = true;
+								} else if (creep.memory.mineral5 == creep.memory.mineral3 && lab5.mineralAmount <= 2500) {
+									checkForMoreWork = true;
+								} else if (creep.memory.mineral6 == creep.memory.mineral3 && lab6.mineralAmount <= 2500) {
+									checkForMoreWork = true;
+								} else if (creep.transfer(creep.room.terminal, creep.memory.mineral3) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 5
+									});
+								}
 							} else if (creep.transfer(creep.room.terminal, creep.memory.mineral3) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(creep.room.terminal, {
 									reusePath: 5
@@ -716,8 +736,8 @@ var creep_work5 = {
 					var min5Amount = creep.memory.mineral5 in creep.room.terminal.store;
 					var min6Amount = creep.memory.mineral6 in creep.room.terminal.store;
 					var min4Lab = lab4.mineralAmount;
-					var min5Lab = lab4.mineralAmount;
-					var min6Lab = lab4.mineralAmount;
+					var min5Lab = lab5.mineralAmount;
+					var min6Lab = lab6.mineralAmount;
 					if (_.sum(creep.carry) == 0) {
 						if (min4Lab <= 2500 && min4Amount > 0) {
 							if (creep.withdraw(creep.room.terminal, creep.memory.mineral4) == ERR_NOT_IN_RANGE) {
