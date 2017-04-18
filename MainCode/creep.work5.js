@@ -757,12 +757,6 @@ var creep_work5 = {
 							}
 						}
 					}
-				} else {
-					if (!creep.pos.isNearTo(creep.room.terminal)) {
-						creep.moveTo(creep.room.terminal, {
-							reusePath: 5
-						})
-					}
 				}
 
 				break;
