@@ -164,16 +164,16 @@ var creep_work5 = {
 										});
 									}
 									getFromStorage = false;
-								}
-							} else if (Game.flags["AttackLab"] && Game.flags["AttackLab"].pos.roomName == creep.pos.roomName) {
-								var thisLab = Game.flags["AttackLab"].pos.lookFor(LOOK_STRUCTURES);
-								if (thisLab.length && thisLab[0].mineralAmount > 0) {
-									if (creep.withdraw(thisLab[0], RESOURCE_CATALYZED_UTRIUM_ACID) == ERR_NOT_IN_RANGE) {
-										creep.moveTo(thisLab[0], {
-											reusePath: 5
-										});
+								} else if (Game.flags["AttackLab"] && Game.flags["AttackLab"].pos.roomName == creep.pos.roomName) {
+									var thisLab = Game.flags["AttackLab"].pos.lookFor(LOOK_STRUCTURES);
+									if (thisLab.length && thisLab[0].mineralAmount > 0) {
+										if (creep.withdraw(thisLab[0], RESOURCE_CATALYZED_UTRIUM_ACID) == ERR_NOT_IN_RANGE) {
+											creep.moveTo(thisLab[0], {
+												reusePath: 5
+											});
+										}
+										getFromStorage = false;
 									}
-									getFromStorage = false;
 								}
 							}
 						}

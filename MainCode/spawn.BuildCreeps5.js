@@ -52,7 +52,7 @@ var spawn_BuildCreeps5 = {
 			} else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
 				min1 = RESOURCE_UTRIUM_HYDRIDE;
 				min2 = RESOURCE_HYDROXIDE;
-				min3 = RESOURCE_HYDROXIDE;
+				min3 = RESOURCE_UTRIUM_ACID;
 			}
 
 			var min1Count = min1 in thisRoom.terminal.store;
