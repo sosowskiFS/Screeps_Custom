@@ -829,6 +829,9 @@ function memCheck() {
     if (!Memory.towerNeedEnergy) {
         Memory.towerNeedEnergy = new Object();
     }
+    if (!Memory.towerPickedTarget) {
+        Memory.towerPickedTarget = new Object();
+    }
     if (!Memory.mineralNeed) {
         Memory.mineralNeed = new Object();
     }

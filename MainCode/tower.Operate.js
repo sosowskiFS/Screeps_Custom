@@ -5,13 +5,20 @@ var tower_Operate = {
 		if (!Memory.towerNeedEnergy[thisRoom.name]) {
 			Memory.towerNeedEnergy[thisRoom.name] = [];
 		}
+		if (!Memory.towerPickedTarget[thisRoom.name]) {
+			Memory.towerPickedTarget[thisRoom.name] = '';
+		}
 
 		var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
 		if (UnderAttackPos >= 0 && tower.energy > 0) {
-			var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-			});
+			var closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
+			if (!closestHostile) {
+				closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+				});
+			}
 			if (closestHostile) {
+				Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
 				tower.attack(closestHostile);
 			} else if (tower.energy > (tower.energyCapacity * 0.5)) {
 				//Save 50% of the tower's energy to use on repelling attackers
