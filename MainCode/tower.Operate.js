@@ -5,7 +5,8 @@ var tower_Operate = {
 		if (!Memory.towerNeedEnergy[thisRoom.name]) {
 			Memory.towerNeedEnergy[thisRoom.name] = [];
 		}
-		if (!Memory.towerPickedTarget[thisRoom.name]) {
+		if (!Memory.towerPickedTarget[thisRoom.name] || Game.time % 5 == 0) {
+			//Recalc target every 5 ticks
 			Memory.towerPickedTarget[thisRoom.name] = '';
 		}
 
