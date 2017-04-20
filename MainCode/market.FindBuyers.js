@@ -6,9 +6,11 @@ var market_buyers = {
 		var neededMinerals = [];
 
 		//Always requested minerals for boosts
-		neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
-		neededMinerals.push(RESOURCE_GHODIUM_ACID); //Upgrade boost
-		neededMinerals.push(RESOURCE_LEMERGIUM_ACID); //Repair boost
+		if (thisRoom.controller.level > 7) {
+			neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
+			neededMinerals.push(RESOURCE_GHODIUM_ACID); //Upgrade boost
+			neededMinerals.push(RESOURCE_LEMERGIUM_ACID); //Repair boost
+		}
 		//Check for production flags and request accordingly
 		if (Game.flags[thisRoom.name + "UHProducer"]) {
 			neededMinerals.push(RESOURCE_UTRIUM);
