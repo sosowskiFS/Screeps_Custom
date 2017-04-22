@@ -799,7 +799,7 @@ var creep_work5 = {
 								}
 							}
 						} else if (creep.carry[creep.memory.mineral6]) {
-							if (min4Lab > 2500) {
+							if (min6Lab > 2500) {
 								if (creep.transfer(creep.room.terminal, creep.memory.mineral6) == ERR_NOT_IN_RANGE) {
 									creep.moveTo(creep.room.terminal, {
 										reusePath: 5
