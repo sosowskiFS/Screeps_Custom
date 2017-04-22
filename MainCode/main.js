@@ -389,7 +389,7 @@ module.exports.loop = function() {
                 var lab1 = Game.getObjectById(Memory.labList[thisRoom.name][0]);
                 var lab2 = Game.getObjectById(Memory.labList[thisRoom.name][1]);
                 var lab3 = Game.getObjectById(Memory.labList[thisRoom.name][2]);
-                if (lab1 && lab2 && lab3 && lab1.mineralAmount > 5 && lab2.mineralAmount > 5 && lab3.mineralAmount < lab3.mineralCapacity - 5) {
+                if (lab1 && lab2 && lab3 && lab1.mineralAmount >= 5 && lab2.mineralAmount >= 5 && lab3.mineralAmount <= lab3.mineralCapacity - 5) {
                     lab3.runReaction(lab1, lab2)
                 }
             }
