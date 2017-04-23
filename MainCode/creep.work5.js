@@ -456,7 +456,7 @@ var creep_work5 = {
 				if (!creep.memory.hasBoosted && creep.room.controller.level >= 7 && Memory.labList[creep.room.name].length >= 6) {
 					var mineralCost = creep.getActiveBodyparts(WORK) * 30;
 					var energyCost = creep.getActiveBodyparts(WORK) * 20;
-					var repairLab = Game.getObjectById(Memory.labList[thisRoom.name][5]);
+					var repairLab = Game.getObjectById(Memory.labList[creep.room.name][5]);
 					if (repairLab && repairLab.mineralAmount >= mineralCost && repairLab.energy >= energyCost) {
 						creep.moveTo(repairLab);
 						if (repairLab.boostCreep(creep) == OK){
