@@ -462,7 +462,11 @@ module.exports.loop = function() {
 
         if (Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
             if (Game.flags[thisRoom.name + "SendHelper"]) {
-                spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
+                if (Game.flags["UseDefinedRoute"]) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E88N88;E88N89;E89N89;E89N90;E88N90;E87N90;E86N90;E85N90;E85N89');
+                } else {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
+                }
             }
 
             if (Game.flags[thisRoom.name + "Distract"]) {
@@ -567,13 +571,21 @@ module.exports.loop = function() {
     //Memory.creepInQue = [];
 
     if (Game.flags["ClaimThis"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
+        if (Game.flags["UseDefinedRoute"]) {
+            spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E88N88;E88N89;E89N89;E89N90;E88N90;E87N90;E86N90;E85N90;E85N89');
+        } else {
+            spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
+        }
     }
 
     if (Game.flags["BuildThis"]) {
         var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
         if (sitesOnTile.length) {
-            spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, '', Game.flags["BuildThis"].pos.roomName);
+            if (Game.flags["UseDefinedRoute"]) {
+                spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E88N88;E88N89;E89N89;E89N90;E88N90;E87N90;E86N90;E85N90;E85N89');
+            } else {
+                spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
+            }
         }
     }
 

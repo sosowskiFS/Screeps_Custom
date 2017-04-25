@@ -10,7 +10,14 @@ var creep_constructor = {
 
 		if (!creep.memory.building) {
 			if (creep.room.name != creep.memory.destination) {
-				creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+				if (creep.memory.path) {
+					if (creep.memory.path[0] == creep.room.name) {
+						creep.memory.path.splice(0, 1);
+					}
+					creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
+				} else {
+					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+				}
 			} else {
 
 				var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);

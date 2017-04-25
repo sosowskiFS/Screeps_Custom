@@ -4,18 +4,39 @@ var spawn_BuildInstruction = {
 			case 'claim':
 				var claimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'claimer');
 				if (claimers.length < 1) {
-					if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
-						spawn.createCreep([MOVE, CLAIM], undefined, {
-							priority: 'claimer',
-							destination: params
-						});
-						Memory.isSpawning = true;
-						console.log('Claim executed from ' + spawn.room.name);
-						if (Game.flags["ClaimThis"]) {
-							Game.flags["ClaimThis"].remove();
+					if (params2 != '') {
+						//Claimer with defined path
+						var creepPath = params2.split(";");
+						if (creepPath.length) {
+							if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
+								spawn.createCreep([MOVE, CLAIM], undefined, {
+									priority: 'claimer',
+									destination: params,
+									path: creepPath
+								});
+								Memory.isSpawning = true;
+								console.log('Claim executed from ' + spawn.room.name);
+								if (Game.flags["ClaimThis"]) {
+									Game.flags["ClaimThis"].remove();
+								}
+							} else {
+								//console.log('Could not execute claim. Spawn cannot create creep.');
+							}
 						}
 					} else {
-						//console.log('Could not execute claim. Spawn cannot create creep.');
+						if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
+							spawn.createCreep([MOVE, CLAIM], undefined, {
+								priority: 'claimer',
+								destination: params
+							});
+							Memory.isSpawning = true;
+							console.log('Claim executed from ' + spawn.room.name);
+							if (Game.flags["ClaimThis"]) {
+								Game.flags["ClaimThis"].remove();
+							}
+						} else {
+							//console.log('Could not execute claim. Spawn cannot create creep.');
+						}
 					}
 				}
 				break;
@@ -41,18 +62,36 @@ var spawn_BuildInstruction = {
 					if (spawn.room.energyCapacityAvailable >= 2000) {
 						constructorConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 					}
-					if (spawn.canCreateCreep(constructorConfig) == OK) {
-						spawn.createCreep(constructorConfig, undefined, {
-							priority: 'constructor',
-							siteID: params,
-							destination: params2,
-							homeRoom: spawn.room.name
-						});
-						Memory.isSpawning = true;
-						console.log('Construct executed from ' + spawn.room.name);
+					if (params2 != '') {
+						var creepPath = params2.split(";");
+						if (spawn.canCreateCreep(constructorConfig) == OK) {
+							spawn.createCreep(constructorConfig, undefined, {
+								priority: 'constructor',
+								siteID: params,
+								destination: thisRoom,
+								homeRoom: spawn.room.name,
+								path: creepPath
+							});
+							Memory.isSpawning = true;
+							console.log('Construct executed from ' + spawn.room.name);
+						} else {
+							//console.log('Could not execute constructor. Spawn cannot create creep.');
+						}
 					} else {
-						//console.log('Could not execute constructor. Spawn cannot create creep.');
+						if (spawn.canCreateCreep(constructorConfig) == OK) {
+							spawn.createCreep(constructorConfig, undefined, {
+								priority: 'constructor',
+								siteID: params,
+								destination: thisRoom,
+								homeRoom: spawn.room.name
+							});
+							Memory.isSpawning = true;
+							console.log('Construct executed from ' + spawn.room.name);
+						} else {
+							//console.log('Could not execute constructor. Spawn cannot create creep.');
+						}
 					}
+
 				}
 				break;
 			case 'removeKebab':
@@ -108,20 +147,40 @@ var spawn_BuildInstruction = {
 					if (spawn.room.energyCapacityAvailable >= 2000) {
 						helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
 					}
-					if (spawn.canCreateCreep(helperConfig) == OK) {
-						spawn.createCreep(helperConfig, undefined, {
-							priority: 'helper',
-							destination: params,
-							previousPriority: 'helper'
-						});
-						Memory.isSpawning = true;
-						console.log('Helper executed from ' + spawn.room.name);
-						/*if (Game.flags[spawn.room.name + "SendHelper"]) {
-							Game.flags[spawn.room.name + "SendHelper"].remove();
-						}*/
+					if (params2 != '') {
+						var creepPath = params2.split(";");
+						if (spawn.canCreateCreep(helperConfig) == OK) {
+							spawn.createCreep(helperConfig, undefined, {
+								priority: 'helper',
+								destination: params,
+								previousPriority: 'helper',
+								path: creepPath
+							});
+							Memory.isSpawning = true;
+							console.log('Helper executed from ' + spawn.room.name);
+							/*if (Game.flags[spawn.room.name + "SendHelper"]) {
+								Game.flags[spawn.room.name + "SendHelper"].remove();
+							}*/
+						} else {
+							//console.log('Could not execute constructor. Spawn cannot create creep.');
+						}
 					} else {
-						//console.log('Could not execute constructor. Spawn cannot create creep.');
+						if (spawn.canCreateCreep(helperConfig) == OK) {
+							spawn.createCreep(helperConfig, undefined, {
+								priority: 'helper',
+								destination: params,
+								previousPriority: 'helper'
+							});
+							Memory.isSpawning = true;
+							console.log('Helper executed from ' + spawn.room.name);
+							/*if (Game.flags[spawn.room.name + "SendHelper"]) {
+								Game.flags[spawn.room.name + "SendHelper"].remove();
+							}*/
+						} else {
+							//console.log('Could not execute constructor. Spawn cannot create creep.');
+						}
 					}
+
 				}
 				break;
 			case 'loot':
