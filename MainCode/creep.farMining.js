@@ -343,6 +343,9 @@ var creep_farMining = {
 								});
 							}
 						}
+						if (creep.memory.didRoadSearch == false) {
+							roadSearchTarget = creep.memory.storageSource.pos;
+						}
 						evadeAttacker(creep);
 					}
 				}
