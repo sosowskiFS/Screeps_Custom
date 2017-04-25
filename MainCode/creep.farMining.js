@@ -199,21 +199,16 @@ var creep_farMining = {
 					creep.memory.storing = false;
 				}
 
+				if (creep.memory.didRoadSearch == null) {
+					creep.memory.didRoadSearch = true;
+				}
+
+				var roadSearchTarget;
+
 				if (!creep.memory.lastRoom || creep.memory.lastRoom != creep.room.name) {
+					creep.memory.didRoadSearch = false;
 					creep.memory.lastRoom = creep.room.name;
 					//Autogenerate roads
-					/*if (creep.memory._move) {
-						//.dest.x, .dest.y, .dest.room
-						var thisPath = creep.room.findPath(creep.pos, new RoomPosition(creep.memory._move.dest.x, creep.memory._move.dest.y, creep.memory._move.dest.room), {
-							ignoreCreeps: true,
-							maxRooms: 1
-						});
-						for (var thisPos in thisPath) {
-							if (creep.room.createConstructionSite(thisPath[thisPos].x, thisPath[thisPos].y, STRUCTURE_ROAD) == ERR_FULL) {
-								break;
-							}
-						}
-					}*/
 					var someSites = creep.room.find(FIND_CONSTRUCTION_SITES);
 					if (someSites.length) {
 						creep.memory.lookForSites = true;
@@ -263,6 +258,9 @@ var creep_farMining = {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
 						reusePath: 25
 					});
+					if (creep.memory.didRoadSearch == false) {
+						roadSearchTarget = new RoomPosition(25, 25, creep.memory.homeRoom);
+					}
 				} else {
 					if (creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 						if (creep.room.controller.reservation.ticksToEnd <= 1000) {
@@ -346,6 +344,21 @@ var creep_farMining = {
 							}
 						}
 						evadeAttacker(creep);
+					}
+				}
+
+				if (!creep.memory.didRoadSearch && roadSearchTarget) {
+					creep.memory.didRoadSearch = true;
+					//Autogenerate roads
+					//.dest.x, .dest.y, .dest.room
+					var thisPath = creep.room.findPath(creep.pos, roadSearchTarget, {
+						ignoreCreeps: true,
+						maxRooms: 1
+					});
+					for (var thisPos in thisPath) {
+						if (creep.room.createConstructionSite(thisPath[thisPos].x, thisPath[thisPos].y, STRUCTURE_ROAD) == ERR_FULL) {
+							break;
+						}
 					}
 				}
 				break;
