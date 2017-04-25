@@ -209,7 +209,7 @@ var creep_farMining = {
 							maxRooms: 1
 						});
 						for (var thisPos in thisPath) {
-							if (createConstructionSite(thisPos.x, thisPos.y, STRUCTURE_ROAD) == ERR_FULL) {
+							if (creep.room.createConstructionSite(thisPath[thisPos].x, thisPath[thisPos].y, STRUCTURE_ROAD) == ERR_FULL) {
 								break;
 							}
 						}
