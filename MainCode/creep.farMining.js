@@ -342,9 +342,9 @@ var creep_farMining = {
 									reusePath: 25
 								});
 							}
-						}
-						if (creep.memory.didRoadSearch == false) {
-							roadSearchTarget = creep.memory.storageSource.pos;
+							if (creep.memory.didRoadSearch == false) {
+								roadSearchTarget = storageUnit.pos;
+							}
 						}
 						evadeAttacker(creep);
 					}
