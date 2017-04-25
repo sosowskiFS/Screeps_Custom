@@ -201,6 +201,19 @@ var creep_farMining = {
 
 				if (!creep.memory.lastRoom || creep.memory.lastRoom != creep.room.name) {
 					creep.memory.lastRoom = creep.room.name;
+					//Autogenerate roads
+					if (creep.memory._move) {
+						//.dest.x, .dest.y, .dest.room
+						var thisPath = creep.room.findPath(creep.pos, new RoomPosition(creep.memory._move.dest.x, creep.memory._move.dest.y, creep.memory._move.dest.room), {
+							ignoreCreeps: true,
+							maxRooms: 1
+						});
+						for (var thisPos in thisPath) {
+							if (createConstructionSite(thisPos.x, thisPos.y, STRUCTURE_ROAD) == ERR_FULL) {
+								break;
+							}
+						}
+					}
 					var someSites = creep.room.find(FIND_CONSTRUCTION_SITES);
 					if (someSites.length) {
 						creep.memory.lookForSites = true;
