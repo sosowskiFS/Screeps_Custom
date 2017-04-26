@@ -756,6 +756,8 @@ var creep_work5 = {
 							checkForMoreWork = true;
 						}
 					}
+				} else if (creep.room.terminal.store[creep.memory.mineral3] >= 40000) {
+					checkForMoreWork = true;
 				}
 
 				if (checkForMoreWork && lab4 && lab5 && lab6) {
