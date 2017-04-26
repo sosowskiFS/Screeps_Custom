@@ -6,7 +6,7 @@ var market_buyers = {
 		var neededMinerals = [];
 
 		//Always requested minerals for boosts
-		if (thisRoom.controller.level > 7) {
+		if (thisRoom.controller.level >= 7) {
 			neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
 			neededMinerals.push(RESOURCE_GHODIUM_ACID); //Upgrade boost
 			neededMinerals.push(RESOURCE_LEMERGIUM_ACID); //Repair boost
