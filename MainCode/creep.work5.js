@@ -695,7 +695,7 @@ var creep_work5 = {
 					lab6 = Game.getObjectById(creep.memory.lab6);
 				}
 				var checkForMoreWork = false;
-				if (lab1 && lab2 && lab3 && creep.room.terminal.store[creep.memory.mineral3] < 40000) {
+				if (lab1 && lab2 && lab3 && (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3])) {
 					if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
 						var min1Amount = creep.memory.mineral1 in creep.room.terminal.store;
 						var min2Amount = creep.memory.mineral2 in creep.room.terminal.store;
