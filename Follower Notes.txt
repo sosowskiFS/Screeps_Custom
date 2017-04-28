@@ -1,0 +1,3 @@
+Creep leader, follower
+leader -> If follower fatigue == 0 -> save last position -> move along path
+follower -> move to leader's saved position
