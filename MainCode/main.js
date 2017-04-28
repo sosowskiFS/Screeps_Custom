@@ -639,10 +639,14 @@ module.exports.loop = function() {
             case 'farMiner':
             case 'farMule':
             case 'farGuard':
+            case 'SKAttackGuard':
+            case 'SKHealGuard':
             case 'farClaimerNearDeath':
             case 'farMinerNearDeath':
             case 'farMuleNearDeath':
             case 'farGuardNearDeath':
+            case 'SKAttackGuardNearDeath':
+            case 'SKHealGuardNearDeath':
                 creep_farMining.run(creep);
                 break;
             case 'claimer':

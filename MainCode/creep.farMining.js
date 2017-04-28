@@ -490,31 +490,31 @@ var creep_farMining = {
 							var x = 0;
 							switch (foeDirection) {
 								case TOP:
-									y = -2;
+									y = 2;
 									break;
 								case TOP_RIGHT:
-									y = -2;
+									y = 2;
 									x = -2;
 									break;
 								case RIGHT:
 									x = -2;
 									break;
 								case BOTTOM_RIGHT:
-									y = 2;
+									y = -2;
 									x = -2;
 									break;
 								case BOTTOM:
-									y = 2;
+									y = -2;
 									break;
 								case BOTTOM_LEFT:
-									y = 2;
+									y = -2;
 									x = 2;
 									break;
 								case LEFT:
 									x = 2;
 									break;
 								case TOP_LEFT:
-									y = -2;
+									y = 2;
 									x = 2
 									break;
 							}
@@ -565,31 +565,31 @@ var creep_farMining = {
 						var x = 0;
 						switch (foeDirection) {
 							case TOP:
-								y = -2;
+								y = 2;
 								break;
 							case TOP_RIGHT:
-								y = -2;
+								y = 2;
 								x = -2;
 								break;
 							case RIGHT:
 								x = -2;
 								break;
 							case BOTTOM_RIGHT:
-								y = 2;
+								y = -2;
 								x = -2;
 								break;
 							case BOTTOM:
-								y = 2;
+								y = -2;
 								break;
 							case BOTTOM_LEFT:
-								y = 2;
+								y = -2;
 								x = 2;
 								break;
 							case LEFT:
 								x = 2;
 								break;
 							case TOP_LEFT:
-								y = -2;
+								y = 2;
 								x = 2
 								break;
 						}
@@ -663,6 +663,193 @@ var creep_farMining = {
 					creep.heal(creep);
 				}
 				break;
+			case 'SKAttackGuard':
+			case 'SKAttackGuardNearDeath':
+				creep.notifyWhenAttacked(false);
+
+				if (!creep.memory.deathWarn) {
+					if (Memory.warMode) {
+						creep.memory.deathWarn = _.size(creep.body) * 6;
+					} else {
+						creep.memory.deathWarn = _.size(creep.body) * 5;
+					}
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
+					creep.memory.priority = 'SKAttackGuardNearDeath';
+					creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				} else {
+					creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				}
+
+				var nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
+					filter: (mCreep) => (mCreep.memory.priority == "SKHealGuard" && mCreep.memory.targetFlag == creep.memory.targetFlag)
+				});
+
+				var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+				});
+
+				if (healerSquad.length < 1) {
+					if (creep.memory.getOutOfStartRoom) {
+						//Probably in a new room, hold.
+						if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+							var xTarget = 0;
+							var yTarget = 0;
+							if (creep.pos.x == 0) {
+								xTarget = 2;
+								yTarget = creep.pos.y;
+							} else if (creep.pos.x == 49) {
+								xTarget = 47;
+								yTarget = creep.pos.y;
+							}
+							if (creep.pos.y == 0) {
+								yTarget = 2;
+								xTarget = creep.pos.x;
+							} else if (creep.pos.y == 49) {
+								yTarget = 47;
+								xTarget = creep.pos.x;
+							}
+							creep.moveTo(xTarget, yTarget);
+						}
+					} else {
+						if (Game.flags[creep.memory.targetFlag + "Rally"]) {
+							creep.moveTo(Game.flags[creep.memory.targetFlag + "Rally"]);
+						}
+					}
+				} else if (healerSquad.length >= 1) {
+					creep.memory.getOutOfStartRoom = true;
+
+					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos.roomName != creep.pos.roomName) {
+						creep.moveTo(new RoomPosition(25, 25, Game.flags[creep.memory.targetFlag].pos.roomName));
+					} else {
+						//In target room
+						if (closeFoe) {
+							creep.moveTo(closeFoe);
+							creep.attack(closeFoe);
+							creep.memory.targetLair = undefined;
+						} else if (creep.memory.targetLair) {
+							var thisLair = Game.getObjectById(creep.memory.targetLair);
+							if (!creep.isNearTo(thisLair)) {
+								creep.moveTo(thisLair);
+							}
+						} else {
+							var SKLairs = creep.room.find(FIND_STRUCTURES, {
+								filter: (structure) => structure.structureType == STRUCTURE_KEEPER_LAIR
+							});
+							if (SKLairs.length) {
+								SKLairs.sort(SKCompare);
+								creep.memory.targetLair = SKLairs[0].id;
+								if (!creep.isNearTo(SKLairs[0])) {
+									creep.moveTo(SKLairs[0]);
+								}
+							}
+						}
+					}
+				}
+				break;
+			case 'SKHealGuard':
+			case 'SKHealGuardNearDeath':
+				creep.notifyWhenAttacked(false);
+
+				if (!creep.memory.deathWarn) {
+					if (Memory.warMode) {
+						creep.memory.deathWarn = _.size(creep.body) * 6;
+					} else {
+						creep.memory.deathWarn = _.size(creep.body) * 5;
+					}
+				}
+
+				if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
+					creep.memory.priority = 'SKHealGuardNearDeath';
+					creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				} else {
+					creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
+						align: 'left',
+						color: '#7DE3B5'
+					});
+				}
+
+
+				var targetAttacker = Game.getObjectById(creep.memory.parentAttacker);
+				if (targetAttacker) {
+					if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
+						var xTarget = 0;
+						var yTarget = 0;
+						if (creep.pos.x == 0) {
+							xTarget = 2;
+							yTarget = creep.pos.y;
+						} else if (creep.pos.x == 49) {
+							xTarget = 47;
+							yTarget = creep.pos.y;
+						}
+						if (creep.pos.y == 0) {
+							yTarget = 2;
+							xTarget = creep.pos.x;
+						} else if (creep.pos.y == 49) {
+							yTarget = 47;
+							xTarget = creep.pos.x;
+						}
+
+						creep.moveTo(xTarget, yTarget);
+					} else {
+						if (creep.pos.inRangeTo(targetAttacker, 2)) {
+							creep.move(creep.pos.getDirectionTo(targetAttacker));
+						} else {
+							if (targetAttacker.room.name == creep.room.name) {
+								creep.moveTo(targetAttacker, {
+									reusePath: 2,
+									maxRooms: 1
+								});
+							} else {
+								creep.moveTo(targetAttacker, {
+									reusePath: 0
+								});
+							}
+						}
+					}
+
+					if (creep.hits < creep.hitsMax - 99) {
+						creep.heal(creep);
+					} else if (targetAttacker.hits < targetAttacker.hitsMax) {
+						if (creep.pos.getRangeTo(targetAttacker) > 1) {
+							creep.rangedHeal(targetAttacker);
+						} else {
+							creep.heal(targetAttacker);
+						}
+					} else {
+						var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+							filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+						});
+						if (hurtAlly.length > 0) {
+							if (creep.pos.getRangeTo(hurtAlly[0]) > 1) {
+								creep.rangedHeal(hurtAlly[0]);
+							} else {
+								creep.heal(hurtAlly[0]);
+							}
+						}
+					}
+				} else {
+					if (Game.flags[creep.memory.targetFlag + "Rally"]) {
+						creep.moveTo(Game.flags[creep.memory.targetFlag + "Rally"]);
+					}
+					var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
+						filter: (mCreep) => (mCreep.memory.priority == "SKAttackGuard")
+					});
+					if (newTarget.length) {
+						creep.memory.parentAttacker= newTarget[0].id;
+					}
+				}
+				break;
 		}
 	}
 };
@@ -681,31 +868,31 @@ function evadeAttacker(creep) {
 		var x = 0;
 		switch (foeDirection) {
 			case TOP:
-				y = -2;
+				y = 2;
 				break;
 			case TOP_RIGHT:
-				y = -2;
+				y = 2;
 				x = -2;
 				break;
 			case RIGHT:
 				x = -2;
 				break;
 			case BOTTOM_RIGHT:
-				y = 2;
+				y = -2;
 				x = -2;
 				break;
 			case BOTTOM:
-				y = 2;
+				y = -2;
 				break;
 			case BOTTOM_LEFT:
-				y = 2;
+				y = -2;
 				x = 2;
 				break;
 			case LEFT:
 				x = 2;
 				break;
 			case TOP_LEFT:
-				y = -2;
+				y = 2;
 				x = 2
 				break;
 		}
@@ -750,6 +937,14 @@ function targetAttacker(a, b) {
 	if (a.getActiveBodyparts(ATTACK) > b.getActiveBodyparts(ATTACK))
 		return -1;
 	if (a.getActiveBodyparts(ATTACK) < b.getActiveBodyparts(ATTACK))
+		return 1;
+	return 0;
+}
+
+function SKCompare(a, b) {
+	if (a.ticksToSpawn < b.ticksToSpawn)
+		return -1;
+	if (a.ticksToSpawn > b.ticksToSpawn)
 		return 1;
 	return 0;
 }

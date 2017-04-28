@@ -104,8 +104,18 @@ var spawn_BuildFarCreeps = {
 				farGuards6 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard6");
 			}
 
+			var SKAttackGuards = [];
+			var SKHealGuards = [];
+			if (Game.flags[thisRoom.name + "SKGuard"]) {
+				SKAttackGuards = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'SKAttackGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "SKGuard");
+				SKHealGuards = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'SKHealGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "SKGuard");
+			}
+
 
 			var farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
+			if (Game.flags[thisRoom.name + "SKGuard"]) {
+				farMinerConfig = [TOUGH, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE];
+			}
 
 			var farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
 			if (thisRoom.energyCapacityAvailable >= 2300 && thisRoom.controller.level >= 7) {
@@ -126,6 +136,11 @@ var spawn_BuildFarCreeps = {
 
 			//760 Points (Level 3)
 			var farGuardConfig = [TOUGH, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
+
+			//2650
+			var SKGuardAttackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
+			//3000
+			var SKGuardHealerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
 
 			if (Memory.warMode) {
 				if (Memory.guardType) {
@@ -173,6 +188,7 @@ var spawn_BuildFarCreeps = {
 			var roomTarget = '';
 			var flagName = '';
 			var storageID = '';
+			var healTarget;
 
 			var blockedRole = '';
 			if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
@@ -185,6 +201,19 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "eFarGuard"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "eFarGuard"].name;
+				}
+			}
+
+			if (Game.flags[thisRoom.name + "SKGuard"] && prioritizedRole == '') {
+				if (SKAttackGuards.length < 1 && blockedRole != 'SKAttackGuard') {
+					prioritizedRole = 'SKAttackGuard';
+					roomTarget = Game.flags[thisRoom.name + "SKGuard"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "SKGuard"].name;
+				} else if (SKHealGuards.length < 1 && blockedRole != 'SKHealGuard') {
+					prioritizedRole = 'SKHealGuard';
+					roomTarget = Game.flags[thisRoom.name + "SKGuard"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "SKGuard"].name;
+					healTarget = SKAttackGuards[0].id;
 				}
 			}
 
@@ -386,6 +415,29 @@ var spawn_BuildFarCreeps = {
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 					Memory.guardType = !Memory.guardType;
+				} else if (prioritizedRole == 'SKAttackGuard') {
+					if (spawn.canCreateCreep(SKGuardAttackerConfig) == OK) {
+						spawn.createCreep(SKGuardAttackerConfig, undefined, {
+							priority: prioritizedRole,
+							destination: roomTarget,
+							homeRoom: thisRoom.name,
+							fromSpawn: spawn.id,
+							targetFlag: flagName
+						});
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
+					}
+				} else if (prioritizedRole == 'SKHealGuard') {
+					if (spawn.canCreateCreep(SKGuardHealerConfig) == OK) {
+						spawn.createCreep(SKGuardHealerConfig, undefined, {
+							priority: prioritizedRole,
+							destination: roomTarget,
+							homeRoom: thisRoom.name,
+							fromSpawn: spawn.id,
+							targetFlag: flagName,
+							parentAttacker: healTarget
+						});
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
+					}
 				}
 			}
 
