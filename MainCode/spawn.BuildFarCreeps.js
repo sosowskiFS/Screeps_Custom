@@ -235,6 +235,9 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining"].name;
 					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
 				} else if (farClaimers.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining"].pos.roomName] && blockedRole != 'farClaimer') {
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining"].pos.roomName;
@@ -263,6 +266,9 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarMining2"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining2"].name;
 					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining2"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
 				} else if (farClaimers2.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining2"].pos.roomName] && blockedRole != 'farClaimer') {
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining2"].pos.roomName;
@@ -291,6 +297,9 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarMining3"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining3"].name;
 					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining3"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
 				} else if (farClaimers3.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining3"].pos.roomName] && blockedRole != 'farClaimer') {
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining3"].pos.roomName;
@@ -319,6 +328,9 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarMining4"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining4"].name;
 					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining4"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
 				} else if (farClaimers4.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining4"].pos.roomName] && blockedRole != 'farClaimer') {
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining4"].pos.roomName;
@@ -347,6 +359,9 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarMining5"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining5"].name;
 					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining4"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
 				} else if (farClaimers5.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName] && blockedRole != 'farClaimer') {
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining5"].pos.roomName;
@@ -375,6 +390,9 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarMining6"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining6"].name;
 					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining6"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
 				} else if (farClaimers6.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining6"].pos.roomName] && blockedRole != 'farClaimer') {
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining6"].pos.roomName;
