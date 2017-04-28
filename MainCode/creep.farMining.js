@@ -300,9 +300,10 @@ var creep_farMining = {
 										}
 									} else {
 										//Wait by controller
-										creep.moveTo(creep.room.controller);
+										if (creep.room.controller){
+											creep.moveTo(creep.room.controller);
+										}								
 									}
-
 								}
 							} else {
 								//No container yet, move to be near source
