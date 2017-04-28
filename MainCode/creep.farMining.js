@@ -696,7 +696,7 @@ var creep_farMining = {
 					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 				});
 
-				if (healerSquad.length < 1) {
+				if (nearbyHealer.length < 1) {
 					if (creep.memory.getOutOfStartRoom) {
 						//Probably in a new room, hold.
 						if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
@@ -723,7 +723,7 @@ var creep_farMining = {
 							creep.moveTo(Game.flags[creep.memory.targetFlag + "Rally"]);
 						}
 					}
-				} else if (healerSquad.length >= 1) {
+				} else if (nearbyHealer.length >= 1) {
 					creep.memory.getOutOfStartRoom = true;
 
 					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos.roomName != creep.pos.roomName) {
