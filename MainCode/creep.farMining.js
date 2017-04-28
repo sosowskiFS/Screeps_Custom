@@ -71,11 +71,12 @@ var creep_farMining = {
 					});
 				}
 
+				var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+					filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
+				});
+
 				if (creep.hits < 400) {
 					//Determine if attacker is player, if so, delete flag.
-					var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5, {
-						filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
-					});
 					if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
 						Game.notify(creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
 						if (!Memory.warMode) {
@@ -136,7 +137,7 @@ var creep_farMining = {
 					if (creep.memory.storageUnit) {
 						var thisUnit = Game.getObjectById(creep.memory.storageUnit);
 						if (thisUnit) {
-							if (thisUnit.hits < thisUnit.hitsMax) {
+							if (thisUnit.hits < thisUnit.hitsMax && hostiles.length == 0) {
 								creep.repair(thisUnit);
 							} else {
 								if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -880,10 +881,10 @@ function evadeAttacker(creep, evadeRange) {
 	});
 	var closeFoe = undefined;
 
-	if (creep.hits < creep.hitsMax){
+	if (creep.hits < creep.hitsMax) {
 		creep.heal(creep);
 	}
-	
+
 	if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
 		closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
