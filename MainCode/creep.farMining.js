@@ -50,7 +50,7 @@ var creep_farMining = {
 					}
 				}
 
-				evadeAttacker(creep);
+				evadeAttacker(creep, 5);
 				break;
 			case 'farMiner':
 			case 'farMinerNearDeath':
@@ -180,7 +180,7 @@ var creep_farMining = {
 						}
 					}
 				}
-				evadeAttacker(creep);
+				evadeAttacker(creep, 3);
 				break;
 			case 'farMule':
 			case 'farMuleNearDeath':
@@ -259,7 +259,7 @@ var creep_farMining = {
 							reusePath: 25
 						});
 					}
-					evadeAttacker(creep);
+					evadeAttacker(creep, 5);
 				} else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
 						reusePath: 25
@@ -341,7 +341,7 @@ var creep_farMining = {
 								}
 							}
 						}
-						evadeAttacker(creep);
+						evadeAttacker(creep, 5);
 					} else {
 						//in home room, drop off energy
 						var storageUnit = Game.getObjectById(creep.memory.storageSource)
@@ -355,7 +355,7 @@ var creep_farMining = {
 								roadSearchTarget = storageUnit.pos;
 							}
 						}
-						evadeAttacker(creep);
+						evadeAttacker(creep, 5);
 					}
 				}
 
@@ -874,8 +874,8 @@ var creep_farMining = {
 	}
 };
 
-function evadeAttacker(creep) {
-	var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5, {
+function evadeAttacker(creep, evadeRange) {
+	var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
 		filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 	});
 
@@ -886,6 +886,8 @@ function evadeAttacker(creep) {
 		var foeDirection = creep.pos.getDirectionTo(closeFoe);
 		var y = 0;
 		var x = 0;
+		creep.rangedAttack(closeFoe);
+		creep.heal(creep);
 		switch (foeDirection) {
 			case TOP:
 				y = 2;
