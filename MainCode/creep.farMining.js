@@ -880,7 +880,10 @@ function evadeAttacker(creep, evadeRange) {
 	});
 	var closeFoe = undefined;
 
-	creep.heal(creep);
+	if (creep.hits < creep.hitsMax){
+		creep.heal(creep);
+	}
+	
 	if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
 		closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
