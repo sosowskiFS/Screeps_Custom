@@ -88,7 +88,7 @@ var spawn_BuildFarCreeps = {
 			}
 
 			var farMules5 = [];
-			var farClaimers5 = [];R
+			var farClaimers5 = [];
 			var farMiners5 = [];
 			var room5Distance = 1;
 			if (Game.flags[thisRoom.name + "FarMining5"]) {
