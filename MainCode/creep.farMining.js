@@ -745,13 +745,17 @@ var creep_farMining = {
 					} else {
 						//In target room
 						if (closeFoe) {
-							creep.moveTo(closeFoe);
+							creep.moveTo(closeFoe, {
+								maxRooms: 1
+							});
 							creep.attack(closeFoe);
 							creep.memory.targetLair = undefined;
 						} else if (creep.memory.targetLair) {
 							var thisLair = Game.getObjectById(creep.memory.targetLair);
 							if (!creep.isNearTo(thisLair)) {
-								creep.moveTo(thisLair);
+								creep.moveTo(thisLair, {
+									maxRooms: 1
+								});
 							}
 						} else {
 							var SKLairs = creep.room.find(FIND_STRUCTURES, {
@@ -761,7 +765,9 @@ var creep_farMining = {
 								SKLairs.sort(SKCompare);
 								creep.memory.targetLair = SKLairs[0].id;
 								if (!creep.isNearTo(SKLairs[0])) {
-									creep.moveTo(SKLairs[0]);
+									creep.moveTo(SKLairs[0], {
+										maxRooms: 1
+									});
 								}
 							}
 						}
