@@ -160,17 +160,19 @@ var creep_farMining = {
 									}
 									creep.memory.storageUnit = containers[0].id;
 								} else {
-									var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
-									if (sites.length) {
-										if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(sites[0], {
-												reusePath: 25
-											});
-										}
-									} else {
-										//Create new container
-										if (creep.pos.isNearTo(mineTarget)) {
-											creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER)
+									if (creep.carry[RESOURCE_ENERGY] >= 36) {
+										var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
+										if (sites.length) {
+											if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
+												creep.moveTo(sites[0], {
+													reusePath: 25
+												});
+											}
+										} else {
+											//Create new container
+											if (creep.pos.isNearTo(mineTarget)) {
+												creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER)
+											}
 										}
 									}
 								}
@@ -300,9 +302,9 @@ var creep_farMining = {
 										}
 									} else {
 										//Wait by controller
-										if (creep.room.controller){
+										if (creep.room.controller) {
 											creep.moveTo(creep.room.controller);
-										}								
+										}
 									}
 								}
 							} else {
@@ -693,7 +695,7 @@ var creep_farMining = {
 					var nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
 						filter: (mCreep) => (mCreep.memory.priority == "SKHealGuard" && mCreep.memory.targetFlag == creep.memory.targetFlag)
 					});
-					if (nearbyHealer.length){
+					if (nearbyHealer.length) {
 						creep.memory.healerID = nearbyHealer[0].id;
 					}
 				}
@@ -704,7 +706,7 @@ var creep_farMining = {
 
 				var thisHealer = Game.getObjectById(creep.memory.healerID);
 				var healerIsNear = false;
-				if (thisHealer){
+				if (thisHealer) {
 					healerIsNear = creep.pos.isNearTo(thisHealer);
 				}
 
