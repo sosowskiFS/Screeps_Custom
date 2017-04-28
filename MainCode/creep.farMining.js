@@ -688,15 +688,26 @@ var creep_farMining = {
 					});
 				}
 
-				var nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
-					filter: (mCreep) => (mCreep.memory.priority == "SKHealGuard" && mCreep.memory.targetFlag == creep.memory.targetFlag)
-				});
+				if (!creep.memory.healerID) {
+					var nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
+						filter: (mCreep) => (mCreep.memory.priority == "SKHealGuard" && mCreep.memory.targetFlag == creep.memory.targetFlag)
+					});
+					if (nearbyHealer.length){
+						creep.memory.healerID = nearbyHealer[0].id;
+					}
+				}
 
 				var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 				});
 
-				if (nearbyHealer.length < 1) {
+				var thisHealer = Game.getObjectById(creep.memory.healerID);
+				var healerIsNear = false;
+				if (thisHealer){
+					healerIsNear = creep.pos.isNearTo(thisHealer);
+				}
+
+				if (!healerIsNear) {
 					if (creep.memory.getOutOfStartRoom) {
 						//Probably in a new room, hold.
 						if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
@@ -723,7 +734,7 @@ var creep_farMining = {
 							creep.moveTo(Game.flags[creep.memory.targetFlag + "Rally"]);
 						}
 					}
-				} else if (nearbyHealer.length >= 1) {
+				} else if (healerIsNear) {
 					creep.memory.getOutOfStartRoom = true;
 
 					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos.roomName != creep.pos.roomName) {
@@ -846,7 +857,7 @@ var creep_farMining = {
 						filter: (mCreep) => (mCreep.memory.priority == "SKAttackGuard")
 					});
 					if (newTarget.length) {
-						creep.memory.parentAttacker= newTarget[0].id;
+						creep.memory.parentAttacker = newTarget[0].id;
 					}
 				}
 				break;
