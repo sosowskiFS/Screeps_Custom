@@ -879,6 +879,8 @@ function evadeAttacker(creep, evadeRange) {
 		filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 	});
 
+	creep.heal(creep);
+	
 	if (Foe.length) {
 		var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
@@ -887,7 +889,6 @@ function evadeAttacker(creep, evadeRange) {
 		var y = 0;
 		var x = 0;
 		creep.rangedAttack(closeFoe);
-		creep.heal(creep);
 		switch (foeDirection) {
 			case TOP:
 				y = 2;
