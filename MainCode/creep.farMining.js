@@ -115,7 +115,8 @@ var creep_farMining = {
 						if (mineTarget && _.sum(creep.carry) <= 35) {
 							if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(mineTarget, {
-									reusePath: 25
+									reusePath: 25,
+									maxRooms: 1
 								});
 							}
 						}
