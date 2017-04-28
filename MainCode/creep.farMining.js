@@ -71,9 +71,13 @@ var creep_farMining = {
 					});
 				}
 
-				var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-					filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
-				});
+				var hostiles = [];
+
+				if (creep.hits < creep.hitsMax) {
+					hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+						filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
+					});
+				}
 
 				if (creep.hits < 400) {
 					//Determine if attacker is player, if so, delete flag.
