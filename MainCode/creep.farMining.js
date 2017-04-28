@@ -180,7 +180,7 @@ var creep_farMining = {
 						}
 					}
 				}
-				evadeAttacker(creep, 3);
+				evadeAttacker(creep, 2);
 				break;
 			case 'farMule':
 			case 'farMuleNearDeath':
@@ -880,7 +880,7 @@ function evadeAttacker(creep, evadeRange) {
 	});
 
 	creep.heal(creep);
-	
+
 	if (Foe.length) {
 		var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
