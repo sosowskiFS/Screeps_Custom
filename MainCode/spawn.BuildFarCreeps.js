@@ -219,6 +219,9 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+					}
 				}
 			}
 
@@ -250,6 +253,9 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard2"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard2"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard2"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+					}
 				}
 			}
 
@@ -281,6 +287,9 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard3"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard3"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard3"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+					}
 				}
 			}
 
@@ -312,6 +321,9 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard4"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard4"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard4"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+					}
 				}
 			}
 
@@ -343,6 +355,9 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard5"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard5"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard5"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+					}
 				}
 			}
 
@@ -374,6 +389,9 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farGuard';
 					roomTarget = Game.flags[thisRoom.name + "FarGuard6"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard6"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard6"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+					}
 				}
 			}
 
