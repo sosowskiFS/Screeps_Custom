@@ -457,12 +457,26 @@ var creep_farMining = {
 					Memory.FarClaimerNeeded[creep.room.name] = false;
 				}
 
-				var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-				});
-				var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-				});
+
+				var Foe = [];
+				var closeFoe = [];
+
+				if (Game.flags[Game.flags[creep.memory.targetFlag].pos.roomName + "SKRoom"]) {
+					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
+					});
+					closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
+					});
+				} else {
+					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+					});
+					closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+					});
+				}
+
 				if (Foe.length) {
 					Foe.sort(targetAttacker);
 				}
