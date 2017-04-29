@@ -313,7 +313,7 @@ var creep_farMining = {
 										if (creep.room.controller) {
 											creep.moveTo(creep.room.controller);
 										} else {
-											creep.moveTo(25,25);
+											creep.moveTo(25, 25);
 										}
 									}
 								}
@@ -331,11 +331,7 @@ var creep_farMining = {
 
 								var thisSource = Game.getObjectById(creep.memory.mineSource);
 								if (thisSource) {
-									creep.moveTo(thisSource, {
-										reusePath: 25,
-										maxRooms: 1
-									})
-									if (creep.pos.inRangeTo(thisSource, 5)) {
+									if (creep.pos.inRangeTo(thisSource, 3)) {
 										//Search for container
 										var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
 											filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
@@ -349,6 +345,11 @@ var creep_farMining = {
 												})
 											}
 										}
+									} else {
+										creep.moveTo(thisSource, {
+											reusePath: 25,
+											maxRooms: 1
+										})
 									}
 								}
 							}
