@@ -220,7 +220,7 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarGuard"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard"].name;
 					if (Game.flags[Game.flags[thisRoom.name + "FarGuard"].pos.roomName + "SKRoom"]) {
-						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
 					}
 				}
 			}
@@ -254,7 +254,7 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarGuard2"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard2"].name;
 					if (Game.flags[Game.flags[thisRoom.name + "FarGuard2"].pos.roomName + "SKRoom"]) {
-						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
 					}
 				}
 			}
@@ -288,7 +288,7 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarGuard3"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard3"].name;
 					if (Game.flags[Game.flags[thisRoom.name + "FarGuard3"].pos.roomName + "SKRoom"]) {
-						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
 					}
 				}
 			}
@@ -322,7 +322,7 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarGuard4"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard4"].name;
 					if (Game.flags[Game.flags[thisRoom.name + "FarGuard4"].pos.roomName + "SKRoom"]) {
-						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
 					}
 				}
 			}
@@ -356,7 +356,7 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarGuard5"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard5"].name;
 					if (Game.flags[Game.flags[thisRoom.name + "FarGuard5"].pos.roomName + "SKRoom"]) {
-						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
 					}
 				}
 			}
@@ -374,7 +374,7 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarMining5"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining5"].name;
 					storageID = thisRoom.storage.id;
-					if (Game.flags[Game.flags[thisRoom.name + "FarMining4"].pos.roomName + "SKRoom"]) {
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining5"].pos.roomName + "SKRoom"]) {
 						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
 					}
 				} else if (farClaimers5.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining5"].pos.roomName] && blockedRole != 'farClaimer') {
@@ -390,7 +390,7 @@ var spawn_BuildFarCreeps = {
 					roomTarget = Game.flags[thisRoom.name + "FarGuard6"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarGuard6"].name;
 					if (Game.flags[Game.flags[thisRoom.name + "FarGuard6"].pos.roomName + "SKRoom"]) {
-						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL];
 					}
 				}
 			}

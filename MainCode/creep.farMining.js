@@ -488,7 +488,7 @@ var creep_farMining = {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					}
-				} else if (creep.room.controller && closeFoe) {
+				} else if (closeFoe) {
 					var closeRangeresult = "";
 
 					closeRangeResult = creep.rangedAttack(closeFoe);
