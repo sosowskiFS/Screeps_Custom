@@ -119,6 +119,11 @@ var creep_farMining = {
 									maxRooms: 1
 								});
 							}
+						} else if (mineTarget && !creep.pos.isNearTo(mineTarget)) {
+							creep.moveTo(mineTarget, {
+								reusePath: 25,
+								maxRooms: 1
+							});
 						}
 					} else {
 						//Get the source ID while in the room
