@@ -467,20 +467,16 @@ var creep_farMining = {
 
 
 				var Foe = [];
-				var closeFoe = [];
+				var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+				});
 
 				if (Game.flags[Game.flags[creep.memory.targetFlag].pos.roomName + "SKRoom"]) {
 					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
 					});
-					closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
-					});
 				} else {
 					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-					});
-					closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 					});
 				}
@@ -496,7 +492,7 @@ var creep_farMining = {
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 					}
-				} else if (closeFoe) {
+				} else if (Foe.length) {
 					var closeRangeresult = "";
 
 					closeRangeResult = creep.rangedAttack(closeFoe);
