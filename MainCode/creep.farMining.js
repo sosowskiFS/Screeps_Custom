@@ -304,8 +304,9 @@ var creep_farMining = {
 									if (thisContainer.store[RESOURCE_ENERGY] > 0) {
 										if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 											creep.moveTo(thisContainer, {
-												reusePath: 25
-											});
+												reusePath: 25,
+												maxRooms: 1
+											})
 										}
 									} else {
 										//Wait by controller
@@ -329,8 +330,9 @@ var creep_farMining = {
 								var thisSource = Game.getObjectById(creep.memory.mineSource);
 								if (thisSource) {
 									creep.moveTo(thisSource, {
-										reusePath: 25
-									});
+										reusePath: 25,
+										maxRooms: 1
+									})
 									if (creep.pos.inRangeTo(thisSource, 5)) {
 										//Search for container
 										var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
@@ -340,8 +342,9 @@ var creep_farMining = {
 											creep.memory.containerTarget = containers[0].id;
 											if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 												creep.moveTo(containers[0], {
-													reusePath: 25
-												});
+													reusePath: 25,
+													maxRooms: 1
+												})
 											}
 										}
 									}
@@ -355,8 +358,9 @@ var creep_farMining = {
 						if (storageUnit) {
 							if (creep.transfer(storageUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(storageUnit, {
-									reusePath: 25
-								});
+									reusePath: 25,
+									maxRooms: 1
+								})
 							}
 							if (creep.memory.didRoadSearch == false) {
 								roadSearchTarget = storageUnit.pos;
