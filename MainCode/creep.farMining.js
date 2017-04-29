@@ -312,6 +312,8 @@ var creep_farMining = {
 										//Wait by controller
 										if (creep.room.controller) {
 											creep.moveTo(creep.room.controller);
+										} else {
+											creep.moveTo(25,25);
 										}
 									}
 								}
