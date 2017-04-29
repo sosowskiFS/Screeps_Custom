@@ -195,7 +195,7 @@ var creep_farMining = {
 					creep.memory.deathWarn = _.size(creep.body) * 5;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn || creep.getActiveBodyparts(CARRY) <= 2) {
 					creep.memory.priority = 'farMuleNearDeath';
 					creep.room.visual.text("\u2620\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
 						align: 'left',
