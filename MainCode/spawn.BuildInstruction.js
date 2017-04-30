@@ -95,7 +95,7 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'removeKebab':
-				var kebabers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'removeKebab');
+				var kebabers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'removeKebab' && creep.memory.homeRoom == spawn.room.name);
 				if (kebabers.length < 2) {
 					var kebabConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK];
 					if (spawn.room.energyCapacityAvailable >= 3750) {
@@ -107,7 +107,8 @@ var spawn_BuildInstruction = {
 							spawn.createCreep(kebabConfig, undefined, {
 								priority: 'removeKebab',
 								destination: params,
-								path: creepPath
+								path: creepPath,
+								homeRoom: spawn.room.name
 							});
 							Memory.isSpawning = true;
 							console.log('Kebab executed from ' + spawn.room.name);
@@ -121,7 +122,8 @@ var spawn_BuildInstruction = {
 						if (spawn.canCreateCreep(kebabConfig) == OK) {
 							spawn.createCreep(kebabConfig, undefined, {
 								priority: 'removeKebab',
-								destination: params
+								destination: params,
+								homeRoom: spawn.room.name
 							});
 							Memory.isSpawning = true;
 							console.log('Kebab executed from ' + spawn.room.name);
