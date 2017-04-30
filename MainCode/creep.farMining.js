@@ -676,9 +676,9 @@ var creep_farMining = {
 						creep.heal(creep);
 					}
 				} else if (Game.flags[creep.memory.targetFlag]) {
-					var closeRangeresult = "";
+					var closeRangeResult = "";
 					if (closeFoe) {
-						closeRangeresult = creep.rangedAttack(closeFoe);
+						closeRangeResult = creep.rangedAttack(closeFoe);
 					}
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
