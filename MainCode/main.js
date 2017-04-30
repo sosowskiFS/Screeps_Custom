@@ -79,6 +79,14 @@ module.exports.loop = function() {
         Memory.attackDuration = 0;
     }
 
+    //Clean up crappy construction sites
+    if (Game.flags["RemoveSites"]) {
+        for (var s in Game.constructionSites) {
+            Game.constructionSites[s].remove();
+        }
+        Game.flags["RemoveSites"].remove();
+    }
+
     //Note that warMode is on
     if (Memory.warMode) {
         new RoomVisual().text("War Mode", 0, 49, {
