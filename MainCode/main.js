@@ -462,7 +462,7 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["RemoveKebab"] && thisRoom.controller.level >= 7) {
-                spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName);
+                spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', '');
             }
 
             if (!Memory.isSpawning) {

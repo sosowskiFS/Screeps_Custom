@@ -2,8 +2,15 @@ var creep_Kebab = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (Game.flags["RemoveKebab"] && Game.flags["RemoveKebab"].pos.roomName != creep.pos.roomName) {
-            creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName));
+        if (Game.flags["RemoveKebab"] && Game.flags["RemoveKebab"].pos.roomName != creep.pos.roomName) {      
+            if (creep.memory.path) {
+                if (creep.memory.path[0] == creep.room.name) {
+                    creep.memory.path.splice(0, 1);
+                }
+                creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
+            } else {
+                creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName));
+            }
         } else {
             //In target room
             var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS);

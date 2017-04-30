@@ -96,24 +96,43 @@ var spawn_BuildInstruction = {
 				break;
 			case 'removeKebab':
 				var kebabers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'removeKebab');
-				if (kebabers.length < 1) {
+				if (kebabers.length < 2) {
 					var kebabConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK];
 					if (spawn.room.energyCapacityAvailable >= 3750) {
 						kebabConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK];
 					}
-					if (spawn.canCreateCreep(kebabConfig) == OK) {
-						spawn.createCreep(kebabConfig, undefined, {
-							priority: 'removeKebab',
-							destination: params
-						});
-						Memory.isSpawning = true;
-						console.log('Kebab executed from ' + spawn.room.name);
-						//if (Game.flags["RemoveKebab"]) {
-						//Game.flags["RemoveKebab"].remove();
-						//}
+					if (params2 != '') {
+						var creepPath = params2.split(";");
+						if (spawn.canCreateCreep(kebabConfig) == OK) {
+							spawn.createCreep(kebabConfig, undefined, {
+								priority: 'removeKebab',
+								destination: params,
+								path: creepPath
+							});
+							Memory.isSpawning = true;
+							console.log('Kebab executed from ' + spawn.room.name);
+							//if (Game.flags["RemoveKebab"]) {
+							//Game.flags["RemoveKebab"].remove();
+							//}
+						} else {
+							//console.log('Could not execute constructor. Spawn cannot create creep.');
+						}
 					} else {
-						//console.log('Could not execute constructor. Spawn cannot create creep.');
+						if (spawn.canCreateCreep(kebabConfig) == OK) {
+							spawn.createCreep(kebabConfig, undefined, {
+								priority: 'removeKebab',
+								destination: params
+							});
+							Memory.isSpawning = true;
+							console.log('Kebab executed from ' + spawn.room.name);
+							//if (Game.flags["RemoveKebab"]) {
+							//Game.flags["RemoveKebab"].remove();
+							//}
+						} else {
+							//console.log('Could not execute constructor. Spawn cannot create creep.');
+						}
 					}
+
 				}
 				break;
 			case 'tDrain':
