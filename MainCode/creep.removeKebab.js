@@ -20,7 +20,9 @@ var creep_Kebab = {
                 filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION)
             });
             if (eExt) {
-                creep.moveTo(eExt);
+                creep.moveTo(eExt, {
+                    maxRooms: 1
+                });
                 creep.dismantle(eExt);
             } else {
                 var eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
@@ -28,12 +30,15 @@ var creep_Kebab = {
                     creep.memory.moveTimer = 0;
                 }
                 if (eSpawns.length) {
-                    if (creep.memory.moveTimer >= 20) {
+                    if (creep.memory.moveTimer >= 5) {
                         creep.moveTo(eSpawns[0], {
-                            ignoreDestructibleStructures: true
+                            ignoreDestructibleStructures: true,
+                            maxRooms: 1
                         });
                     } else {
-                        creep.moveTo(eSpawns[0]);
+                        creep.moveTo(eSpawns[0], {
+                            maxRooms: 1
+                        });
                     }
                     creep.memory.moveTimer++;
 
