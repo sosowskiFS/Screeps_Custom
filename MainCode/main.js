@@ -156,18 +156,6 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Game.flags["RemoveKebab"]) {
-                if (thisRoom.energyCapacityAvailable >= 1300) {
-                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["RemoveKebab"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                        roomDist = theDistance;
-                        roomName = thisRoom.name;
-                        roomEnergy = thisRoom.energyCapacityAvailable;
-                        instructionSpawn = Game.spawns[i];
-                    }
-                }
-            }
-
             if (Game.flags["Loot"]) {
                 if (thisRoom.storage) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
@@ -473,6 +461,10 @@ module.exports.loop = function() {
                 spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '', Game.flags[thisRoom.name + "Distract"].name);
             }
 
+            if (Game.flags["RemoveKebab"] && thisRoom.controller.level >= 7) {
+                spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName);
+            }
+
             if (!Memory.isSpawning) {
                 if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                     spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
@@ -591,10 +583,6 @@ module.exports.loop = function() {
 
     if (Game.flags["DrainTurret"]) {
         spawn_BuildInstruction.run(instructionSpawn, 'tDrain', Game.flags["DrainTurret"].pos.roomName);
-    }
-
-    if (Game.flags["RemoveKebab"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'removeKebab', Game.flags["RemoveKebab"].pos.roomName);
     }
 
     if (Game.flags["Loot"]) {

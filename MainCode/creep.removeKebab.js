@@ -2,37 +2,25 @@ var creep_Kebab = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (creep.room.name != creep.memory.destination) {
-            creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+        if (Game.flags["RemoveKebab"] && Game.flags["RemoveKebab"].pos.roomName != creep.pos.roomName) {
+            creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName));
         } else {
-            //Move towards wall
-            var flagName = creep.room.name + 'eWall';
-            var flagCounter = 1;
-            if (Game.flags[flagName + flagCounter.toString()] && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length == 0) {
-                //Wall removed, proceed to target
-                if (Game.flags["RemoveKebab"]) {
-                    var sitesOnTile = Game.flags["RemoveKebab"].pos.lookFor(LOOK_STRUCTURES);
-                    if (sitesOnTile.length) {
-                        if (creep.dismantle(sitesOnTile[0]) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(sitesOnTile[0]);
-                        }
-                    } else {
-                        Game.flags["RemoveKebab"].remove();
-                        //KEBAB REMOVED
-                        creep.suicide();
-                    }
+            //In target room
+            var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS);
+            if (!creep.memory.moveTimer) {
+                creep.memory.moveTimer = 0;
+            }
+            if (eSpawns.length) {
+                if (creep.memory.moveTimer >= 50) {
+                    creep.moveTo(eSpawns[0], {
+                        ignoreDestructibleStructures: true
+                    });
                 } else {
-                    flagCounter++;
+                    creep.moveTo(eSpawns[0]);
                 }
-            } else if (Game.flags[flagName + flagCounter.toString()] && creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos) && Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES).length > 0) {
-                var thisWall = Game.flags[flagName + flagCounter.toString()].pos.lookFor(LOOK_STRUCTURES);
-                if (thisWall[0]) {
-                    creep.dismantle(thisWall[0]);
-                }
-            } else if (Game.flags[flagName + flagCounter.toString()] && !creep.pos.isNearTo(Game.flags[flagName + flagCounter.toString()].pos)) {
-                creep.moveTo(Game.flags[flagName + flagCounter.toString()]);
-            } else {
-                flagCounter++;
+                creep.memory.moveTimer++;
+
+                creep.dismantle(eSpawns[0]);
             }
         }
     }
