@@ -470,7 +470,7 @@ var creep_farMining = {
 				var closeFoe = [];
 				if (Game.flags[Game.flags[creep.memory.targetFlag].pos.roomName + "SKRoom"]) {
 					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
-						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && (eCreep.owner.username != "Source Keeper" || eCreep.hits < eCreep.hitsMax))
+						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
 					});
 					closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && (eCreep.owner.username != "Source Keeper" || eCreep.hits < eCreep.hitsMax))
@@ -502,6 +502,7 @@ var creep_farMining = {
 
 					closeRangeResult = creep.rangedAttack(closeFoe);
 					creep.attack(closeFoe);
+					creep.rangedAttack(closeFoe);
 					if (Foe.length) {
 						creep.attack(Foe[0]);
 						creep.rangedAttack(Foe[0]);
@@ -675,6 +676,10 @@ var creep_farMining = {
 						creep.heal(creep);
 					}
 				} else if (Game.flags[creep.memory.targetFlag]) {
+					var closeRangeresult = "";
+					if (closeFoe) {
+						closeRangeresult = creep.rangedAttack(closeFoe);
+					}
 					if (creep.hits < creep.hitsMax) {
 						creep.heal(creep);
 						if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
@@ -688,7 +693,9 @@ var creep_farMining = {
 						});
 						if (hurtAlly.length > 0) {
 							creep.moveTo(hurtAlly[0]);
-							creep.rangedHeal(hurtAlly[0]);
+							if (closeRangeResult != OK) {
+								creep.rangedHeal(hurtAlly[0]);
+							}
 							creep.heal(hurtAlly[0]);
 						} else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
 							creep.moveTo(Game.flags[creep.memory.targetFlag], {
