@@ -16,22 +16,31 @@ var creep_Kebab = {
             }
         } else {
             //In target room
-            var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS);
-            if (!creep.memory.moveTimer) {
-                creep.memory.moveTimer = 0;
-            }
-            if (eSpawns.length) {
-                if (creep.memory.moveTimer >= 20) {
-                    creep.moveTo(eSpawns[0], {
-                        ignoreDestructibleStructures: true
-                    });
-                } else {
-                    creep.moveTo(eSpawns[0]);
+            var eExt = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION)
+            });
+            if (eExt) {
+                creep.moveTo(eExt);
+                creep.dismantle(eExt);
+            } else {
+                var eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
+                if (!creep.memory.moveTimer) {
+                    creep.memory.moveTimer = 0;
                 }
-                creep.memory.moveTimer++;
+                if (eSpawns.length) {
+                    if (creep.memory.moveTimer >= 20) {
+                        creep.moveTo(eSpawns[0], {
+                            ignoreDestructibleStructures: true
+                        });
+                    } else {
+                        creep.moveTo(eSpawns[0]);
+                    }
+                    creep.memory.moveTimer++;
 
-                creep.dismantle(eSpawns[0]);
+                    creep.dismantle(eSpawns[0]);
+                }
             }
+
         }
     }
 };
