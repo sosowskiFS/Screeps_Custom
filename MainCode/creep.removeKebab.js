@@ -20,22 +20,38 @@ var creep_Kebab = {
             if (somethingNearby) {
                 creep.dismantle(somethingNearby);
             }
-            
-            var eExt = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION)
-            });
-            if (eExt) {
-                creep.moveTo(eExt, {
-                    maxRooms: 1
-                });
-                creep.dismantle(eExt);
-            } else {
-                var eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_SPAWNS);
-                if (eSpawns.length) {
-                    creep.moveTo(eSpawns[0], {
+
+            if (creep.memory.targetSpawn) {
+                var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
+                if (thisSpawn) {
+                    creep.moveTo(thisSpawn, {
                         maxRooms: 1
                     });
-                    creep.dismantle(eSpawns[0]);
+                    creep.dismantle(thisSpawn);
+                } else {
+                    creep.memory.targetSpawn = undefined;
+                }
+            } else {
+                var eExt = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                    filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION)
+                });
+                if (eExt) {
+                    creep.moveTo(eExt, {
+                        maxRooms: 1
+                    });
+                    creep.dismantle(eExt);
+                } else {
+                    var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS);
+                    if (eSpawns.length) {
+                        creep.memory.targetSpawn = eSpawns[Math.floor(Math.random() * eSpawns.length)].id;
+                        var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
+                        if (thisSpawn) {
+                            creep.moveTo(thisSpawn, {
+                                maxRooms: 1
+                            });
+                            creep.dismantle(thisSpawn);
+                        }
+                    }
                 }
             }
         }
