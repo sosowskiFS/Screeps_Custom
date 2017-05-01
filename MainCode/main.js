@@ -470,7 +470,7 @@ module.exports.loop = function() {
             }
 
             if (Game.flags["RemoveKebab"] && thisRoom.controller.level >= 7) {
-                spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', 'E87N81;E87N80;E86N80;E85N80;E84N80;E83N80;E82N80;E81N80;E80N80;E79N80;E78N80;E78N81;E77N81;E77N82;E76N82;E76N83');
+                spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', 'E87N81;E87N80;E86N80;E85N80;E84N80;E83N80;E82N80;E81N80;E80N80;E79N80;E78N80;E77N80;E76N80;E75N80;E74N80;E74N81');
             }
 
             if (!Memory.isSpawning) {
