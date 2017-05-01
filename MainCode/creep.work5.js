@@ -904,7 +904,15 @@ var creep_work5 = {
 							}
 						}
 					}
+					if (checkForMoreWork && creep.room.terminal) {
+						if (!creep.pos.isNearTo(creep.room.terminal)) {
+							creep.moveTo(creep.room.terminal, {
+								reusePath: 5
+							});
+						}
+					}
 				}
+
 				break;
 		}
 
