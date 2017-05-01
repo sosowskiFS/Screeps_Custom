@@ -31,8 +31,6 @@ var tower_Operate = require('tower.Operate');
 //Market
 var market_buyers = require('market.FindBuyers');
 
-var graph_Script = require('screepsplus');
-
 //const profiler = require('screeps-profiler');
 
 //Ctrl+Alt+f to autoformat documents.
@@ -711,9 +709,6 @@ module.exports.loop = function() {
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
     Memory.totalTicksRecorded = Memory.totalTicksRecorded + 1;
     Memory.averageUsedCPU = Memory.averageUsedCPU + ((thisTickCPU - Memory.averageUsedCPU) / Memory.totalTicksRecorded)
-
-    graph_Script.collect_stats();
-    Memory.stats.cpu.used = Game.cpu.getUsed();
 
     //});
 
