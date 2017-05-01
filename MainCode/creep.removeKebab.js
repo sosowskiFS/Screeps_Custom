@@ -51,6 +51,11 @@ var creep_Kebab = {
                             });
                             creep.dismantle(thisSpawn);
                         }
+                    } else {
+                        //Assume we're done here.
+                        if (Game.flags["RemoveKebab"]) {
+                            Game.flags["RemoveKebab"].remove();
+                        }                   
                     }
                 }
             }
