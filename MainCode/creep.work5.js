@@ -54,16 +54,17 @@ var creep_work5 = {
 						}
 					}
 
-					if (creep.carry.energy >= 48) {
-						if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(storageTarget, {
+					if (mineTarget.energy > 0) {
+						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(mineTarget, {
 								reusePath: 5
 							});
 						}
 					}
-					if (mineTarget.energy > 0) {
-						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(mineTarget, {
+
+					if (creep.carry.energy >= 48) {
+						if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(storageTarget, {
 								reusePath: 5
 							});
 						}
@@ -908,8 +909,7 @@ var creep_work5 = {
 								checkForMoreWork = true;
 							}
 						}
-					}
-					if (checkForMoreWork && creep.room.terminal && !creep.memory.isMoving) {
+					} else if (checkForMoreWork && creep.room.terminal) {
 						if (!creep.pos.isNearTo(creep.room.terminal)) {
 							creep.moveTo(creep.room.terminal, {
 								reusePath: 5
