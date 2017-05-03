@@ -310,6 +310,11 @@ var creep_farMining = {
 										var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
 											filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
 										});
+										if (containers.length > 1) {
+											containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
+												filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+											});
+										}
 										if (containers.length) {
 											creep.memory.containerTarget = containers[0].id;
 											if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
