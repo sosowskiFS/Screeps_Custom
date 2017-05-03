@@ -4,13 +4,13 @@ var creep_Kebab = {
     run: function(creep) {
         if (Game.flags["RemoveKebab"] && Game.flags["RemoveKebab"].pos.roomName != creep.pos.roomName) {
             if (creep.memory.path) {
+                creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                     if (creep.memory.path.length == 0) {
                         creep.memory.path = undefined;
                     }
                 }
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
             } else {
                 creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName));
             }
@@ -55,7 +55,7 @@ var creep_Kebab = {
                         //Assume we're done here.
                         if (Game.flags["RemoveKebab"]) {
                             Game.flags["RemoveKebab"].remove();
-                        }                   
+                        }
                     }
                 }
             }
