@@ -361,13 +361,9 @@ module.exports.loop = function() {
                 //Handle Links
                 if (Memory.linkList[thisRoom.name][0]) {
                     var roomLink = Game.getObjectById(Memory.linkList[thisRoom.name][0]);
-                    if (roomLink) {
-                        if (roomLink.energy >= 50 && roomLink.cooldown == 0) {
-                            var receiveLink = Game.getObjectById(Memory.linkList[thisRoom.name][1]);
-                            if (receiveLink) {
-                                roomLink.transferEnergy(receiveLink);
-                            }
-                        }
+                    var receiveLink = Game.getObjectById(Memory.linkList[thisRoom.name][1]);
+                    if (roomLink && receiveLink && roomLink.energy >= 50 && roomLink.cooldown == 0 && receiveLink.energy < 700) {
+                        roomLink.transferEnergy(receiveLink);
                     }
                 }
 
@@ -436,7 +432,7 @@ module.exports.loop = function() {
                 Memory.isSpawning = false;
             }
 
-            if (Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
+            if (Game.time % 10 == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E88N88;E88N89;E89N89;E89N90;E88N90;E87N90;E86N90;E85N90;E85N89');
