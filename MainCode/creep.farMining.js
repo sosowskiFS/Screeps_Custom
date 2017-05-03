@@ -246,7 +246,14 @@ var creep_farMining = {
 						reusePath: 25
 					});
 					if (creep.memory.didRoadSearch == false) {
-						roadSearchTarget = new RoomPosition(25, 25, creep.memory.homeRoom);
+						if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+							roadSearchTarget = new RoomPosition(25, 25, creep.memory.homeRoom);
+						} else if (creep.memory.containerTarget) {
+							var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+							if (thisContainer && thisContainer.pos.roomName == creep.pos.roomName && creep.pos.isNearTo(thisContainer)) {
+								roadSearchTarget = new RoomPosition(25, 25, creep.memory.homeRoom);
+							}
+						}
 					}
 				} else {
 					if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
