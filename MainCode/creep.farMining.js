@@ -305,7 +305,7 @@ var creep_farMining = {
 
 								var thisSource = Game.getObjectById(creep.memory.mineSource);
 								if (thisSource) {
-									if (creep.pos.inRangeTo(thisSource, 3)) {
+									if (creep.pos.inRangeTo(thisSource, 2)) {
 										//Search for container
 										var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
 											filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
