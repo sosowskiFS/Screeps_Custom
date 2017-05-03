@@ -14,7 +14,7 @@ var creep_Kebab = {
             } else {
                 creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName));
             }
-        } else {
+        } else if (Game.flags["RemoveKebab"]) {
             //In target room
             var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
             if (somethingNearby) {
