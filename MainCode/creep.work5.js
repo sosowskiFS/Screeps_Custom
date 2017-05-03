@@ -30,18 +30,9 @@ var creep_work5 = {
 					creep.memory.deathWarn = _.size(creep.body) * 4;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'minerNearDeath') {
 					creep.memory.priority = 'minerNearDeath';
 					creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
-					creep.room.visual.text("\u2620\u26CF", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\u26CF", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				//Creep will immediately harvest and store mined materials
@@ -911,7 +902,7 @@ var creep_work5 = {
 							}
 						}
 					}
-					
+
 					if (checkForMoreWork && creep.room.terminal) {
 						if (!creep.pos.isNearTo(creep.room.terminal)) {
 							creep.moveTo(creep.room.terminal, {

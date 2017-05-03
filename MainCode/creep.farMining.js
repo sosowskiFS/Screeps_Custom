@@ -9,17 +9,8 @@ var creep_farMining = {
 					creep.memory.deathWarn = _.size(creep.body) * 5;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farClaimerNearDeath') {
 					creep.memory.priority = 'farClaimerNearDeath';
-					creep.room.visual.text("\u2620\u27A1\uD83D\uDEA9", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\u27A1\uD83D\uDEA9", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				if (creep.room.name != creep.memory.destination) {
@@ -46,17 +37,8 @@ var creep_farMining = {
 					creep.memory.deathWarn = _.size(creep.body) * 5;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farMinerNearDeath') {
 					creep.memory.priority = 'farMinerNearDeath';
-					creep.room.visual.text("\u2620\u27A1\u26CF", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\u27A1\u26CF", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				var hostiles = [];
@@ -85,14 +67,14 @@ var creep_farMining = {
 					});
 				} else {
 					if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-						if (creep.room.controller.reservation.ticksToEnd <= 1000) {
+						if (creep.room.controller.reservation.ticksToEnd <= 1000 && Memory.FarClaimerNeeded[creep.room.name] != true) {
 							Memory.FarClaimerNeeded[creep.room.name] = true;
-						} else {
+						} else if (Memory.FarClaimerNeeded[creep.room.name] != false) {
 							Memory.FarClaimerNeeded[creep.room.name] = false;
 						}
-					} else if (creep.room.name == creep.memory.destination && creep.room.controller) {
+					} else if (creep.room.name == creep.memory.destination && creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != true) {
 						Memory.FarClaimerNeeded[creep.room.name] = true;
-					} else if (!creep.room.controller) {
+					} else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != false) {
 						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 
@@ -100,7 +82,7 @@ var creep_farMining = {
 
 					if (creep.memory.mineSource) {
 						mineTarget = Game.getObjectById(creep.memory.mineSource);
-						if (mineTarget && _.sum(creep.carry) <= 35) {
+						if (mineTarget && _.sum(creep.carry) <= 35 && mineTarget.energy > 0) {
 							if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(mineTarget, {
 									reusePath: 25,
@@ -138,7 +120,7 @@ var creep_farMining = {
 						if (thisUnit) {
 							if (thisUnit.hits < thisUnit.hitsMax && hostiles.length == 0) {
 								creep.repair(thisUnit);
-							} else {
+							} else if (creep.carry.energy >= 36) {
 								if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 									creep.moveTo(thisUnit, {
 										reusePath: 25
