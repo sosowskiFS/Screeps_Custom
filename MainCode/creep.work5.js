@@ -86,17 +86,8 @@ var creep_work5 = {
 					creep.memory.deathWarn = _.size(creep.body) * 4;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'upgraderNearDeath') {
 					creep.memory.priority = 'upgraderNearDeath';
-					creep.room.visual.text("\u2620\uD83D\uDC46", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\uD83D\uDC46", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
@@ -126,17 +117,8 @@ var creep_work5 = {
 					creep.memory.deathWarn = _.size(creep.body) * 4;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
 					creep.memory.priority = 'muleNearDeath';
-					creep.room.visual.text("\u2620\uD83D\uDC02", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\uD83D\uDC02", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 				if (_.sum(creep.carry) == 0) {
 					creep.memory.structureTarget = undefined;
@@ -366,17 +348,8 @@ var creep_work5 = {
 					creep.memory.deathWarn = _.size(creep.body) * 4;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'repairNearDeath') {
 					creep.memory.priority = 'repairNearDeath';
-					creep.room.visual.text("\u2620\uD83D\uDEE0", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\uD83D\uDEE0", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				if (_.sum(creep.carry) == 0) {
@@ -415,19 +388,6 @@ var creep_work5 = {
 									maxRooms: 1
 								});
 							}
-							creep.room.visual.circle(thisStructure.pos, {
-								fill: 'transparent',
-								stroke: 'green',
-								radius: 0.75
-							});
-							var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-							creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
-								align: 'left',
-								font: '0.7 Courier New',
-								color: '#FFFFFF',
-								stroke: '#000000',
-								strokeWidth: 0.15
-							});
 						}
 					} else {
 						creep.memory.structureTarget = undefined;
@@ -474,17 +434,8 @@ var creep_work5 = {
 					creep.memory.deathWarn = _.size(creep.body) * 4;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'supplierNearDeath') {
 					creep.memory.priority = 'supplierNearDeath';
-					creep.room.visual.text("\u2620\uD83D\uDEF5", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\uD83D\uDEF5", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				if (_.sum(creep.carry) == 0) {
@@ -516,17 +467,8 @@ var creep_work5 = {
 					creep.memory.deathWarn = _.size(creep.body) * 4;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
 					creep.memory.priority = 'distributorNearDeath';
-					creep.room.visual.text("\u2620\uD83D\uDC5F", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\uD83D\uDC5F", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				if (_.sum(creep.carry) == 0) {
@@ -596,11 +538,6 @@ var creep_work5 = {
 				}
 				break;
 			case 'mineralMiner':
-				creep.room.visual.text("\u26CF\uD83D\uDDFB", creep.pos.x, creep.pos.y, {
-					align: 'left',
-					color: '#7DE3B5'
-				});
-
 				var thisMineral = Game.getObjectById(creep.memory.mineralID);
 				if (thisMineral.mineralAmount == 0) {
 					//Nothing left to do
@@ -625,10 +562,6 @@ var creep_work5 = {
 				}
 				break;
 			case 'salvager':
-				creep.room.visual.text("\uD83D\uDCB2", creep.pos.x, creep.pos.y, {
-					align: 'left',
-					color: '#7DE3B5'
-				});
 				var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
 				if (!sources && _.sum(creep.carry) == 0) {
 					//There's nothing left to do
@@ -664,17 +597,8 @@ var creep_work5 = {
 					creep.memory.isMoving = false;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn) {
+				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'labWorkerNearDeath') {
 					creep.memory.priority = 'labWorkerNearDeath';
-					creep.room.visual.text("\u2620\uD83D\uDD2C", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\uD83D\uDD2C", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				if (Game.time % 10 == 0 || creep.memory.isMoving) {

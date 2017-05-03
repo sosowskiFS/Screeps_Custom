@@ -132,18 +132,6 @@ module.exports.loop = function() {
                 //Populate the room creeps memory.
                 Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
 
-                //Display the remaining progress of the controller
-                var remainingEnergy = thisRoom.controller.progressTotal - thisRoom.controller.progress;
-                if (remainingEnergy > 0) {
-                    var formattedNumber = remainingEnergy.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    thisRoom.visual.text(formattedNumber, thisRoom.controller.pos.x + 1, thisRoom.controller.pos.y, {
-                        align: 'left',
-                        font: '1 Courier New',
-                        color: '#FFFFFF',
-                        stroke: '#000000',
-                        strokeWidth: 0.15
-                    });
-                }
                 //Execute special instruction written into console
                 if (Game.flags["ClaimThis"]) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
@@ -442,27 +430,6 @@ module.exports.loop = function() {
                 //if (Game.flags[thisRoom.name + "FarGuard"]) {
                 //Memory.FarGuardNeeded[thisRoom.name] = true;
                 //}
-
-                if (thisRoom.storage) {
-                    var formattedNumber = thisRoom.storage.store[RESOURCE_ENERGY].toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    if (thisRoom.storage.store[RESOURCE_ENERGY] == 420) {
-                        thisRoom.visual.text("Blaze it fgt \uD83C\uDF41\uD83D\uDD25 \uD83D\uDC4C\uD83D\uDE38\uD83D\uDD95", thisRoom.storage.pos.x + 1, thisRoom.storage.pos.y, {
-                            align: 'left',
-                            font: '3 Courier New',
-                            color: '#FFFFFF',
-                            stroke: '#000000',
-                            strokeWidth: 0.15
-                        });
-                    } else {
-                        thisRoom.visual.text(formattedNumber, thisRoom.storage.pos.x + 1, thisRoom.storage.pos.y, {
-                            align: 'left',
-                            font: '0.7 Courier New',
-                            color: '#FFFFFF',
-                            stroke: '#000000',
-                            strokeWidth: 0.15
-                        });
-                    }
-                }
             }
 
             if (Memory.isSpawning == null) {
@@ -504,18 +471,6 @@ module.exports.loop = function() {
                 if (!Memory.isSpawning) {
                     Memory.NoSpawnNeeded.push(thisRoom.name);
                 }
-            } else if (Game.spawns[i].spawning) {
-                //Add a visual for spawn progress
-                var spawnProgress = (Game.spawns[i].spawning.needTime - Game.spawns[i].spawning.remainingTime) + 1;
-                var percentageComplete = Math.floor((spawnProgress / Game.spawns[i].spawning.needTime) * 100);
-
-                thisRoom.visual.text(' (' + percentageComplete + '%)', Game.spawns[i].pos.x + 1, Game.spawns[i].pos.y, {
-                    align: 'left',
-                    font: '1 Courier New',
-                    color: '#FFFFFF',
-                    stroke: '#000000',
-                    strokeWidth: 0.15
-                });
             }
 
             Memory.isSpawning = false;

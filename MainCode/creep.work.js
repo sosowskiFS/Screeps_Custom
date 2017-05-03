@@ -220,19 +220,6 @@ var creep_work = {
 									reusePath: moveRecalc
 								});
 							}
-							creep.room.visual.circle(thisStructure.pos, {
-								fill: 'transparent',
-								stroke: 'green',
-								radius: 0.75
-							});
-							var formattedNumber = thisStructure.hits.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-							creep.room.visual.text(formattedNumber, thisStructure.pos.x + 1, thisStructure.pos.y, {
-								align: 'left',
-								font: '0.7 Courier New',
-								color: '#FFFFFF',
-								stroke: '#000000',
-								strokeWidth: 0.15
-							});
 						}
 					} else {
 						creep.memory.structureTarget = undefined;

@@ -250,14 +250,14 @@ var creep_farMining = {
 					}
 				} else {
 					if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-						if (creep.room.controller.reservation.ticksToEnd <= 1000) {
+						if (creep.room.controller.reservation.ticksToEnd <= 1000 && Memory.FarClaimerNeeded[creep.room.name] != true) {
 							Memory.FarClaimerNeeded[creep.room.name] = true;
-						} else {
+						} else if (Memory.FarClaimerNeeded[creep.room.name] != false) {
 							Memory.FarClaimerNeeded[creep.room.name] = false;
 						}
-					} else if (creep.room.name == creep.memory.destination && creep.room.controller) {
+					} else if (creep.room.name == creep.memory.destination && creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != true) {
 						Memory.FarClaimerNeeded[creep.room.name] = true;
-					} else if (!creep.room.controller) {
+					} else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != false) {
 						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 
@@ -374,17 +374,8 @@ var creep_farMining = {
 					}
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
+				if ((creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) && creep.memory.priority != 'farGuardNearDeath') {
 					creep.memory.priority = 'farGuardNearDeath';
-					creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\u27A1\u2694", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				//Recall guard into home room if it's under attack
@@ -423,14 +414,14 @@ var creep_farMining = {
 				}
 
 				if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-					if (creep.room.controller.reservation.ticksToEnd <= 1000) {
+					if (creep.room.controller.reservation.ticksToEnd <= 1000 && Memory.FarClaimerNeeded[creep.room.name] != true) {
 						Memory.FarClaimerNeeded[creep.room.name] = true;
-					} else {
+					} else if (Memory.FarClaimerNeeded[creep.room.name] != false) {
 						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
-				} else if (creep.room.name == creep.memory.destination && creep.room.controller) {
+				} else if (creep.room.name == creep.memory.destination && creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != true) {
 					Memory.FarClaimerNeeded[creep.room.name] = true;
-				} else if (!creep.room.controller) {
+				} else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != false) {
 					Memory.FarClaimerNeeded[creep.room.name] = false;
 				}
 
