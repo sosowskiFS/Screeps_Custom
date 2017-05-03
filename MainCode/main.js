@@ -571,9 +571,9 @@ module.exports.loop = function() {
     }
 
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
-    Memory.totalTicksSpawnRecorded = Memory.totalTicksSpawnRecorded + 1;
+    Memory.CPUAverages.SpawnCPU.ticks = Memory.CPUAverages.SpawnCPU.ticks + 1;
     var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
-    Memory.averageUsedSpawnCPU = Memory.averageUsedSpawnCPU + ((totalSpawnCPU - Memory.averageUsedSpawnCPU) / Memory.totalTicksSpawnRecorded)
+    Memory.CPUAverages.SpawnCPU.CPU = Memory.CPUAverages.SpawnCPU.CPU + ((totalSpawnCPU - Memory.CPUAverages.SpawnCPU.CPU) / Memory.CPUAverages.SpawnCPU.ticks)
 
     Memory.RoomsRun = [];
     Memory.NoSpawnNeeded = [];
