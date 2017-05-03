@@ -76,6 +76,9 @@ module.exports.loop = function() {
         Memory.CPUAverages.Post5CPU = new Object();
         Memory.CPUAverages.Post5CPU.ticks = 0;
         Memory.CPUAverages.Post5CPU.CPU = 0;
+        Memory.CPUAverages.SpawnCPU = new Object();
+        Memory.CPUAverages.SpawnCPU.ticks = 0;
+        Memory.CPUAverages.SpawnCPU.CPU = 0;
         Game.flags["ResetAverages"].remove();
     }
 
@@ -899,6 +902,9 @@ function memCheck() {
         Memory.CPUAverages.Post5CPU = new Object();
         Memory.CPUAverages.Post5CPU.ticks = 0;
         Memory.CPUAverages.Post5CPU.CPU = 0;
+        Memory.CPUAverages.SpawnCPU = new Object();
+        Memory.CPUAverages.SpawnCPU.ticks = 0;
+        Memory.CPUAverages.SpawnCPU.CPU = 0;
     }
 }
 
