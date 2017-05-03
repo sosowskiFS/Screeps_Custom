@@ -357,11 +357,13 @@ var creep_farMining = {
 					//Autogenerate roads
 					//.dest.x, .dest.y, .dest.room
 					var thisPath = creep.room.findPath(creep.pos, roadSearchTarget, {
-						ignoreCreeps: true,
-						maxRooms: 1
+						ignoreCreeps: true
 					});
 					for (var thisPos in thisPath) {
 						if (creep.room.createConstructionSite(thisPath[thisPos].x, thisPath[thisPos].y, STRUCTURE_ROAD) == ERR_FULL) {
+							break;
+						}
+						if (thisPath[thisPos].x == 0 || thisPath[thisPos].x == 49 || thisPath[thisPos].y == 0 || thisPath[thisPos].y == 49) {
 							break;
 						}
 					}
