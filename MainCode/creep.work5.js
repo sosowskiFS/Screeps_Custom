@@ -798,6 +798,7 @@ var creep_work5 = {
 					}
 
 					if (checkForMoreWork && lab4 && lab5 && lab6) {
+						checkForMoreWork = false;
 						var min4Amount = creep.memory.mineral4 in creep.room.terminal.store;
 						var min5Amount = creep.memory.mineral5 in creep.room.terminal.store;
 						var min6Amount = creep.memory.mineral6 in creep.room.terminal.store;
@@ -909,7 +910,9 @@ var creep_work5 = {
 								checkForMoreWork = true;
 							}
 						}
-					} else if (checkForMoreWork && creep.room.terminal) {
+					}
+					
+					if (checkForMoreWork && creep.room.terminal) {
 						if (!creep.pos.isNearTo(creep.room.terminal)) {
 							creep.moveTo(creep.room.terminal, {
 								reusePath: 5
