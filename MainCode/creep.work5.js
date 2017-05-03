@@ -53,33 +53,38 @@ var creep_work5 = {
 							return;
 						}
 					}
-					if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+
+					if (creep.carry.energy >= 48) {
+						if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(storageTarget, {
+								reusePath: 5
+							});
+						}
+					}
+					if (mineTarget.energy > 0) {
+						if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(mineTarget, {
+								reusePath: 5
+							});
+						}
+					}
+
+					/*if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 						if (creep.carry.energy > 0) {
 							creep.moveTo(storageTarget, {
-								reusePath: 5,
-								ignoreRoads: ignoreRoadsValue
+								reusePath: 5
 							});
 						} else {
 							if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(mineTarget, {
-									reusePath: 5,
-									ignoreRoads: ignoreRoadsValue
+									reusePath: 5
 								});
 							}
 						}
 					} else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 						creep.moveTo(mineTarget, {
-							reusePath: 5,
-							ignoreRoads: ignoreRoadsValue
+							reusePath: 5
 						});
-					}
-
-					/*if ((creep.pos.isNearTo(storageTarget) && !creep.pos.isNearTo(mineTarget))) {
-					    var thisDirection = creep.pos.getDirectionTo(mineTarget);
-					    creep.move(thisDirection);
-					} else if (!creep.pos.isNearTo(storageTarget) && creep.pos.isNearTo(mineTarget)) {
-					    var thisDirection = creep.pos.getDirectionTo(storageTarget);
-					    creep.move(thisDirection);
 					}*/
 				}
 				break;
