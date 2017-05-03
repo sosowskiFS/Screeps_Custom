@@ -78,11 +78,20 @@ var creep_farMining = {
 						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 
-					var mineTarget = "";
+					var mineTarget = undefined;
+					var thisUnit = undefined;
+
+					if (creep.memory.storageUnit) {
+						thisUnit = Game.getObjectById(creep.memory.storageUnit);
+					}
 
 					if (creep.memory.mineSource) {
 						mineTarget = Game.getObjectById(creep.memory.mineSource);
-						if (mineTarget && _.sum(creep.carry) <= 35 && mineTarget.energy > 0) {
+						var StorageOK = true;
+						if (thisUnit && thisUnit.store[RESOURCE_ENERGY] == thisUnit.storeCapacity) {
+							StorageOK = false;
+						}
+						if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {
 							if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(mineTarget, {
 									reusePath: 25,
@@ -116,7 +125,6 @@ var creep_farMining = {
 					}
 
 					if (creep.memory.storageUnit) {
-						var thisUnit = Game.getObjectById(creep.memory.storageUnit);
 						if (thisUnit) {
 							if (thisUnit.hits < thisUnit.hitsMax && hostiles.length == 0) {
 								creep.repair(thisUnit);
@@ -170,17 +178,8 @@ var creep_farMining = {
 					creep.memory.deathWarn = _.size(creep.body) * 5;
 				}
 
-				if (creep.ticksToLive <= creep.memory.deathWarn || creep.getActiveBodyparts(CARRY) <= 2) {
+				if ((creep.ticksToLive <= creep.memory.deathWarn || creep.getActiveBodyparts(CARRY) <= 2) && creep.memory.priority != 'farMuleNearDeath') {
 					creep.memory.priority = 'farMuleNearDeath';
-					creep.room.visual.text("\u2620\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
-				} else {
-					creep.room.visual.text("\u27A1\uD83D\uDC02", creep.pos.x, creep.pos.y, {
-						align: 'left',
-						color: '#7DE3B5'
-					});
 				}
 
 				if (creep.memory.storing == null) {
