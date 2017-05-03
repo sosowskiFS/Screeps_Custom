@@ -59,7 +59,7 @@ var market_buyers = {
 			}
 		}
 
-		if (TerminalEnergy >= 50000) {
+		if (TerminalEnergy >= 25000) {
 			var currentMineral = Game.getObjectById(thisMineral);
 
 
@@ -81,7 +81,7 @@ var market_buyers = {
 
 			var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST];
 
-			if (TerminalEnergy >= 100000 && Game.time % 1000 == 0) {
+			if (TerminalEnergy >= 75000 && Game.time % 1000 == 0) {
 				var MaxSaleAmount = 30000;
 				for (var y in sellMinerals) {
 					var mineralInTerminal = thisTerminal.store[sellMinerals[y]] - 20000;
