@@ -231,11 +231,11 @@ var creep_farMining = {
 						var storageUnit = Game.getObjectById(creep.memory.storageSource)
 						if (storageUnit) {
 							if (Object.keys(creep.carry).length > 1) {
-								if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-									creep.moveTo(storageTarget);
+								if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(storageUnit);
 								}
-							} else if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
-								creep.moveTo(storageTarget);
+							} else if (creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(storageUnit);
 							}
 						}
 					}
