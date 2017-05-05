@@ -96,7 +96,8 @@ var creep_farMining = {
 							StorageOK = false;
 						}
 						if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {
-							if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+							creep.harvest(mineTarget);
+							if (!creep.pos.isNearTo(mineTarget)){
 								creep.moveTo(mineTarget, {
 									reusePath: 25,
 									maxRooms: 1
