@@ -214,7 +214,7 @@ var creep_farMining = {
 							}
 						} else {
 							//Find mineral target
-							var mineralLocations = thisRoom.find(FIND_MINERALS);
+							var mineralLocations = creep.room.find(FIND_MINERALS);
 							if (mineralLocations.length) {
 								creep.memory.mineralTarget = mineralLocations[0].id;
 								creep.moveTo(mineralLocations[0]);
