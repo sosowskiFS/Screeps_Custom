@@ -545,8 +545,7 @@ var creep_work5 = {
 				} else {
 					//Creep will immediately harvest and store mined materials
 					var storageTarget = creep.room.terminal;
-					var thisExtractor = Game.getObjectById(creep.memory.extractorID);
-					if (storageTarget && thisExtractor) {
+					if (storageTarget && Game.time % 5 == 0) {
 						if (thisExtractor.cooldown == 0) {
 							if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(thisMineral, {

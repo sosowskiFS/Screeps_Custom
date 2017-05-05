@@ -176,6 +176,66 @@ var creep_farMining = {
 				}
 				evadeAttacker(creep, 2);
 				break;
+			case 'farMineralMiner':
+				if ((_.sum(creep.carry) >= creep.carryCapacity || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
+					creep.memory.storing = true;
+				} else if (_.sum(creep.carry) == 0 && creep.memory.storing) {
+					creep.memory.storing = false;
+				}
+
+				if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
+					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+						reusePath: 25
+					});
+				} else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
+					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
+						reusePath: 25
+					});
+				} else {
+					if (!creep.memory.storing) {
+						//in farRoom, mine mineral
+						if (creep.memory.mineralTarget) {
+							var thisMineral = Game.getObjectById(creep.memory.mineralTarget);
+							if (thisMineral) {
+								if (thisMineral.ticksToRegeneration) {
+									if (Memory.SKMineralTimers[creep.room.name] == 0) {
+										Memory.SKMineralTimers[creep.room.name] = thisMineral.ticksToRegeneration;
+									}
+									creep.memory.storing = true;
+								} else {
+									if (!creep.pos.isNearTo(thisMineral)) {
+										creep.moveTo(thisMineral);
+									} else {
+										if (Game.time % 5 == 0 && creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
+											creep.moveTo(thisMineral);
+										}
+									}
+								}
+							}
+						} else {
+							//Find mineral target
+							var mineralLocations = thisRoom.find(FIND_MINERALS);
+							if (mineralLocations.length) {
+								creep.memory.mineralTarget = mineralLocations[0].id;
+								creep.moveTo(mineralLocations[0]);
+							}
+						}
+					} else {
+						//in home room, drop off energy
+						var storageUnit = Game.getObjectById(creep.memory.storageSource)
+						if (storageUnit) {
+							if (Object.keys(creep.carry).length > 1) {
+								if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(storageTarget);
+								}
+							} else if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+								creep.moveTo(storageTarget);
+							}
+						}
+					}
+				}
+				evadeAttacker(creep, 2);
+				break;
 			case 'farMule':
 			case 'farMuleNearDeath':
 				if (!creep.memory.deathWarn) {
@@ -899,7 +959,7 @@ function evadeAttacker(creep, evadeRange) {
 	});
 	var closeFoe = undefined;
 
-	if (creep.hits < creep.hitsMax) {
+	if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
 		creep.heal(creep);
 	}
 

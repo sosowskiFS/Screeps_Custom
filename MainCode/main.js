@@ -615,6 +615,7 @@ module.exports.loop = function() {
             case 'farGuardNearDeath':
             case 'SKAttackGuardNearDeath':
             case 'SKHealGuardNearDeath':
+            case 'farMineralMiner':
                 var pre = Game.cpu.getUsed();
                 creep_farMining.run(creep);
                 farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);

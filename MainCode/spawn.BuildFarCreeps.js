@@ -114,6 +114,11 @@ var spawn_BuildFarCreeps = {
 				SKHealGuards = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'SKHealGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "SKGuard");
 			}
 
+			var farMineralMiners = [];
+			if (Game.flags[thisRoom.name + "FarMineral"]) {
+				farMineralMiners = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral");
+			}
+
 			var farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
 			if (thisRoom.energyCapacityAvailable >= 2300 && thisRoom.controller.level >= 7) {
 				farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
@@ -418,6 +423,21 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
+			if (Game.flags[thisRoom.name + "FarMineral"] && Memory.SKMineralTimers[creep.room.name] <= 0 && thisRoom.terminal && prioritizedRole == '') {
+				if (farMineralMiners.length < 1 && blockedRole != 'farMineralMiner') {
+					prioritizedRole = 'farMineralMiner';
+					roomTarget = Game.flags[thisRoom.name + "FarMineral"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMineral"].name;
+					storageID = thisRoom.terminal.id;
+					farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+				}
+			}
+
+			var farMineralMiners = [];
+			if (Game.flags[thisRoom.name + "FarMineral"]) {
+				farMineralMiners = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral");
+			}
+
 			if (prioritizedRole != '') {
 				if (prioritizedRole == 'farClaimer') {
 					if (spawn.canCreateCreep(farClaimerConfig) == OK) {
@@ -466,6 +486,18 @@ var spawn_BuildFarCreeps = {
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 					Memory.guardType = !Memory.guardType;
+				} else if (prioritizedRole == 'farMineralMiner') {
+					if (spawn.canCreateCreep(farMinerConfig) == OK) {
+						spawn.createCreep(farMinerConfig, undefined, {
+							priority: prioritizedRole,
+							destination: roomTarget,
+							homeRoom: thisRoom.name,
+							fromSpawn: spawn.id,
+							storageSource: storageID,
+							targetFlag: flagName
+						});
+						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
+					}
 				} else if (prioritizedRole == 'SKAttackGuard') {
 					if (spawn.canCreateCreep(SKGuardAttackerConfig) == OK) {
 						spawn.createCreep(SKGuardAttackerConfig, undefined, {
