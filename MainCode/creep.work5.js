@@ -546,15 +546,15 @@ var creep_work5 = {
 					//Creep will immediately harvest and store mined materials
 					var storageTarget = creep.room.terminal;
 					if (storageTarget && Game.time % 5 == 0) {
-						if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
-							creep.moveTo(thisMineral, {
-								reusePath: 25
-							});
-						}
 						if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
 							//This should never actually fire, if ideal.
 							creep.moveTo(storageTarget);
 						}
+						if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
+							creep.moveTo(thisMineral, {
+								reusePath: 25
+							});
+						}					
 					}
 				}
 				break;
