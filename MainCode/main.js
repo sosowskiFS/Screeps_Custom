@@ -759,9 +759,6 @@ function memCheck() {
     if (!Memory.hasFired) {
         Memory.hasFired = [];
     }
-    if (!Memory.SKMineralTimers) {
-        Memory.SKMineralTimers = [];
-    }
     if (!Memory.whiteList) {
         Memory.whiteList = ['DomNomNom', 'Kotarou', 'ICED_COFFEE', 'TiffanyTrump', 'demawi', 'o4kapuk', 'mute', 'shadow_bird', 'ben2', 'Jibol', 'ThyReaper', 'ART999'];
     }
@@ -796,6 +793,9 @@ function memCheck() {
         Memory.attackDuration = 0;
     }
     //Object
+    if (!Memory.SKMineralTimers) {
+        Memory.SKMineralTimers = new Object();
+    }
     if (!Memory.FarClaimerNeeded) {
         Memory.FarClaimerNeeded = new Object();
     }
