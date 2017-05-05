@@ -545,8 +545,13 @@ var creep_work5 = {
 				} else {
 					//Creep will immediately harvest and store mined materials
 					var storageTarget = creep.room.terminal;
+					if (!creep.pos.isNearTo(thisMineral)) {
+						creep.moveTo(thisMineral, {
+							reusePath: 25
+						});
+					}
+					
 					if (storageTarget && Game.time % 5 == 0) {
-
 						if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(thisMineral, {
 								reusePath: 25
