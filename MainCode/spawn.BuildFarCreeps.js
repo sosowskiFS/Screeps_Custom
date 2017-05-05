@@ -423,7 +423,7 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			if (Game.flags[thisRoom.name + "FarMineral"] && Memory.SKMineralTimers[creep.room.name] <= 0 && thisRoom.terminal && prioritizedRole == '') {
+			if (Game.flags[thisRoom.name + "FarMineral"] && Memory.SKMineralTimers[Game.flags[thisRoom.name + "FarMineral"].pos.roomName] <= 0 && thisRoom.terminal && prioritizedRole == '') {
 				if (farMineralMiners.length < 1 && blockedRole != 'farMineralMiner') {
 					prioritizedRole = 'farMineralMiner';
 					roomTarget = Game.flags[thisRoom.name + "FarMineral"].pos.roomName;
