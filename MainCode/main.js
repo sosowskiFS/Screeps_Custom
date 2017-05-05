@@ -111,6 +111,13 @@ module.exports.loop = function() {
         });
     }
 
+    //Tick down SK Mineral Timers
+    for (var x in Memory.SKMineralTimers) {
+        if (Memory.SKMineralTimers[x] > 0) {
+            Memory.SKMineralTimers[x] = Memory.SKMineralTimers[x] - 1;
+        }
+    }
+
     //Use experimental PathFinder
     PathFinder.use(true);
 
@@ -266,10 +273,8 @@ module.exports.loop = function() {
             if (!Memory.mineralList[thisRoom.name]) {
                 Memory.mineralList[thisRoom.name] = [];
                 var mineralLocations = thisRoom.find(FIND_MINERALS);
-                if (mineralLocations) {
-                    if (mineralLocations.length > 0) {
-                        Memory.mineralList[thisRoom.name].push(mineralLocations[0].id);
-                    }
+                if (mineralLocations.length) {
+                    Memory.mineralList[thisRoom.name].push(mineralLocations[0].id);
                 }
             }
 
@@ -753,6 +758,9 @@ function memCheck() {
     }
     if (!Memory.hasFired) {
         Memory.hasFired = [];
+    }
+    if (!Memory.SKMineralTimers) {
+        Memory.SKMineralTimers = [];
     }
     if (!Memory.whiteList) {
         Memory.whiteList = ['DomNomNom', 'Kotarou', 'ICED_COFFEE', 'TiffanyTrump', 'demawi', 'o4kapuk', 'mute', 'shadow_bird', 'ben2', 'Jibol', 'ThyReaper', 'ART999'];

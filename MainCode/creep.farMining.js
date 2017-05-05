@@ -78,6 +78,13 @@ var creep_farMining = {
 						Memory.FarClaimerNeeded[creep.room.name] = false;
 					}
 
+					if (Game.flags[creep.room.name + "SKRoom"] && !Memory.SKMineralTimers[creep.room.name]) {
+						var mineralLocations = creep.room.find(FIND_MINERALS);
+						if (mineralLocations.length) {
+							Memory.SKMineralTimers[creep.room.name] = mineralLocations[0].ticksToRegeneration;
+						}
+					}
+
 					var mineTarget = undefined;
 					var thisUnit = undefined;
 
