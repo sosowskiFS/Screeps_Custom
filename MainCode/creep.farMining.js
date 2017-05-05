@@ -204,10 +204,16 @@ var creep_farMining = {
 									creep.memory.storing = true;
 								} else {
 									if (!creep.pos.isNearTo(thisMineral)) {
-										creep.moveTo(thisMineral);
+										creep.moveTo(thisMineral, {
+											reusePath: 25,
+											maxRooms: 1
+										});
 									} else {
 										if (Game.time % 6 == 0 && creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
-											creep.moveTo(thisMineral);
+											creep.moveTo(thisMineral, {
+												reusePath: 25,
+												maxRooms: 1
+											});
 										}
 									}
 								}
