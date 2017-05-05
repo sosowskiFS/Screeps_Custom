@@ -206,7 +206,7 @@ var creep_farMining = {
 									if (!creep.pos.isNearTo(thisMineral)) {
 										creep.moveTo(thisMineral);
 									} else {
-										if (Game.time % 5 == 0 && creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
+										if (Game.time % 6 == 0 && creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
 											creep.moveTo(thisMineral);
 										}
 									}

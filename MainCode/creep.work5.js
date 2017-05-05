@@ -549,15 +549,13 @@ var creep_work5 = {
 						creep.moveTo(thisMineral, {
 							reusePath: 25
 						});
-					}
-					
-					if (storageTarget && Game.time % 5 == 0) {
+					} else if (storageTarget && Game.time % 6 == 0) {
 						if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
 							creep.moveTo(thisMineral, {
 								reusePath: 25
 							});
 						}
-					}
+					}				
 					if (_.sum(creep.carry) > 0) {
 						if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
 							//This should never actually fire, if ideal.
