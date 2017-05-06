@@ -97,7 +97,7 @@ var creep_farMining = {
 						}
 						if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {
 							creep.harvest(mineTarget);
-							if (!creep.pos.isNearTo(mineTarget)){
+							if (!creep.pos.isNearTo(mineTarget)) {
 								creep.moveTo(mineTarget, {
 									reusePath: 25,
 									maxRooms: 1
@@ -175,7 +175,11 @@ var creep_farMining = {
 						}
 					}
 				}
-				evadeAttacker(creep, 2);
+				if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
+					evadeAttacker(creep, 2);
+				} else {
+					evadeAttacker(creep, 5);
+				}
 				break;
 			case 'farMineralMiner':
 				if ((_.sum(creep.carry) >= creep.carryCapacity || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
@@ -522,7 +526,7 @@ var creep_farMining = {
 					});
 
 				} else {
-					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 					});
 					closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
