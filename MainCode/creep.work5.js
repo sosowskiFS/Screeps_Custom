@@ -607,7 +607,7 @@ var creep_work5 = {
 					creep.memory.priority = 'labWorkerNearDeath';
 				}
 
-				if (Game.time % 10 == 0 || creep.memory.isMoving) {
+				if (Game.time % 5 == 0 || creep.memory.isMoving) {
 					if (creep.memory.mineral4 == creep.memory.mineral3 || creep.memory.mineral5 == creep.memory.mineral3 || creep.memory.mineral6 == creep.memory.mineral3) {
 						creep.memory.storeProduced = true;
 					} else {
