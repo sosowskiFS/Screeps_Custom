@@ -555,7 +555,7 @@ var creep_work5 = {
 								reusePath: 25
 							});
 						}
-					}				
+					}
 					if (_.sum(creep.carry) > 0) {
 						if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
 							//This should never actually fire, if ideal.
@@ -599,6 +599,9 @@ var creep_work5 = {
 				if (creep.memory.isMoving == null) {
 					creep.memory.isMoving = false;
 				}
+				if (creep.memory.movingOtherMineral == null) {
+					creep.memory.movingOtherMineral = false;
+				}
 
 				if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'labWorkerNearDeath') {
 					creep.memory.priority = 'labWorkerNearDeath';
@@ -623,7 +626,68 @@ var creep_work5 = {
 						lab6 = Game.getObjectById(creep.memory.lab6);
 					}
 					var checkForMoreWork = false;
-					if (lab1 && lab2 && lab3 && (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3])) {
+					if (creep.memory.movingOtherMineral || (lab1 && lab2 && lab3 && ((lab1.mineralAmount > 0 && lab1.mineralType != creep.memory.mineral1) || (lab2.mineralAmount > 0 && lab2.mineralType != creep.memory.mineral2) || (lab3.mineralAmount > 0 && lab3.mineralType != creep.memory.mineral3)))) {
+						if (_.sum(creep.carry) == 0) {
+							if (lab1.mineralAmount > 0 && lab1.mineralType != creep.memory.mineral1) {
+								var withdrawResult = creep.withdraw(lab1, lab1.mineralType)
+								if (withdrawResult == ERR_NOT_IN_RANGE) {
+									creep.moveTo(lab1, {
+										reusePath: 5
+									});
+									creep.memory.isMoving = true;
+								} else {
+									creep.memory.isMoving = false;
+									creep.memory.movingOtherMineral = true;
+								}
+							} else if (lab2.mineralAmount > 0 && lab2.mineralType != creep.memory.mineral2) {
+								var withdrawResult = creep.withdraw(lab2, lab2.mineralType)
+								if (withdrawResult == ERR_NOT_IN_RANGE) {
+									creep.moveTo(lab2, {
+										reusePath: 5
+									});
+									creep.memory.isMoving = true;
+								} else {
+									creep.memory.isMoving = false;
+									creep.memory.movingOtherMineral = true;
+								}
+							} else if (lab3.mineralAmount > 0 && lab3.mineralType != creep.memory.mineral3) {
+								var withdrawResult = creep.withdraw(lab3, lab3.mineralType)
+								if (withdrawResult == ERR_NOT_IN_RANGE) {
+									creep.moveTo(lab3, {
+										reusePath: 5
+									});
+									creep.memory.isMoving = true;
+								} else {
+									creep.memory.isMoving = false;
+									creep.memory.movingOtherMineral = true;
+								}
+							}
+						} else {
+							//Drop off "unknown" mineral in terminal
+							if (Object.keys(creep.carry).length > 1) {
+								var transferResult = creep.transfer(creep.room.terminal, Object.keys(creep.carry)[1])
+								if (transferResult == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 25
+									});
+									creep.memory.isMoving = true;
+								} else {
+									creep.memory.isMoving = false;
+								}
+							} else {
+								var transferResult = creep.transfer(creep.room.terminal, Object.keys(creep.carry)[0])
+								if (transferResult == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.terminal, {
+										reusePath: 25
+									});
+									creep.memory.isMoving = true;
+								} else {
+									creep.memory.isMoving = false;
+									creep.memory.movingOtherMineral = false;
+								}
+							}
+						}
+					} else if (lab1 && lab2 && lab3 && (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3])) {
 						if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
 							var min1Amount = creep.memory.mineral1 in creep.room.terminal.store;
 							var min2Amount = creep.memory.mineral2 in creep.room.terminal.store;
