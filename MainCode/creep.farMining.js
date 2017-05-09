@@ -648,74 +648,81 @@ var creep_farMining = {
 						}
 					} else {
 						var foeDirection = creep.pos.getDirectionTo(closeFoe);
-						var y = 0;
-						var x = 0;
-						switch (foeDirection) {
-							case TOP:
-								y = 2;
-								break;
-							case TOP_RIGHT:
-								y = 2;
-								x = -2;
-								break;
-							case RIGHT:
-								x = -2;
-								break;
-							case BOTTOM_RIGHT:
-								y = -2;
-								x = -2;
-								break;
-							case BOTTOM:
-								y = -2;
-								break;
-							case BOTTOM_LEFT:
-								y = -2;
-								x = 2;
-								break;
-							case LEFT:
-								x = 2;
-								break;
-							case TOP_LEFT:
-								y = 2;
-								x = 2
-								break;
-						}
-						x = creep.pos.x + x;
-						y = creep.pos.y + y;
-						if (x < 1) {
-							x = 1;
-							if (y < 25 && y > 1) {
-								y = y - 1;
-							} else if (y < 48) {
-								y = y + 1;
+						if (creep.pos.getRangeTo(closeFoe) <= 2) {
+							var y = 0;
+							var x = 0;
+							switch (foeDirection) {
+								case TOP:
+									y = 2;
+									break;
+								case TOP_RIGHT:
+									y = 2;
+									x = -2;
+									break;
+								case RIGHT:
+									x = -2;
+									break;
+								case BOTTOM_RIGHT:
+									y = -2;
+									x = -2;
+									break;
+								case BOTTOM:
+									y = -2;
+									break;
+								case BOTTOM_LEFT:
+									y = -2;
+									x = 2;
+									break;
+								case LEFT:
+									x = 2;
+									break;
+								case TOP_LEFT:
+									y = 2;
+									x = 2
+									break;
 							}
-						} else if (x > 48) {
-							x = 48;
-							if (y < 25 && y > 1) {
-								y = y - 1;
-							} else if (y < 48) {
-								y = y + 1;
+							x = creep.pos.x + x;
+							y = creep.pos.y + y;
+							if (x < 1) {
+								x = 1;
+								if (y < 25 && y > 1) {
+									y = y - 1;
+								} else if (y < 48) {
+									y = y + 1;
+								}
+							} else if (x > 48) {
+								x = 48;
+								if (y < 25 && y > 1) {
+									y = y - 1;
+								} else if (y < 48) {
+									y = y + 1;
+								}
 							}
-						}
-						if (y < 1) {
-							y = 1;
-							if (x < 25 && x > 1) {
-								x = x - 1;
-							} else if (x < 48) {
-								x = x + 1;
+							if (y < 1) {
+								y = 1;
+								if (x < 25 && x > 1) {
+									x = x - 1;
+								} else if (x < 48) {
+									x = x + 1;
+								}
+							} else if (y > 48) {
+								y = 48;
+								if (x < 25 && x > 1) {
+									x = x - 1;
+								} else if (x < 48) {
+									x = x + 1;
+								}
 							}
-						} else if (y > 48) {
-							y = 48;
-							if (x < 25 && x > 1) {
-								x = x - 1;
-							} else if (x < 48) {
-								x = x + 1;
-							}
+
+							creep.moveTo(x, y, {
+								maxRooms: 1
+							});
+						} else {
+							creep.moveTo(closeFoe, {
+								maxRooms: 1
+							});
 						}
 
-						creep.moveTo(x, y, {
-							maxRooms: 1
-						});
 					}
 				} else if (creep.room.name != creep.memory.destination) {
 					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
