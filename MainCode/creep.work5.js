@@ -539,7 +539,7 @@ var creep_work5 = {
 				break;
 			case 'mineralMiner':
 				var thisMineral = Game.getObjectById(creep.memory.mineralID);
-				if (thisMineral.mineralAmount == 0) {
+				if (thisMineral.mineralAmount == 0 && _.sum(creep.carry) == 0) {
 					//Nothing left to do
 					creep.suicide();
 				} else {
