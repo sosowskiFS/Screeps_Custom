@@ -526,7 +526,7 @@ var creep_farMining = {
 					});
 
 				} else {
-					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 10, {
+					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 					});
 					closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
