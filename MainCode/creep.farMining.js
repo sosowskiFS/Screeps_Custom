@@ -517,7 +517,7 @@ var creep_farMining = {
 
 				var Foe = [];
 				var closeFoe = [];
-				if (Game.flags[Game.flags[creep.memory.targetFlag].pos.roomName + "SKRoom"]) {
+				if (Game.flags[creep.room.name + "SKRoom"]) {
 					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
 					});
