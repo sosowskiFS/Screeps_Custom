@@ -155,13 +155,17 @@ module.exports.loop = function() {
 
             if (Game.flags["BuildThis"]) {
                 if (thisRoom.energyCapacityAvailable >= 1250) {
-                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                        roomDist = theDistance;
-                        roomName = thisRoom.name;
-                        roomEnergy = thisRoom.energyCapacityAvailable;
-                        instructionSpawn = Game.spawns[i];
+                    var thisRoute = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
+                    if (thisRoute != -2) {
+                        var theDistance = _.size(thisRoute);
+                        if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
+                            roomDist = theDistance;
+                            roomName = thisRoom.name;
+                            roomEnergy = thisRoom.energyCapacityAvailable;
+                            instructionSpawn = Game.spawns[i];
+                        }
                     }
+
                 }
             }
 
@@ -177,12 +181,15 @@ module.exports.loop = function() {
 
             if (Game.flags["Loot"]) {
                 if (thisRoom.storage) {
-                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                        roomDist = theDistance;
-                        roomName = thisRoom.name;
-                        roomEnergy = thisRoom.energyCapacityAvailable;
-                        instructionSpawn = Game.spawns[i];
+                    var thisRoute = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
+                    if (thisRoute != -2) {
+                        var theDistance = _.size(thisRoute);
+                        if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
+                            roomDist = theDistance;
+                            roomName = thisRoom.name;
+                            roomEnergy = thisRoom.energyCapacityAvailable;
+                            instructionSpawn = Game.spawns[i];
+                        }
                     }
                 }
             }
