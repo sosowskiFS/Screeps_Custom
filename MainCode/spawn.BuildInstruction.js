@@ -269,7 +269,7 @@ var spawn_BuildInstruction = {
 					var attackerID = '';
 					if (attackers[0]) {
 						attackerID = attackers[0].id
-						if (spawn.canCreateCreep(healerConfig) == OK) {
+						if (spawn.canCreateCreep(healerConfig) == OK && attackerID != '') {
 							spawn.createCreep(healerConfig, undefined, {
 								priority: 'asshealer',
 								destination: params,

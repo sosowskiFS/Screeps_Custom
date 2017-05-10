@@ -16,7 +16,7 @@ var creep_assattacker = {
             }
         });
 
-        if (!creep.memory.healerID) {
+        if (!creep.memory.healerID && !creep.spawning) {
             var nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
                 filter: (mCreep) => (mCreep.memory.priority == "asshealer")
             });
