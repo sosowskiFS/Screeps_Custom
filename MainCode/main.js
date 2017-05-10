@@ -541,7 +541,7 @@ module.exports.loop = function() {
 
     if (Game.flags["ClaimThis"]) {
         if (Game.flags["UseDefinedRoute"]) {
-            spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E88N88;E88N89;E89N89;E89N90;E88N90;E87N90;E86N90;E85N90;E85N89');
+            spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E87N81;E87N80;E81N80;E79N82;E77N82');
         } else {
             spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
         }
