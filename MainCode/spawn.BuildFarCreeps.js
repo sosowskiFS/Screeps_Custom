@@ -497,7 +497,7 @@ var spawn_BuildFarCreeps = {
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
-					Memory.guardType = !Memory.guardType;
+					Memory.guardType = false;
 				} else if (prioritizedRole == 'farMineralMiner') {
 					if (spawn.canCreateCreep(farMinerConfig) == OK) {
 						spawn.createCreep(farMinerConfig, undefined, {
