@@ -214,13 +214,6 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Game.flags["Assault"] && thisRoom.name == 'E89N83') {
-                roomDist = 0;
-                roomName = thisRoom.name;
-                roomEnergy = thisRoom.energyCapacityAvailable;
-                instructionSpawn = Game.spawns[i];
-            }
-
             //Get list of Links
             if (Game.time % 1000 == 0 || !Memory.linkList[thisRoom.name]) {
                 Memory.linkList[thisRoom.name] = [];
@@ -448,6 +441,10 @@ module.exports.loop = function() {
         }
 
         if (Game.time % 10 == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
+            if (Game.flags["Assault"] && thisRoom.controller.level >= 7) {
+                spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags["Assault"].pos.roomName, '', Game.spawns[i].room.name);
+            }
+
             if (Game.flags[thisRoom.name + "SendHelper"]) {
                 if (Game.flags["UseDefinedRoute"]) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E88N88;E88N89;E89N89;E89N90;E88N90;E87N90;E86N90;E85N90;E85N89');
@@ -582,10 +579,6 @@ module.exports.loop = function() {
 
     if (Game.flags["WallThis"]) {
         spawn_BuildInstruction.run(instructionSpawn, 'trump', Game.flags["WallThis"].pos.roomName, '', instructionSpawn.room.name);
-    }
-
-    if (Game.flags["Assault"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'assault', Game.flags["Assault"].pos.roomName, '', instructionSpawn.room.name);
     }
 
     if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {

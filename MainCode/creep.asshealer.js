@@ -29,9 +29,9 @@ var creep_asshealer = {
                 thisLab[0].boostCreep(creep);
             }
         } else {
-            var targetAttacker = _.filter(Game.creeps, (tCreep) => tCreep.name == creep.memory.attackerName);
-            if (targetAttacker.length) {
-                if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker[0].room.name == creep.room.name) {
+            var targetAttacker = Game.getObjectById(creep.memory.attackerID);
+            if (targetAttacker) {
+                if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
                     var xTarget = 0;
                     var yTarget = 0;
                     if (creep.pos.x == 0) {
@@ -51,16 +51,16 @@ var creep_asshealer = {
 
                     creep.moveTo(xTarget, yTarget);
                 } else {
-                    if (creep.pos.inRangeTo(targetAttacker[0], 2)) {
-                        creep.move(creep.pos.getDirectionTo(targetAttacker[0]));
+                    if (creep.pos.inRangeTo(targetAttacker, 2)) {
+                        creep.move(creep.pos.getDirectionTo(targetAttacker));
                     } else {
-                        if (targetAttacker[0].room.name == creep.room.name) {
-                            creep.moveTo(targetAttacker[0], {
+                        if (targetAttacker.room.name == creep.room.name) {
+                            creep.moveTo(targetAttacker, {
                                 reusePath: 2,
                                 maxRooms: 1
                             });
                         } else {
-                            creep.moveTo(targetAttacker[0], {
+                            creep.moveTo(targetAttacker, {
                                 reusePath: 0
                             });
                         }
@@ -69,11 +69,11 @@ var creep_asshealer = {
 
                 if (creep.hits < creep.hitsMax - 99) {
                     creep.heal(creep);
-                } else if (targetAttacker[0].hits < targetAttacker[0].hitsMax) {
-                    if (creep.pos.getRangeTo(targetAttacker[0]) > 1) {
-                        creep.rangedHeal(targetAttacker[0]);
+                } else if (targetAttacker.hits < targetAttacker.hitsMax) {
+                    if (creep.pos.getRangeTo(targetAttacker) > 1) {
+                        creep.rangedHeal(targetAttacker);
                     } else {
-                        creep.heal(targetAttacker[0]);
+                        creep.heal(targetAttacker);
                     }
                 } else {
                     var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
@@ -95,7 +95,7 @@ var creep_asshealer = {
                     filter: (mCreep) => (mCreep.memory.priority == "assattacker")
                 });
                 if (newTarget.length) {
-                    creep.memory.attackerName = newTarget[0].name;
+                    creep.memory.attackerID = newTarget[0].id;
                 }
             }
         }

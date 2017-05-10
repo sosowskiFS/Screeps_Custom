@@ -245,36 +245,36 @@ var spawn_BuildInstruction = {
 				}
 				break;
 			case 'assault':
-				var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker');
-				var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer');
+				var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == spawn.room.name);
+				var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == spawn.room.name);
 				if (attackers.length < 1) {
-					//var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
+					//var attackerConfig = [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,MOVE];
 					//Testing movement config
 					var attackerConfig = [TOUGH, TOUGH, MOVE, MOVE];
 					if (spawn.canCreateCreep(attackerConfig) == OK) {
 						spawn.createCreep(attackerConfig, undefined, {
 							priority: 'assattacker',
 							destination: params,
-							homeRoom: params2
+							homeRoom: spawn.room.name
 						});
 						Memory.isSpawning = true;
 						console.log('FUCK. SHIT. UP. ' + spawn.room.name);
 					} else {
 						//console.log('Could not execute constructor. Spawn cannot create creep.');
 					}
-				} else if (healers.length < 2) {
-					//var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+				} else if (healers.length < 1) {
+					//var healerConfig = [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL];
 					//Testing movement config
 					var healerConfig = [TOUGH, MOVE];
-					var attackerName = '';
+					var attackerID = '';
 					if (attackers[0]) {
-						attackerName = attackers[0].name
+						attackerID = attackers[0].id
 						if (spawn.canCreateCreep(healerConfig) == OK) {
 							spawn.createCreep(healerConfig, undefined, {
 								priority: 'asshealer',
 								destination: params,
-								homeRoom: params2,
-								attackerName: attackerName
+								homeRoom: spawn.room.name,
+								attackerID: attackerID
 							});
 							Memory.isSpawning = true;
 							console.log('HEAL. SHIT. UP. ' + spawn.room.name);
