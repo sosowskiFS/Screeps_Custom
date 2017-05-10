@@ -605,75 +605,78 @@ module.exports.loop = function() {
     var post5CPU = 0;
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
-        switch (creep.memory.priority) {
-            case 'farClaimer':
-            case 'farMiner':
-            case 'farMule':
-            case 'farGuard':
-            case 'SKAttackGuard':
-            case 'SKHealGuard':
-            case 'farClaimerNearDeath':
-            case 'farMinerNearDeath':
-            case 'farMuleNearDeath':
-            case 'farGuardNearDeath':
-            case 'SKAttackGuardNearDeath':
-            case 'SKHealGuardNearDeath':
-            case 'farMineralMiner':
-                var pre = Game.cpu.getUsed();
-                creep_farMining.run(creep);
-                farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
-                break;
-            case 'claimer':
-                creep_claimer.run(creep);
-                break;
-            case 'TowerDrainer':
-                creep_towerDrainer.run(creep);
-                break;
-            case 'constructor':
-                creep_constructor.run(creep);
-                break;
-            case 'removeKebab':
-                creep_Kebab.run(creep);
-                break;
-            case 'looter':
-                creep_looter.run(creep);
-                break;
-            case 'vandal':
-                creep_vandal.run(creep);
-                break;
-            case 'helper':
-                creep_Helper.run(creep);
-                break;
-            case 'defender':
-                creep_combat.run(creep);
-                break;
-            case 'trump':
-                creep_trump.run(creep);
-                break;
-            case 'assattacker':
-                creep_assattacker.run(creep);
-                break;
-            case 'asshealer':
-                creep_asshealer.run(creep);
-                break;
-            case 'distractor':
-                creep_distractor.run(creep);
-                break;
-            default:
-                if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
+        if (!creep.spawning) {
+            switch (creep.memory.priority) {
+                case 'farClaimer':
+                case 'farMiner':
+                case 'farMule':
+                case 'farGuard':
+                case 'SKAttackGuard':
+                case 'SKHealGuard':
+                case 'farClaimerNearDeath':
+                case 'farMinerNearDeath':
+                case 'farMuleNearDeath':
+                case 'farGuardNearDeath':
+                case 'SKAttackGuardNearDeath':
+                case 'SKHealGuardNearDeath':
+                case 'farMineralMiner':
                     var pre = Game.cpu.getUsed();
-                    creep_work.run(creep, 25);
-                    pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
-                } else {
-                    if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
-                        //In case of emergency
-                        creep_work.run(creep, 25);
-                    } else {
+                    creep_farMining.run(creep);
+                    farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
+                    break;
+                case 'claimer':
+                    creep_claimer.run(creep);
+                    break;
+                case 'TowerDrainer':
+                    creep_towerDrainer.run(creep);
+                    break;
+                case 'constructor':
+                    creep_constructor.run(creep);
+                    break;
+                case 'removeKebab':
+                    creep_Kebab.run(creep);
+                    break;
+                case 'looter':
+                    creep_looter.run(creep);
+                    break;
+                case 'vandal':
+                    creep_vandal.run(creep);
+                    break;
+                case 'helper':
+                    creep_Helper.run(creep);
+                    break;
+                case 'defender':
+                    creep_combat.run(creep);
+                    break;
+                case 'trump':
+                    creep_trump.run(creep);
+                    break;
+                case 'assattacker':
+                    creep_assattacker.run(creep);
+                    break;
+                case 'asshealer':
+                    creep_asshealer.run(creep);
+                    break;
+                case 'distractor':
+                    creep_distractor.run(creep);
+                    break;
+                default:
+                    if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                         var pre = Game.cpu.getUsed();
-                        creep_work5.run(creep);
-                        post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
+                        creep_work.run(creep, 25);
+                        pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
+                    } else {
+                        if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
+                            //In case of emergency
+                            creep_work.run(creep, 25);
+                        } else {
+                            var pre = Game.cpu.getUsed();
+                            creep_work5.run(creep);
+                            post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
+                        }
                     }
-                }
+                    break;
+            }
         }
     }
 
