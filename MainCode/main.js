@@ -141,12 +141,15 @@ module.exports.loop = function() {
 
             //Execute special instruction written into console
             if (Game.flags["ClaimThis"]) {
-                var theDistance = Game.map.getRoomLinearDistance(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
-                if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                    roomDist = theDistance;
-                    roomName = thisRoom.name;
-                    roomEnergy = thisRoom.energyCapacityAvailable;
-                    instructionSpawn = Game.spawns[i];
+                var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
+                if (thisRoute != -2) {
+                    var theDistance = _.size(thisRoute);
+                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
+                        roomDist = theDistance;
+                        roomName = thisRoom.name;
+                        roomEnergy = thisRoom.energyCapacityAvailable;
+                        instructionSpawn = Game.spawns[i];
+                    }
                 }
             }
 
