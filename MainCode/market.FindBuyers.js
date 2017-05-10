@@ -40,6 +40,14 @@ var market_buyers = {
 			neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE);
 			neededMinerals.push(RESOURCE_ZYNTHIUM_KEANITE);
 		}
+		if (Game.flags[thisRoom.name + "GHProducer"]) {
+			neededMinerals.push(RESOURCE_GHODIUM);
+			neededMinerals.push(RESOURCE_HYDROGEN);
+		}
+		if (Game.flags[thisRoom.name + "GH2OProducer"]) {
+			neededMinerals.push(RESOURCE_GHODIUM_HYDRIDE);
+			neededMinerals.push(RESOURCE_HYDROXIDE);
+		}
 		if (Game.flags[thisRoom.name + "LH2OProducer"]) {
 			neededMinerals.push(RESOURCE_LEMERGIUM_HYDRIDE);
 			neededMinerals.push(RESOURCE_HYDROXIDE);
