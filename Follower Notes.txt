@@ -1,3 +1,4 @@
-Creep leader, follower
-leader -> If follower fatigue == 0 -> save last position -> move along path
-follower -> move to leader's saved position
+This should be helpful to figure out what your creep is carrying. `let currentlyCarrying = _.findKey(creep.carry);`
+
+[12:05] 
+That way you don't have to worry about anything and can just `creep.transfer(target, currentlyCarrying)`. Just make sure target is something with a `.store` such as a container, terminal, or storage.
