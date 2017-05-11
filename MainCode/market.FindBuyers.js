@@ -67,7 +67,7 @@ var market_buyers = {
 			}
 		}
 
-		if (TerminalEnergy >= 25000) {
+		if (TerminalEnergy >= 50000) {
 			var currentMineral = Game.getObjectById(thisMineral);
 
 
@@ -76,20 +76,29 @@ var market_buyers = {
 			//Determine if excess minerals and distribute where needed
 			//Memory.needMin room name
 			//resource
+			var hasSent = false;
 			for (var y in Memory.mineralNeed) {
 				//sendMineral(thisMineral, thisTerminal, targetRoom);
 				if (Memory.mineralNeed[y].length) {
 					if (neededMinerals.indexOf(y) != -1) {
-						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
+						if (!hasSent) {
+							hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
+						} else {
+							sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
+						}
 					} else {
-						sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
+						if (!hasSent) {
+							hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
+						} else {
+							sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
+						}
 					}
 				}
 			}
 
 			var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST];
 
-			if (TerminalEnergy >= 75000 && Game.time % 1000 == 0) {
+			if (!hasSent && TerminalEnergy >= 50000 && Game.time % 1000 == 0) {
 				var MaxSaleAmount = 30000;
 				for (var y in sellMinerals) {
 					var mineralInTerminal = thisTerminal.store[sellMinerals[y]] - 20000;
@@ -140,18 +149,23 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
 		}
 		if (amountAvailable >= 100) {
 			if (targetTerminal && !targetTerminal.store[thisMineral]) {
-				thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.");
+				if (thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
+					return true;
+				}
 			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < 20000) {
 				var neededAmount = 20000 - targetTerminal.store[thisMineral]
 				if (amountAvailable < neededAmount) {
 					neededAmount = amountAvailable
 				}
 				if (neededAmount > 100) {
-					thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.");
+					if (thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
+						return true;
+					}
 				}
 			}
 		}
 	}
+	return false;
 }
 
 function orderPriceCompare(a, b) {
