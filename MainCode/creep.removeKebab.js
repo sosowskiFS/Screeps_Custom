@@ -16,10 +16,10 @@ var creep_Kebab = {
             }
         } else if (Game.flags["RemoveKebab"]) {
             //In target room
-            var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
-            if (somethingNearby) {
-                creep.dismantle(somethingNearby);
-            }
+            //var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
+            //if (somethingNearby) {
+                //creep.dismantle(somethingNearby);
+            //}
 
             if (creep.memory.targetSpawn) {
                 var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
