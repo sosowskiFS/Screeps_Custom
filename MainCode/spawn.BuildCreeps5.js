@@ -471,7 +471,31 @@ var spawn_BuildCreeps5 = {
 					}
 				} else if (prioritizedRole == 'labWorker') {
 					if (spawn.canCreateCreep(labWorkerConfig) == OK) {
-						if (Memory.labList[thisRoom.name].length >= 6) {
+						if (Memory.labList[thisRoom.name].length >= 9) {
+							spawn.createCreep(labWorkerConfig, undefined, {
+								priority: prioritizedRole,
+								terminalID: storageID,
+								mineral1: min1,
+								lab1: Memory.labList[thisRoom.name][0],
+								mineral2: min2,
+								lab2: Memory.labList[thisRoom.name][1],
+								mineral3: min3,
+								lab3: Memory.labList[thisRoom.name][2],
+								mineral4: min4,
+								lab4: Memory.labList[thisRoom.name][3],
+								mineral5: min5,
+								lab5: Memory.labList[thisRoom.name][4],
+								mineral6: min6,
+								lab6: Memory.labList[thisRoom.name][5],
+								mineral7: min1,
+								lab7: Memory.labList[thisRoom.name][6],
+								mineral8: min2,
+								lab8: Memory.labList[thisRoom.name][7],
+								mineral9: min3,
+								lab9: Memory.labList[thisRoom.name][8],
+								fromSpawn: spawn.id
+							});
+						} else if (Memory.labList[thisRoom.name].length >= 6) {
 							spawn.createCreep(labWorkerConfig, undefined, {
 								priority: prioritizedRole,
 								terminalID: storageID,
