@@ -107,6 +107,38 @@ var spawn_BuildFarCreeps = {
 				farGuards6 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard6");
 			}
 
+			var farMules7 = [];
+			var farClaimers7 = [];
+			var farMiners7 = [];
+			var room7Distance = 1;
+			if (Game.flags[thisRoom.name + "FarMining7"]) {
+				farMules7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining7");
+				farClaimers7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining7");
+				farMiners7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining7");
+				room7Distance = Game.map.getRoomLinearDistance(thisRoom.name, Game.flags[thisRoom.name + "FarMining7"].pos.roomName);
+			}
+
+			var farGuards7 = [];
+			if (Game.flags[thisRoom.name + "FarGuard7"] || Game.flags[thisRoom.name + "FarGuard7TEMP"]) {
+				farGuards7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard7");
+			}
+
+			var farMules8 = [];
+			var farClaimers8 = [];
+			var farMiners8 = [];
+			var room8Distance = 1;
+			if (Game.flags[thisRoom.name + "FarMining8"]) {
+				farMules8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining8");
+				farClaimers8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining8");
+				farMiners8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining8");
+				room8Distance = Game.map.getRoomLinearDistance(thisRoom.name, Game.flags[thisRoom.name + "FarMining8"].pos.roomName);
+			}
+
+			var farGuards8 = [];
+			if (Game.flags[thisRoom.name + "FarGuard8"] || Game.flags[thisRoom.name + "FarGuard8TEMP"]) {
+				farGuards8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard8");
+			}
+
 			var SKAttackGuards = [];
 			var SKHealGuards = [];
 			if (Game.flags[thisRoom.name + "SKGuard"]) {
@@ -432,6 +464,78 @@ var spawn_BuildFarCreeps = {
 					prioritizedRole = 'farClaimer';
 					roomTarget = Game.flags[thisRoom.name + "FarMining6"].pos.roomName;
 					flagName = Game.flags[thisRoom.name + "FarMining6"].name;
+				}
+			}
+
+			if (Game.flags[thisRoom.name + "FarGuard7"] || Game.flags[thisRoom.name + "FarGuard7TEMP"] && prioritizedRole == '') {
+				if (farGuards7.length < 1 && Game.flags[thisRoom.name + "FarGuard7"] && blockedRole != 'farGuard') {
+					prioritizedRole = 'farGuard';
+					roomTarget = Game.flags[thisRoom.name + "FarGuard7"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard7"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard7"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL];
+					}
+				}
+			}
+
+			if (Game.flags[thisRoom.name + "FarMining7"] && prioritizedRole == '') {
+				if (farMiners7.length < 1 && blockedRole != 'farMiner') {
+					prioritizedRole = 'farMiner';
+					roomTarget = Game.flags[thisRoom.name + "FarMining7"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMining7"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining7"].pos.roomName + "SKRoom"]) {
+						farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+					} else if (Game.flags[Game.flags[thisRoom.name + "FarMining7"].pos.roomName + "NoSKRoom"]) {
+						farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+					}
+				} else if (farMules7.length < room7Distance && blockedRole != 'farMule') {
+					prioritizedRole = 'farMule';
+					roomTarget = Game.flags[thisRoom.name + "FarMining7"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMining7"].name;
+					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining7"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
+				} else if (farClaimers7.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining7"].pos.roomName] && blockedRole != 'farClaimer') {
+					prioritizedRole = 'farClaimer';
+					roomTarget = Game.flags[thisRoom.name + "FarMining7"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMining7"].name;
+				}
+			}
+
+			if (Game.flags[thisRoom.name + "FarGuard8"] || Game.flags[thisRoom.name + "FarGuard8TEMP"] && prioritizedRole == '') {
+				if (farGuards8.length < 1 && Game.flags[thisRoom.name + "FarGuard8"] && blockedRole != 'farGuard') {
+					prioritizedRole = 'farGuard';
+					roomTarget = Game.flags[thisRoom.name + "FarGuard8"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarGuard8"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarGuard8"].pos.roomName + "SKRoom"]) {
+						farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL];
+					}
+				}
+			}
+
+			if (Game.flags[thisRoom.name + "FarMining8"] && prioritizedRole == '') {
+				if (farMiners8.length < 1 && blockedRole != 'farMiner') {
+					prioritizedRole = 'farMiner';
+					roomTarget = Game.flags[thisRoom.name + "FarMining8"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMining8"].name;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining8"].pos.roomName + "SKRoom"]) {
+						farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+					} else if (Game.flags[Game.flags[thisRoom.name + "FarMining8"].pos.roomName + "NoSKRoom"]) {
+						farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+					}
+				} else if (farMules8.length < room8Distance && blockedRole != 'farMule') {
+					prioritizedRole = 'farMule';
+					roomTarget = Game.flags[thisRoom.name + "FarMining8"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMining8"].name;
+					storageID = thisRoom.storage.id;
+					if (Game.flags[Game.flags[thisRoom.name + "FarMining8"].pos.roomName + "SKRoom"]) {
+						farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+					}
+				} else if (farClaimers8.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + "FarMining8"].pos.roomName] && blockedRole != 'farClaimer') {
+					prioritizedRole = 'farClaimer';
+					roomTarget = Game.flags[thisRoom.name + "FarMining8"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMining8"].name;
 				}
 			}
 

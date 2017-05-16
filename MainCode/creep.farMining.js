@@ -166,8 +166,33 @@ var creep_farMining = {
 										} else {
 											//Create new container
 											if (creep.pos.isNearTo(mineTarget)) {
-												creep.room.createConstructionSite(creep.pos, STRUCTURE_CONTAINER)
+												var x = Math.floor(Math.random() * 3);
+												switch (x) {
+													case 0:
+														x = -1;
+														break;
+													case 1:
+														x = 0;
+														break;
+													case 2:
+														x = 1;
+														break;
+												}
+												var y = Math.floor(Math.random() * 3);
+												switch (y) {
+													case 0:
+														y = -1;
+														break;
+													case 1:
+														y = 0;
+														break;
+													case 2:
+														y = 1;
+														break;
+												}
+												creep.room.createConstructionSite(creep.pos.x + x, creep.pos.y + y, STRUCTURE_CONTAINER);
 											}
+											//Math.floor(Math.random() * 2) - 1;
 										}
 									}
 								}
@@ -1114,7 +1139,7 @@ function attackInvader(creep) {
 
 	if (closeFoe) {
 		creep.moveTo(closeFoe);
-	}	
+	}
 }
 
 function targetAttacker(a, b) {
