@@ -1032,8 +1032,9 @@ function evadeAttacker(creep, evadeRange) {
 			creep.rangedMassAttack();
 			didRanged = true;
 		} else if (closeFoe) {
-			creep.rangedAttack(closeFoe);
-			didRanged = true;
+			if (creep.rangedAttack(closeFoe) != ERR_NOT_IN_RANGE) {
+				didRanged = true;
+			}
 		}
 	} else {
 		Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
@@ -1139,13 +1140,10 @@ function evadeAttacker(creep, evadeRange) {
 function attackInvader(creep) {
 	var Foe = undefined;
 	var closeFoe = undefined;
+	var didRanged = false;
 
 	if (_.sum(creep.carry) <= 40) {
 		creep.drop(RESOURCE_ENERGY);
-	}
-
-	if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
-		creep.heal(creep);
 	}
 
 	closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
@@ -1156,10 +1154,32 @@ function attackInvader(creep) {
 	});
 	if (Foe.length > 1) {
 		creep.rangedMassAttack();
+		didRanged = true;
 	} else if (Foe.length) {
-		creep.rangedAttack(Foe[0]);
+		if (creep.rangedAttack(Foe[0]) != ERR_NOT_IN_RANGE) {
+			didRanged = true;
+		}
 	} else {
-		creep.rangedAttack(closeFoe);
+		if (creep.rangedAttack(closeFoe) != ERR_NOT_IN_RANGE) {
+			didRanged = true;
+		}
+	}
+
+	if (creep.getActiveBodyparts(HEAL) > 0) {
+		if (creep.hits < creep.hitsMax) {
+			creep.heal(creep);
+		} else {
+			var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+				filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+			});
+			if (hurtAlly.length > 0) {
+				if (creep.pos.getRangeTo(hurtAlly[0]) > 1 && !didRanged) {
+					creep.rangedHeal(hurtAlly[0]);
+				} else {
+					creep.heal(hurtAlly[0]);
+				}
+			}
+		}
 	}
 
 	if (closeFoe) {
