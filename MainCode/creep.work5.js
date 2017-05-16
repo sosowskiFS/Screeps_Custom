@@ -1062,7 +1062,19 @@ var creep_work5 = {
 					}
 
 					if (checkForMoreWork && creep.room.terminal) {
-						if (!creep.pos.isNearTo(creep.room.terminal)) {
+						if (creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
+							if (Object.keys(creep.room.storage.store) > 1){
+								var withdrawResult = creep.withdraw(creep.room.storage.store, Object.keys(creep.room.storage.store)[1]);
+								if (withdrawResult == ERR_NOT_IN_RANGE) {
+									creep.moveTo(creep.room.storage.store);
+									creep.memory.isMoving = true;
+								} else if (withdrawResult == OK) {
+									creep.moveTo(creep.room.terminal);
+									creep.memory.isMoving = true;
+									creep.memory.movingOtherMineral = true;
+								}
+							}						
+						} else if (!creep.pos.isNearTo(creep.room.terminal)) {
 							creep.moveTo(creep.room.terminal, {
 								reusePath: 5
 							});
