@@ -1063,7 +1063,7 @@ var creep_work5 = {
 
 					if (checkForMoreWork && creep.room.terminal) {
 						if (creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
-							if (Object.keys(creep.room.storage.store).length > 1){
+							if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY){
 								var withdrawResult = creep.withdraw(creep.room.storage.store, Object.keys(creep.room.storage.store)[1]);
 								if (withdrawResult == ERR_NOT_IN_RANGE) {
 									creep.moveTo(creep.room.storage.store);
