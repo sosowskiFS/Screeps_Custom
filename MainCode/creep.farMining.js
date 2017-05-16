@@ -1032,7 +1032,7 @@ function evadeAttacker(creep, evadeRange) {
 			creep.rangedMassAttack();
 			didRanged = true;
 		} else if (closeFoe) {
-			if (creep.rangedAttack(closeFoe) != ERR_NOT_IN_RANGE) {
+			if (creep.rangedAttack(closeFoe) == OK) {
 				didRanged = true;
 			}
 		}
