@@ -1086,7 +1086,9 @@ function evadeAttacker(creep, evadeRange) {
 			}
 		}
 
-		creep.moveTo(x, y);
+		creep.moveTo(x, y, {
+			ignoreRoads: true
+		});
 	}
 }
 
