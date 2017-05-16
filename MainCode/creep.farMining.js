@@ -176,7 +176,24 @@ var creep_farMining = {
 					}
 				}
 				if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
-					evadeAttacker(creep, 2);
+					//Memory.SKRoomsUnderAttack
+					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
+						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
+					});
+					if (Foe.length && Memory.SKRoomsUnderAttack.indexOf(creep.room.name) == -1) {
+						Memory.SKRoomsUnderAttack.push(creep.room.name);
+					} else if (!Foe.length && Memory.SKRoomsUnderAttack.indexOf(creep.room.name) != -1) {
+						var UnderAttackPos = Memory.SKRoomsUnderAttack.indexOf(creep.room.name);
+						if (UnderAttackPos >= 0) {
+							Memory.SKRoomsUnderAttack.splice(UnderAttackPos, 1);
+						}
+					}
+
+					if (Memory.SKRoomsUnderAttack.indexOf(creep.room.name) != -1) {
+						attackInvader(creep);
+					} else {
+						evadeAttacker(creep, 2);
+					}
 				} else {
 					evadeAttacker(creep, 5);
 				}
@@ -984,7 +1001,7 @@ function evadeAttacker(creep, evadeRange) {
 			filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 		});
 		Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
-			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL)) && !Memory.whiteList.includes(eCreep.owner.username))
+			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 		});
 		if (Foe.length > 1) {
 			creep.rangedMassAttack();
@@ -1071,6 +1088,31 @@ function evadeAttacker(creep, evadeRange) {
 
 		creep.moveTo(x, y);
 	}
+}
+
+function attackInvader(creep) {
+	var Foe = undefined;
+	var closeFoe = undefined;
+
+	if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
+		creep.heal(creep);
+	}
+
+	closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+		filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
+	});
+	Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+		filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+	});
+	if (Foe.length > 1) {
+		creep.rangedMassAttack();
+	} else if (closeFoe) {
+		creep.rangedAttack(closeFoe);
+	}
+
+	if (closeFoe) {
+		creep.moveTo(closeFoe);
+	}	
 }
 
 function targetAttacker(a, b) {
