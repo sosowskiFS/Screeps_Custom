@@ -181,7 +181,7 @@ module.exports.loop = function() {
 
             if (Game.flags["Loot"]) {
                 if (thisRoom.storage) {
-                    var thisRoute = Game.map.getRoomLinearDistance(Game.flags["Loot"].pos.roomName, thisRoom.name);
+                    var thisRoute = Game.map.findRoute(Game.flags["Loot"].pos.roomName, thisRoom.name);
                     if (thisRoute != -2) {
                         var theDistance = _.size(thisRoute);
                         if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
