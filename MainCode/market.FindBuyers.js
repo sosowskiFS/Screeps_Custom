@@ -150,6 +150,10 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
 		if (amountAvailable >= 100) {
 			if (targetTerminal && !targetTerminal.store[thisMineral]) {
 				if (thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
+					var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+					if (thisRoomIndex != -1) {
+						Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
+					}
 					return true;
 				}
 			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < 20000) {
@@ -159,8 +163,17 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
 				}
 				if (neededAmount > 100) {
 					if (thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
+						var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+						if (thisRoomIndex != -1) {
+							Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
+						}
 						return true;
 					}
+				}
+			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] >= 20000) {
+				var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+				if (thisRoomIndex != -1) {
+					Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
 				}
 			}
 		}
