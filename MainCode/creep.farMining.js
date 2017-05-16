@@ -1140,6 +1140,10 @@ function attackInvader(creep) {
 	var Foe = undefined;
 	var closeFoe = undefined;
 
+	if (_.sum(creep.carry) <= 40) {
+		creep.drop(RESOURCE_ENERGY);
+	}
+
 	if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
 		creep.heal(creep);
 	}
