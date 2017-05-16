@@ -205,7 +205,7 @@ var creep_farMining = {
 				}
 				if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
 					//Memory.SKRoomsUnderAttack
-					var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
+					var Foe = creep.room.find(FIND_HOSTILE_CREEPS, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
 					});
 					if (Foe.length && Memory.SKRoomsUnderAttack.indexOf(creep.room.name) == -1) {
