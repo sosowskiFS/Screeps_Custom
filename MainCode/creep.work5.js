@@ -713,6 +713,7 @@ var creep_work5 = {
 								creep.memory.isMoving = true;
 							} else {
 								creep.memory.isMoving = false;
+								creep.memory.movingOtherMineral = false;
 							}
 						}
 					} else if (lab1 && lab2 && lab3 && (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3])) {
@@ -853,6 +854,7 @@ var creep_work5 = {
 								creep.memory.isMoving = true;
 							} else {
 								creep.memory.isMoving = false;
+								creep.memory.movingOtherMineral2 = false;
 							}
 						}
 					} else if (checkForMoreWork && lab7 && lab8 && lab9 && (creep.room.terminal.store[creep.memory.mineral9] < 40000 || !creep.room.terminal.store[creep.memory.mineral9])) {
