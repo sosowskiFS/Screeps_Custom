@@ -1152,7 +1152,9 @@ function attackInvader(creep) {
 	});
 	if (Foe.length > 1) {
 		creep.rangedMassAttack();
-	} else if (closeFoe) {
+	} else if (Foe.length) {
+		creep.rangedAttack(Foe[0]);
+	} else {
 		creep.rangedAttack(closeFoe);
 	}
 
