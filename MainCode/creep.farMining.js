@@ -1019,10 +1019,7 @@ var creep_farMining = {
 function evadeAttacker(creep, evadeRange) {
 	var Foe = undefined;
 	var closeFoe = undefined;
-
-	if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
-		creep.heal(creep);
-	}
+	var didRanged = false;
 
 	if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
 		closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
@@ -1033,13 +1030,32 @@ function evadeAttacker(creep, evadeRange) {
 		});
 		if (Foe.length > 1) {
 			creep.rangedMassAttack();
+			didRanged = true;
 		} else if (closeFoe) {
 			creep.rangedAttack(closeFoe);
+			didRanged = true;
 		}
 	} else {
 		Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
 			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
 		});
+	}
+
+	if (creep.getActiveBodyparts(HEAL) > 0) {
+		if (creep.hits < creep.hitsMax) {
+			creep.heal(creep);
+		} else {
+			var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+				filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+			});
+			if (hurtAlly.length > 0) {
+				if (creep.pos.getRangeTo(hurtAlly[0]) > 1 && !didRanged) {
+					creep.rangedHeal(hurtAlly[0]);
+				} else {
+					creep.heal(hurtAlly[0]);
+				}
+			}
+		}
 	}
 
 	if (Foe.length) {
