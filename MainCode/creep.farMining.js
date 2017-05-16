@@ -157,13 +157,16 @@ var creep_farMining = {
 								} else {
 									if (creep.carry[RESOURCE_ENERGY] >= 36) {
 										var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
-										if (sites.length) {
+										var nearFoe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+											filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+										});
+										if (sites.length && !nearFoe.length) {
 											if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
 												creep.moveTo(sites[0], {
 													reusePath: 25
 												});
 											}
-										} else {
+										} else if (!nearFoe.length) {
 											//Create new container
 											if (creep.pos.isNearTo(mineTarget)) {
 												var x = Math.floor(Math.random() * 3);
@@ -202,7 +205,7 @@ var creep_farMining = {
 				}
 				if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
 					//Memory.SKRoomsUnderAttack
-					Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
+					var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
 					});
 					if (Foe.length && Memory.SKRoomsUnderAttack.indexOf(creep.room.name) == -1) {
