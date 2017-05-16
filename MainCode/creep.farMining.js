@@ -972,9 +972,7 @@ var creep_farMining = {
 };
 
 function evadeAttacker(creep, evadeRange) {
-	var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
-		filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
-	});
+	var Foe = undefined;
 	var closeFoe = undefined;
 
 	if (creep.getActiveBodyparts(HEAL) > 0 && creep.hits < creep.hitsMax) {
@@ -985,9 +983,18 @@ function evadeAttacker(creep, evadeRange) {
 		closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
 			filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 		});
-		if (closeFoe) {
+		Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
+			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL)) && !Memory.whiteList.includes(eCreep.owner.username))
+		});
+		if (Foe.length > 1) {
+			creep.rangedMassAttack();
+		} else if (closeFoe) {
 			creep.rangedAttack(closeFoe);
 		}
+	} else {
+		Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
+			filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+		});
 	}
 
 	if (Foe.length) {
