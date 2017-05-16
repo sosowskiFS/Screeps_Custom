@@ -166,7 +166,7 @@ var creep_farMining = {
 													reusePath: 25
 												});
 											}
-										} else if (!nearFoe.length) {
+										} else if (!sites.length && !nearFoe.length) {
 											//Create new container
 											if (creep.pos.isNearTo(mineTarget)) {
 												var x = Math.floor(Math.random() * 3);
