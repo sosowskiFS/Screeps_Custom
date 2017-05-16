@@ -1156,11 +1156,11 @@ function attackInvader(creep) {
 		creep.rangedMassAttack();
 		didRanged = true;
 	} else if (Foe.length) {
-		if (creep.rangedAttack(Foe[0]) != ERR_NOT_IN_RANGE) {
+		if (creep.rangedAttack(Foe[0]) == OK) {
 			didRanged = true;
 		}
 	} else {
-		if (creep.rangedAttack(closeFoe) != ERR_NOT_IN_RANGE) {
+		if (creep.rangedAttack(closeFoe) == OK) {
 			didRanged = true;
 		}
 	}
@@ -1182,7 +1182,79 @@ function attackInvader(creep) {
 		}
 	}
 
-	if (closeFoe) {
+	var SKCheck = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+		filter: (eCreep) => (eCreep.owner.username == "Source Keeper")
+	});
+	if (SKCheck.length) {
+		var foeDirection = creep.pos.getDirectionTo(SKCheck[0]);
+		var y = 0;
+		var x = 0;
+		switch (foeDirection) {
+			case TOP:
+				y = 2;
+				break;
+			case TOP_RIGHT:
+				y = 2;
+				x = -2;
+				break;
+			case RIGHT:
+				x = -2;
+				break;
+			case BOTTOM_RIGHT:
+				y = -2;
+				x = -2;
+				break;
+			case BOTTOM:
+				y = -2;
+				break;
+			case BOTTOM_LEFT:
+				y = -2;
+				x = 2;
+				break;
+			case LEFT:
+				x = 2;
+				break;
+			case TOP_LEFT:
+				y = 2;
+				x = 2
+				break;
+		}
+		x = creep.pos.x + x;
+		y = creep.pos.y + y;
+		if (x < 0) {
+			x = 0;
+			if (y < 25 && y > 0) {
+				y = y - 1;
+			} else if (y < 49) {
+				y = y + 1;
+			}
+		} else if (x > 49) {
+			x = 49;
+			if (y < 25 && y > 0) {
+				y = y - 1;
+			} else if (y < 49) {
+				y = y + 1;
+			}
+		}
+		if (y < 0) {
+			y = 0;
+			if (x < 25 && x > 0) {
+				x = x - 1;
+			} else if (x < 49) {
+				x = x + 1;
+			}
+		} else if (y > 49) {
+			y = 49;
+			if (x < 25 && x > 0) {
+				x = x - 1;
+			} else if (x < 49) {
+				x = x + 1;
+			}
+		}
+		creep.moveTo(x, y, {
+			ignoreRoads: true
+		});
+	} else if (closeFoe) {
 		creep.moveTo(closeFoe);
 	}
 }
