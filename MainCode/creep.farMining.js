@@ -62,7 +62,7 @@ var creep_farMining = {
 				}
 
 				if (creep.room.name != creep.memory.destination) {
-					if (Game.flags[creep.memory.targetFlag].pos) {
+					if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
 						creep.moveTo(Game.flags[creep.memory.targetFlag], {
 							reusePath: 25
 						});
@@ -374,7 +374,7 @@ var creep_farMining = {
 					}
 					evadeAttacker(creep, 5);
 				} else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
-					if (Game.rooms[creep.memory.homeRoom].storage) {
+					if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
 						creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
 							reusePath: 25
 						});
