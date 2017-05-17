@@ -1255,7 +1255,9 @@ function attackInvader(creep) {
 			ignoreRoads: true
 		});
 	} else if (closeFoe) {
-		creep.moveTo(closeFoe);
+		creep.moveTo(closeFoe, {
+			maxRooms: 1
+		});
 	}
 }
 
