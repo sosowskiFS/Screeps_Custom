@@ -62,9 +62,15 @@ var creep_farMining = {
 				}
 
 				if (creep.room.name != creep.memory.destination) {
-					creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-						reusePath: 25
-					});
+					if (Game.flags[creep.memory.targetFlag].pos) {
+						creep.moveTo(Game.flags[creep.memory.targetFlag], {
+							reusePath: 25
+						});
+					} else {
+						creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+							reusePath: 25
+						});
+					}
 				} else {
 					if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
 						if (creep.room.controller.reservation.ticksToEnd <= 1000 && Memory.FarClaimerNeeded[creep.room.name] != true) {
@@ -356,15 +362,27 @@ var creep_farMining = {
 							});
 						}
 					} else {
-						creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-							reusePath: 25
-						});
+						if (Game.flags[creep.memory.targetFlag].pos) {
+							creep.moveTo(Game.flags[creep.memory.targetFlag], {
+								reusePath: 25
+							});
+						} else {
+							creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+								reusePath: 25
+							});
+						}
 					}
 					evadeAttacker(creep, 5);
 				} else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
-					creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
-						reusePath: 25
-					});
+					if (Game.rooms[creep.memory.homeRoom].storage) {
+						creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
+							reusePath: 25
+						});
+					} else {
+						creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
+							reusePath: 25
+						});
+					}
 					if (creep.memory.didRoadSearch == false) {
 						if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
 							roadSearchTarget = new RoomPosition(25, 25, creep.memory.homeRoom);
