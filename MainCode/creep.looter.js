@@ -3,7 +3,7 @@ var creep_looter = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 500) {
-            if (Game.rooms[creep.memory.destination].storage) {
+            if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].storage) {
                 creep.moveTo(Game.rooms[creep.memory.destination].storage, {
                     reusePath: 25
                 });
@@ -13,7 +13,7 @@ var creep_looter = {
                 });
             }
         } else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 500) {
-            if (Game.rooms[creep.memory.homeRoom].storage) {
+            if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                 creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
                     reusePath: 25
                 });
