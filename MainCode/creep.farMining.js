@@ -103,12 +103,22 @@ var creep_farMining = {
 						}
 						if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {
 							creep.harvest(mineTarget);
-							if (!creep.pos.isNearTo(mineTarget)) {
+							if (Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
+								creep.moveTo(Game.flags[creep.memory.targetFlag + "Here"], {
+									reusePath: 25,
+									maxRooms: 1
+								});
+							} else if (!creep.pos.isNearTo(mineTarget)){
 								creep.moveTo(mineTarget, {
 									reusePath: 25,
 									maxRooms: 1
 								});
 							}
+						} else if (mineTarget && Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
+							creep.moveTo(Game.flags[creep.memory.targetFlag + "Here"], {
+								reusePath: 25,
+								maxRooms: 1
+							});
 						} else if (mineTarget && !creep.pos.isNearTo(mineTarget)) {
 							creep.moveTo(mineTarget, {
 								reusePath: 25,
