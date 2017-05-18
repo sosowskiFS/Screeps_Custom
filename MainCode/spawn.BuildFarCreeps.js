@@ -151,6 +151,11 @@ var spawn_BuildFarCreeps = {
 				farMineralMiners = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral");
 			}
 
+			var farMineralMiners2 = [];
+			if (Game.flags[thisRoom.name + "FarMineral2"]) {
+				farMineralMiners2 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral2");
+			}
+
 			var farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
 			if (thisRoom.energyCapacityAvailable >= 2300 && thisRoom.controller.level >= 7) {
 				farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
@@ -549,9 +554,14 @@ var spawn_BuildFarCreeps = {
 				}
 			}
 
-			var farMineralMiners = [];
-			if (Game.flags[thisRoom.name + "FarMineral"]) {
-				farMineralMiners = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral");
+			if (Game.flags[thisRoom.name + "FarMineral2"] && Memory.SKMineralTimers[Game.flags[thisRoom.name + "FarMineral2"].pos.roomName] <= 0 && thisRoom.terminal && prioritizedRole == '') {
+				if (farMineralMiners2.length < 1 && blockedRole != 'farMineralMiner') {
+					prioritizedRole = 'farMineralMiner';
+					roomTarget = Game.flags[thisRoom.name + "FarMineral2"].pos.roomName;
+					flagName = Game.flags[thisRoom.name + "FarMineral2"].name;
+					storageID = thisRoom.terminal.id;
+					farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+				}
 			}
 
 			if (prioritizedRole != '') {
