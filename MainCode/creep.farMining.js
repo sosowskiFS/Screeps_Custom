@@ -108,7 +108,7 @@ var creep_farMining = {
 									reusePath: 25,
 									maxRooms: 1
 								});
-							} else if (!creep.pos.isNearTo(mineTarget)){
+							} else if (!creep.pos.isNearTo(mineTarget)) {
 								creep.moveTo(mineTarget, {
 									reusePath: 25,
 									maxRooms: 1
@@ -431,11 +431,18 @@ var creep_farMining = {
 								var thisContainer = Game.getObjectById(creep.memory.containerTarget);
 								if (thisContainer) {
 									if (thisContainer.store[RESOURCE_ENERGY] > 0) {
-										if (creep.withdraw(thisContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+										if (Object.keys(thisContainer.store).length > 1) {
+											if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
+												creep.moveTo(thisContainer {
+													reusePath: 25,
+													maxRooms: 1
+												});
+											}
+										} else if (Object.keys(thisContainer.store).length && creep.withdraw(thisContainer, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
 											creep.moveTo(thisContainer, {
 												reusePath: 25,
 												maxRooms: 1
-											})
+											});
 										}
 									} else {
 										//Wait by controller
@@ -472,11 +479,18 @@ var creep_farMining = {
 										}
 										if (containers.length) {
 											creep.memory.containerTarget = containers[0].id;
-											if (creep.withdraw(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+											if (Object.keys(containers[0].store).length > 1) {
+												if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
+													creep.moveTo(containers[0] {
+														reusePath: 25,
+														maxRooms: 1
+													});
+												}
+											} else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
 												creep.moveTo(containers[0], {
 													reusePath: 25,
 													maxRooms: 1
-												})
+												});
 											}
 										}
 									} else {
@@ -493,11 +507,18 @@ var creep_farMining = {
 						//in home room, drop off energy
 						var storageUnit = Game.getObjectById(creep.memory.storageSource)
 						if (storageUnit) {
-							if (creep.transfer(storageUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+							if (Object.keys(creep.carry).length > 1) {
+								if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+									creep.moveTo(storageUnit, {
+										reusePath: 25,
+										maxRooms: 1
+									});
+								}
+							} else if (Object.keys(creep.carry).length && creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
 								creep.moveTo(storageUnit, {
 									reusePath: 25,
 									maxRooms: 1
-								})
+								});
 							}
 							if (creep.memory.didRoadSearch == false) {
 								roadSearchTarget = storageUnit.pos;
