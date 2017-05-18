@@ -433,7 +433,7 @@ var creep_farMining = {
 									if (thisContainer.store[RESOURCE_ENERGY] > 0) {
 										if (Object.keys(thisContainer.store).length > 1) {
 											if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
-												creep.moveTo(thisContainer {
+												creep.moveTo(thisContainer, {
 													reusePath: 25,
 													maxRooms: 1
 												});
@@ -481,7 +481,7 @@ var creep_farMining = {
 											creep.memory.containerTarget = containers[0].id;
 											if (Object.keys(containers[0].store).length > 1) {
 												if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
-													creep.moveTo(containers[0] {
+													creep.moveTo(containers[0], {
 														reusePath: 25,
 														maxRooms: 1
 													});
