@@ -5,6 +5,7 @@ var creep_assattacker = {
 
         var unboostedTough = 0;
         var unboostedAttack = 0;
+        var unboostedMove = 0;
 
         creep.body.forEach(function(thisPart) {
             if (thisPart.type == ATTACK && !thisPart.boost) {
@@ -13,6 +14,10 @@ var creep_assattacker = {
 
             if (thisPart.type == TOUGH && !thisPart.boost) {
                 unboostedTough = unboostedTough + 1;
+            }
+
+            if (thisPart.type == MOVE && !thisPart.boost) {
+                unboostedMove = unboostedMove + 1;
             }
         });
 
@@ -35,17 +40,29 @@ var creep_assattacker = {
             healerIsNear = creep.pos.isNearTo(thisHealer);
         }
 
-        if (unboostedTough > 0 && Game.flags["ToughLab"] && Game.flags["Assault"] && Game.flags["DoBoost"]) {
-            var thisLab = Game.flags["ToughLab"].pos.lookFor(LOOK_STRUCTURES);
-            if (thisLab.length && thisLab[0].mineralAmount > 0) {
-                creep.moveTo(thisLab[0]);
-                thisLab[0].boostCreep(creep);
+        if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags["Assault"]) {
+            var ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
+            });
+            if (ToughLab.length && ToughLab.mineralAmount > 0) {
+                creep.moveTo(ToughLab);
+                ToughLab.boostCreep(creep);
             }
-        } else if (unboostedAttack > 0 && Game.flags["AttackLab"] && Game.flags["Assault"] && Game.flags["DoBoost"]) {
-            var thisLab = Game.flags["AttackLab"].pos.lookFor(LOOK_STRUCTURES);
-            if (thisLab.length && thisLab[0].mineralAmount > 0) {
-                creep.moveTo(thisLab[0]);
-                thisLab[0].boostCreep(creep);
+        } else if (Game.flags["DoBoost"] && unboostedAttack > 0 && Game.flags["Assault"]) {
+            var AttackLab = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
+            });
+            if (AttackLab.length && AttackLab.mineralAmount > 0) {
+                creep.moveTo(AttackLab);
+                AttackLab.boostCreep(creep);
+            }
+        } else if (Game.flags["DoBoost"] && unboostedMove > 0 && Game.flags["Assault"]) {
+            var MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
+                filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
+            });
+            if (MoveLab.length && MoveLab.mineralAmount > 0) {
+                creep.moveTo(MoveLab);
+                MoveLab.boostCreep(creep);
             }
         } else {
             if (!healerIsNear) {
