@@ -29,9 +29,7 @@ var creep_Kebab = {
                 } else {
                     Game.flags["WallFlag"].remove();
                 }
-            }
-
-            if (creep.memory.targetSpawn) {
+            } else if (creep.memory.targetSpawn) {
                 var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
                 if (thisSpawn) {
                     creep.moveTo(thisSpawn, {
