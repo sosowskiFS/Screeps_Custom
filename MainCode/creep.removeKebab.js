@@ -28,7 +28,9 @@ var creep_Kebab = {
             }
         } else if (Game.flags["RemoveKebab"]) {
             //In target room
-            var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
+            var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+            });
             if (somethingNearby) {
                 creep.dismantle(somethingNearby);
             }
