@@ -21,6 +21,16 @@ var creep_Kebab = {
                 creep.dismantle(somethingNearby);
             }
 
+            if (Game.flags["WallFlag"]) {
+                var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
+                if (thisWall.length) {
+                    creep.moveTo(thisWall[0]);
+                    creep.dismantle(thisWall[0]);
+                } else {
+                    Game.flags["WallFlag"].remove();
+                }
+            }
+
             if (creep.memory.targetSpawn) {
                 var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
                 if (thisSpawn) {
