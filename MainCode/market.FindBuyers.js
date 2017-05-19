@@ -156,8 +156,8 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
 					}
 					return true;
 				}
-			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < 20000) {
-				var neededAmount = 20000 - targetTerminal.store[thisMineral]
+			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < 15000) {
+				var neededAmount = 15000 - targetTerminal.store[thisMineral]
 				if (amountAvailable < neededAmount) {
 					neededAmount = amountAvailable
 				}
@@ -170,7 +170,7 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
 						return true;
 					}
 				}
-			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] >= 20000) {
+			} else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] >= 15000) {
 				var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
 				if (thisRoomIndex != -1) {
 					Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
