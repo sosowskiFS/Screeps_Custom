@@ -74,9 +74,19 @@ var creep_Kebab = {
                             creep.dismantle(thisSpawn);
                         }
                     } else {
-                        //Assume we're done here.
-                        if (Game.flags["RemoveKebab"]) {
-                            Game.flags["RemoveKebab"].remove();
+                        var eExt2 = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER)
+                        });
+                        if (eExt2) {
+                            creep.moveTo(eExt2, {
+                                maxRooms: 1
+                            });
+                            creep.dismantle(eExt2);
+                        } else {
+                            //Assume we're done here.
+                            if (Game.flags["RemoveKebab"]) {
+                                Game.flags["RemoveKebab"].remove();
+                            }
                         }
                     }
                 }
