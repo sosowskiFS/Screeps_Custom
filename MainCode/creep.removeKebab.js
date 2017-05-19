@@ -12,7 +12,19 @@ var creep_Kebab = {
                     }
                 }
             } else {
-                creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName));
+                if (Game.flags["WallFlag"] && Game.flags["WallFlag"].pos) {
+                    creep.moveTo(Game.flags["WallFlag"], {
+                        reusePath: 25
+                    });
+                } else if (Game.flags["RemoveKebab"].pos) {
+                    creep.moveTo(Game.flags["RemoveKebab"], {
+                        reusePath: 25
+                    });
+                } else {
+                    creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName), {
+                        reusePath: 25
+                    });
+                }
             }
         } else if (Game.flags["RemoveKebab"]) {
             //In target room
