@@ -44,7 +44,14 @@ var spawn_BuildCreeps5 = {
         var min5 = RESOURCE_GHODIUM_ACID;
         var min6 = RESOURCE_LEMERGIUM_ACID;
         if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
-            if (Game.flags[thisRoom.name + "UHProducer"]) {
+            if (Memory.labList[thisRoom.name].length >= 6 && Game.flags[thisRoom.name + "WarBoosts"]) {
+                min1 = RESOURCE_CATALYZED_UTRIUM_ACID;
+                min2 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+                min3 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
+                min4 = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
+                min5 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
+                min6 = RESOURCE_CATALYZED_GHODIUM_ACID;
+            } else if (Game.flags[thisRoom.name + "UHProducer"]) {
                 min1 = RESOURCE_UTRIUM;
                 min2 = RESOURCE_HYDROGEN;
                 min3 = RESOURCE_UTRIUM_HYDRIDE;
