@@ -5,12 +5,19 @@ var market_buyers = {
 
 		var neededMinerals = [];
 
+		var GH2OPriority = -1;
 		//Always requested minerals for boosts
 		if (thisRoom.controller.level >= 7) {
 			neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
 			neededMinerals.push(RESOURCE_GHODIUM_ACID); //Upgrade boost
 			neededMinerals.push(RESOURCE_LEMERGIUM_ACID); //Repair boost
+			if (thisRoom.controller.level == 7){
+				GH2OPriority = 0;
+			} else {
+				GH2OPriority = 1;
+			}
 		}
+		var HydroxidePriority = -1;
 		//Check for production flags and request accordingly
 		if (Game.flags[thisRoom.name + "UHProducer"]) {
 			neededMinerals.push(RESOURCE_UTRIUM);
@@ -19,6 +26,7 @@ var market_buyers = {
 		if (Game.flags[thisRoom.name + "UH2OProducer"]) {
 			neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
 			neededMinerals.push(RESOURCE_HYDROXIDE);
+			HydroxidePriority = 0;
 		}
 		if (Game.flags[thisRoom.name + "OHProducer"]) {
 			neededMinerals.push(RESOURCE_OXYGEN);
@@ -47,10 +55,12 @@ var market_buyers = {
 		if (Game.flags[thisRoom.name + "GH2OProducer"]) {
 			neededMinerals.push(RESOURCE_GHODIUM_HYDRIDE);
 			neededMinerals.push(RESOURCE_HYDROXIDE);
+			HydroxidePriority = 0;
 		}
 		if (Game.flags[thisRoom.name + "LH2OProducer"]) {
 			neededMinerals.push(RESOURCE_LEMERGIUM_HYDRIDE);
 			neededMinerals.push(RESOURCE_HYDROXIDE);
+			HydroxidePriority = 2;
 		}
 
 		for (var i in neededMinerals) {
@@ -59,7 +69,11 @@ var market_buyers = {
 			}
 			if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < 10000) {
 				if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) == -1) {
-					Memory.mineralNeed[neededMinerals[i]].push(thisRoom.name);
+					if ((neededMinerals[i] == RESOURCE_GHODIUM_ACID && GH2OPriority == 0) || (neededMinerals[i] == RESOURCE_HYDROXIDE && HydroxidePriority == 0)){
+						Memory.mineralNeed[neededMinerals[i]].splice(0, 0, thisRoom.name);
+					} else {
+						Memory.mineralNeed[neededMinerals[i]].push(thisRoom.name);
+					}		
 				}
 			} else if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) != -1) {
 				var thisRoomIndex = Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name)
