@@ -140,7 +140,7 @@ module.exports.loop = function() {
             Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
 
             //Execute special instruction written into console
-            if (Game.flags["ClaimThis"]) {
+            if (Game.flags["ClaimThis"] && !Memory.claimSpawn) {
                 var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
                 if (thisRoute != -2) {
                     var theDistance = _.size(thisRoute);
@@ -555,7 +555,15 @@ module.exports.loop = function() {
     Memory.roomCreeps = new Object();
     //Memory.creepInQue = [];
 
-    if (Game.flags["ClaimThis"]) {
+    if (Game.flags["ClaimThis"] && Memory.claimSpawn) {
+        var thisSpawn = Game.getObjectById(Memory.claimSpawn);
+        if (Game.flags["UseDefinedRoute"]) {
+            spawn_BuildInstruction.run(thisSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E89N77;E88N77;E88N76;E88N75');
+        } else {
+            spawn_BuildInstruction.run(thisSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
+        }
+    } else if (Game.flags["ClaimThis"]) {
+        Memory.claimSpawn = instructionSpawn.id;
         if (Game.flags["UseDefinedRoute"]) {
             spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E89N77;E88N77;E88N76;E88N75');
         } else {
