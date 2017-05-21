@@ -36,6 +36,10 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_ZYNTHIUM);
             neededMinerals.push(RESOURCE_KEANIUM);
         }
+        if (Game.flags[thisRoom.name + "ZOProducer"]) {
+            neededMinerals.push(RESOURCE_ZYNTHIUM);
+            neededMinerals.push(RESOURCE_OXYGEN);
+        }
         if (Game.flags[thisRoom.name + "LHProducer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM);
             neededMinerals.push(RESOURCE_HYDROGEN);
@@ -51,6 +55,10 @@ var market_buyers = {
         if (Game.flags[thisRoom.name + "GHProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM);
             neededMinerals.push(RESOURCE_HYDROGEN);
+        }
+        if (Game.flags[thisRoom.name + "GOProducer"]) {
+            neededMinerals.push(RESOURCE_GHODIUM);
+            neededMinerals.push(RESOURCE_OXYGEN);
         }
         if (Game.flags[thisRoom.name + "GH2OProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM_HYDRIDE);

@@ -67,6 +67,10 @@ var spawn_BuildCreeps5 = {
                 min1 = RESOURCE_ZYNTHIUM;
                 min2 = RESOURCE_KEANIUM;
                 min3 = RESOURCE_ZYNTHIUM_KEANITE;
+            } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
+                min1 = RESOURCE_ZYNTHIUM;
+                min2 = RESOURCE_OXYGEN;
+                min3 = RESOURCE_ZYNTHIUM_OXIDE;
             } else if (Game.flags[thisRoom.name + "LHProducer"]) {
                 min1 = RESOURCE_LEMERGIUM;
                 min2 = RESOURCE_HYDROGEN;
@@ -83,6 +87,10 @@ var spawn_BuildCreeps5 = {
                 min1 = RESOURCE_GHODIUM;
                 min2 = RESOURCE_HYDROGEN;
                 min3 = RESOURCE_GHODIUM_HYDRIDE;
+            } else if (Game.flags[thisRoom.name + "GOProducer"]) {
+                min1 = RESOURCE_GHODIUM;
+                min2 = RESOURCE_OXYGEN;
+                min3 = RESOURCE_GHODIUM_OXIDE;
             } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
                 min1 = RESOURCE_GHODIUM_HYDRIDE;
                 min2 = RESOURCE_HYDROXIDE;
