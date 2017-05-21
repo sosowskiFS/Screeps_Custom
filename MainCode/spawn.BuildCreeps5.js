@@ -43,6 +43,8 @@ var spawn_BuildCreeps5 = {
         var min4 = RESOURCE_UTRIUM_ACID;
         var min5 = RESOURCE_GHODIUM_ACID;
         var min6 = RESOURCE_LEMERGIUM_ACID;
+        var primaryFlag = '';
+        var backupFlag = '';
         if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
             if (Memory.labList[thisRoom.name].length >= 6 && Game.flags[thisRoom.name + "WarBoosts"]) {
                 min1 = RESOURCE_CATALYZED_UTRIUM_ACID;
@@ -55,50 +57,85 @@ var spawn_BuildCreeps5 = {
                 min1 = RESOURCE_UTRIUM;
                 min2 = RESOURCE_HYDROGEN;
                 min3 = RESOURCE_UTRIUM_HYDRIDE;
+                primaryFlag = thisRoom.name + "UHProducer";
+                backupFlag = thisRoom.name + "LOProducer";
             } else if (Game.flags[thisRoom.name + "OHProducer"]) {
                 min1 = RESOURCE_OXYGEN;
                 min2 = RESOURCE_HYDROGEN;
                 min3 = RESOURCE_HYDROXIDE;
+                //Don't set flags for this, OH is a pretty constant need
             } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
                 min1 = RESOURCE_UTRIUM_HYDRIDE;
                 min2 = RESOURCE_HYDROXIDE;
                 min3 = RESOURCE_UTRIUM_ACID;
+                primaryFlag = thisRoom.name + "UH2OProducer";
+                backupFlag = thisRoom.name + "ZHO2Producer";
+            } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
+                min1 = RESOURCE_ZYNTHIUM_OXIDE;
+                min2 = RESOURCE_HYDROXIDE;
+                min3 = RESOURCE_ZYNTHIUM_ALKALIDE;
+                primaryFlag = thisRoom.name + "ZHO2Producer";
+                backupFlag = thisRoom.name + "UH2OProducer";
             } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
                 min1 = RESOURCE_ZYNTHIUM;
                 min2 = RESOURCE_KEANIUM;
                 min3 = RESOURCE_ZYNTHIUM_KEANITE;
+                primaryFlag = thisRoom.name + "ZKProducer";
+                backupFlag = thisRoom.name + "ZOProducer";
             } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
                 min1 = RESOURCE_ZYNTHIUM;
                 min2 = RESOURCE_OXYGEN;
                 min3 = RESOURCE_ZYNTHIUM_OXIDE;
+                primaryFlag = thisRoom.name + "ZOProducer";
+                backupFlag = thisRoom.name + "ZKProducer";
             } else if (Game.flags[thisRoom.name + "LHProducer"]) {
                 min1 = RESOURCE_LEMERGIUM;
                 min2 = RESOURCE_HYDROGEN;
+                min3 = RESOURCE_LEMERGIUM_OXIDE;
+                primaryFlag = thisRoom.name + "LHProducer";
+                backupFlag = thisRoom.name + "ULProducer";
+            } else if (Game.flags[thisRoom.name + "LOProducer"]) {
+                min1 = RESOURCE_LEMERGIUM;
+                min2 = RESOURCE_OXYGEN;
                 min3 = RESOURCE_LEMERGIUM_HYDRIDE;
+                primaryFlag = thisRoom.name + "LOProducer";
+                backupFlag = thisRoom.name + "UHProducer";
             } else if (Game.flags[thisRoom.name + "ULProducer"]) {
                 min1 = RESOURCE_UTRIUM;
                 min2 = RESOURCE_LEMERGIUM;
                 min3 = RESOURCE_UTRIUM_LEMERGITE;
+                primaryFlag = thisRoom.name + "ULProducer";
+                backupFlag = thisRoom.name + "LHProducer";
             } else if (Game.flags[thisRoom.name + "GProducer"]) {
                 min1 = RESOURCE_UTRIUM_LEMERGITE;
                 min2 = RESOURCE_ZYNTHIUM_KEANITE;
                 min3 = RESOURCE_GHODIUM;
+                primaryFlag = thisRoom.name + "GProducer";
+                backupFlag = thisRoom.name + "GHProducer";
             } else if (Game.flags[thisRoom.name + "GHProducer"]) {
                 min1 = RESOURCE_GHODIUM;
                 min2 = RESOURCE_HYDROGEN;
                 min3 = RESOURCE_GHODIUM_HYDRIDE;
+                primaryFlag = thisRoom.name + "GHProducer";
+                backupFlag = thisRoom.name + "GH2OProducer";
             } else if (Game.flags[thisRoom.name + "GOProducer"]) {
                 min1 = RESOURCE_GHODIUM;
                 min2 = RESOURCE_OXYGEN;
                 min3 = RESOURCE_GHODIUM_OXIDE;
+                primaryFlag = thisRoom.name + "GOProducer";
+                backupFlag = thisRoom.name + "LH2OProducer";
             } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
                 min1 = RESOURCE_GHODIUM_HYDRIDE;
                 min2 = RESOURCE_HYDROXIDE;
                 min3 = RESOURCE_GHODIUM_ACID;
+                primaryFlag = thisRoom.name + "GH2OProducer";
+                backupFlag = thisRoom.name + "GProducer";
             } else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
                 min1 = RESOURCE_LEMERGIUM_HYDRIDE;
                 min2 = RESOURCE_HYDROXIDE;
                 min3 = RESOURCE_LEMERGIUM_ACID;
+                primaryFlag = thisRoom.name + "LH2OProducer";
+                backupFlag = thisRoom.name + "GOProducer";
             }
 
             var min1Count = min1 in thisRoom.terminal.store;
@@ -511,6 +548,12 @@ var spawn_BuildCreeps5 = {
                                 lab8: Memory.labList[thisRoom.name][7],
                                 mineral9: min3,
                                 lab9: Memory.labList[thisRoom.name][8],
+                                primaryFlag: primaryFlag,
+                                backupFlag: backupFlag,
+                                isMoving: false,
+                                movingOtherMineral: false,
+                                movingOtherMineral2: false,
+                                resourceChecks: 0,
                                 fromSpawn: spawn.id
                             });
                         } else if (Memory.labList[thisRoom.name].length >= 6) {
@@ -529,6 +572,12 @@ var spawn_BuildCreeps5 = {
                                 lab5: Memory.labList[thisRoom.name][4],
                                 mineral6: min6,
                                 lab6: Memory.labList[thisRoom.name][5],
+                                primaryFlag: primaryFlag,
+                                backupFlag: backupFlag,
+                                isMoving: false,
+                                movingOtherMineral: false,
+                                movingOtherMineral2: false,
+                                resourceChecks: 0,
                                 fromSpawn: spawn.id
                             });
                         } else {
@@ -541,6 +590,12 @@ var spawn_BuildCreeps5 = {
                                 lab2: Memory.labList[thisRoom.name][1],
                                 mineral3: min3,
                                 lab3: Memory.labList[thisRoom.name][2],
+                                primaryFlag: primaryFlag,
+                                backupFlag: backupFlag,
+                                isMoving: false,
+                                movingOtherMineral: false,
+                                movingOtherMineral2: false,
+                                resourceChecks: 0,
                                 fromSpawn: spawn.id
                             });
                         }
