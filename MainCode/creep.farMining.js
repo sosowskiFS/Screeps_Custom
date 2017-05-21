@@ -821,8 +821,14 @@ var creep_farMining = {
                 } else if (creep.room.name != creep.memory.destination) {
                     if (creep.memory.targetFlag.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
-                            var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination)
-
+                            var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination, {
+                                routeCallback(roomName, fromRoomName) {
+                                    if (Memory.blockedRooms.indexOf(roomName) > -1) { // avoid this room
+                                        return Infinity;
+                                    }
+                                    return 1;
+                                }
+                            });
                             var pathArray = [];
                             for (var i in thisPath) {
                                 pathArray.push(thisPath[i].room)
