@@ -141,7 +141,14 @@ module.exports.loop = function() {
 
             //Execute special instruction written into console
             if (Game.flags["ClaimThis"] && !Memory.claimSpawn) {
-                var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name);
+                var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name, {
+                    routeCallback(roomName, fromRoomName) {
+                        if (Memory.blockedRooms.indexOf(roomName) > -1) { // avoid this room
+                            return Infinity;
+                        }
+                        return 1;
+                    }
+                });
                 if (thisRoute != -2) {
                     var theDistance = _.size(thisRoute);
                     if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
@@ -181,7 +188,14 @@ module.exports.loop = function() {
 
             if (Game.flags["Loot"] && !Memory.lootSpawn) {
                 if (thisRoom.storage) {
-                    var thisRoute = Game.map.findRoute(Game.flags["Loot"].pos.roomName, thisRoom.name);
+                    var thisRoute = Game.map.findRoute(Game.flags["Loot"].pos.roomName, thisRoom.name, {
+                        routeCallback(roomName, fromRoomName) {
+                            if (Memory.blockedRooms.indexOf(roomName) > -1) { // avoid this room
+                                return Infinity;
+                            }
+                            return 1;
+                        }
+                    });
                     if (thisRoute != -2) {
                         var theDistance = _.size(thisRoute);
                         if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
