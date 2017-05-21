@@ -179,7 +179,7 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Game.flags["Loot"]) {
+            if (Game.flags["Loot"] && !Memory.lootSpawn) {
                 if (thisRoom.storage) {
                     var thisRoute = Game.map.findRoute(Game.flags["Loot"].pos.roomName, thisRoom.name);
                     if (thisRoute != -2) {
@@ -578,7 +578,11 @@ module.exports.loop = function() {
         spawn_BuildInstruction.run(instructionSpawn, 'tDrain', Game.flags["DrainTurret"].pos.roomName);
     }
 
-    if (Game.flags["Loot"]) {
+    if (Game.flags["Loot"] && Memory.lootSpawn) {
+        var thisSpawn = Game.getObjectById(Memory.lootSpawn);
+        spawn_BuildInstruction.run(thisSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', thisSpawn.room.name);
+    } else if (Game.flags["Loot"]) {
+        Memory.lootSpawn = instructionSpawn.id;
         spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', instructionSpawn.room.name);
     }
 
