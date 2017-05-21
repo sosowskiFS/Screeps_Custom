@@ -828,7 +828,7 @@ var creep_farMining = {
                                 pathArray.push(thisPath[i].room)
                             }
                             creep.memory.thisPath = pathArray;
-                        } else if (thisPath[0]) {
+                        } else if (thisPath.length) {
                             creep.moveTo(new RoomPosition(25, 25, creep.memory.thisPath[0]));
                             if (creep.memory.thisPath[0] == creep.room.name) {
                                 creep.memory.thisPath.splice(0, 1);
