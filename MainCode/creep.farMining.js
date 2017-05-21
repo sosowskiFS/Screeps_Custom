@@ -634,49 +634,9 @@ var creep_farMining = {
                 }
 
                 if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
-                    if (creep.memory.targetFlag.includes("eFarGuard")) {
-                        if (!creep.memory.thisPath) {
-                            let allowedRooms = {
-                                [from.roomName]: true
-                            };
-                            var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination, {
-                                routeCallback(roomName) {
-                                    let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
-                                    let isHighway = (parsed[1] % 10 === 0) ||
-                                        (parsed[2] % 10 === 0);
-                                    let isMyRoom = Game.rooms[roomName] &&
-                                        Game.rooms[roomName].controller &&
-                                        Game.rooms[roomName].controller.my;
-                                    if (isHighway || isMyRoom) {
-                                        return 1;
-                                    } else {
-                                        return 2.5;
-                                    }
-                                }
-                            }).forEach(function(info) {
-                                allowedRooms[info.room] = true;
-                            });
-
-                            var pathArray = [];
-                            for (var i in thisPath) {
-                                pathArray.push(thisPath[i].room)
-                            }
-                            creep.memory.thisPath = pathArray;
-                        } else {
-                            creep.moveTo(new RoomPosition(25, 25, creep.memory.thisPath[0]));
-                            if (creep.memory.thisPath[0] == creep.room.name) {
-                                creep.memory.thisPath.splice(0, 1);
-                                if (creep.memory.thisPath.length == 0) {
-                                    creep.memory.thisPath = undefined;
-                                }
-                            }
-                        }
-                    } else {
-                        creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                            reusePath: 25
-                        });
-                    }
-
+                    creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                        reusePath: 25
+                    });
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);
                     }
@@ -859,9 +819,49 @@ var creep_farMining = {
 
                     }
                 } else if (creep.room.name != creep.memory.destination) {
-                    creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                        reusePath: 25
-                    });
+                    if (creep.memory.targetFlag.includes("eFarGuard")) {
+                        if (!creep.memory.thisPath) {
+                            let allowedRooms = {
+                                [from.roomName]: true
+                            };
+                            var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination, {
+                                routeCallback(roomName) {
+                                    let parsed = /^[WE]([0-9]+)[NS]([0-9]+)$/.exec(roomName);
+                                    let isHighway = (parsed[1] % 10 === 0) ||
+                                        (parsed[2] % 10 === 0);
+                                    let isMyRoom = Game.rooms[roomName] &&
+                                        Game.rooms[roomName].controller &&
+                                        Game.rooms[roomName].controller.my;
+                                    if (isHighway || isMyRoom) {
+                                        return 1;
+                                    } else {
+                                        return 2.5;
+                                    }
+                                }
+                            }).forEach(function(info) {
+                                allowedRooms[info.room] = true;
+                            });
+
+                            var pathArray = [];
+                            for (var i in thisPath) {
+                                pathArray.push(thisPath[i].room)
+                            }
+                            creep.memory.thisPath = pathArray;
+                        } else {
+                            creep.moveTo(new RoomPosition(25, 25, creep.memory.thisPath[0]));
+                            if (creep.memory.thisPath[0] == creep.room.name) {
+                                creep.memory.thisPath.splice(0, 1);
+                                if (creep.memory.thisPath.length == 0) {
+                                    creep.memory.thisPath = undefined;
+                                }
+                            }
+                        }
+                    } else {
+                        creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                            reusePath: 25
+                        });
+                    }
+
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);
                     }
