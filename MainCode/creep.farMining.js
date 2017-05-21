@@ -819,7 +819,7 @@ var creep_farMining = {
 
                     }
                 } else if (creep.room.name != creep.memory.destination) {
-                    if (creep.memory.targetFlag.includes("eFarGuard")) {
+                    /*if (creep.memory.targetFlag.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
                             var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination)
 
@@ -837,11 +837,11 @@ var creep_farMining = {
                                 }
                             }
                         }
-                    } else {
-                        creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                            reusePath: 25
-                        });
-                    }
+                    } else {*/
+                    creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                        reusePath: 25
+                    });
+                    //}
 
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);
