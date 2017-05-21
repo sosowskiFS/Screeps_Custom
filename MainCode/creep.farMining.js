@@ -822,7 +822,7 @@ var creep_farMining = {
                     if (creep.memory.targetFlag.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
                             let allowedRooms = {
-                                [from.roomName]: true
+                                [creep.room.roomName]: true
                             };
                             var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination, {
                                 routeCallback(roomName) {
