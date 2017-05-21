@@ -179,7 +179,7 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Game.flags["Loot"] && !Memory.lootRoom) {
+            if (Game.flags["Loot"]) {
                 if (thisRoom.storage) {
                     var thisRoute = Game.map.findRoute(Game.flags["Loot"].pos.roomName, thisRoom.name);
                     if (thisRoute != -2) {
@@ -579,7 +579,6 @@ module.exports.loop = function() {
     }
 
     if (Game.flags["Loot"]) {
-        Memory.lootRoom = instructionSpawn.room.name;
         spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', instructionSpawn.room.name);
     }
 

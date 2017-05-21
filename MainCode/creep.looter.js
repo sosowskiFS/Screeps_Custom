@@ -31,9 +31,6 @@ var creep_looter = {
                         if (Game.flags["Loot"]) {
                             Game.flags["Loot"].remove();
                         }
-                        if (Memory.lootRoom) {
-                            Memory.lootRoom = undefined;
-                        }
                         creep.suicide();
                     } else {
                         if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
