@@ -12,7 +12,7 @@ var creep_claimer = {
 
         if (creep.room.name != creep.memory.destination) {
             if (creep.memory.path) {
-                if (creep.memory.path[0] == creep.room.name){
+                if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
                 creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
@@ -22,6 +22,9 @@ var creep_claimer = {
         } else {
             if (creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(creep.room.controller);
+            } else if (creep.claimController(creep.room.controller) == OK) {
+                Memory.claimSpawn = false;
+                creep.suicide();
             }
         }
     }
