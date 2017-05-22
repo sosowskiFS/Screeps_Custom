@@ -1122,7 +1122,7 @@ var creep_work5 = {
                 break;
         }
 
-        if (Memory.roomsUnderAttack.indexOf(creep.room.name) > -1 && creep.memory.priority != 'repair') {
+        if (Memory.roomsUnderAttack.indexOf(creep.room.name) > -1 && creep.memory.priority != 'repair' && creep.memory.priority != 'distributor') {
             var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });

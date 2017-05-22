@@ -15,9 +15,13 @@ var creep_combat = {
 			var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 50, {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 			});
-			var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-			});
+
+			var closeFoe = Game.getObjectById(Memory.towerPickedTarget[creep.room.name]);
+			if (!closeFoe) {
+				closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+				});
+			}
 
 			if (Foe.length) {
 				Foe.sort(targetOther);
@@ -29,7 +33,7 @@ var creep_combat = {
 						}
 					});
 				}
-				if (boostFlag && creep.room.controller.level >= 7 && Memory.labList[thisRoom.name].length > 3) {
+				if (boostFlag && creep.room.controller.level >= 7 && Memory.labList[thisRoom.name].length >= 6) {
 					var attackLab = Game.getObjectById(Memory.labList[thisRoom.name][3]);
 					if (attackLab && attackLab.mineralAmount >= 900 && attackLab.energy >= 600) {
 						creep.memory.needBoosts = true;
@@ -59,11 +63,16 @@ var creep_combat = {
 					creep.memory.needBoost = false;
 				}
 			} else if (closeFoe) {
-				creep.rangedAttack(closeFoe);
-				creep.attack(closeFoe);
 				creep.moveTo(closeFoe, {
 					maxRooms: 1
 				});
+			}
+
+			if (closeFoe) {
+				if (creep.pos.inRangeTo(closeFoe, 3)) {
+					creep.rangedMassAttack();
+				}			
+				creep.attack(closeFoe);
 			}
 		} else {
 			var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
