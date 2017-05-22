@@ -207,6 +207,9 @@ var creep_work5 = {
                                         });
                                     } else {
                                         //assumed OK, drop target
+                                        if (savedTarget.structureType == STRUCTURE_LINK && creep.room.memory.fillingLink) {
+                                            creep.room.memory.fillingLink = false;
+                                        }
                                         creep.memory.structureTarget = undefined;
                                         getNewStructure = true;
                                     }
@@ -406,6 +409,19 @@ var creep_work5 = {
                         }
                     }
                 } else if (creep.memory.structureTarget) {
+
+                    if (creep.memory.previousPriority == 'mule' && !creep.room.memory.fillingLink && creep.carry.energy > 300 && Memory.linkList[creep.room.name].length > 1) {
+                        var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+                        if (upgraderLink && upgraderLink.energy < 100) {
+                            creep.room.memory.fillingLink = true;
+                            creep.memory.priority = 'mule';
+                            creep.memory.structureTarget = upgraderLink;
+                            if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(upgraderLink);
+                            }
+                        }
+                    }
+
                     var thisStructure = Game.getObjectById(creep.memory.structureTarget);
                     if (thisStructure) {
                         if (thisStructure.hits == thisStructure.hitsMax) {
