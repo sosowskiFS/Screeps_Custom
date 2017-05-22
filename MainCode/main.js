@@ -480,8 +480,8 @@ module.exports.loop = function() {
                 spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '', Game.flags[thisRoom.name + "Distract"].name);
             }
 
-            if (Game.flags["RemoveKebab"] && thisRoom.name == 'E88N83') {
-                spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', 'E87N81;E84N80;E84N79;E83N79;E83N77;E84N77');
+            if (Game.flags["RemoveKebab"] && thisRoom.name == 'E88N75') {
+                spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', 'E86N76;E86N77');
             }
 
             if (!Memory.isSpawning) {
