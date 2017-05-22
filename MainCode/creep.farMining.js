@@ -349,8 +349,15 @@ var creep_farMining = {
                     if (someSite.length) {
                         creep.build(someSite[0]);
                     } else {
-                        var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
-                        if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 100) && someStructure[0].structureType == STRUCTURE_ROAD) {
+                        var someStructure = [];
+                        if (creep.room.name == creep.memory.homeRoom) {
+                            someStructure = creep.pos.findInRange(FIND_STRUCTURES, 3 {
+                                filter: (structure) => (structure.hitsMax - structure.hits >= 100)
+                            });
+                        } else {
+                            someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
+                        }                    
+                        if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 100)) {
                             creep.repair(someStructure[0]);
                         }
                     }
