@@ -351,7 +351,7 @@ var creep_farMining = {
                     } else {
                         var someStructure = [];
                         if (creep.room.name == creep.memory.homeRoom) {
-                            someStructure = creep.pos.findInRange(FIND_STRUCTURES, 3 {
+                            someStructure = creep.pos.findInRange(FIND_STRUCTURES, 3, {
                                 filter: (structure) => (structure.hitsMax - structure.hits >= 100)
                             });
                         } else {
