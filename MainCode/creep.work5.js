@@ -409,7 +409,6 @@ var creep_work5 = {
                         }
                     }
                 } else if (creep.memory.structureTarget) {
-
                     if (creep.memory.previousPriority == 'mule' && !creep.room.memory.fillingLink && creep.carry.energy > 300 && Memory.linkList[creep.room.name].length > 1) {
                         var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
                         if (upgraderLink && upgraderLink.energy < 100) {
@@ -420,22 +419,22 @@ var creep_work5 = {
                                 creep.moveTo(upgraderLink);
                             }
                         }
-                    }
-
-                    var thisStructure = Game.getObjectById(creep.memory.structureTarget);
-                    if (thisStructure) {
-                        if (thisStructure.hits == thisStructure.hitsMax) {
-                            creep.memory.structureTarget = undefined;
-                        } else {
-                            if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(thisStructure, {
-                                    reusePath: 25,
-                                    maxRooms: 1
-                                });
-                            }
-                        }
                     } else {
-                        creep.memory.structureTarget = undefined;
+                        var thisStructure = Game.getObjectById(creep.memory.structureTarget);
+                        if (thisStructure) {
+                            if (thisStructure.hits == thisStructure.hitsMax) {
+                                creep.memory.structureTarget = undefined;
+                            } else {
+                                if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(thisStructure, {
+                                        reusePath: 25,
+                                        maxRooms: 1
+                                    });
+                                }
+                            }
+                        } else {
+                            creep.memory.structureTarget = undefined;
+                        }
                     }
                 } else {
                     var closestDamagedStructure = [];
