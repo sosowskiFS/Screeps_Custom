@@ -671,7 +671,7 @@ var creep_work5 = {
                     Game.flags[creep.memory.primaryFlag].remove();
                 }
 
-                if (!creep.memory.offlineUntil || (creep.memory.offlineUntil && creep.memory.offlineUntil <= Game.time)) {
+                if (!creep.memory.offlineUntil || (creep.memory.offlineUntil && creep.memory.offlineUntil >= Game.time)) {
                     if (creep.memory.mineral4 == creep.memory.mineral3 || creep.memory.mineral5 == creep.memory.mineral3 || creep.memory.mineral6 == creep.memory.mineral3) {
                         creep.memory.storeProduced = true;
                     } else {
