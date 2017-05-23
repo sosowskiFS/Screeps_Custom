@@ -863,6 +863,20 @@ var creep_work5 = {
                                             foundWork = true;
                                         }
                                     } else if (creep.carry[mineralArray[i]]) {
+                                        if (creep.memory.storeProduced) {
+                                            var labAmount = 9999;
+                                            if (mineralArray[i] == creep.memory.mineral4) {
+                                                labAmount = lab4.mineralAmount;
+                                            } else if (mineralArray[i] == creep.memory.mineral5) {
+                                                labAmount = lab5.mineralAmount;
+                                            } else if (mineralArray[i] == creep.memory.mineral5) {
+                                                labAmount = lab6.mineralAmount;
+                                            }
+                                            if (labAmount <= 2500) {
+                                                continue;
+                                            }
+                                        }
+
                                         creep.memory.structureTarget = creep.room.terminal.id;
                                         creep.memory.direction = 'Transfer';
                                         creep.memory.mineralToMove = mineralArray[i];
