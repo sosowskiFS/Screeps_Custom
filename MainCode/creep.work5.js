@@ -787,7 +787,7 @@ var creep_work5 = {
                                 checkForMoreWork = true;
                             }
                         } else {
-                            if (creep.carry[creep.memory.mineral1]) {
+                            if (creep.carry[creep.memory.mineral1] && lab1.mineralAmount < lab1.mineralCapacity - 250) {
                                 var transferResult = creep.transfer(lab1, creep.memory.mineral1)
                                 if (transferResult == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(lab1, {
@@ -797,7 +797,7 @@ var creep_work5 = {
                                 } else {
                                     creep.memory.isMoving = false;
                                 }
-                            } else if (creep.carry[creep.memory.mineral2]) {
+                            } else if (creep.carry[creep.memory.mineral2] && lab2.mineralAmount < lab2.mineralCapacity - 250) {
                                 var transferResult = creep.transfer(lab2, creep.memory.mineral2)
                                 if (transferResult == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(lab2, {
