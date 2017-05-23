@@ -408,13 +408,11 @@ var creep_farMining = {
                     } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
                         if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                             creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
-                                reusePath: 25,
-                                ignoreCreeps: true
+                                reusePath: 25
                             });
                         } else {
                             creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
-                                reusePath: 25,
-                                ignoreCreeps: true
+                                reusePath: 25
                             });
                         }
                         if (creep.memory.didRoadSearch == false) {
