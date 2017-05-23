@@ -740,7 +740,7 @@ var creep_work5 = {
                     }
 
                     if (thisTarget) {
-                        if (creep.memory.direction == 'Withdraw') {
+                        if (creep.memory.direction == 'Withdraw' && creep.memory.priority != 'labWorkerNearDeath') {
                             var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove)
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(thisTarget, {
