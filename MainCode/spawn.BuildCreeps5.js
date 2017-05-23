@@ -91,13 +91,13 @@ var spawn_BuildCreeps5 = {
             } else if (Game.flags[thisRoom.name + "LHProducer"]) {
                 min1 = RESOURCE_LEMERGIUM;
                 min2 = RESOURCE_HYDROGEN;
-                min3 = RESOURCE_LEMERGIUM_OXIDE;
+                min3 = RESOURCE_LEMERGIUM_HYDRIDE;
                 primaryFlag = thisRoom.name + "LHProducer";
                 backupFlag = thisRoom.name + "ULProducer";
             } else if (Game.flags[thisRoom.name + "LOProducer"]) {
                 min1 = RESOURCE_LEMERGIUM;
                 min2 = RESOURCE_OXYGEN;
-                min3 = RESOURCE_LEMERGIUM_HYDRIDE;
+                min3 = RESOURCE_LEMERGIUM_OXIDE;
                 primaryFlag = thisRoom.name + "LOProducer";
                 backupFlag = thisRoom.name + "UHProducer";
             } else if (Game.flags[thisRoom.name + "ULProducer"]) {
@@ -320,7 +320,7 @@ var spawn_BuildCreeps5 = {
                     //case 'melee':
                     //ToughCount = ToughCount + 1;
                     MoveCount = MoveCount + 2;
-                    if (RangedCount == 0){
+                    if (RangedCount == 0) {
                         RangedCount = 1;
                         AttackCount = AttackCount + 2;
                         remainingEnergy = remainingEnergy - 410;
