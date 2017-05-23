@@ -940,13 +940,6 @@ var creep_work5 = {
                                 creep.memory.movingOtherMineral = true;
                             }
                         }
-                    } else if (!creep.pos.isNearTo(creep.room.terminal)) {
-                        creep.moveTo(creep.room.terminal, {
-                            reusePath: 5
-                        });
-                        creep.memory.isMoving = true;
-                    } else {
-                        creep.memory.isMoving = false;
                     }
                 }
 
