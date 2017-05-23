@@ -671,286 +671,255 @@ var creep_work5 = {
                     Game.flags[creep.memory.primaryFlag].remove();
                 }
 
-                if (Game.time % 5 == 0 || creep.memory.isMoving) {
-                    if (creep.memory.mineral4 == creep.memory.mineral3 || creep.memory.mineral5 == creep.memory.mineral3 || creep.memory.mineral6 == creep.memory.mineral3) {
-                        creep.memory.storeProduced = true;
-                    } else {
-                        creep.memory.storeProduced = false;
-                    }
+                if (creep.memory.mineral4 == creep.memory.mineral3 || creep.memory.mineral5 == creep.memory.mineral3 || creep.memory.mineral6 == creep.memory.mineral3) {
+                    creep.memory.storeProduced = true;
+                } else {
+                    creep.memory.storeProduced = false;
+                }
 
-                    var labArray = [];
-                    var mineralArray = [];
-                    var lab1 = Game.getObjectById(creep.memory.lab1);
-                    var lab2 = Game.getObjectById(creep.memory.lab2);
-                    var lab3 = Game.getObjectById(creep.memory.lab3);
-                    if (lab1 && lab2 && lab3) {
-                        labArray.push(lab1);
-                        labArray.push(lab2);
-                        labArray.push(lab3);
-                        mineralArray.push(creep.memory.mineral1);
-                        mineralArray.push(creep.memory.mineral2);
-                        mineralArray.push(creep.memory.mineral3);
+                var labArray = [];
+                var mineralArray = [];
+                var lab1 = Game.getObjectById(creep.memory.lab1);
+                var lab2 = Game.getObjectById(creep.memory.lab2);
+                var lab3 = Game.getObjectById(creep.memory.lab3);
+                if (lab1 && lab2 && lab3) {
+                    labArray.push(lab1);
+                    labArray.push(lab2);
+                    labArray.push(lab3);
+                    mineralArray.push(creep.memory.mineral1);
+                    mineralArray.push(creep.memory.mineral2);
+                    mineralArray.push(creep.memory.mineral3);
+                }
+                var lab4 = undefined;
+                var lab5 = undefined;
+                var lab6 = undefined;
+                var lab7 = undefined;
+                var lab8 = undefined;
+                var lab9 = undefined;
+                if (creep.memory.lab4) {
+                    lab4 = Game.getObjectById(creep.memory.lab4);
+                    lab5 = Game.getObjectById(creep.memory.lab5);
+                    lab6 = Game.getObjectById(creep.memory.lab6);
+                    if (lab4 && lab5 && lab6) {
+                        labArray.push(lab4);
+                        labArray.push(lab5);
+                        labArray.push(lab6);
+                        mineralArray.push(creep.memory.mineral4);
+                        mineralArray.push(creep.memory.mineral5);
+                        mineralArray.push(creep.memory.mineral6);
                     }
-                    var lab4 = undefined;
-                    var lab5 = undefined;
-                    var lab6 = undefined;
-                    var lab7 = undefined;
-                    var lab8 = undefined;
-                    var lab9 = undefined;
-                    if (creep.memory.lab4) {
-                        lab4 = Game.getObjectById(creep.memory.lab4);
-                        lab5 = Game.getObjectById(creep.memory.lab5);
-                        lab6 = Game.getObjectById(creep.memory.lab6);
-                        if (lab4 && lab5 && lab6) {
-                            labArray.push(lab4);
-                            labArray.push(lab5);
-                            labArray.push(lab6);
-                            mineralArray.push(creep.memory.mineral4);
-                            mineralArray.push(creep.memory.mineral5);
-                            mineralArray.push(creep.memory.mineral6);
-                        }
-                    } else {
-                        creep.memory.lab4 = 'XXX';
-                        creep.memory.lab5 = 'XXX';
-                        creep.memory.lab6 = 'XXX';
+                } else {
+                    creep.memory.lab4 = 'XXX';
+                    creep.memory.lab5 = 'XXX';
+                    creep.memory.lab6 = 'XXX';
+                }
+                if (creep.memory.lab7) {
+                    lab7 = Game.getObjectById(creep.memory.lab7);
+                    lab8 = Game.getObjectById(creep.memory.lab8);
+                    lab9 = Game.getObjectById(creep.memory.lab9);
+                    if (lab7 && lab8 && lab9) {
+                        labArray.push(lab7);
+                        labArray.push(lab8);
+                        labArray.push(lab9);
+                        mineralArray.push(creep.memory.mineral7);
+                        mineralArray.push(creep.memory.mineral8);
+                        mineralArray.push(creep.memory.mineral9);
                     }
-                    if (creep.memory.lab7) {
-                        lab7 = Game.getObjectById(creep.memory.lab7);
-                        lab8 = Game.getObjectById(creep.memory.lab8);
-                        lab9 = Game.getObjectById(creep.memory.lab9);
-                        if (lab7 && lab8 && lab9) {
-                            labArray.push(lab7);
-                            labArray.push(lab8);
-                            labArray.push(lab9);
-                            mineralArray.push(creep.memory.mineral7);
-                            mineralArray.push(creep.memory.mineral8);
-                            mineralArray.push(creep.memory.mineral9);
-                        }
-                    } else {
-                        creep.memory.lab7 = 'XXX';
-                        creep.memory.lab8 = 'XXX';
-                        creep.memory.lab9 = 'XXX';
-                    }
-                    var checkForMoreWork = false;
-                    var foundWork = false;
+                } else {
+                    creep.memory.lab7 = 'XXX';
+                    creep.memory.lab8 = 'XXX';
+                    creep.memory.lab9 = 'XXX';
+                }
+                var checkForMoreWork = false;
+                var foundWork = false;
 
-                    var thisTarget = undefined;
-                    if (creep.memory.structureTarget) {
-                        thisTarget = Game.getObjectById(creep.memory.structureTarget);
-                    }
+                var thisTarget = undefined;
+                if (creep.memory.structureTarget) {
+                    thisTarget = Game.getObjectById(creep.memory.structureTarget);
+                }
 
-                    if (thisTarget) {
-                        if (creep.memory.direction == 'Withdraw' && creep.memory.priority != 'labWorkerNearDeath') {
-                            var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove)
-                            if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(thisTarget, {
-                                    reusePath: 5
-                                });
-                                creep.memory.isMoving = true;
-                            } else if (withdrawResult == OK) {
-                                creep.memory.isMoving = false;
-                                creep.memory.structureTarget = undefined;
-                                creep.memory.direction = undefined;
-                                creep.memory.mineralToMove = undefined;
-                            }
-                        } else {
-                            var transferResult = creep.transfer(thisTarget, creep.memory.mineralToMove)
-                            if (transferResult == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(thisTarget, {
-                                    reusePath: 5
-                                });
-                                creep.memory.isMoving = true;
-                            } else if (transferResult == OK) {
-                                creep.memory.isMoving = false;
-                                creep.memory.structureTarget = undefined;
-                                creep.memory.direction = undefined;
-                                creep.memory.mineralToMove = undefined;
-                            }
-                        }
-                    } else if (_.sum(creep.carry) == 0) {
-                        for (var i in labArray) {
-                            if (labArray[i].mineralAmount > 0 && labArray[i].mineralType != mineralArray[i]) {
-                                foundWork = true;
-                                creep.memory.movingOtherMineral = true;
-                                var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
-                                if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(labArray[i], {
-                                        reusePath: 5
-                                    });
-                                    creep.memory.isMoving = true;
-                                } else {
-                                    creep.memory.isMoving = false;
-                                }
-                            }
-                        }
-                    } else if (creep.memory.movingOtherMineral) {
-                        //Drop off "unknown" mineral in terminal
-                        foundWork = true;
-                        var currentlyCarrying = _.findKey(creep.carry);
-                        var transferResult = creep.transfer(creep.room.terminal, currentlyCarrying)
-                        if (transferResult == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(creep.room.terminal, {
-                                reusePath: 25
+                if (thisTarget) {
+                    if (creep.memory.direction == 'Withdraw' && creep.memory.priority != 'labWorkerNearDeath') {
+                        var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove)
+                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(thisTarget, {
+                                reusePath: 5
                             });
-                            creep.memory.isMoving = true;
-                        } else {
-                            creep.memory.isMoving = false;
-                            creep.memory.movingOtherMineral = false;
+                        } else if (withdrawResult == OK) {
+                            creep.memory.structureTarget = undefined;
+                            creep.memory.direction = undefined;
+                            creep.memory.mineralToMove = undefined;
+                        }
+                    } else {
+                        var transferResult = creep.transfer(thisTarget, creep.memory.mineralToMove)
+                        if (transferResult == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(thisTarget, {
+                                reusePath: 5
+                            });
+                        } else if (transferResult == OK) {
+                            creep.memory.structureTarget = undefined;
+                            creep.memory.direction = undefined;
+                            creep.memory.mineralToMove = undefined;
                         }
                     }
+                } else if (_.sum(creep.carry) == 0) {
+                    for (var i in labArray) {
+                        if (labArray[i].mineralAmount > 0 && labArray[i].mineralType != mineralArray[i]) {
+                            foundWork = true;
+                            creep.memory.movingOtherMineral = true;
+                            var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
+                            if (withdrawResult == ERR_NOT_IN_RANGE) {
+                                creep.moveTo(labArray[i], {
+                                    reusePath: 5
+                                });
+                            }
+                        }
+                    }
+                } else if (creep.memory.movingOtherMineral) {
+                    //Drop off "unknown" mineral in terminal
+                    foundWork = true;
+                    var currentlyCarrying = _.findKey(creep.carry);
+                    var transferResult = creep.transfer(creep.room.terminal, currentlyCarrying)
+                    if (transferResult == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(creep.room.terminal, {
+                            reusePath: 25
+                        });
+                    } else {
+                        creep.memory.movingOtherMineral = false;
+                    }
+                }
 
-                    if (!foundWork) {
-                        for (var i in labArray) {
-                            //Write a different switch for the war flag
-                            switch (labArray[i].id) {
-                                case creep.memory.lab1:
-                                case creep.memory.lab2:
-                                case creep.memory.lab7:
-                                case creep.memory.lab8:
-                                    //Reagent labs
-                                    if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-                                        if (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3]) {
-                                            var mineralAmount = mineralArray[i] in creep.room.terminal.store;
-                                            if (mineralAmount > 0 && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
-                                                creep.memory.structureTarget = creep.room.terminal.id;
-                                                creep.memory.direction = 'Withdraw';
-                                                creep.memory.mineralToMove = mineralArray[i];
-                                                var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i])
-                                                if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                                    creep.moveTo(creep.room.terminal, {
-                                                        reusePath: 5
-                                                    });
-                                                    creep.memory.isMoving = true;
-                                                } else {
-                                                    creep.memory.isMoving = false;
-                                                }
-                                                foundWork = true;
-                                            }
-                                        }
-                                    } else if (creep.carry[mineralArray[i]] && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
-                                        creep.memory.structureTarget = labArray[i].id;
-                                        creep.memory.direction = 'Transfer';
-                                        creep.memory.mineralToMove = mineralArray[i];
-                                        var transferResult = creep.transfer(labArray[i], mineralArray[i])
-                                        if (transferResult == ERR_NOT_IN_RANGE) {
-                                            creep.moveTo(labArray[i], {
-                                                reusePath: 5
-                                            });
-                                            creep.memory.isMoving = true;
-                                        } else {
-                                            creep.memory.isMoving = false;
-                                        }
-                                        foundWork = true;
-                                    }
-                                    break;
-                                case creep.memory.lab3:
-                                case creep.memory.lab9:
-                                    if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-                                        var mineralAmount = labArray[i].mineralAmount;
-                                        if (mineralAmount >= 250) {
-                                            creep.memory.structureTarget = labArray[i].id;
-                                            creep.memory.direction = 'Withdraw';
-                                            creep.memory.mineralToMove = mineralArray[i];
-                                            var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
-                                            if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                                creep.moveTo(labArray[i], {
-                                                    reusePath: 5
-                                                });
-                                                creep.memory.isMoving = true;
-                                            } else {
-                                                creep.memory.isMoving = false;
-                                            }
-                                            foundWork = true;
-                                        }
-                                    } else if (creep.carry[mineralArray[i]]) {
-                                        if (creep.memory.storeProduced) {
-                                            var labAmount = 9999;
-                                            if (mineralArray[i] == creep.memory.mineral4) {
-                                                labAmount = lab4.mineralAmount;
-                                            } else if (mineralArray[i] == creep.memory.mineral5) {
-                                                labAmount = lab5.mineralAmount;
-                                            } else if (mineralArray[i] == creep.memory.mineral5) {
-                                                labAmount = lab6.mineralAmount;
-                                            }
-                                            if (labAmount <= 2500) {
-                                                continue;
-                                            }
-                                        }
-
-                                        creep.memory.structureTarget = creep.room.terminal.id;
-                                        creep.memory.direction = 'Transfer';
-                                        creep.memory.mineralToMove = mineralArray[i];
-                                        if (creep.transfer(creep.room.terminal, mineralArray[i]) == ERR_NOT_IN_RANGE) {
-                                            creep.moveTo(creep.room.terminal, {
-                                                reusePath: 5
-                                            });
-                                            creep.memory.isMoving = true;
-                                        } else if (transferResult == OK) {
-                                            creep.memory.isMoving = false;
-                                        }
-                                        foundWork = true;
-                                    }
-                                    //Result labs
-                                    break;
-                                case creep.memory.lab4:
-                                case creep.memory.lab5:
-                                case creep.memory.lab6:
-                                    //Boost labs
-                                    if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-                                        var minAmount = mineralArray[i] in creep.room.terminal.store;
-                                        var minLab = labArray[i].mineralAmount;
-                                        if (minLab <= 2500 && minAmount > 0) {
+                if (!foundWork) {
+                    for (var i in labArray) {
+                        //Write a different switch for the war flag
+                        switch (labArray[i].id) {
+                            case creep.memory.lab1:
+                            case creep.memory.lab2:
+                            case creep.memory.lab7:
+                            case creep.memory.lab8:
+                                //Reagent labs
+                                if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
+                                    if (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3]) {
+                                        var mineralAmount = mineralArray[i] in creep.room.terminal.store;
+                                        if (mineralAmount > 0 && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
                                             creep.memory.structureTarget = creep.room.terminal.id;
                                             creep.memory.direction = 'Withdraw';
                                             creep.memory.mineralToMove = mineralArray[i];
-                                            var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i]);
+                                            var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i])
                                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                                 creep.moveTo(creep.room.terminal, {
                                                     reusePath: 5
                                                 });
-                                                creep.memory.isMoving = true;
-                                            } else {
-                                                creep.memory.isMoving = false;
-                                            }
-                                            foundWork = true;
-                                        }
-                                    } else {
-                                        var carryAmount = mineralArray[i] in creep.carry;
-                                        if (carryAmount > 0) {
-                                            creep.memory.structureTarget = labArray[i].id;
-                                            creep.memory.direction = 'Transfer';
-                                            creep.memory.mineralToMove = mineralArray[i];
-                                            var transferResult = creep.transfer(labArray[i], mineralArray[i]);
-                                            if (transferResult == ERR_NOT_IN_RANGE) {
-                                                creep.moveTo(labArray[i], {
-                                                    reusePath: 5
-                                                });
-                                                creep.memory.isMoving = true;
-                                            } else {
-                                                creep.memory.isMoving = false;
                                             }
                                             foundWork = true;
                                         }
                                     }
-                                    break;
-                            }
-                            if (foundWork) {
+                                } else if (creep.carry[mineralArray[i]] && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
+                                    creep.memory.structureTarget = labArray[i].id;
+                                    creep.memory.direction = 'Transfer';
+                                    creep.memory.mineralToMove = mineralArray[i];
+                                    var transferResult = creep.transfer(labArray[i], mineralArray[i])
+                                    if (transferResult == ERR_NOT_IN_RANGE) {
+                                        creep.moveTo(labArray[i], {
+                                            reusePath: 5
+                                        });
+                                    }
+                                    foundWork = true;
+                                }
                                 break;
-                            }
+                            case creep.memory.lab3:
+                            case creep.memory.lab9:
+                                if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
+                                    var mineralAmount = labArray[i].mineralAmount;
+                                    if (mineralAmount >= 250) {
+                                        creep.memory.structureTarget = labArray[i].id;
+                                        creep.memory.direction = 'Withdraw';
+                                        creep.memory.mineralToMove = mineralArray[i];
+                                        var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
+                                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                                            creep.moveTo(labArray[i], {
+                                                reusePath: 5
+                                            });
+                                        }
+                                        foundWork = true;
+                                    }
+                                } else if (creep.carry[mineralArray[i]]) {
+                                    if (creep.memory.storeProduced) {
+                                        var labAmount = 9999;
+                                        if (mineralArray[i] == creep.memory.mineral4) {
+                                            labAmount = lab4.mineralAmount;
+                                        } else if (mineralArray[i] == creep.memory.mineral5) {
+                                            labAmount = lab5.mineralAmount;
+                                        } else if (mineralArray[i] == creep.memory.mineral5) {
+                                            labAmount = lab6.mineralAmount;
+                                        }
+                                        if (labAmount <= 2500) {
+                                            continue;
+                                        }
+                                    }
+
+                                    creep.memory.structureTarget = creep.room.terminal.id;
+                                    creep.memory.direction = 'Transfer';
+                                    creep.memory.mineralToMove = mineralArray[i];
+                                    if (creep.transfer(creep.room.terminal, mineralArray[i]) == ERR_NOT_IN_RANGE) {
+                                        creep.moveTo(creep.room.terminal, {
+                                            reusePath: 5
+                                        });
+                                    }
+                                    foundWork = true;
+                                }
+                                //Result labs
+                                break;
+                            case creep.memory.lab4:
+                            case creep.memory.lab5:
+                            case creep.memory.lab6:
+                                //Boost labs
+                                if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
+                                    var minAmount = mineralArray[i] in creep.room.terminal.store;
+                                    var minLab = labArray[i].mineralAmount;
+                                    if (minLab <= 2500 && minAmount > 0) {
+                                        creep.memory.structureTarget = creep.room.terminal.id;
+                                        creep.memory.direction = 'Withdraw';
+                                        creep.memory.mineralToMove = mineralArray[i];
+                                        var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i]);
+                                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                                            creep.moveTo(creep.room.terminal, {
+                                                reusePath: 5
+                                            });
+                                        }
+                                        foundWork = true;
+                                    }
+                                } else {
+                                    var carryAmount = mineralArray[i] in creep.carry;
+                                    if (carryAmount > 0) {
+                                        creep.memory.structureTarget = labArray[i].id;
+                                        creep.memory.direction = 'Transfer';
+                                        creep.memory.mineralToMove = mineralArray[i];
+                                        var transferResult = creep.transfer(labArray[i], mineralArray[i]);
+                                        if (transferResult == ERR_NOT_IN_RANGE) {
+                                            creep.moveTo(labArray[i], {
+                                                reusePath: 5
+                                            });
+                                        }
+                                        foundWork = true;
+                                    }
+                                }
+                                break;
+                        }
+                        if (foundWork) {
+                            break;
                         }
                     }
+                }
 
-                    if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
-                        if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
-                            var withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
-                            if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.storage);
-                                creep.memory.isMoving = true;
-                            } else if (withdrawResult == OK) {
-                                creep.moveTo(creep.room.terminal);
-                                creep.memory.isMoving = true;
-                                creep.memory.movingOtherMineral = true;
-                            }
+                if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
+                    if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
+                        var withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
+                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                            creep.moveTo(creep.room.storage);
+                        } else if (withdrawResult == OK) {
+                            creep.moveTo(creep.room.terminal);
+                            creep.memory.movingOtherMineral = true;
                         }
                     }
                 }
