@@ -750,7 +750,7 @@ var creep_work5 = {
                                 creep.moveTo(thisTarget, {
                                     reusePath: 25
                                 });
-                            } else if (withdrawResult == OK) {
+                            } else if (withdrawResult != ERR_NOT_IN_RANGE) {
                                 creep.memory.structureTarget = undefined;
                                 creep.memory.direction = undefined;
                                 creep.memory.mineralToMove = undefined;
@@ -762,7 +762,7 @@ var creep_work5 = {
                                 creep.moveTo(thisTarget, {
                                     reusePath: 25
                                 });
-                            } else if (transferResult == OK) {
+                            } else if (transferResult != ERR_NOT_IN_RANGE) {
                                 creep.memory.structureTarget = undefined;
                                 creep.memory.direction = undefined;
                                 creep.memory.mineralToMove = undefined;
@@ -927,7 +927,7 @@ var creep_work5 = {
                             var withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(creep.room.storage);
-                            } else if (withdrawResult == OK) {
+                            } else if (withdrawResult != ERR_NOT_IN_RANGE) {
                                 creep.moveTo(creep.room.terminal);
                                 creep.memory.movingOtherMineral = true;
                             }
