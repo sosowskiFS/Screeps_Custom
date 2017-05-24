@@ -744,6 +744,7 @@ var creep_work5 = {
 
                     if (thisTarget) {
                         if (creep.memory.direction == 'Withdraw' && creep.memory.priority != 'labWorkerNearDeath') {
+                            foundWork = true;
                             var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove);
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(thisTarget, {
@@ -755,6 +756,7 @@ var creep_work5 = {
                                 creep.memory.mineralToMove = undefined;
                             }
                         } else {
+                            foundWork = true;
                             var transferResult = creep.transfer(thisTarget, creep.memory.mineralToMove)
                             if (transferResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(thisTarget, {
@@ -926,7 +928,7 @@ var creep_work5 = {
                                 creep.memory.movingOtherMineral = true;
                             }
                         }
-                    } else {
+                    } else if (!foundWork) {
                         creep.memory.offlineUntil = Game.time + 10;
                     }
                 }
