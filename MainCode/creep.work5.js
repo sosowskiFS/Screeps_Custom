@@ -421,13 +421,20 @@ var creep_work5 = {
                             if (thisStructure.hits == thisStructure.hitsMax) {
                                 creep.memory.structureTarget = undefined;
                             } else {
-                                if (!creep.pos.isNearTo(thisStructure)){
+                                if (Memory.warMode && creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(thisStructure, {
                                         reusePath: 25,
                                         maxRooms: 1
                                     });
+                                } else {
+                                    if (!creep.pos.isNearTo(thisStructure)) {
+                                        creep.moveTo(thisStructure, {
+                                            reusePath: 25,
+                                            maxRooms: 1
+                                        });
+                                    }
+                                    creep.repair(thisStructure);
                                 }
-                                creep.repair(thisStructure);
                             }
                         } else {
                             creep.memory.structureTarget = undefined;
