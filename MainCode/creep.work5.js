@@ -793,6 +793,10 @@ var creep_work5 = {
                         } else {
                             creep.memory.movingOtherMineral = false;
                         }
+                    } else if (!thisTarget) {
+                        creep.memory.structureTarget = undefined;
+                        creep.memory.direction = undefined;
+                        creep.memory.mineralToMove = undefined;
                     }
 
                     if (!foundWork) {
