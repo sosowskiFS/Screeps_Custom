@@ -648,7 +648,7 @@ var creep_work5 = {
                         if (creep.room.terminal.store[creep.memory.mineral3] >= 40000) {
                             //Immediately swap flags
                             creep.memory.resourceChecks = 5;
-                        } else if (lab1 && lab2 && lab1.mineralAmount < 250 && lab2.mineralAmount < 250) {
+                        } else if (lab1 && lab2 && (lab1.mineralAmount < 250 || lab2.mineralAmount < 250)) {
                             //tick up, but don't swap yet
                             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
                         }
