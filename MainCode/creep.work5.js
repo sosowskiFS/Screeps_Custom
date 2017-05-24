@@ -251,22 +251,44 @@ var creep_work5 = {
                         //Immediately find a new target if previous transfer worked
                         if (!creep.memory.structureTarget) {
                             var targets = undefined;
-                            if (getNewStructure) {
-                                targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                    filter: (structure) => {
-                                        return (structure.structureType == STRUCTURE_EXTENSION ||
-                                            structure.structureType == STRUCTURE_SPAWN ||
-                                            structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                                    }
-                                });
+                            if (Memory.warMode) {
+                                if (getNewStructure) {
+                                    targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                        filter: (structure) => {
+                                            return (structure.structureType == STRUCTURE_EXTENSION ||
+                                                structure.structureType == STRUCTURE_SPAWN ||
+                                                structure.structureType == STRUCTURE_LAB ||
+                                                structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                        }
+                                    });
+                                } else {
+                                    targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                        filter: (structure) => {
+                                            return (structure.structureType == STRUCTURE_EXTENSION ||
+                                                structure.structureType == STRUCTURE_SPAWN ||
+                                                structure.structureType == STRUCTURE_LAB ||
+                                                structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+                                        }
+                                    });
+                                }
                             } else {
-                                targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                    filter: (structure) => {
-                                        return (structure.structureType == STRUCTURE_EXTENSION ||
-                                            structure.structureType == STRUCTURE_SPAWN ||
-                                            structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
-                                    }
-                                });
+                                if (getNewStructure) {
+                                    targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                        filter: (structure) => {
+                                            return (structure.structureType == STRUCTURE_EXTENSION ||
+                                                structure.structureType == STRUCTURE_SPAWN ||
+                                                structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                        }
+                                    });
+                                } else {
+                                    targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                        filter: (structure) => {
+                                            return (structure.structureType == STRUCTURE_EXTENSION ||
+                                                structure.structureType == STRUCTURE_SPAWN ||
+                                                structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
+                                        }
+                                    });
+                                }
                             }
 
                             if (targets) {
