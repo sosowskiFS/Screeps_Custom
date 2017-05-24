@@ -764,6 +764,7 @@ var creep_work5 = {
                             } else {
                                 creep.memory.structureTarget = undefined;
                                 creep.memory.direction = undefined;
+                                creep.memory.mineralToMove = undefined;
                             }
                         } else {
                             foundWork = true;
@@ -940,7 +941,7 @@ var creep_work5 = {
                         }
                     } else {
                         if (!foundWork && !creep.pos.isNearTo(creep.room.terminal)) {
-                            creep.memory.structureTarget = creep.room.terminal;
+                            creep.memory.structureTarget = creep.room.terminal.id;
                             creep.memory.direction = 'Move';
                             creep.moveTo(creep.room.terminal, {
                                 reusePath: 25
