@@ -745,7 +745,6 @@ var creep_work5 = {
                     if (thisTarget) {
                         if (creep.memory.direction == 'Withdraw' && creep.memory.priority != 'labWorkerNearDeath') {
                             var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove);
-                            foundWork = true;
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(thisTarget, {
                                     reusePath: 25
@@ -755,19 +754,7 @@ var creep_work5 = {
                                 creep.memory.direction = undefined;
                                 creep.memory.mineralToMove = undefined;
                             }
-                        } else if (creep.memory.direction == 'Move') {
-                            foundWork = true;
-                            if (!creep.pos.isNearTo(thisTarget)) {                      
-                                creep.moveTo(thisTarget, {
-                                    reusePath: 25
-                                });
-                            } else {
-                                creep.memory.structureTarget = undefined;
-                                creep.memory.direction = undefined;
-                                creep.memory.mineralToMove = undefined;
-                            }
                         } else {
-                            foundWork = true;
                             var transferResult = creep.transfer(thisTarget, creep.memory.mineralToMove)
                             if (transferResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(thisTarget, {
@@ -940,15 +927,7 @@ var creep_work5 = {
                             }
                         }
                     } else {
-                        if (!foundWork && !creep.pos.isNearTo(creep.room.terminal)) {
-                            creep.memory.structureTarget = creep.room.terminal.id;
-                            creep.memory.direction = 'Move';
-                            creep.moveTo(creep.room.terminal, {
-                                reusePath: 25
-                            });
-                        } else if (!foundWork) {
-                            creep.memory.offlineUntil = Game.time + 10;
-                        }
+                        creep.memory.offlineUntil = Game.time + 10;
                     }
                 }
 
