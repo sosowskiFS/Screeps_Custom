@@ -757,8 +757,8 @@ var creep_work5 = {
                             }
                         } else if (creep.memory.direction == 'Move') {
                             foundWork = true;
-                            if (!creep.pos.isNearTo(creep.room.terminal)) {                      
-                                creep.moveTo(creep.room.terminal, {
+                            if (!creep.pos.isNearTo(thisTarget)) {                      
+                                creep.moveTo(thisTarget, {
                                     reusePath: 25
                                 });
                             } else {
