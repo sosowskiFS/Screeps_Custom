@@ -671,7 +671,7 @@ var creep_work5 = {
                 }
 
                 if (Game.time % 250 == 0 && Game.flags[creep.memory.primaryFlag]) {
-                    if (creep.memory.resourceChecks < 4) {
+                    if (creep.memory.resourceChecks < 5) {
                         var lab1 = Game.getObjectById(creep.memory.lab1);
                         var lab2 = Game.getObjectById(creep.memory.lab2);
                         if (creep.room.terminal.store[creep.memory.mineral3] >= 40000) {
