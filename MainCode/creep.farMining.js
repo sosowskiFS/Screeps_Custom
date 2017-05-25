@@ -309,7 +309,6 @@ var creep_farMining = {
                 break;
             case 'farMule':
             case 'farMuleNearDeath':
-
                 if ((creep.ticksToLive <= creep.memory.deathWarn || creep.getActiveBodyparts(CARRY) <= 2) && creep.memory.priority != 'farMuleNearDeath') {
                     creep.memory.priority = 'farMuleNearDeath';
                 }
@@ -559,8 +558,11 @@ var creep_farMining = {
                 break;
             case 'farGuard':
             case 'farGuardNearDeath':
-                creep.notifyWhenAttacked(false);
-
+                if (!creep.memory.disabledNotify){
+                    creep.notifyWhenAttacked(false);
+                    creep.memory.disabledNotify = true;
+                }
+                
                 if ((creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) && creep.memory.priority != 'farGuardNearDeath') {
                     creep.memory.priority = 'farGuardNearDeath';
                 }
@@ -890,7 +892,10 @@ var creep_farMining = {
                 break;
             case 'SKAttackGuard':
             case 'SKAttackGuardNearDeath':
-                creep.notifyWhenAttacked(false);
+                if (!creep.memory.disabledNotify){
+                    creep.notifyWhenAttacked(false);
+                    creep.memory.disabledNotify = true;
+                }
 
                 if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
                     creep.memory.priority = 'SKAttackGuardNearDeath';
@@ -990,7 +995,10 @@ var creep_farMining = {
                 break;
             case 'SKHealGuard':
             case 'SKHealGuardNearDeath':
-                creep.notifyWhenAttacked(false);
+                if (!creep.memory.disabledNotify){
+                    creep.notifyWhenAttacked(false);
+                    creep.memory.disabledNotify = true;
+                }
 
                 if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
                     creep.memory.priority = 'SKHealGuardNearDeath';
