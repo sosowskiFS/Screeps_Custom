@@ -5,9 +5,6 @@ var creep_farMining = {
         switch (creep.memory.priority) {
             case 'farClaimer':
             case 'farClaimerNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 5;
-                }
 
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farClaimerNearDeath') {
                     creep.memory.priority = 'farClaimerNearDeath';
@@ -33,9 +30,6 @@ var creep_farMining = {
                 break;
             case 'farMiner':
             case 'farMinerNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 5;
-                }
 
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farMinerNearDeath') {
                     creep.memory.priority = 'farMinerNearDeath';
@@ -315,9 +309,6 @@ var creep_farMining = {
                 break;
             case 'farMule':
             case 'farMuleNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 5;
-                }
 
                 if ((creep.ticksToLive <= creep.memory.deathWarn || creep.getActiveBodyparts(CARRY) <= 2) && creep.memory.priority != 'farMuleNearDeath') {
                     creep.memory.priority = 'farMuleNearDeath';
@@ -569,14 +560,6 @@ var creep_farMining = {
             case 'farGuard':
             case 'farGuardNearDeath':
                 creep.notifyWhenAttacked(false);
-
-                if (!creep.memory.deathWarn) {
-                    if (Memory.warMode) {
-                        creep.memory.deathWarn = _.size(creep.body) * 6;
-                    } else {
-                        creep.memory.deathWarn = _.size(creep.body) * 5;
-                    }
-                }
 
                 if ((creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) && creep.memory.priority != 'farGuardNearDeath') {
                     creep.memory.priority = 'farGuardNearDeath';
@@ -909,14 +892,6 @@ var creep_farMining = {
             case 'SKAttackGuardNearDeath':
                 creep.notifyWhenAttacked(false);
 
-                if (!creep.memory.deathWarn) {
-                    if (Memory.warMode) {
-                        creep.memory.deathWarn = _.size(creep.body) * 6;
-                    } else {
-                        creep.memory.deathWarn = _.size(creep.body) * 5;
-                    }
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
                     creep.memory.priority = 'SKAttackGuardNearDeath';
                     creep.room.visual.text("\u2620\u27A1\u2694", creep.pos.x, creep.pos.y, {
@@ -1016,14 +991,6 @@ var creep_farMining = {
             case 'SKHealGuard':
             case 'SKHealGuardNearDeath':
                 creep.notifyWhenAttacked(false);
-
-                if (!creep.memory.deathWarn) {
-                    if (Memory.warMode) {
-                        creep.memory.deathWarn = _.size(creep.body) * 6;
-                    } else {
-                        creep.memory.deathWarn = _.size(creep.body) * 5;
-                    }
-                }
 
                 if (creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) {
                     creep.memory.priority = 'SKHealGuardNearDeath';

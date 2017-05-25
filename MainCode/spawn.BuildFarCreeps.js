@@ -572,6 +572,7 @@ var spawn_BuildFarCreeps = {
 							destination: roomTarget,
 							fromSpawn: spawn.id,
 							homeRoom: thisRoom.name,
+							deathWarn: _.size(farClaimerConfig) * 5,
 							targetFlag: flagName
 						});
 						Memory.FarClaimerNeeded[Game.flags[flagName].pos.roomName] = false;
@@ -584,6 +585,7 @@ var spawn_BuildFarCreeps = {
 							destination: roomTarget,
 							fromSpawn: spawn.id,
 							homeRoom: thisRoom.name,
+							deathWarn: _.size(farMinerConfig) * 5,
 							targetFlag: flagName
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
@@ -596,17 +598,23 @@ var spawn_BuildFarCreeps = {
 							homeRoom: thisRoom.name,
 							storageSource: storageID,
 							fromSpawn: spawn.id,
+							deathWarn: _.size(farMuleConfig) * 5,
 							targetFlag: flagName
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 				} else if (prioritizedRole == 'farGuard') {
 					if (spawn.canCreateCreep(farGuardConfig) == OK) {
+						var warnMulti = 5;
+						if (Memory.warMode) {
+							warnMulti = 6;
+						}
 						spawn.createCreep(farGuardConfig, undefined, {
 							priority: prioritizedRole,
 							destination: roomTarget,
 							homeRoom: thisRoom.name,
 							fromSpawn: spawn.id,
+							deathWarn: _.size(farGuardConfig) * warnMulti,
 							targetFlag: flagName
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
@@ -620,29 +628,40 @@ var spawn_BuildFarCreeps = {
 							homeRoom: thisRoom.name,
 							fromSpawn: spawn.id,
 							storageSource: storageID,
+							deathWarn: _.size(farMinerConfig) * 5,
 							targetFlag: flagName
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 				} else if (prioritizedRole == 'SKAttackGuard') {
 					if (spawn.canCreateCreep(SKGuardAttackerConfig) == OK) {
+						var warnMulti = 5;
+						if (Memory.warMode) {
+							warnMulti = 6;
+						}
 						spawn.createCreep(SKGuardAttackerConfig, undefined, {
 							priority: prioritizedRole,
 							destination: roomTarget,
 							homeRoom: thisRoom.name,
 							fromSpawn: spawn.id,
+							deathWarn: _.size(SKGuardAttackerConfig) * warnMulti,
 							targetFlag: flagName
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
 				} else if (prioritizedRole == 'SKHealGuard') {
 					if (spawn.canCreateCreep(SKGuardHealerConfig) == OK) {
+						var warnMulti = 5;
+						if (Memory.warMode) {
+							warnMulti = 6;
+						}
 						spawn.createCreep(SKGuardHealerConfig, undefined, {
 							priority: prioritizedRole,
 							destination: roomTarget,
 							homeRoom: thisRoom.name,
 							fromSpawn: spawn.id,
 							targetFlag: flagName,
+							deathWarn: _.size(SKGuardHealerConfig) * warnMulti,
 							parentAttacker: healTarget
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
