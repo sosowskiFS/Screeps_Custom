@@ -3,18 +3,6 @@ var creep_work5 = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
-        //wew lad
-        /*if (!creep.room.controller.sign) {
-            if(creep.pos.isNearTo(creep.room.controller)) {
-                creep.signController(creep.room.controller, 'This is, by far, the most kupo room I\'ve ever seen!');
-            }
-        }*/
-
-        var ignoreRoadsValue = false;
-        if (Memory.IgnoreRoadRooms == creep.room.name) {
-            ignoreRoadsValue = true;
-        }
-
         if (creep.carry.energy > 0 && creep.memory.priority != 'miner' && creep.memory.priority != 'minerNearDeath') {
             //All creeps check for road under them and repair if needed.
             var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);

@@ -1,8 +1,8 @@
-//Whitelist ['cyberblast','SirLovi','Asku','Kazume','Noxeth','MrDave','Telemac','Xephael','Zoiah','fsck-u','FaceWound','forkmantis','Migaaresno','xAix1999','silentpoots','arguinyano','OokieCookie','OverlordQ','Nibinhilion','Crowsbane','Yew','BogdanBiv','s1akr','Pandabear41','Logmadr','Patrik','novice','Conquest','ofirl','GeorgeBerkeley','TTR','tynstar','K-C','Hoekynl','Sunri5e','AgOrange','distantcam','Lisp','bbdMinimbl','Twill','Logxen','miR','Spedwards','Krazyfuq','Icesory','chobobobo','deft-code','mmmd','DKPlugins','pavelnieks','buckley310','almaravarion','SSH','Perrytheplatypus','Jnesselr','ryagas','xXtheguy52Xx','SEATURTLEKING','DasBrain','C00k1e_93','Currency','Vykook','shedletsky','Aranatha','Montblanc']
-
 //Creeps
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
+
+
 var creep_farMining = require('creep.farMining');
 var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
@@ -90,6 +90,7 @@ module.exports.loop = function() {
     if (Game.flags["ResetAttackFlags"]) {
         Memory.roomsUnderAttack = [];
         Memory.attackDuration = 0;
+        Game.flags["ResetAttackFlags"].remove();
     }
 
     //Clean up crappy construction sites
