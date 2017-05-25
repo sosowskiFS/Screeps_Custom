@@ -30,7 +30,6 @@ var creep_farMining = {
                 break;
             case 'farMiner':
             case 'farMinerNearDeath':
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farMinerNearDeath') {
                     creep.memory.priority = 'farMinerNearDeath';
                 }
@@ -641,7 +640,7 @@ var creep_farMining = {
 
                 if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
                     creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                        reusePath: 25
+                        reusePath: 50
                     });
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);

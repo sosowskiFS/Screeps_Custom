@@ -80,6 +80,12 @@ var creep_work5 = {
                             reusePath: 25
                         });
                     }
+                } else {
+                    if (Game.time % 2 == 0) {
+                        creep.say("GCL", true);
+                    } else {
+                        creep.say("PRAISE", true);
+                    }
                 }
 
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
