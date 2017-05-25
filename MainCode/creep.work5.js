@@ -26,10 +26,6 @@ var creep_work5 = {
         switch (creep.memory.priority) {
             case 'miner':
             case 'minerNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 4;
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'minerNearDeath') {
                     creep.memory.priority = 'minerNearDeath';
                     creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
@@ -82,10 +78,6 @@ var creep_work5 = {
                 break;
             case 'upgrader':
             case 'upgraderNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 4;
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'upgraderNearDeath') {
                     creep.memory.priority = 'upgraderNearDeath';
                 }
@@ -131,10 +123,6 @@ var creep_work5 = {
                 break;
             case 'mule':
             case 'muleNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 4;
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
                     creep.memory.priority = 'muleNearDeath';
                 }
@@ -391,10 +379,6 @@ var creep_work5 = {
                 break;
             case 'repair':
             case 'repairNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 4;
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'repairNearDeath') {
                     creep.memory.priority = 'repairNearDeath';
                 }
@@ -499,10 +483,6 @@ var creep_work5 = {
                 break;
             case 'supplier':
             case 'supplierNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 4;
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'supplierNearDeath') {
                     creep.memory.priority = 'supplierNearDeath';
                 }
@@ -532,10 +512,6 @@ var creep_work5 = {
                 break;
             case 'distributor':
             case 'distributorNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 4;
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
                     creep.memory.priority = 'distributorNearDeath';
                 }
@@ -662,10 +638,6 @@ var creep_work5 = {
                 break;
             case 'labWorker':
             case 'labWorkerNearDeath':
-                if (!creep.memory.deathWarn) {
-                    creep.memory.deathWarn = _.size(creep.body) * 4;
-                }
-
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'labWorkerNearDeath') {
                     creep.memory.priority = 'labWorkerNearDeath';
                 }
