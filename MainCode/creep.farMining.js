@@ -363,6 +363,7 @@ var creep_farMining = {
                             someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
                         }
                         if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 100)) {
+                            someStructure.sort(repairCompare);
                             creep.repair(someStructure[0]);
                         }
                     }
@@ -1370,6 +1371,14 @@ function SKCompare(a, b) {
     if (a.ticksToSpawn < b.ticksToSpawn)
         return -1;
     if (a.ticksToSpawn > b.ticksToSpawn)
+        return 1;
+    return 0;
+}
+
+function repairCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
         return 1;
     return 0;
 }
