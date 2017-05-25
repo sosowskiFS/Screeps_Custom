@@ -812,7 +812,7 @@ var creep_work5 = {
                             creep.moveTo(creep.room.terminal, {
                                 reusePath: 25
                             });
-                        } else {
+                        } else if (transferResult == OK) {
                             creep.memory.movingOtherMineral = false;
                         }
                     } else if (!thisTarget) {
