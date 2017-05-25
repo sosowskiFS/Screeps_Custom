@@ -374,17 +374,17 @@ var creep_farMining = {
                             //Pick up dropped energy from dead mules, etc.
                             if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(droppedSources[0], {
-                                    reusePath: 25
+                                    reusePath: 50
                                 });
                             }
                         } else {
                             if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
                                 creep.moveTo(Game.flags[creep.memory.targetFlag], {
-                                    reusePath: 25
+                                    reusePath: 50
                                 });
                             } else {
                                 creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                    reusePath: 25
+                                    reusePath: 50
                                 });
                             }
                         }
@@ -392,11 +392,11 @@ var creep_farMining = {
                     } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
                         if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                             creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
-                                reusePath: 25
+                                reusePath: 50
                             });
                         } else {
                             creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
-                                reusePath: 25
+                                reusePath: 50
                             });
                         }
                         if (creep.memory.didRoadSearch == false) {
@@ -428,7 +428,7 @@ var creep_farMining = {
                                 //Pick up dropped energy from dead mules, etc.
                                 if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(droppedSources[0], {
-                                        reusePath: 25
+                                        reusePath: 50
                                     });
                                 }
                             } else {
@@ -440,13 +440,13 @@ var creep_farMining = {
                                             if (Object.keys(thisContainer.store).length > 1) {
                                                 if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
                                                     creep.moveTo(thisContainer, {
-                                                        reusePath: 25,
+                                                        reusePath: 50,
                                                         maxRooms: 1
                                                     });
                                                 }
                                             } else if (Object.keys(thisContainer.store).length && creep.withdraw(thisContainer, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
                                                 creep.moveTo(thisContainer, {
-                                                    reusePath: 25,
+                                                    reusePath: 50,
                                                     maxRooms: 1
                                                 });
                                             }
@@ -492,20 +492,20 @@ var creep_farMining = {
                                                 if (Object.keys(containers[0].store).length > 1) {
                                                     if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
                                                         creep.moveTo(containers[0], {
-                                                            reusePath: 25,
+                                                            reusePath: 50,
                                                             maxRooms: 1
                                                         });
                                                     }
                                                 } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
                                                     creep.moveTo(containers[0], {
-                                                        reusePath: 25,
+                                                        reusePath: 50,
                                                         maxRooms: 1
                                                     });
                                                 }
                                             }
                                         } else {
                                             creep.moveTo(thisSource, {
-                                                reusePath: 25,
+                                                reusePath: 50,
                                                 maxRooms: 1
                                             })
                                         }

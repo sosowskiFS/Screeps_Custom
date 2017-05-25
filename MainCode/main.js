@@ -389,6 +389,7 @@ module.exports.loop = function() {
                 for (var y in Object.keys(thisRoom.terminal.store)) {
                     Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]] = thisRoom.terminal.store[Object.keys(thisRoom.terminal.store)[y]] + Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]];
                 }
+                Memory.TerminalCollection.sort();
             }
 
             //Handle Links
