@@ -67,14 +67,14 @@ var creep_farMining = {
                     }
                 } else {
                     if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-                        if (creep.room.controller.reservation.ticksToEnd <= 1000 && Memory.FarClaimerNeeded[creep.room.name] != true) {
+                        if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
                             Memory.FarClaimerNeeded[creep.room.name] = true;
-                        } else if (Memory.FarClaimerNeeded[creep.room.name] != false) {
+                        } else if (Memory.FarClaimerNeeded[creep.room.name]) {
                             Memory.FarClaimerNeeded[creep.room.name] = false;
                         }
-                    } else if (creep.room.name == creep.memory.destination && creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != true) {
+                    } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
                         Memory.FarClaimerNeeded[creep.room.name] = true;
-                    } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != false) {
+                    } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
                         Memory.FarClaimerNeeded[creep.room.name] = false;
                     }
 
@@ -411,14 +411,14 @@ var creep_farMining = {
                         }
                     } else {
                         if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-                            if (creep.room.controller.reservation.ticksToEnd <= 1000 && Memory.FarClaimerNeeded[creep.room.name] != true) {
+                            if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
                                 Memory.FarClaimerNeeded[creep.room.name] = true;
-                            } else if (Memory.FarClaimerNeeded[creep.room.name] != false) {
+                            } else if (Memory.FarClaimerNeeded[creep.room.name]) {
                                 Memory.FarClaimerNeeded[creep.room.name] = false;
                             }
-                        } else if (creep.room.name == creep.memory.destination && creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != true) {
+                        } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
                             Memory.FarClaimerNeeded[creep.room.name] = true;
-                        } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != false) {
+                        } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
                             Memory.FarClaimerNeeded[creep.room.name] = false;
                         }
 
@@ -603,14 +603,14 @@ var creep_farMining = {
                 }
 
                 if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-                    if (creep.room.controller.reservation.ticksToEnd <= 1000 && Memory.FarClaimerNeeded[creep.room.name] != true) {
+                    if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
                         Memory.FarClaimerNeeded[creep.room.name] = true;
-                    } else if (Memory.FarClaimerNeeded[creep.room.name] != false) {
+                    } else if (Memory.FarClaimerNeeded[creep.room.name]) {
                         Memory.FarClaimerNeeded[creep.room.name] = false;
                     }
-                } else if (creep.room.name == creep.memory.destination && creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != true) {
+                } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
                     Memory.FarClaimerNeeded[creep.room.name] = true;
-                } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name] != false) {
+                } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
                     Memory.FarClaimerNeeded[creep.room.name] = false;
                 }
 
