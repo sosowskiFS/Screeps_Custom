@@ -82,9 +82,9 @@ var creep_work5 = {
                     }
                 } else {
                     if (Game.time % 2 == 0) {
-                        creep.say("GCL", true);
+                        creep.say("\u261D", true);
                     } else {
-                        creep.say("PRAISE", true);
+                        creep.say("\uD83D\uDC08", true);
                     }
                 }
 
