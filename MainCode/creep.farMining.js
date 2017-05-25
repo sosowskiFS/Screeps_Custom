@@ -387,7 +387,7 @@ var creep_farMining = {
                                 });
                             }
                         } else {
-                            if (Game.flags[creep.memory.targetFlag].pos) {
+                            if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
                                 creep.moveTo(Game.flags[creep.memory.targetFlag], {
                                     reusePath: 25
                                 });
