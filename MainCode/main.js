@@ -944,7 +944,7 @@ function drawPie(vis, val, max, title, colour, center, inner) {
     };
     vis.circle(center, {
         radius: r + 0.1,
-        fill: BLACK,
+        fill: '#000000',
         stroke: 'rgba(255, 255, 255, 0.8)',
     });
     const poly = [center];
@@ -966,7 +966,7 @@ function drawPie(vis, val, max, title, colour, center, inner) {
         strokeWidth: 0.05,
     });
     vis.text(Number.isFinite(inner) ? Util.formatNumber(inner) : inner, center.x, center.y + 0.33, {
-        color: WHITE,
+        color: '#FFFFFF',
         font: '1 monospace',
         align: 'center',
         stroke: 'rgba(0, 0, 0, 0.8)',
@@ -975,13 +975,13 @@ function drawPie(vis, val, max, title, colour, center, inner) {
     let yoff = 0.7;
     if (0.35 < p && p < 0.65) yoff += 0.3;
     vis.text(title, center.x, center.y + r + yoff, {
-        color: WHITE,
+        color: '#FFFFFF',
         font: '0.6 monospace',
         align: 'center',
     });
     const lastpol = poly[poly.length - 2];
     vis.text('' + Math.floor(p * 100) + '%', lastpol.x + (lastpol.x - center.x) * 0.7, lastpol.y + (lastpol.y - center.y) * 0.4 + 0.1, {
-        color: WHITE,
+        color: '#FFFFFF',
         font: '0.4 monospace',
         align: 'center',
     });
