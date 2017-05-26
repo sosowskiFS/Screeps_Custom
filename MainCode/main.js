@@ -146,10 +146,10 @@ module.exports.loop = function() {
         if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
             //Gimme some pie graphs
             const vis = new RoomVisual(thisRoom.name);
-            var gclx = 5;
-            var gcly = 2.5;
+            var gclx = 2;
+            var gcly = 0.5;
             drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), {
-                gclx, gcly: gcly++
+                2, 0.5
             })
 
             //Populate the room creeps memory.
