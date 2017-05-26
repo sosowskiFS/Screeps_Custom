@@ -146,9 +146,9 @@ module.exports.loop = function() {
         if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
             //Gimme some pie graphs
             const vis = new RoomVisual(thisRoom.name);
-            var gclx = 2;
-            var gcly = 0.5;
-            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5)
+            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5);
+
+            drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 2, 2.5);
 
             //Populate the room creeps memory.
             Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
