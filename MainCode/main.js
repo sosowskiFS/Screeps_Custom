@@ -144,6 +144,12 @@ module.exports.loop = function() {
         var controllerLevel = thisRoom.controller.level;
 
         if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
+            //Gimme some pie graphs
+            const vis = new RoomVisual(thisRoom.name);
+            var gclx = 2;
+            var gcly = 0.5;
+            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), {gclx, gcly: gcly++})
+
             //Populate the room creeps memory.
             Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
 
@@ -924,3 +930,65 @@ function orderPriceCompareBuying(a, b) {
         return 1;
     return 0;
 }
+
+function drawPie(vis, val, max, title, colour, center, inner) {
+    //const vis = new RoomVisual(from.roomName);
+    if (!inner) inner = val;
+
+    let p = 1;
+    if (max !== 0) p = val / max;
+    const r = 1; // radius
+    center = {
+        x: center.x,
+        y: center.y * r * 4.5
+    };
+    vis.circle(center, {
+        radius: r + 0.1,
+        fill: BLACK,
+        stroke: 'rgba(255, 255, 255, 0.8)',
+    });
+    const poly = [center];
+    const tau = 2 * Math.PI;
+    const surf = tau * (p + 0.1);
+    const offs = -Math.PI / 2;
+    const step = tau / 32;
+    for (let i = 0; i <= surf; i += step) {
+        poly.push({
+            x: center.x + Math.cos(i + offs),
+            y: center.y - Math.cos(i),
+        });
+    }
+    poly.push(center);
+    vis.poly(poly, {
+        fill: colour,
+        opacity: 1,
+        stroke: colour,
+        strokeWidth: 0.05,
+    });
+    vis.text(Number.isFinite(inner) ? Util.formatNumber(inner) : inner, center.x, center.y + 0.33, {
+        color: WHITE,
+        font: '1 monospace',
+        align: 'center',
+        stroke: 'rgba(0, 0, 0, 0.8)',
+        strokeWidth: 0.08,
+    });
+    let yoff = 0.7;
+    if (0.35 < p && p < 0.65) yoff += 0.3;
+    vis.text(title, center.x, center.y + r + yoff, {
+        color: WHITE,
+        font: '0.6 monospace',
+        align: 'center',
+    });
+    const lastpol = poly[poly.length - 2];
+    vis.text('' + Math.floor(p * 100) + '%', lastpol.x + (lastpol.x - center.x) * 0.7, lastpol.y + (lastpol.y - center.y) * 0.4 + 0.1, {
+        color: WHITE,
+        font: '0.4 monospace',
+        align: 'center',
+    });
+}
+
+const getColourByPercentage = (percentage, reverse) => {
+    const value = reverse ? percentage : 1 - percentage;
+    const hue = (value * 120).toString(10);
+    return `hsl(${hue}, 100%, 50%)`;
+};
