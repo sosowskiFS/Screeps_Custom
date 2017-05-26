@@ -736,7 +736,8 @@ var creep_work5 = {
                             var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove);
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(thisTarget, {
-                                    reusePath: 25
+                                    reusePath: 25,
+                                    maxRooms: 1
                                 });
                             } else if (withdrawResult != ERR_NOT_IN_RANGE) {
                                 creep.memory.structureTarget = undefined;
@@ -748,7 +749,8 @@ var creep_work5 = {
                             var transferResult = creep.transfer(thisTarget, creep.memory.mineralToMove)
                             if (transferResult == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(thisTarget, {
-                                    reusePath: 25
+                                    reusePath: 25,
+                                    maxRooms: 1
                                 });
                             } else if (transferResult != ERR_NOT_IN_RANGE) {
                                 creep.memory.structureTarget = undefined;
@@ -764,7 +766,8 @@ var creep_work5 = {
                                 var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
                                 if (withdrawResult == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(labArray[i], {
-                                        reusePath: 25
+                                        reusePath: 25,
+                                        maxRooms: 1
                                     });
                                 }
                             }
@@ -776,7 +779,8 @@ var creep_work5 = {
                         var transferResult = creep.transfer(creep.room.terminal, currentlyCarrying)
                         if (transferResult == ERR_NOT_IN_RANGE) {
                             creep.moveTo(creep.room.terminal, {
-                                reusePath: 25
+                                reusePath: 25,
+                                maxRooms: 1
                             });
                         } else if (transferResult == OK) {
                             creep.memory.movingOtherMineral = false;
@@ -806,7 +810,8 @@ var creep_work5 = {
                                                 var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i])
                                                 if (withdrawResult == ERR_NOT_IN_RANGE) {
                                                     creep.moveTo(creep.room.terminal, {
-                                                        reusePath: 25
+                                                        reusePath: 25,
+                                                        maxRooms: 1
                                                     });
                                                 }
                                                 foundWork = true;
@@ -819,7 +824,8 @@ var creep_work5 = {
                                         var transferResult = creep.transfer(labArray[i], mineralArray[i])
                                         if (transferResult == ERR_NOT_IN_RANGE) {
                                             creep.moveTo(labArray[i], {
-                                                reusePath: 25
+                                                reusePath: 25,
+                                                maxRooms: 1
                                             });
                                         }
                                         foundWork = true;
@@ -836,7 +842,8 @@ var creep_work5 = {
                                             var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
                                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                                 creep.moveTo(labArray[i], {
-                                                    reusePath: 25
+                                                    reusePath: 25,
+                                                    maxRooms: 1
                                                 });
                                             }
                                             foundWork = true;
@@ -861,7 +868,8 @@ var creep_work5 = {
                                         creep.memory.mineralToMove = mineralArray[i];
                                         if (creep.transfer(creep.room.terminal, mineralArray[i]) == ERR_NOT_IN_RANGE) {
                                             creep.moveTo(creep.room.terminal, {
-                                                reusePath: 25
+                                                reusePath: 25,
+                                                maxRooms: 1
                                             });
                                         }
                                         foundWork = true;
@@ -882,7 +890,8 @@ var creep_work5 = {
                                             var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i]);
                                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                                 creep.moveTo(creep.room.terminal, {
-                                                    reusePath: 25
+                                                    reusePath: 25,
+                                                    maxRooms: 1
                                                 });
                                             }
                                             foundWork = true;
@@ -896,7 +905,8 @@ var creep_work5 = {
                                             var transferResult = creep.transfer(labArray[i], mineralArray[i]);
                                             if (transferResult == ERR_NOT_IN_RANGE) {
                                                 creep.moveTo(labArray[i], {
-                                                    reusePath: 25
+                                                    reusePath: 25,
+                                                    maxRooms: 1
                                                 });
                                             }
                                             foundWork = true;
