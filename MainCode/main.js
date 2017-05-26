@@ -148,9 +148,7 @@ module.exports.loop = function() {
             const vis = new RoomVisual(thisRoom.name);
             var gclx = 2;
             var gcly = 0.5;
-            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), {
-                2, 0.5
-            })
+            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5)
 
             //Populate the room creeps memory.
             Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
@@ -933,16 +931,16 @@ function orderPriceCompareBuying(a, b) {
     return 0;
 }
 
-function drawPie(vis, val, max, title, colour, center, inner) {
+function drawPie(vis, val, max, title, colour, centerx, centery, inner) {
     //const vis = new RoomVisual(from.roomName);
     if (!inner) inner = val;
 
     let p = 1;
     if (max !== 0) p = val / max;
     const r = 1; // radius
-    center = {
-        x: center.x,
-        y: center.y * r * 4.5
+    var center = {
+        x: centerx,
+        y: centery * r * 4.5
     };
     vis.circle(center, {
         radius: r + 0.1,
