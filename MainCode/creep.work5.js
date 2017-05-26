@@ -855,7 +855,7 @@ var creep_work5 = {
                                                 labAmount = lab4.mineralAmount;
                                             } else if (mineralArray[i] == creep.memory.mineral5) {
                                                 labAmount = lab5.mineralAmount;
-                                            } else if (mineralArray[i] == creep.memory.mineral5) {
+                                            } else if (mineralArray[i] == creep.memory.mineral6) {
                                                 labAmount = lab6.mineralAmount;
                                             }
                                             if (labAmount <= 2500) {
