@@ -148,7 +148,9 @@ module.exports.loop = function() {
             const vis = new RoomVisual(thisRoom.name);
             var gclx = 2;
             var gcly = 0.5;
-            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), {gclx, gcly: gcly++})
+            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), {
+                gclx, gcly: gcly++
+            })
 
             //Populate the room creeps memory.
             Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
@@ -965,7 +967,7 @@ function drawPie(vis, val, max, title, colour, center, inner) {
         stroke: colour,
         strokeWidth: 0.05,
     });
-    vis.text(Number.isFinite(inner) ? Util.formatNumber(inner) : inner, center.x, center.y + 0.33, {
+    vis.text(Number.isFinite(inner) ? formatNumber(inner) : inner, center.x, center.y + 0.33, {
         color: WHITE,
         font: '1 monospace',
         align: 'center',
@@ -992,3 +994,22 @@ const getColourByPercentage = (percentage, reverse) => {
     const hue = (value * 120).toString(10);
     return `hsl(${hue}, 100%, 50%)`;
 };
+
+function formatNumber(number) {
+    let ld = Math.log10(number) / 3;
+    if (!number) return number;
+    let n = number.toString();
+    if (ld < 1) {
+        return n;
+    }
+    if (ld < 2) {
+        return n.substring(0, n.length - 3) + 'k';
+    }
+    if (ld < 3) {
+        return n.substring(0, n.length - 6) + 'M';
+    }
+    if (ld < 4) {
+        return n.substring(0, n.length - 9) + 'B';
+    }
+    return number.toString();
+},
