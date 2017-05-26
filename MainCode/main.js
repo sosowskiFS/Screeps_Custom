@@ -147,14 +147,14 @@ module.exports.loop = function() {
             //Gimme some pie graphs
             const vis = new RoomVisual(thisRoom.name);
             //GCL
-            drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5);
+            drawPie(vis, Math.round(Game.gcl.progressTotal - Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5);
 
             //Bucket
             drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 2, 1.5);
 
             //Controller Progress
             if (thisRoom.controller.level < 8) {
-                drawPie(vis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 2.5);
+                drawPie(vis, Math.round(thisRoom.controller.progressTotal - thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 2.5);
             }
 
             //Populate the room creeps memory.
