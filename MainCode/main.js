@@ -954,9 +954,13 @@ function drawPie(vis, val, max, title, colour, centerx, centery, inner) {
         fill: '#000000',
         stroke: 'rgba(255, 255, 255, 0.8)',
     });
+    var pfix = p;
+    if (p >= 1){
+        pfix = pfix + 0.01;
+    }
     const poly = [center];
     const tau = 2 * Math.PI;
-    const surf = tau * (p + 0.1);
+    const surf = tau * (pfix);
     const offs = -Math.PI / 2;
     const step = tau / 32;
     for (let i = 0; i <= surf; i += step) {
