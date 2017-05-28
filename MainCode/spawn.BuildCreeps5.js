@@ -75,6 +75,18 @@ var spawn_BuildCreeps5 = {
                 min2 = RESOURCE_HYDROXIDE;
                 min3 = RESOURCE_ZYNTHIUM_ALKALIDE;
                 primaryFlag = thisRoom.name + "ZHO2Producer";
+                backupFlag = thisRoom.name + "LHO2Producer";
+            } else if (Game.flags[thisRoom.name + "LHO2Producer"]) {
+                min1 = RESOURCE_LEMERGIUM_OXIDE;
+                min2 = RESOURCE_HYDROXIDE;
+                min3 = RESOURCE_LEMERGIUM_ALKALIDE;
+                primaryFlag = thisRoom.name + "LHO2Producer";
+                backupFlag = thisRoom.name + "ZH2OProducer";
+            } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
+                min1 = RESOURCE_ZYNTHIUM_HYDRIDE;
+                min2 = RESOURCE_HYDROXIDE;
+                min3 = RESOURCE_ZYNTHIUM_ACID;
+                primaryFlag = thisRoom.name + "ZH2OProducer";
                 backupFlag = thisRoom.name + "UH2OProducer";
             } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
                 min1 = RESOURCE_ZYNTHIUM;
@@ -99,6 +111,12 @@ var spawn_BuildCreeps5 = {
                 min2 = RESOURCE_OXYGEN;
                 min3 = RESOURCE_LEMERGIUM_OXIDE;
                 primaryFlag = thisRoom.name + "LOProducer";
+                backupFlag = thisRoom.name + "ZHProducer";
+            } else if (Game.flags[thisRoom.name + "ZHProducer"]) {
+                min1 = RESOURCE_ZYNTHIUM;
+                min2 = RESOURCE_HYDROGEN;
+                min3 = RESOURCE_ZYNTHIUM_HYDRIDE;
+                primaryFlag = thisRoom.name + "ZHProducer";
                 backupFlag = thisRoom.name + "UHProducer";
             } else if (Game.flags[thisRoom.name + "ULProducer"]) {
                 min1 = RESOURCE_UTRIUM;

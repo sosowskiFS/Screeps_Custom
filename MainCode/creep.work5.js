@@ -643,9 +643,13 @@ var creep_work5 = {
                         if (creep.room.terminal.store[creep.memory.mineral3] >= 40000) {
                             //Immediately swap flags
                             creep.memory.resourceChecks = 5;
+                            Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
                         } else if (lab1 && lab2 && (lab1.mineralAmount < 250 || lab2.mineralAmount < 250)) {
                             //tick up, but don't swap yet
                             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
+                            if (creep.memory.resourceChecks >= 5) {
+                                Game.notify('NO MATERIALS:' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
+                            }
                         }
                     } else {
                         //Still can't find resources, switch flags

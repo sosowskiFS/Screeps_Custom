@@ -40,6 +40,10 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_ZYNTHIUM);
             neededMinerals.push(RESOURCE_OXYGEN);
         }
+        if (Game.flags[thisRoom.name + "ZHProducer"]) {
+            neededMinerals.push(RESOURCE_ZYNTHIUM);
+            neededMinerals.push(RESOURCE_HYDROGEN);
+        }
         if (Game.flags[thisRoom.name + "LHProducer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM);
             neededMinerals.push(RESOURCE_HYDROGEN);
@@ -75,7 +79,17 @@ var market_buyers = {
             HydroxidePriority = 2;
         }
         if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
+            neededMinerals.push(RESOURCE_ZYNTHIUM_HYDRIDE);
+            neededMinerals.push(RESOURCE_HYDROXIDE);
+            HydroxidePriority = 2;
+        }
+        if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM_OXIDE);
+            neededMinerals.push(RESOURCE_HYDROXIDE);
+            HydroxidePriority = 2;
+        }
+        if (Game.flags[thisRoom.name + "LHO2Producer"]) {
+            neededMinerals.push(RESOURCE_LEMERGIUM_OXIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
         }
