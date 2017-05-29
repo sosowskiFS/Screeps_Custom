@@ -368,7 +368,7 @@ var creep_farMining = {
                     evadeAttacker(creep, 5);
                 } else {
                     if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
-                        var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
+                        var droppedSources = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 3);
                         if (droppedSources.length) {
                             //Pick up dropped energy from dead mules, etc.
                             if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
@@ -422,7 +422,7 @@ var creep_farMining = {
                         }
 
                         if (!creep.memory.storing) {
-                            var droppedSources = creep.pos.findInRange(FIND_DROPPED_ENERGY, 7);
+                            var droppedSources = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 7);
                             if (droppedSources.length && !Memory.warMode) {
                                 //Pick up dropped energy from dead mules, etc.
                                 if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
@@ -557,11 +557,11 @@ var creep_farMining = {
                 break;
             case 'farGuard':
             case 'farGuardNearDeath':
-                if (!creep.memory.disabledNotify){
+                if (!creep.memory.disabledNotify) {
                     creep.notifyWhenAttacked(false);
                     creep.memory.disabledNotify = true;
                 }
-                
+
                 if ((creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) && creep.memory.priority != 'farGuardNearDeath') {
                     creep.memory.priority = 'farGuardNearDeath';
                 }
@@ -891,7 +891,7 @@ var creep_farMining = {
                 break;
             case 'SKAttackGuard':
             case 'SKAttackGuardNearDeath':
-                if (!creep.memory.disabledNotify){
+                if (!creep.memory.disabledNotify) {
                     creep.notifyWhenAttacked(false);
                     creep.memory.disabledNotify = true;
                 }
@@ -994,7 +994,7 @@ var creep_farMining = {
                 break;
             case 'SKHealGuard':
             case 'SKHealGuardNearDeath':
-                if (!creep.memory.disabledNotify){
+                if (!creep.memory.disabledNotify) {
                     creep.notifyWhenAttacked(false);
                     creep.memory.disabledNotify = true;
                 }
