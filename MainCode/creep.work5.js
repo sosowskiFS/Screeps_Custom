@@ -636,18 +636,18 @@ var creep_work5 = {
                     creep.memory.priority = 'labWorkerNearDeath';
                 }
 
-                if (Game.time % 200 == 0 && Game.flags[creep.memory.primaryFlag]) {
-                    if (creep.memory.resourceChecks < 7) {
+                if (Game.time % 50 == 0 && Game.flags[creep.memory.primaryFlag]) {
+                    if (creep.memory.resourceChecks < 28) {
                         var lab1 = Game.getObjectById(creep.memory.lab1);
                         var lab2 = Game.getObjectById(creep.memory.lab2);
                         if (creep.room.terminal.store[creep.memory.mineral3] >= 40000) {
                             //Immediately swap flags
-                            creep.memory.resourceChecks = 7;
+                            creep.memory.resourceChecks = 28;
                             Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
                         } else if (lab1 && lab2 && (lab1.mineralAmount < 250 || lab2.mineralAmount < 250)) {
                             //tick up, but don't swap yet
                             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
-                            if (creep.memory.resourceChecks >= 7) {
+                            if (creep.memory.resourceChecks >= 28) {
                                 Game.notify('NO MATERIALS:' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
                             }
                         }
