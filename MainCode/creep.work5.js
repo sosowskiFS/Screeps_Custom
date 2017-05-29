@@ -805,7 +805,7 @@ var creep_work5 = {
                                 case creep.memory.lab8:
                                     //Reagent labs
                                     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-                                        if ((creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3]) && creep.room.terminal.store[creep.memory.mineral1] && creep.room.terminal.store[creep.memory.mineral2]) {
+                                        if (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3]) {
                                             var mineralAmount = mineralArray[i] in creep.room.terminal.store;
                                             if (mineralAmount > 0 && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
                                                 creep.memory.structureTarget = creep.room.terminal.id;
