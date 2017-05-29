@@ -805,7 +805,7 @@ var creep_work5 = {
                                 case creep.memory.lab8:
                                     //Reagent labs
                                     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-                                        if (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3]) {
+                                        if ((creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3]) && creep.room.terminal.store[creep.memory.mineral1] && creep.room.terminal.store[creep.memory.mineral2]) {
                                             var mineralAmount = mineralArray[i] in creep.room.terminal.store;
                                             if (mineralAmount > 0 && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
                                                 creep.memory.structureTarget = creep.room.terminal.id;
@@ -933,6 +933,24 @@ var creep_work5 = {
                                 creep.moveTo(creep.room.terminal);
                                 creep.memory.movingOtherMineral = true;
                             }
+                        }
+                    } else if (!foundWork && creep.room.controller.level == 8 && Memory.nukerList[creep.room.name].length) {
+                        //creep.room.terminal.store[creep.memory.mineral3]
+                        var thisNuker = Game.getObjectById(Memory.nukerList[creep.room.name][0])
+                        if (thisNuker && thisNuker.ghodiumCapacity < thisNuker.ghodium && !creep.carry[RESOURCE_GHODIUM] && creep.room.terminal.store[RESOURCE_GHODIUM]) {
+                            creep.memory.structureTarget = creep.room.terminal.id;
+                            creep.memory.direction = 'Withdraw';
+                            creep.memory.mineralToMove = RESOURCE_GHODIUM;
+                        } else if (thisNuker && thisNuker.ghodiumCapacity < thisNuker.ghodium && creep.carry[RESOURCE_GHODIUM]) {
+                            creep.memory.structureTarget = thisNuker.id;
+                            creep.memory.direction = 'Transfer';
+                            creep.memory.mineralToMove = RESOURCE_GHODIUM;
+                        } else if (thisNuker && thisNuker.ghodiumCapacity == thisNuker.ghodium && creep.carry[RESOURCE_GHODIUM]) {
+                            creep.memory.structureTarget = creep.room.terminal.id;
+                            creep.memory.direction = 'Transfer';
+                            creep.memory.mineralToMove = RESOURCE_GHODIUM;
+                        } else {
+                            creep.memory.offlineUntil = Game.time + 10;
                         }
                     } else if (!foundWork) {
                         creep.memory.offlineUntil = Game.time + 10;
