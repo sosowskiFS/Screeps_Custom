@@ -729,9 +729,6 @@ var creep_work5 = {
                     var checkForMoreWork = false;
                     var foundWork = false;
 
-                    //Sort lab array by amount
-                    labArray.sort(labCompare);
-
                     var thisTarget = undefined;
                     if (creep.memory.structureTarget) {
                         thisTarget = Game.getObjectById(creep.memory.structureTarget);
@@ -979,12 +976,4 @@ function repairCompare(a, b) {
     if (a.hits > b.hits)
         return 1;
     return 0;
-}
-
-function labCompare(a, b) {
-    if (a.mineralAmount < b.mineralAmount)
-        return -1;
-    if (a.mineralAmount > b.mineralAmount)
-        return 1;
-    return 0
 }
