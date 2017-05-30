@@ -6,6 +6,7 @@ var market_buyers = {
         var neededMinerals = [];
 
         var GH2OPriority = -1;
+        var ForNuker = true;
         //Always requested minerals for boosts
         if (thisRoom.controller.level >= 7) {
             neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
@@ -16,6 +17,9 @@ var market_buyers = {
             } else {
                 GH2OPriority = 1;
             }
+        }
+        if (thisRoom.controller.level == 8) {
+            neededMinerals.push(RESOURCE_GHODIUM);
         }
         var HydroxidePriority = -1;
         //Check for production flags and request accordingly
@@ -62,10 +66,12 @@ var market_buyers = {
         }
         if (Game.flags[thisRoom.name + "GHProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM);
+            ForNuker = false;
             neededMinerals.push(RESOURCE_HYDROGEN);
         }
         if (Game.flags[thisRoom.name + "GOProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM);
+            ForNuker = false;
             neededMinerals.push(RESOURCE_OXYGEN);
         }
         if (Game.flags[thisRoom.name + "GH2OProducer"]) {
@@ -107,7 +113,11 @@ var market_buyers = {
             if (!Memory.mineralNeed[neededMinerals[i]]) {
                 Memory.mineralNeed[neededMinerals[i]] = [];
             }
-            if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < 10000) {
+            var mineralCap = 10000;
+            if (neededMinerals[i] == RESOURCE_GHODIUM && ForNuker){
+                mineralCap = 5000;
+            }
+            if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < mineralCap) {
                 if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) == -1) {
                     if ((neededMinerals[i] == RESOURCE_GHODIUM_ACID && GH2OPriority == 0) || (neededMinerals[i] == RESOURCE_HYDROXIDE && HydroxidePriority == 0)) {
                         Memory.mineralNeed[neededMinerals[i]].splice(0, 0, thisRoom.name);
@@ -133,18 +143,20 @@ var market_buyers = {
             var hasSent = false;
             for (var y in Memory.mineralNeed) {
                 //sendMineral(thisMineral, thisTerminal, targetRoom);
-                if (Memory.mineralNeed[y].length) {
+                if (hasSent) {
+                    break;
+                } else if (Memory.mineralNeed[y].length) {
                     if (neededMinerals.indexOf(y) != -1) {
-                        if (!hasSent) {
-                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
+                        if (y == RESOURCE_GHODIUM) {
+                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, ForNuker);
                         } else {
-                            sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true);
+                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, false);
                         }
                     } else {
-                        if (!hasSent) {
-                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
+                        if (y == RESOURCE_GHODIUM) {
+                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, ForNuker);
                         } else {
-                            sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false);
+                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, false);
                         }
                     }
                 }
@@ -191,10 +203,14 @@ var market_buyers = {
 
 module.exports = market_buyers;
 
-function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
+function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit) {
     if (thisTerminal.store[thisMineral]) {
         var targetTerminal = Game.rooms[targetRoom].terminal
         var amountAvailable = thisTerminal.store[thisMineral];
+        var targetStoreCap = 15000;
+        if (nukerLimit) {
+            targetStoreCap = 5000;
+        }
         if (saveFlag) {
             amountAvailable = thisTerminal.store[thisMineral] - 20000;
         }
@@ -210,8 +226,8 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
                     }
                     return true;
                 }
-            } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < 15000) {
-                var neededAmount = 15000 - targetTerminal.store[thisMineral]
+            } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < targetStoreCap) {
+                var neededAmount = targetStoreCap - targetTerminal.store[thisMineral]
                 if (amountAvailable < neededAmount) {
                     neededAmount = amountAvailable
                 }
@@ -224,7 +240,7 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
                         return true;
                     }
                 }
-            } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] >= 15000) {
+            } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] >= targetStoreCap) {
                 var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
                 if (thisRoomIndex != -1) {
                     Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);

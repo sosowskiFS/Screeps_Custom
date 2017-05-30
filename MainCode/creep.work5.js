@@ -867,6 +867,23 @@ var creep_work5 = {
                                             }
                                         }
 
+                                        if (mineralArray[i] == RESOURCE_GHODIUM && creep.room.controller.level == 8 && Memory.nukerList[creep.room.name].length) {
+                                            var thisNuker = Game.getObjectById(Memory.nukerList[creep.room.name][0]);
+                                            if (thisNuker && thisNuker.ghodiumCapacity > thisNuker.ghodium) {
+                                                creep.memory.structureTarget = thisNuker.id;
+                                                creep.memory.direction = 'Transfer';
+                                                creep.memory.mineralToMove = RESOURCE_GHODIUM;
+                                                if (creep.transfer(thisNuker, mineralArray[i]) == ERR_NOT_IN_RANGE) {
+                                                    creep.moveTo(thisNuker, {
+                                                        reusePath: 25,
+                                                        maxRooms: 1
+                                                    });
+                                                }
+                                                foundWork = true;
+                                                continue;
+                                            }
+                                        }
+
                                         creep.memory.structureTarget = creep.room.terminal.id;
                                         creep.memory.direction = 'Transfer';
                                         creep.memory.mineralToMove = mineralArray[i];
