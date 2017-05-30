@@ -937,11 +937,11 @@ var creep_work5 = {
                     } else if (!foundWork && creep.room.controller.level == 8 && Memory.nukerList[creep.room.name].length) {
                         //creep.room.terminal.store[creep.memory.mineral3]
                         var thisNuker = Game.getObjectById(Memory.nukerList[creep.room.name][0])
-                        if (thisNuker && thisNuker.ghodiumCapacity < thisNuker.ghodium && !creep.carry[RESOURCE_GHODIUM] && creep.room.terminal.store[RESOURCE_GHODIUM]) {
+                        if (thisNuker && thisNuker.ghodiumCapacity > thisNuker.ghodium && !creep.carry[RESOURCE_GHODIUM] && creep.room.terminal.store[RESOURCE_GHODIUM]) {
                             creep.memory.structureTarget = creep.room.terminal.id;
                             creep.memory.direction = 'Withdraw';
                             creep.memory.mineralToMove = RESOURCE_GHODIUM;
-                        } else if (thisNuker && thisNuker.ghodiumCapacity < thisNuker.ghodium && creep.carry[RESOURCE_GHODIUM]) {
+                        } else if (thisNuker && thisNuker.ghodiumCapacity > thisNuker.ghodium && creep.carry[RESOURCE_GHODIUM]) {
                             creep.memory.structureTarget = thisNuker.id;
                             creep.memory.direction = 'Transfer';
                             creep.memory.mineralToMove = RESOURCE_GHODIUM;
