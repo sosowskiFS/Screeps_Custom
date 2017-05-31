@@ -645,7 +645,7 @@ var creep_work5 = {
                             //Immediately swap flags
                             creep.memory.resourceChecks = 28;
                             Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
-                        } else if (lab1 && lab2 && (lab1.mineralAmount < 250 || lab2.mineralAmount < 250)) {
+                        } else if (lab1 && lab2 && (lab1.mineralAmount < 250 || lab2.mineralAmount < 250) && _.sum(creep.carry) == 0) {
                             //tick up, but don't swap yet
                             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
                             if (creep.memory.resourceChecks >= 28) {
