@@ -1,4 +1,4 @@
-This should be helpful to figure out what your creep is carrying. `let currentlyCarrying = _.findKey(creep.carry);`
-
-[12:05] 
-That way you don't have to worry about anything and can just `creep.transfer(target, currentlyCarrying)`. Just make sure target is something with a `.store` such as a container, terminal, or storage.
+Jibol Power mining -
+2 15Move/15Heal
+1 24Move/24Attack
+And spawn several mules to pick up power when near death
