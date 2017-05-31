@@ -377,25 +377,6 @@ module.exports.loop = function() {
                 }
             }
 
-            if (Memory.nukerList[thisRoom.name][0] && thisRoom.terminal && Game.time % 1000 == 0) {
-                var thisNuker = Game.getObjectById(Memory.nukerList[thisRoom.name][0]);
-                var thisTerminal = thisRoom.terminal
-
-                if (thisNuker.ghodium < thisNuker.ghodiumCapacity && (thisTerminal.store[RESOURCE_GHODIUM] + thisNuker.ghodium) < thisNuker.ghodiumCapacity) {
-                    //Buy more ghodium
-                    var neededGhodium = thisNuker.ghodiumCapacity - (thisTerminal.store[RESOURCE_GHODIUM] + thisNuker.ghodium)
-                    var terminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
-                    var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == RESOURCE_GHODIUM && order.type == ORDER_SELL && Game.market.calcTransactionCost(neededGhodium, thisRoom.name, order.roomName) <= terminalEnergy);
-                    if (FilteredOrders.length > 0) {
-                        FilteredOrders.sort(orderPriceCompareBuying);
-                        if (FilteredOrders[0].amount < neededGhodium) {
-                            neededGhodium = FilteredOrders[0].amount;
-                        }
-                        Game.market.deal(FilteredOrders[0].id, neededGhodium, thisRoom.name);
-                    }
-                }
-            }
-
             //Review market data and sell to buy orders
             if (Game.time % 250 == 0 && thisRoom.terminal) {
                 market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
