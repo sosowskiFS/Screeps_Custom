@@ -481,7 +481,7 @@ var creep_work5 = {
                     creep.memory.priority = 'supplierNearDeath';
                 }
 
-                if (Game.flags[creep.room.name + "Supply"] && creep.pos != Game.flags[creep.room.name + "Supply"].pos) {
+                if (Game.flags[creep.room.name + "Supply"] && (creep.pos.x != Game.flags[creep.room.name + "Supply"].pos.x || creep.pos.y != Game.flags[creep.room.name + "Supply"].pos.y) {
                     creep.moveTo(Game.flags[creep.room.name + "Supply"]);
                 } else if (_.sum(creep.carry) == 0) {
                     //Get from storage
