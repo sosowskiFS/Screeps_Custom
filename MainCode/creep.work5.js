@@ -503,7 +503,7 @@ var creep_work5 = {
                         }
                     }
                 }
-                
+
                 break;
             case 'distributor':
             case 'distributorNearDeath':
@@ -679,14 +679,6 @@ var creep_work5 = {
                     var lab1 = Game.getObjectById(creep.memory.lab1);
                     var lab2 = Game.getObjectById(creep.memory.lab2);
                     var lab3 = Game.getObjectById(creep.memory.lab3);
-                    if (lab1 && lab2 && lab3) {
-                        labArray.push(lab1);
-                        labArray.push(lab2);
-                        labArray.push(lab3);
-                        mineralArray.push(creep.memory.mineral1);
-                        mineralArray.push(creep.memory.mineral2);
-                        mineralArray.push(creep.memory.mineral3);
-                    }
                     var lab4 = undefined;
                     var lab5 = undefined;
                     var lab6 = undefined;
@@ -697,35 +689,78 @@ var creep_work5 = {
                         lab4 = Game.getObjectById(creep.memory.lab4);
                         lab5 = Game.getObjectById(creep.memory.lab5);
                         lab6 = Game.getObjectById(creep.memory.lab6);
-                        if (lab4 && lab5 && lab6) {
-                            labArray.push(lab4);
-                            labArray.push(lab5);
-                            labArray.push(lab6);
-                            mineralArray.push(creep.memory.mineral4);
-                            mineralArray.push(creep.memory.mineral5);
-                            mineralArray.push(creep.memory.mineral6);
-                        }
                     } else {
                         creep.memory.lab4 = 'XXX';
                         creep.memory.lab5 = 'XXX';
                         creep.memory.lab6 = 'XXX';
                     }
+
                     if (creep.memory.lab7) {
                         lab7 = Game.getObjectById(creep.memory.lab7);
                         lab8 = Game.getObjectById(creep.memory.lab8);
                         lab9 = Game.getObjectById(creep.memory.lab9);
-                        if (lab7 && lab8 && lab9) {
-                            labArray.push(lab7);
-                            labArray.push(lab8);
-                            labArray.push(lab9);
-                            mineralArray.push(creep.memory.mineral7);
-                            mineralArray.push(creep.memory.mineral8);
-                            mineralArray.push(creep.memory.mineral9);
-                        }
                     } else {
                         creep.memory.lab7 = 'XXX';
                         creep.memory.lab8 = 'XXX';
                         creep.memory.lab9 = 'XXX';
+                    }
+
+                    var alreadyAddedFlag = false;
+                    if (lab1 && lab2 && lab3) {
+                        if (lab7 && lab8 && lab9) {
+                            if (lab7.mineralAmount < lab1.mineralAmount || lab8.mineralAmount < lab2.mineralAmount) {
+                                labArray.push(lab7);
+                                labArray.push(lab8);
+                                labArray.push(lab9);
+                                mineralArray.push(creep.memory.mineral7);
+                                mineralArray.push(creep.memory.mineral8);
+                                mineralArray.push(creep.memory.mineral9);
+                                labArray.push(lab1);
+                                labArray.push(lab2);
+                                labArray.push(lab3);
+                                mineralArray.push(creep.memory.mineral1);
+                                mineralArray.push(creep.memory.mineral2);
+                                mineralArray.push(creep.memory.mineral3);
+                                alreadyAddedFlag = true;
+                            } else {
+                                labArray.push(lab1);
+                                labArray.push(lab2);
+                                labArray.push(lab3);
+                                mineralArray.push(creep.memory.mineral1);
+                                mineralArray.push(creep.memory.mineral2);
+                                mineralArray.push(creep.memory.mineral3);
+                                labArray.push(lab7);
+                                labArray.push(lab8);
+                                labArray.push(lab9);
+                                mineralArray.push(creep.memory.mineral7);
+                                mineralArray.push(creep.memory.mineral8);
+                                mineralArray.push(creep.memory.mineral9);
+                                alreadyAddedFlag = true;
+                            }
+                        } else {
+                            labArray.push(lab1);
+                            labArray.push(lab2);
+                            labArray.push(lab3);
+                            mineralArray.push(creep.memory.mineral1);
+                            mineralArray.push(creep.memory.mineral2);
+                            mineralArray.push(creep.memory.mineral3);
+                        }
+                    }
+                    if (lab4 && lab5 && lab6) {
+                        labArray.push(lab4);
+                        labArray.push(lab5);
+                        labArray.push(lab6);
+                        mineralArray.push(creep.memory.mineral4);
+                        mineralArray.push(creep.memory.mineral5);
+                        mineralArray.push(creep.memory.mineral6);
+                    }
+                    if (!alreadyAddedFlag && lab7 && lab8 && lab9) {
+                        labArray.push(lab7);
+                        labArray.push(lab8);
+                        labArray.push(lab9);
+                        mineralArray.push(creep.memory.mineral7);
+                        mineralArray.push(creep.memory.mineral8);
+                        mineralArray.push(creep.memory.mineral9);
                     }
                     var checkForMoreWork = false;
                     var foundWork = false;
