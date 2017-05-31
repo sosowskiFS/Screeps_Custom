@@ -237,6 +237,22 @@ var creep_farMining = {
                         evadeAttacker(creep, 2);
                     }
                 } else {
+                    var Foe = [];
+
+                    if (Game.time % 5 == 0) {
+                        Foe = creep.room.find(FIND_HOSTILE_CREEPS, {
+                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
+                        });
+
+                        if (Foe.length && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
+                            Memory.FarRoomsUnderAttack.push(creep.room.name);
+                        } else if (!Foe.length && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
+                            var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
+                            if (UnderAttackPos >= 0) {
+                                Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
+                            }
+                        }
+                    }
                     evadeAttacker(creep, 5);
                 }
                 break;

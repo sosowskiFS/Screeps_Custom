@@ -781,6 +781,9 @@ function memCheck() {
     if (!Memory.SKRoomsUnderAttack) {
         Memory.SKRoomsUnderAttack = [];
     }
+    if (!Memory.FarRoomsUnderAttack) {
+        Memory.FarRoomsUnderAttack = [];
+    }
     if (!Memory.roomsPrepSalvager) {
         Memory.roomsPrepSalvager = [];
         console.log('roomsPrepSalvager Defaulted');
