@@ -525,10 +525,12 @@ module.exports.loop = function() {
                 }
 
                 if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) > -1 && !towers[y].room.controller.safeMode) {
-                    Memory.attackDuration = Memory.attackDuration + 1;
-                    if (Memory.attackDuration >= 250 && !Memory.warMode) {
-                        Memory.warMode = true;
-                        Game.notify('War mode was enabled due to a long attack at ' + towers[y].room.name + '.');
+                    if (hostiles.length && (hostiles[0].owner.username != 'Invader')) {
+                        Memory.attackDuration = Memory.attackDuration + 1;
+                        if (Memory.attackDuration >= 250 && !Memory.warMode) {
+                            Memory.warMode = true;
+                            Game.notify('War mode was enabled due to a long attack at ' + towers[y].room.name + '.');
+                        }
                     }
                 } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
                     Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
@@ -936,7 +938,7 @@ function drawPie(vis, val, max, title, colour, centerx, centery, inner) {
         stroke: 'rgba(255, 255, 255, 0.8)',
     });
     var pfix = p;
-    if (p >= 1){
+    if (p >= 1) {
         pfix = pfix + 0.01;
     }
     const poly = [center];
