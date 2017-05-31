@@ -481,7 +481,9 @@ var creep_work5 = {
                     creep.memory.priority = 'supplierNearDeath';
                 }
 
-                if (_.sum(creep.carry) == 0) {
+                if (Game.flags[creep.room.name + "Supply"] && creep.pos != Game.flags[creep.room.name + "Supply"].pos) {
+                    creep.moveTo(Game.flags[creep.room.name + "Supply"]);
+                } else if (_.sum(creep.carry) == 0) {
                     //Get from storage
                     var storageTarget = creep.room.storage;
                     if (storageTarget) {
@@ -499,10 +501,9 @@ var creep_work5 = {
                                 creep.moveTo(target);
                             }
                         }
-                    } else if (Game.flags[creep.room.name + "Supply"] && creep.pos != Game.flags[creep.room.name + "Supply"].pos) {
-                        creep.moveTo(Game.flags[creep.room.name + "Supply"]);
                     }
                 }
+                
                 break;
             case 'distributor':
             case 'distributorNearDeath':
