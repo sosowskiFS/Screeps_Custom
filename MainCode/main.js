@@ -433,7 +433,7 @@ module.exports.loop = function() {
             }
 
             //Update advanced script rooms
-            if ((thisRoom.storage && Memory.linkList[thisRoom.name].length == 2) && Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
+            if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1 && (thisRoom.storage && Memory.linkList[thisRoom.name].length == 2) ) {
                 Memory.RoomsAt5.push(thisRoom.name)
             } else if ((!thisRoom.storage || Memory.linkList[thisRoom.name].length < 2) && Memory.RoomsAt5.indexOf(thisRoom.name) != -1) {
                 //This room shouldn't be on this list
@@ -457,7 +457,12 @@ module.exports.loop = function() {
             Memory.isSpawning = false;
         }
 
-        if (Game.time % 10 == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
+        var delay = 10;
+        if (thisRoom.controller.level == 8){
+            delay = 15;
+        }
+        
+        if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
             if (Game.flags["Assault"] && thisRoom.controller.level >= 7) {
                 spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags["Assault"].pos.roomName, '', Game.spawns[i].room.name);
             }
