@@ -2,6 +2,11 @@ var creep_farMining = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        var ignoreFlag = false;
+        var found = creep.pos.lookFor(LOOK_FLAGS);
+        if (found.length){
+            ignoreFlag = true;
+        }
         switch (creep.memory.priority) {
             case 'farClaimer':
             case 'farClaimerNearDeath':
@@ -15,7 +20,8 @@ var creep_farMining = {
                 } else {
                     if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(creep.room.controller, {
-                            reusePath: 25
+                            reusePath: 25,
+                            ignoreCreeps: ignoreFlag
                         });
                     } else {
                         if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
@@ -57,11 +63,13 @@ var creep_farMining = {
                 if (creep.room.name != creep.memory.destination) {
                     if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
                         creep.moveTo(Game.flags[creep.memory.targetFlag], {
-                            reusePath: 25
+                            reusePath: 25,
+                            ignoreCreeps: ignoreFlag
                         });
                     } else {
                         creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                            reusePath: 25
+                            reusePath: 25,
+                            ignoreCreeps: ignoreFlag
                         });
                     }
                 } else {
@@ -99,23 +107,27 @@ var creep_farMining = {
                             if (Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
                                 creep.moveTo(Game.flags[creep.memory.targetFlag + "Here"], {
                                     reusePath: 25,
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreCreeps: ignoreFlag
                                 });
                             } else if (!creep.pos.isNearTo(mineTarget)) {
                                 creep.moveTo(mineTarget, {
                                     reusePath: 25,
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreCreeps: ignoreFlag
                                 });
                             }
                         } else if (mineTarget && Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
                             creep.moveTo(Game.flags[creep.memory.targetFlag + "Here"], {
                                 reusePath: 25,
-                                maxRooms: 1
+                                maxRooms: 1,
+                                ignoreCreeps: ignoreFlag
                             });
                         } else if (mineTarget && !creep.pos.isNearTo(mineTarget)) {
                             creep.moveTo(mineTarget, {
                                 reusePath: 25,
-                                maxRooms: 1
+                                maxRooms: 1,
+                                ignoreCreeps: ignoreFlag
                             });
                         }
                     } else {
@@ -132,7 +144,8 @@ var creep_farMining = {
                             if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(mineTarget, {
                                     reusePath: 25,
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreCreeps: ignoreFlag
                                 });
                             }
                         }
@@ -145,7 +158,8 @@ var creep_farMining = {
                             } else if (creep.carry.energy >= 36) {
                                 if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(thisUnit, {
-                                        reusePath: 25
+                                        reusePath: 25,
+                                        ignoreCreeps: ignoreFlag
                                     });
                                 }
                             }
@@ -159,7 +173,8 @@ var creep_farMining = {
                                 if (containers.length) {
                                     if (creep.transfer(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(containers[0], {
-                                            reusePath: 25
+                                            reusePath: 25,
+                                            ignoreCreeps: ignoreFlag
                                         });
                                     }
                                     creep.memory.storageUnit = containers[0].id;
@@ -172,7 +187,8 @@ var creep_farMining = {
                                         if (sites.length && !nearFoe.length) {
                                             if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
                                                 creep.moveTo(sites[0], {
-                                                    reusePath: 25
+                                                    reusePath: 25,
+                                                    ignoreCreeps: ignoreFlag
                                                 });
                                             }
                                         } else if (!sites.length && !nearFoe.length) {
@@ -249,11 +265,13 @@ var creep_farMining = {
 
                 if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
                     creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                        reusePath: 25
+                        reusePath: 25,
+                        ignoreCreeps: ignoreFlag
                     });
                 } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
                     creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
-                        reusePath: 25
+                        reusePath: 25,
+                        ignoreCreeps: ignoreFlag
                     });
                 } else {
                     if (!creep.memory.storing) {
@@ -270,13 +288,15 @@ var creep_farMining = {
                                     if (!creep.pos.isNearTo(thisMineral)) {
                                         creep.moveTo(thisMineral, {
                                             reusePath: 25,
-                                            maxRooms: 1
+                                            maxRooms: 1,
+                                            ignoreCreeps: ignoreFlag
                                         });
                                     } else {
                                         if (Game.time % 6 == 0 && creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
                                             creep.moveTo(thisMineral, {
                                                 reusePath: 25,
-                                                maxRooms: 1
+                                                maxRooms: 1,
+                                                ignoreCreeps: ignoreFlag
                                             });
                                         }
                                     }
@@ -287,7 +307,9 @@ var creep_farMining = {
                             var mineralLocations = creep.room.find(FIND_MINERALS);
                             if (mineralLocations.length) {
                                 creep.memory.mineralTarget = mineralLocations[0].id;
-                                creep.moveTo(mineralLocations[0]);
+                                creep.moveTo(mineralLocations[0], {
+                                    ignoreCreeps: ignoreFlag
+                                });
                             }
                         }
                     } else {
@@ -296,10 +318,14 @@ var creep_farMining = {
                         if (storageUnit) {
                             if (Object.keys(creep.carry).length > 1) {
                                 if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(storageUnit);
+                                    creep.moveTo(storageUnit, {
+                                        ignoreCreeps: ignoreFlag
+                                    });
                                 }
                             } else if (creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(storageUnit);
+                                creep.moveTo(storageUnit, {
+                                    ignoreCreeps: ignoreFlag
+                                });
                             }
                         }
                     }
@@ -373,17 +399,20 @@ var creep_farMining = {
                             //Pick up dropped energy from dead mules, etc.
                             if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(droppedSources[0], {
-                                    reusePath: 50
+                                    reusePath: 50,
+                                    ignoreCreeps: ignoreFlag
                                 });
                             }
                         } else {
                             if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
                                 creep.moveTo(Game.flags[creep.memory.targetFlag], {
-                                    reusePath: 50
+                                    reusePath: 50,
+                                    ignoreCreeps: ignoreFlag
                                 });
                             } else {
                                 creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                    reusePath: 50
+                                    reusePath: 50,
+                                    ignoreCreeps: ignoreFlag
                                 });
                             }
                         }
@@ -391,11 +420,13 @@ var creep_farMining = {
                     } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
                         if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                             creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
-                                reusePath: 50
+                                reusePath: 50,
+                                ignoreCreeps: ignoreFlag
                             });
                         } else {
                             creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
-                                reusePath: 50
+                                reusePath: 50,
+                                ignoreCreeps: ignoreFlag
                             });
                         }
                         if (creep.memory.didRoadSearch == false) {
@@ -427,7 +458,8 @@ var creep_farMining = {
                                 //Pick up dropped energy from dead mules, etc.
                                 if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(droppedSources[0], {
-                                        reusePath: 50
+                                        reusePath: 50,
+                                        ignoreCreeps: ignoreFlag
                                     });
                                 }
                             } else {
@@ -440,24 +472,28 @@ var creep_farMining = {
                                                 if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
                                                     creep.moveTo(thisContainer, {
                                                         reusePath: 50,
-                                                        maxRooms: 1
+                                                        maxRooms: 1,
+                                                        ignoreCreeps: ignoreFlag
                                                     });
                                                 }
                                             } else if (Object.keys(thisContainer.store).length && creep.withdraw(thisContainer, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
                                                 creep.moveTo(thisContainer, {
                                                     reusePath: 50,
-                                                    maxRooms: 1
+                                                    maxRooms: 1,
+                                                    ignoreCreeps: ignoreFlag
                                                 });
                                             }
                                         } else {
                                             //Wait by controller
                                             if (creep.room.controller) {
                                                 creep.moveTo(creep.room.controller, {
-                                                    reusePath: 50
+                                                    reusePath: 50,
+                                                    ignoreCreeps: ignoreFlag
                                                 });
                                             } else {
                                                 creep.moveTo(25, 25, {
-                                                    reusePath: 50
+                                                    reusePath: 50,
+                                                    ignoreCreeps: ignoreFlag
                                                 });
                                             }
                                         }
@@ -492,20 +528,23 @@ var creep_farMining = {
                                                     if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
                                                         creep.moveTo(containers[0], {
                                                             reusePath: 50,
-                                                            maxRooms: 1
+                                                            maxRooms: 1,
+                                                            ignoreCreeps: ignoreFlag
                                                         });
                                                     }
                                                 } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
                                                     creep.moveTo(containers[0], {
                                                         reusePath: 50,
-                                                        maxRooms: 1
+                                                        maxRooms: 1,
+                                                        ignoreCreeps: ignoreFlag
                                                     });
                                                 }
                                             }
                                         } else {
                                             creep.moveTo(thisSource, {
                                                 reusePath: 50,
-                                                maxRooms: 1
+                                                maxRooms: 1,
+                                                ignoreCreeps: ignoreFlag
                                             })
                                         }
                                     }
@@ -520,13 +559,15 @@ var creep_farMining = {
                                     if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
                                         creep.moveTo(storageUnit, {
                                             reusePath: 25,
-                                            maxRooms: 1
+                                            maxRooms: 1,
+                                            ignoreCreeps: ignoreFlag
                                         });
                                     }
                                 } else if (Object.keys(creep.carry).length && creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
                                     creep.moveTo(storageUnit, {
                                         reusePath: 25,
-                                        maxRooms: 1
+                                        maxRooms: 1,
+                                        ignoreCreeps: ignoreFlag
                                     });
                                 }
                                 if (creep.memory.didRoadSearch == false) {
@@ -640,7 +681,8 @@ var creep_farMining = {
 
                 if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
                     creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                        reusePath: 50
+                        reusePath: 50,
+                        ignoreCreeps: ignoreFlag
                     });
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);
@@ -738,11 +780,13 @@ var creep_farMining = {
                             }
 
                             creep.moveTo(x, y, {
-                                maxRooms: 1
+                                maxRooms: 1,
+                                ignoreCreeps: ignoreFlag
                             });
                         } else {
                             creep.moveTo(closeFoe, {
-                                maxRooms: 1
+                                maxRooms: 1,
+                                ignoreCreeps: ignoreFlag
                             });
                         }
                     } else {
@@ -814,11 +858,13 @@ var creep_farMining = {
                             }
 
                             creep.moveTo(x, y, {
-                                maxRooms: 1
+                                maxRooms: 1,
+                                ignoreCreeps: ignoreFlag
                             });
                         } else {
                             creep.moveTo(closeFoe, {
-                                maxRooms: 1
+                                maxRooms: 1,
+                                ignoreCreeps: ignoreFlag
                             });
                         }
 
