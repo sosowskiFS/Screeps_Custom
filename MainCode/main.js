@@ -252,7 +252,7 @@ module.exports.loop = function() {
             //Get non-suppliers off the supplier spot
             if (Game.flags[thisRoom.name + "Supply"]){
                 var creepCheck = Game.flags[thisRoom.name + "Supply"].pos.lookFor(LOOK_CREEPS);
-                if (creepCheck.length && creepCheck[0].owner == "Montblanc" && creepCheck[0].memory.priority != "supplier"){
+                if (creepCheck.length && creepCheck[0].owner.username == "Montblanc" && creepCheck[0].memory.priority != "supplier"){
                     //Get the fuck off!
                     creepCheck[0].suicide();
                 }
