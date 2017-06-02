@@ -421,14 +421,13 @@ module.exports.loop = function() {
                     if (lab1 && lab2 && lab3 && lab1.mineralAmount >= 5 && lab2.mineralAmount >= 5 && lab3.mineralAmount <= lab3.mineralCapacity - 5) {
                         lab3.runReaction(lab1, lab2)
                     }
-                }
-
-                if (Game.time % 10 == 0 && Memory.labList[thisRoom.name].length >= 9) {
-                    var lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
-                    var lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
-                    var lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
-                    if (lab7 && lab8 && lab9 && lab7.mineralAmount >= 5 && lab8.mineralAmount >= 5 && lab9.mineralAmount <= lab9.mineralCapacity - 5) {
-                        lab9.runReaction(lab7, lab8)
+                    if (Memory.labList[thisRoom.name].length >= 9) {
+                        var lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
+                        var lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
+                        var lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
+                        if (lab7 && lab8 && lab9 && lab7.mineralAmount >= 5 && lab8.mineralAmount >= 5 && lab9.mineralAmount <= lab9.mineralCapacity - 5) {
+                            lab9.runReaction(lab7, lab8)
+                        }
                     }
                 }
 
