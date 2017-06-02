@@ -337,7 +337,7 @@ var creep_work5 = {
                                                 if (Memory.linkList[creep.room.name].length > 1) {
                                                     var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
                                                     if (upgraderLink && upgraderLink.energy < 200) {
-                                                        creep.memory.structureTarget = upgraderLink;
+                                                        creep.memory.structureTarget = upgraderLink.id;
                                                         if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                                             creep.moveTo(upgraderLink);
                                                         }
@@ -410,7 +410,7 @@ var creep_work5 = {
                         var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
                         if (upgraderLink && upgraderLink.energy < 100) {
                             creep.memory.priority = 'mule';
-                            creep.memory.structureTarget = upgraderLink;
+                            creep.memory.structureTarget = upgraderLink.id;
                             if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(upgraderLink);
                             }
