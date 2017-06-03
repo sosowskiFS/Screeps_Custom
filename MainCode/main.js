@@ -484,7 +484,9 @@ module.exports.loop = function() {
 
                 if (!Memory.isSpawning) {
                     if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
-                        spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
+                        if (!Game.flags["DoNotBuild"]) {
+                            spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
+                        }
                     } else {
                         spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
                     }
