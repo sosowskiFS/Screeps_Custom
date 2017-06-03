@@ -70,26 +70,28 @@ var creep_work5 = {
                     creep.memory.priority = 'upgraderNearDeath';
                 }
 
-                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    if (Game.flags[creep.room.name + "Controller"]) {
-                        creep.moveTo(Game.flags[creep.room.name + "Controller"], {
-                            reusePath: 25
-                        });
+                if (_.sum(creep.carry) > 0) {
+                    if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                        if (Game.flags[creep.room.name + "Controller"]) {
+                            creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+                                reusePath: 25
+                            });
+                        } else {
+                            creep.moveTo(creep.room.controller, {
+                                reusePath: 25
+                            });
+                        }
                     } else {
-                        creep.moveTo(creep.room.controller, {
-                            reusePath: 25
-                        });
-                    }
-                } else {
-                    if (Game.time % 2 == 0) {
-                        creep.say("\u261D\uD83D\uDE3C", true);
-                    } else {
-                        creep.say("\uD83D\uDC4C\uD83D\uDE39", true);
+                        if (Game.time % 2 == 0) {
+                            creep.say("\u261D\uD83D\uDE3C", true);
+                        } else {
+                            creep.say("\uD83D\uDC4C\uD83D\uDE39", true);
+                        }
                     }
                 }
 
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
-                if (linkTarget) {
+                if (linkTarget && _.sum(creep.carry) <= creep.getActiveBodyparts(WORK)) {
                     if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(linkTarget, {
                             reusePath: 25
