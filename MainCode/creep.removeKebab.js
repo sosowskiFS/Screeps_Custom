@@ -27,35 +27,9 @@ var creep_Kebab = {
                 }
             }
         } else if (Game.flags["RemoveKebab"]) {
-            //In target room
-            var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE)
-            });
-            if (somethingNearby) {
-                creep.dismantle(somethingNearby);
-            }
-
-            if (Game.flags["WallFlag"]) {
-                var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
-                if (thisWall.length) {
-                    creep.moveTo(thisWall[0]);
-                    creep.dismantle(thisWall[0]);
-                } else {
-                    Game.flags["WallFlag"].remove();
-                }
-            } else if (creep.memory.targetSpawn) {
-                var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
-                if (thisSpawn) {
-                    creep.moveTo(thisSpawn, {
-                        maxRooms: 1
-                    });
-                    creep.dismantle(thisSpawn);
-                } else {
-                    creep.memory.targetSpawn = undefined;
-                }
-            } else {
+            if (Game.flags["TowerOnly"]) {
                 var eExt = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                    filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_TOWER)
+                    filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
                 });
                 if (eExt) {
                     creep.moveTo(eExt, {
@@ -63,34 +37,82 @@ var creep_Kebab = {
                     });
                     creep.dismantle(eExt);
                 } else {
-                    var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS);
-                    if (eSpawns.length) {
-                        creep.memory.targetSpawn = eSpawns[Math.floor(Math.random() * eSpawns.length)].id;
-                        var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
-                        if (thisSpawn) {
-                            creep.moveTo(thisSpawn, {
-                                maxRooms: 1
-                            });
-                            creep.dismantle(thisSpawn);
-                        }
+                    //Assume we're done here.
+                    if (Game.flags["RemoveKebab"]) {
+                        Game.flags["RemoveKebab"].remove();
+                    }
+
+                    if (Game.flags["TowerOnly"]) {
+                        Game.flags["TowerOnly"].remove();
+                    }
+                }
+            } else {
+                //In target room
+                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE)
+                });
+                if (somethingNearby) {
+                    creep.dismantle(somethingNearby);
+                }
+
+                if (Game.flags["WallFlag"]) {
+                    var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
+                    if (thisWall.length) {
+                        creep.moveTo(thisWall[0]);
+                        creep.dismantle(thisWall[0]);
                     } else {
-                        var eExt2 = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                            filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_STORAGE)
+                        Game.flags["WallFlag"].remove();
+                    }
+                } else if (creep.memory.targetSpawn) {
+                    var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
+                    if (thisSpawn) {
+                        creep.moveTo(thisSpawn, {
+                            maxRooms: 1
                         });
-                        if (eExt2) {
-                            creep.moveTo(eExt2, {
-                                maxRooms: 1
-                            });
-                            creep.dismantle(eExt2);
+                        creep.dismantle(thisSpawn);
+                    } else {
+                        creep.memory.targetSpawn = undefined;
+                    }
+                } else {
+                    var eExt = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                        filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_TOWER)
+                    });
+                    if (eExt) {
+                        creep.moveTo(eExt, {
+                            maxRooms: 1
+                        });
+                        creep.dismantle(eExt);
+                    } else {
+                        var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS);
+                        if (eSpawns.length) {
+                            creep.memory.targetSpawn = eSpawns[Math.floor(Math.random() * eSpawns.length)].id;
+                            var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
+                            if (thisSpawn) {
+                                creep.moveTo(thisSpawn, {
+                                    maxRooms: 1
+                                });
+                                creep.dismantle(thisSpawn);
+                            }
                         } else {
-                            //Assume we're done here.
-                            if (Game.flags["RemoveKebab"]) {
-                                Game.flags["RemoveKebab"].remove();
+                            var eExt2 = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                                filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_STORAGE)
+                            });
+                            if (eExt2) {
+                                creep.moveTo(eExt2, {
+                                    maxRooms: 1
+                                });
+                                creep.dismantle(eExt2);
+                            } else {
+                                //Assume we're done here.
+                                if (Game.flags["RemoveKebab"]) {
+                                    Game.flags["RemoveKebab"].remove();
+                                }
                             }
                         }
                     }
                 }
             }
+
         }
     }
 };
