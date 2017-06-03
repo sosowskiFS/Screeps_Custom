@@ -29,7 +29,7 @@ var creep_Kebab = {
         } else if (Game.flags["RemoveKebab"]) {
             //In target room
             var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE)
             });
             if (somethingNearby) {
                 creep.dismantle(somethingNearby);
@@ -75,7 +75,7 @@ var creep_Kebab = {
                         }
                     } else {
                         var eExt2 = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                            filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER)
+                            filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_STORAGE)
                         });
                         if (eExt2) {
                             creep.moveTo(eExt2, {
