@@ -647,29 +647,30 @@ var creep_farMining = {
                     }
                 } else if (Foe.length) {
                     var closeRangeresult = "";
-
+                    var attackResult = creep.attack(closeFoe);
                     closeRangeResult = creep.rangedAttack(closeFoe);
-                    creep.attack(closeFoe);
                     creep.rangedAttack(closeFoe);
                     if (Foe.length) {
-                        creep.attack(Foe[0]);
+                        attackResult = creep.attack(Foe[0]);
                         creep.rangedAttack(Foe[0]);
                     }
-                    if (creep.hits < creep.hitsMax) {
-                        creep.heal(creep);
-                    } else {
-                        var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-                            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-                        });
-                        if (hurtAlly.length > 0) {
-                            if (closeRangeResult != OK) {
-                                creep.rangedHeal(hurtAlly[0]);
+                    if (attackResult != OK) {
+                        if (creep.hits < creep.hitsMax) {
+                            creep.heal(creep);
+                        } else {
+                            var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+                                filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+                            });
+                            if (hurtAlly.length > 0) {
+                                if (closeRangeResult != OK) {
+                                    creep.rangedHeal(hurtAlly[0]);
+                                }
+                                creep.heal(hurtAlly[0]);
                             }
-                            creep.heal(hurtAlly[0]);
                         }
                     }
 
-                    if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) > 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
+                    /*if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) > 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
                         if (Foe.length && Foe[0].getActiveBodyparts(ATTACK) - 2 > creep.getActiveBodyparts(ATTACK) && creep.pos.getRangeTo(Foe[0]) <= 3) {
                             var foeDirection = creep.pos.getDirectionTo(Foe[0]);
                             var y = 0;
@@ -740,12 +741,12 @@ var creep_farMining = {
                             creep.moveTo(x, y, {
                                 maxRooms: 1
                             });
-                        } else {
-                            creep.moveTo(closeFoe, {
-                                maxRooms: 1
-                            });
-                        }
-                    } else {
+                        } else {*/
+                    creep.moveTo(closeFoe, {
+                        maxRooms: 1
+                    });
+                    //}
+                    /*} else {
                         var foeDirection = creep.pos.getDirectionTo(closeFoe);
                         if (creep.pos.getRangeTo(closeFoe) <= 2) {
                             var y = 0;
@@ -822,7 +823,7 @@ var creep_farMining = {
                             });
                         }
 
-                    }
+                    }*/
                 } else if (creep.room.name != creep.memory.destination) {
                     if (creep.memory.targetFlag.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
