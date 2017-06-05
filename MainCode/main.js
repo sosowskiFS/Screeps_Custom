@@ -143,6 +143,21 @@ module.exports.loop = function() {
             var thisRoom = Game.spawns[i].room;
             var controllerLevel = thisRoom.controller.level;
 
+            //Ensure all spawns have a rampart
+            if (Game.time % 1000 == 0) {
+                var found = Game.spawns[i].pos.lookFor(LOOK_STRUCTURES);
+                var hasRampart = false;
+                for (var building in found) {
+                    if (building.structureType == STRUCTURE_RAMPART) {
+                        hasRampart = true;
+                        break;
+                    }
+                }
+                if (!hasRampart) {
+                    Game.spawns[i].room.createConstructionSite(Game.spawns[i].pos.x, Game.spawns[i].pos.y, STRUCTURE_RAMPART);
+                }
+            }
+
             if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
                 //Gimme some pie graphs
                 const vis = new RoomVisual(thisRoom.name);
@@ -159,6 +174,36 @@ module.exports.loop = function() {
 
                 //Populate the room creeps memory.
                 Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
+
+                //Ensure all storage units have a rampart
+                if (thisRoom.storage && Game.time % 1000 == 0) {
+                    var found = thisRoom.storage.pos.lookFor(LOOK_STRUCTURES);
+                    var hasRampart = false;
+                    for (var building in found) {
+                        if (building.structureType == STRUCTURE_RAMPART) {
+                            hasRampart = true;
+                            break;
+                        }
+                    }
+                    if (!hasRampart) {
+                        thisRoom.storage.room.createConstructionSite(thisRoom.storage.pos.x, thisRoom.storage.pos.y, STRUCTURE_RAMPART);
+                    }
+                }
+
+                //Ensure all terminals have a rampart
+                if (thisRoom.terminal && Game.time % 1000 == 0) {
+                    var found = thisRoom.terminal.pos.lookFor(LOOK_STRUCTURES);
+                    var hasRampart = false;
+                    for (var building in found) {
+                        if (building.structureType == STRUCTURE_RAMPART) {
+                            hasRampart = true;
+                            break;
+                        }
+                    }
+                    if (!hasRampart) {
+                        thisRoom.terminal.room.createConstructionSite(thisRoom.terminal.pos.x, thisRoom.terminal.pos.y, STRUCTURE_RAMPART);
+                    }
+                }
 
                 //Execute special instruction written into console
                 if (Game.flags["ClaimThis"] && !Memory.claimSpawn) {
