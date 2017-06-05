@@ -367,6 +367,18 @@ module.exports.loop = function() {
                     if (powerSpawns) {
                         if (powerSpawns.length > 0) {
                             Memory.powerSpawnList[thisRoom.name].push(powerSpawns[0].id);
+
+                            var found = powerSpawns[0].pos.lookFor(LOOK_STRUCTURES);
+                            var hasRampart = false;
+                            for (var building in found) {
+                                if (building.structureType == STRUCTURE_RAMPART) {
+                                    hasRampart = true;
+                                    break;
+                                }
+                            }
+                            if (!hasRampart) {
+                                powerSpawns[0].room.createConstructionSite(powerSpawns[0].pos.x, powerSpawns[0].pos.y, STRUCTURE_RAMPART);
+                            }
                         }
                     }
                 }
@@ -382,6 +394,18 @@ module.exports.loop = function() {
                     if (theseNukes) {
                         if (theseNukes.length > 0) {
                             Memory.nukerList[thisRoom.name].push(theseNukes[0].id);
+
+                            var found = theseNukes[0].pos.lookFor(LOOK_STRUCTURES);
+                            var hasRampart = false;
+                            for (var building in found) {
+                                if (building.structureType == STRUCTURE_RAMPART) {
+                                    hasRampart = true;
+                                    break;
+                                }
+                            }
+                            if (!hasRampart) {
+                                theseNukes[0].room.createConstructionSite(theseNukes[0].pos.x, theseNukes[0].pos.y, STRUCTURE_RAMPART);
+                            }
                         }
                     }
                 }
@@ -513,6 +537,20 @@ module.exports.loop = function() {
         if (towers.length) {
             var alreadySearched = [];
             for (var y = 0; y < towers.length; y++) {
+                if (Game.time % 1000 == 0) {
+                    var found = towers[y].pos.lookFor(LOOK_STRUCTURES);
+                    var hasRampart = false;
+                    for (var building in found) {
+                        if (building.structureType == STRUCTURE_RAMPART) {
+                            hasRampart = true;
+                            break;
+                        }
+                    }
+                    if (!hasRampart) {
+                        towers[y].room.createConstructionSite(towers[y].pos.x, towers[y].pos.y, STRUCTURE_RAMPART);
+                    }
+                }
+
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
