@@ -131,7 +131,7 @@ var market_buyers = {
             }
         }
 
-        if (TerminalEnergy >= 50000) {
+        if (TerminalEnergy >= 25000) {
             var currentMineral = Game.getObjectById(thisMineral);
 
 
