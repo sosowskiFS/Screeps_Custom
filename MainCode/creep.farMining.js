@@ -370,7 +370,7 @@ var creep_farMining = {
                     if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
                         if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
                             if (!creep.memory.path) {
-                                creep.memory.path = creep.pos.findPath(Game.flags[creep.memory.targetFlag])
+                                creep.memory.path = creep.pos.findPathTo(Game.flags[creep.memory.targetFlag])
                             }
                             if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
                                 creep.memory.path = undefined;
@@ -380,7 +380,7 @@ var creep_farMining = {
                             });*/
                         } else {
                             if (!creep.memory.path) {
-                                creep.memory.path = creep.pos.findPath(new RoomPosition(25, 25, creep.memory.destination))
+                                creep.memory.path = creep.pos.findPathTo(new RoomPosition(25, 25, creep.memory.destination))
                             }
                             if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
                                 creep.memory.path = undefined;
@@ -393,7 +393,7 @@ var creep_farMining = {
                     } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
                         if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                             if (!creep.memory.path) {
-                                creep.memory.path = creep.pos.findPath(Game.rooms[creep.memory.homeRoom].storage)
+                                creep.memory.path = creep.pos.findPathTo(Game.rooms[creep.memory.homeRoom].storage)
                             }
                             if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
                                 creep.memory.path = undefined;
@@ -403,7 +403,7 @@ var creep_farMining = {
                             });*/
                         } else {
                             if (!creep.memory.path) {
-                                creep.memory.path = creep.pos.findPath(new RoomPosition(25, 25, creep.memory.homeRoom))
+                                creep.memory.path = creep.pos.findPathTo(new RoomPosition(25, 25, creep.memory.homeRoom))
                             }
                             if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
                                 creep.memory.path = undefined;
