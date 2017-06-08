@@ -368,35 +368,49 @@ var creep_farMining = {
                     evadeAttacker(creep, 5);
                 } else {
                     if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
-                        var droppedSources = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 3);
-                        if (droppedSources.length) {
-                            //Pick up dropped energy from dead mules, etc.
-                            if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(droppedSources[0], {
-                                    reusePath: 50
-                                });
+                        if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
+                            if (!creep.memory.path) {
+                                creep.memory.path = creep.pos.findPath(Game.flags[creep.memory.targetFlag])
                             }
+                            if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
+                                creep.memory.path = undefined;
+                            }
+                            /*creep.moveTo(Game.flags[creep.memory.targetFlag], {
+                                reusePath: 50
+                            });*/
                         } else {
-                            if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
-                                creep.moveTo(Game.flags[creep.memory.targetFlag], {
-                                    reusePath: 50
-                                });
-                            } else {
-                                creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                    reusePath: 50
-                                });
+                            if (!creep.memory.path) {
+                                creep.memory.path = creep.pos.findPath(new RoomPosition(25, 25, creep.memory.destination))
                             }
+                            if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
+                                creep.memory.path = undefined;
+                            }
+                            /*creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                                reusePath: 50
+                            });*/
                         }
                         evadeAttacker(creep, 5);
                     } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
                         if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
-                            creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
+                            if (!creep.memory.path) {
+                                creep.memory.path = creep.pos.findPath(Game.rooms[creep.memory.homeRoom].storage)
+                            }
+                            if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
+                                creep.memory.path = undefined;
+                            }
+                            /*creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
                                 reusePath: 50
-                            });
+                            });*/
                         } else {
-                            creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
+                            if (!creep.memory.path) {
+                                creep.memory.path = creep.pos.findPath(new RoomPosition(25, 25, creep.memory.homeRoom))
+                            }
+                            if (creep.moveByPath(creep.memory.path) == ERR_NOT_FOUND) {
+                                creep.memory.path = undefined;
+                            }
+                            /*creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
                                 reusePath: 50
-                            });
+                            });*/
                         }
                         if (creep.memory.didRoadSearch == false) {
                             if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
@@ -409,6 +423,7 @@ var creep_farMining = {
                             }
                         }
                     } else {
+                        creep.memory.path = undefined;
                         if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
                             if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
                                 Memory.FarClaimerNeeded[creep.room.name] = true;
@@ -422,92 +437,69 @@ var creep_farMining = {
                         }
 
                         if (!creep.memory.storing) {
-                            var droppedSources = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 7);
-                            if (droppedSources.length && !Memory.warMode) {
-                                //Pick up dropped energy from dead mules, etc.
-                                if (creep.pickup(droppedSources[0]) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(droppedSources[0], {
-                                        reusePath: 50
-                                    });
+                            //in farRoom, pick up container contents
+                            if (creep.memory.containerTarget) {
+                                var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+                                if (thisContainer) {
+                                    if (Object.keys(thisContainer.store).length > 1) {
+                                        if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
+                                            creep.moveTo(thisContainer, {
+                                                reusePath: 50,
+                                                maxRooms: 1
+                                            });
+                                        }
+                                    } else if (Object.keys(thisContainer.store).length && creep.withdraw(thisContainer, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
+                                        creep.moveTo(thisContainer, {
+                                            reusePath: 50,
+                                            maxRooms: 1
+                                        });
+                                    }
                                 }
                             } else {
-                                //in farRoom, pick up container contents
-                                if (creep.memory.containerTarget) {
-                                    var thisContainer = Game.getObjectById(creep.memory.containerTarget);
-                                    if (thisContainer) {
-                                        if (thisContainer.store[RESOURCE_ENERGY] > 0) {
-                                            if (Object.keys(thisContainer.store).length > 1) {
-                                                if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
-                                                    creep.moveTo(thisContainer, {
-                                                        reusePath: 50,
-                                                        maxRooms: 1
-                                                    });
-                                                }
-                                            } else if (Object.keys(thisContainer.store).length && creep.withdraw(thisContainer, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
-                                                creep.moveTo(thisContainer, {
-                                                    reusePath: 50,
-                                                    maxRooms: 1
-                                                });
-                                            }
-                                        } else {
-                                            //Wait by controller
-                                            if (creep.room.controller) {
-                                                creep.moveTo(creep.room.controller, {
-                                                    reusePath: 50
-                                                });
-                                            } else {
-                                                creep.moveTo(25, 25, {
-                                                    reusePath: 50
-                                                });
-                                            }
-                                        }
+                                //No container yet, move to be near source
+                                if (!creep.memory.mineSource) {
+                                    var markedSources = [];
+                                    if (Game.flags[creep.memory.targetFlag]) {
+                                        markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
                                     }
-                                } else {
-                                    //No container yet, move to be near source
-                                    if (!creep.memory.mineSource) {
-                                        var markedSources = [];
-                                        if (Game.flags[creep.memory.targetFlag]) {
-                                            markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
-                                        }
-                                        if (markedSources.length) {
-                                            creep.memory.mineSource = markedSources[0].id;
-                                        }
+                                    if (markedSources.length) {
+                                        creep.memory.mineSource = markedSources[0].id;
                                     }
+                                }
 
-                                    var thisSource = Game.getObjectById(creep.memory.mineSource);
-                                    if (thisSource) {
-                                        if (creep.pos.inRangeTo(thisSource, 2)) {
-                                            //Search for container
-                                            var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
+                                var thisSource = Game.getObjectById(creep.memory.mineSource);
+                                if (thisSource) {
+                                    if (creep.pos.inRangeTo(thisSource, 2)) {
+                                        //Search for container
+                                        var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
+                                            filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                                        });
+                                        if (containers.length > 1) {
+                                            containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
                                                 filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                                             });
-                                            if (containers.length > 1) {
-                                                containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
-                                                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                                                });
-                                            }
-                                            if (containers.length) {
-                                                creep.memory.containerTarget = containers[0].id;
-                                                if (Object.keys(containers[0].store).length > 1) {
-                                                    if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
-                                                        creep.moveTo(containers[0], {
-                                                            reusePath: 50,
-                                                            maxRooms: 1
-                                                        });
-                                                    }
-                                                } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
+                                        }
+                                        if (containers.length) {
+                                            creep.memory.containerTarget = containers[0].id;
+                                            if (Object.keys(containers[0].store).length > 1) {
+                                                if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
                                                     creep.moveTo(containers[0], {
                                                         reusePath: 50,
                                                         maxRooms: 1
                                                     });
                                                 }
+                                            } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
+                                                creep.moveTo(containers[0], {
+                                                    reusePath: 50,
+                                                    maxRooms: 1
+                                                });
                                             }
-                                        } else {
-                                            creep.moveTo(thisSource, {
-                                                reusePath: 50,
-                                                maxRooms: 1
-                                            })
                                         }
+                                    } else {
+                                        creep.moveTo(thisSource, {
+                                            reusePath: 50,
+                                            maxRooms: 1
+                                        })
                                     }
                                 }
                             }
