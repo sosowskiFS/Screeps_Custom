@@ -196,24 +196,21 @@ var creep_work5 = {
                                     }
                                 } else {
                                     //Upgrading controller
-                                    if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
-                                        if (Game.flags[creep.room.name + "Controller"]) {
-                                            creep.moveTo(Game.flags[creep.room.name + "Controller"], {
-                                                reusePath: 20
-                                            });
-                                        } else {
-                                            creep.moveTo(savedTarget, {
-                                                reusePath: 20
-                                            });
-                                        }
-                                    } else {
-                                        //Check for nearby link and fill it if possible.
-                                        if (Memory.linkList[creep.room.name].length > 1) {
-                                            var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
-                                            if (upgraderLink && upgraderLink.energy < 100) {
-                                                if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                    creep.moveTo(upgraderLink);
-                                                }
+                                    if (Memory.linkList[creep.room.name].length > 1) {
+                                        var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+                                        if (upgraderLink && upgraderLink.energy < 100) {
+                                            if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                                creep.moveTo(upgraderLink);
+                                            }
+                                        } else if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
+                                            if (Game.flags[creep.room.name + "Controller"]) {
+                                                creep.moveTo(Game.flags[creep.room.name + "Controller"], {
+                                                    reusePath: 20
+                                                });
+                                            } else {
+                                                creep.moveTo(savedTarget, {
+                                                    reusePath: 20
+                                                });
                                             }
                                         }
                                     }
