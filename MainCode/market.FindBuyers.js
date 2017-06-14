@@ -74,6 +74,11 @@ var market_buyers = {
             ForNuker = false;
             neededMinerals.push(RESOURCE_OXYGEN);
         }
+        if (Game.flags[thisRoom.name + "GHO2Producer"]) {
+            neededMinerals.push(RESOURCE_GHODIUM_OXIDE);
+            neededMinerals.push(RESOURCE_HYDROXIDE);
+            HydroxidePriority = 2;
+        }
         if (Game.flags[thisRoom.name + "GH2OProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);

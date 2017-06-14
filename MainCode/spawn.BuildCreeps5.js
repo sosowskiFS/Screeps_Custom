@@ -142,6 +142,12 @@ var spawn_BuildCreeps5 = {
                 min2 = RESOURCE_OXYGEN;
                 min3 = RESOURCE_GHODIUM_OXIDE;
                 primaryFlag = thisRoom.name + "GOProducer";
+                backupFlag = thisRoom.name + "GHO2Producer";
+            } else if (Game.flags[thisRoom.name + "GHO2Producer"]) {
+                min1 = RESOURCE_GHODIUM_OXIDE;
+                min2 = RESOURCE_HYDROXIDE;
+                min3 = RESOURCE_GHODIUM_ALKALIDE;
+                primaryFlag = thisRoom.name + "GHO2Producer";
                 backupFlag = thisRoom.name + "LH2OProducer";
             } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
                 min1 = RESOURCE_GHODIUM_HYDRIDE;
@@ -161,7 +167,7 @@ var spawn_BuildCreeps5 = {
                 min3 = RESOURCE_LEMERGIUM_ACID;
                 primaryFlag = thisRoom.name + "LH2OProducer";
                 backupFlag = thisRoom.name + "XLH2OProducer";
-            }  else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
+            } else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
                 min1 = RESOURCE_LEMERGIUM_ACID;
                 min2 = RESOURCE_CATALYST;
                 min3 = RESOURCE_CATALYZED_LEMERGIUM_ACID;
