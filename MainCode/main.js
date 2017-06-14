@@ -547,7 +547,7 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '', Game.flags[thisRoom.name + "Distract"].name);
                 }
 
-                if (Game.flags["RemoveKebab"] && thisRoom.name == 'E88N75') {
+                if (Game.flags["RemoveKebab"] && thisRoom.name == 'E86N68') {
                     spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', '');
                 }
 
