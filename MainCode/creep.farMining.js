@@ -358,6 +358,13 @@ var creep_farMining = {
                     }
                 }
 
+                if (_.sum(creep.carry) < creep.carryCapacity) {
+                    someEnergy = creep.pos.lookFor(LOOK_ENERGY);
+                    if (someEnergy.length) {
+                        creep.pickup(someEnergy[0]);
+                    }
+                }
+
                 if (((_.sum(creep.carry) > creep.carryCapacity - 300) || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 120)) && !creep.memory.storing && creep.carryCapacity >= 300) {
                     creep.memory.storing = true;
                 } else if (_.sum(creep.carry) == 0 && creep.memory.storing) {
