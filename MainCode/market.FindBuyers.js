@@ -10,8 +10,8 @@ var market_buyers = {
         //Always requested minerals for boosts
         if (thisRoom.controller.level >= 7) {
             neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
-            neededMinerals.push(RESOURCE_GHODIUM_ACID); //Upgrade boost
-            neededMinerals.push(RESOURCE_LEMERGIUM_ACID); //Repair boost
+            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID); //Upgrade boost
+            neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ACID); //Repair boost
             if (thisRoom.controller.level == 7) {
                 GH2OPriority = 0;
             } else {
@@ -98,6 +98,22 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_LEMERGIUM_OXIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
+        }
+        if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
+            neededMinerals.push(RESOURCE_UTRIUM_ACID);
+            neededMinerals.push(RESOURCE_CATALYST);
+        }
+        if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
+            neededMinerals.push(RESOURCE_ZYNTHIUM_ACID);
+            neededMinerals.push(RESOURCE_CATALYST);
+        }
+        if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
+            neededMinerals.push(RESOURCE_ZYNTHIUM_ALKALIDE);
+            neededMinerals.push(RESOURCE_CATALYST);
+        }
+        if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
+            neededMinerals.push(RESOURCE_GHODIUM_ACID);
+            neededMinerals.push(RESOURCE_CATALYST);
         }
         //Flag room to transfer War Boosts
         if (Game.flags[thisRoom.name + "WarBoosts"]) {
