@@ -178,7 +178,7 @@ var market_buyers = {
                 }
             }
 
-            var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST];
+            var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM];
 
             if (!hasSent && TerminalEnergy >= 50000 && Game.time % 1000 == 0) {
                 var MaxSaleAmount = 30000;
