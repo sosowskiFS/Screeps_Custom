@@ -405,16 +405,20 @@ var creep_work5 = {
                         }
                     }
                 } else if (creep.memory.structureTarget) {
+                    var doRepair = true;
                     if (creep.memory.previousPriority == 'mule' && creep.carry.energy > 300 && Memory.linkList[creep.room.name].length > 1) {
                         var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
                         if (upgraderLink && upgraderLink.energy < 100) {
+                            doRepair = false;
                             creep.memory.priority = 'mule';
                             creep.memory.structureTarget = upgraderLink.id;
                             if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.moveTo(upgraderLink);
                             }
                         }
-                    } else {
+                    }
+                    
+                    if (doRepair) {
                         var thisStructure = Game.getObjectById(creep.memory.structureTarget);
                         if (thisStructure) {
                             if (thisStructure.hits == thisStructure.hitsMax) {
