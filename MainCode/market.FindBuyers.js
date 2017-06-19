@@ -135,7 +135,7 @@ var market_buyers = {
                 Memory.mineralNeed[neededMinerals[i]] = [];
             }
             var mineralCap = 10000;
-            if (neededMinerals[i] == RESOURCE_GHODIUM && ForNuker){
+            if (neededMinerals[i] == RESOURCE_GHODIUM && ForNuker) {
                 mineralCap = 5000;
             }
             if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < mineralCap) {
@@ -240,6 +240,9 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
         }
         if (amountAvailable >= 100) {
             if (targetTerminal && !targetTerminal.store[thisMineral]) {
+                if (amountAvailable > targetStoreCap){
+                    amountAvailable = targetStoreCap
+                }
                 if (thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
                     var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
                     if (thisRoomIndex != -1) {
