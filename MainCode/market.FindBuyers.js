@@ -233,14 +233,18 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
             targetStoreCap = 5000;
         }
         if (saveFlag) {
-            amountAvailable = thisTerminal.store[thisMineral] - 20000;
+            if (thisMineral == RESOURCE_GHODIUM) {
+                amountAvailable = thisTerminal.store[thisMineral] - 5000;
+            } else {
+                amountAvailable = thisTerminal.store[thisMineral] - 20000;
+            }
         }
         if (amountAvailable > 20000) {
             amountAvailable = 20000;
         }
         if (amountAvailable >= 100) {
             if (targetTerminal && !targetTerminal.store[thisMineral]) {
-                if (amountAvailable > targetStoreCap){
+                if (amountAvailable > targetStoreCap) {
                     amountAvailable = targetStoreCap
                 }
                 if (thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
