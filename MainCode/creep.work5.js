@@ -668,6 +668,8 @@ var creep_work5 = {
                 } else if (Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
                     //Just in case
                     Game.flags[creep.memory.primaryFlag].remove();
+                } else if (Game.flags[creep.memory.backupFlag] && _.sum(creep.carry) == 0){
+                    creep.suicide();
                 }
 
                 if (!creep.memory.offlineUntil || (creep.memory.offlineUntil && creep.memory.offlineUntil <= Game.time)) {
