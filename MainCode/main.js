@@ -428,6 +428,19 @@ module.exports.loop = function() {
                     }
                 }
 
+                //Get list of observers
+                if (Game.time % 2000 == 0 || !Memory.observerList[thisRoom.name]) {
+                    Memory.observerList[thisRoom.name] = [];
+                    var roomObservers = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: {
+                            structureType: STRUCTURE_OBSERVER
+                        }
+                    });
+                    if (roomObservers && roomObservers.length > 0) {
+                        Memory.observerList[thisRoom.name].push(roomObservers[0].id);
+                    }
+                }
+
                 //Get list of nukers
                 if (Game.time % 2000 == 0 || !Memory.nukerList[thisRoom.name]) {
                     Memory.nukerList[thisRoom.name] = [];
@@ -496,6 +509,30 @@ module.exports.loop = function() {
                         var lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
                         if (lab7 && lab8 && lab9 && lab7.mineralAmount >= 5 && lab8.mineralAmount >= 5 && lab9.mineralAmount <= lab9.mineralCapacity - 5) {
                             lab9.runReaction(lab7, lab8)
+                        }
+                    }
+                }
+
+                //Handle Observers
+                if (Memory.postObserveTick && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
+                    //Search observed room for power bank
+                    var powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
+                        filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.power >= 3000 && eStruct.ticksToDecay >= 4500)
+                    });
+                    if (powerbanks.length){
+                        Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(eStruct.pos.x, eStruct.pos.y, thisRoom.name + "PowerGather");
+                    }
+
+                    //Move searched room to the back of the list
+                    Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
+                }
+
+                if (Game.time % 50 == 0 && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
+                    var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
+                    if (thisObserver) {
+                        thisObserver.observeRoom(Memory.powerCheckList[thisRoom.name][0]);
+                        if (!Memory.postObserveTick) {
+                            Memory.postObserveTick = true;
                         }
                     }
                 }
@@ -576,6 +613,11 @@ module.exports.loop = function() {
             Memory.isSpawning = false;
 
             Memory.RoomsRun.push(thisRoom.name);
+        }
+
+        //Clear observe tick, rooms have been checked.
+        if (Memory.postObserveTick && Game.time % 50 != 0) {
+            Memory.postObserveTick = false;
         }
 
         var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
@@ -893,7 +935,7 @@ function memCheck() {
         Memory.hasFired = [];
     }
     if (!Memory.whiteList) {
-        Memory.whiteList = ['DomNomNom','Kotarou','ICED_COFFEE','demawi','o4kapuk','ben2','Jibol','szumi','Xist','Xolym','SirFrump','ART999']; //'ThyReaper'
+        Memory.whiteList = ['DomNomNom', 'Kotarou', 'ICED_COFFEE', 'demawi', 'o4kapuk', 'ben2', 'Jibol', 'szumi', 'Xist', 'Xolym', 'SirFrump', 'ART999']; //'ThyReaper'
     }
     if (!Memory.blockedRooms) {
         Memory.blockedRooms = ['E84N87', 'E83N88', 'E82N87', 'E83N86', 'E81N84', 'E82N83', 'E81N81', 'E84N82', 'E86N81', 'E88N81'];
@@ -904,6 +946,9 @@ function memCheck() {
     }
     if (Memory.guardType == null) {
         Memory.guardType = false;
+    }
+    if (Memory.postObserveTick == null) {
+        Memory.postObserveTick = false;
     }
     //Decimal
     if (!Memory.averageUsedCPU) {
@@ -961,6 +1006,14 @@ function memCheck() {
     }
     if (!Memory.powerSpawnList) {
         Memory.powerSpawnList = new Object();
+    }
+    if (!Memory.powerCheckList) {
+        Memory.powerCheckList = new Object();
+        Memory.powerCheckList["E89N86"] = ["E90N87", "E90N86", "E90N85"];
+        Memory.powerCheckList["E89N83"] = ["E90N84", "E90N83", "E90N82"];
+    }
+    if (!Memory.observerList) {
+        Memory.observerList = new Object();
     }
     if (!Memory.nukerList) {
         Memory.nukerList = new Object();
