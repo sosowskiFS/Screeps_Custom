@@ -516,15 +516,15 @@ module.exports.loop = function() {
                 //Handle Observers
                 if (Memory.postObserveTick && Memory.powerCheckList[thisRoom.name] && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
                     //Search observed room for power bank
-                    var powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
+                    /*var powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
                         filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.power >= 3000 && eStruct.ticksToDecay >= 4500)
                     });
                     if (powerbanks.length){
                         Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(eStruct.pos.x, eStruct.pos.y, thisRoom.name + "PowerGather");
-                    }
+                    }*/
 
                     //Move searched room to the back of the list
-                    Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
+                    //Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
                 }
 
                 if (Game.time % 50 == 0 && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
