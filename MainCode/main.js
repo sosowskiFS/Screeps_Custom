@@ -521,7 +521,7 @@ module.exports.loop = function() {
                             filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.power >= 3000 && eStruct.ticksToDecay >= 4500)
                         });
                         if (powerbanks.length) {
-                            Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(eStruct.pos.x, eStruct.pos.y, thisRoom.name + "PowerGather");
+                            Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(powerbanks[0].pos.x, powerbanks[0].pos.y, thisRoom.name + "PowerGather");
                         }
                     }
 
