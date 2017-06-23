@@ -1092,10 +1092,10 @@ function evadeAttacker(creep, evadeRange) {
     var closeFoe = undefined;
     var didRanged = false;
 
+    closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+    });
     if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
-        closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-        });
         Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
             filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
         });
@@ -1210,7 +1210,7 @@ function evadeAttacker(creep, evadeRange) {
         creep.moveTo(x, y, {
             ignoreRoads: true
         });
-    } else if (!Foe.length && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
+    } else if (!closeFoe && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
         var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
         if (UnderAttackPos >= 0) {
             Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
