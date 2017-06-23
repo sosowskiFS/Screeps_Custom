@@ -1009,11 +1009,10 @@ function memCheck() {
     if (!Memory.powerSpawnList) {
         Memory.powerSpawnList = new Object();
     }
-    if (!Memory.powerCheckList) {
-        Memory.powerCheckList = new Object();
-        Memory.powerCheckList["E89N86"] = ["E90N87", "E90N86", "E90N85"];
-        Memory.powerCheckList["E89N83"] = ["E90N84", "E90N83", "E90N82"];
-    }
+    Memory.powerCheckList = new Object();
+    Memory.powerCheckList["E89N86"] = ["E90N87", "E90N86", "E90N85"];
+    Memory.powerCheckList["E89N83"] = ["E90N84", "E90N83", "E90N82"];
+    Memory.powerCheckList["E85N89"] = ["E84N90", "E85N90", "E86N90"];
     if (!Memory.observerList) {
         Memory.observerList = new Object();
     }
