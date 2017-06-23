@@ -1130,11 +1130,11 @@ function evadeAttacker(creep, evadeRange) {
         }
     }
 
-    if (Foe.length) {
-        if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
-            Memory.FarRoomsUnderAttack.push(creep.room.name);
-        }
+    if (closeFoe && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
+        Memory.FarRoomsUnderAttack.push(creep.room.name);
+    }
 
+    if (Foe.length) {
         creep.memory.evadingUntil = Game.time + 5;
         if (!closeFoe) {
             closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
