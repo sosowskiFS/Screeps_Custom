@@ -208,7 +208,8 @@ module.exports.loop = function() {
                 //Execute special instruction written into console
                 //if (Game.flags["ClaimThis"] && !Memory.claimSpawn) {
                 if (Game.flags["ClaimThis"] && thisRoom.name == 'E87N85') {
-                    var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name, {
+                    instructionSpawn = Game.spawns[i];
+                    /*var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name, {
                         routeCallback(roomName, fromRoomName) {
                             if (Memory.blockedRooms.indexOf(roomName) > -1) { // avoid this room
                                 return Infinity;
@@ -224,12 +225,13 @@ module.exports.loop = function() {
                             roomEnergy = thisRoom.energyCapacityAvailable;
                             instructionSpawn = Game.spawns[i];
                         }
-                    }
+                    }*/
                 }
 
                 //if (Game.flags["BuildThis"]) {
                 if (Game.flags["BuildThis"] && thisRoom.name == 'E87N85') {
-                    if (thisRoom.energyCapacityAvailable >= 1250) {
+                    instructionSpawn = Game.spawns[i];
+                    /*if (thisRoom.energyCapacityAvailable >= 1250) {
                         var thisRoute = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
                         if (thisRoute != -2) {
                             var theDistance = _.size(thisRoute);
@@ -241,7 +243,7 @@ module.exports.loop = function() {
                             }
                         }
 
-                    }
+                    }*/
                 }
 
                 if (Game.flags["DrainTurret"]) {
