@@ -11,7 +11,15 @@ var creep_claimer = {
         }*/
 
         if (creep.room.name != creep.memory.destination) {
-            if (creep.memory.path && creep.memory.path.length) {
+            var thisPortal = undefined;
+            if (Game.flags["TakePortal"]) {
+                var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                });
+            }
+            if (thisPortal) {
+                creep.moveTo(thisPortal)
+            } else if (creep.memory.path && creep.memory.path.length) {
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
