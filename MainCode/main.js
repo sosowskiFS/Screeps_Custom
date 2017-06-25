@@ -574,6 +574,28 @@ module.exports.loop = function() {
             }
 
             if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
+
+                if (Game.flags["ClaimThis"] && thisRoom.name == 'E87N85') {
+                    if (instructionSpawn.id == Game.spawns[i].id) {
+                        if (Game.flags["UseDefinedRoute"]) {
+                            spawn_BuildInstruction.run(thisSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
+                        } else {
+                            spawn_BuildInstruction.run(thisSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
+                        }
+                    }
+                }
+
+                if (Game.flags["BuildThis"] && thisRoom.name == 'E87N85') {
+                    var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                    if (sitesOnTile.length && instructionSpawn.id == Game.spawn[i].id) {
+                        if (Game.flags["UseDefinedRoute"]) {
+                            spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
+                        } else {
+                            spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
+                        }
+                    }
+                }
+
                 if (Game.flags["Assault"] && thisRoom.controller.level >= 7) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags["Assault"].pos.roomName, '', Game.spawns[i].room.name);
                 }
