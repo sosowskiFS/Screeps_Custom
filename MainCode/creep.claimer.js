@@ -11,7 +11,7 @@ var creep_claimer = {
         }*/
 
         if (creep.room.name != creep.memory.destination) {
-            if (creep.memory.path) {
+            if (creep.memory.path.length) {
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
