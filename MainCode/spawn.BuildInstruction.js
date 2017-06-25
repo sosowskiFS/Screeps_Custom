@@ -8,8 +8,8 @@ var spawn_BuildInstruction = {
                         //Claimer with defined path
                         var creepPath = params2.split(";");
                         if (creepPath.length) {
-                            if (spawn.canCreateCreep([MOVE, CLAIM]) == OK) {
-                                spawn.createCreep([MOVE, CLAIM], undefined, {
+                            if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]) == OK) {
+                                spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], undefined, {
                                     priority: 'claimer',
                                     destination: params,
                                     path: creepPath
