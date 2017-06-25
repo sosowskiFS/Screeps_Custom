@@ -209,6 +209,8 @@ module.exports.loop = function() {
                 //if (Game.flags["ClaimThis"] && !Memory.claimSpawn) {
                 if (Game.flags["ClaimThis"] && thisRoom.name == 'E87N85') {
                     instructionSpawn = Game.spawns[i];
+                    //Default - Looks at route and writes best room to Memory.InstructionRoom.
+                    //If InstructionRoom matches in main spawn loop, run instruction first.
                     /*var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name, {
                         routeCallback(roomName, fromRoomName) {
                             if (Memory.blockedRooms.indexOf(roomName) > -1) { // avoid this room
