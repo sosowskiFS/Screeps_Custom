@@ -585,7 +585,7 @@ var creep_farMining = {
                 }
 
                 if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
-                    creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                    creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
                         reusePath: 50
                     });
                     if (creep.hits < creep.hitsMax) {
@@ -688,7 +688,7 @@ var creep_farMining = {
                                 maxRooms: 1
                             });
                         } else {*/
-                    creep.moveTo(closeFoe, {
+                    creep.travelTo(closeFoe, {
                         maxRooms: 1
                     });
                     //}
@@ -796,7 +796,7 @@ var creep_farMining = {
                             }
                         }
                     } else {
-                        creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
                             reusePath: 25
                         });
                     }
@@ -812,7 +812,7 @@ var creep_farMining = {
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);
                         if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-                            creep.moveTo(Game.flags[creep.memory.targetFlag], {
+                            creep.travelTo(Game.flags[creep.memory.targetFlag], {
                                 maxRooms: 1
                             });
                         }
@@ -821,13 +821,13 @@ var creep_farMining = {
                             filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
                         });
                         if (hurtAlly.length > 0) {
-                            creep.moveTo(hurtAlly[0]);
+                            creep.travelTo(hurtAlly[0]);
                             if (closeRangeResult != OK) {
                                 creep.rangedHeal(hurtAlly[0]);
                             }
                             creep.heal(hurtAlly[0]);
                         } else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-                            creep.moveTo(Game.flags[creep.memory.targetFlag], {
+                            creep.travelTo(Game.flags[creep.memory.targetFlag], {
                                 maxRooms: 1
                             });
                         }
