@@ -22,6 +22,7 @@ var spawn_BuildCreeps = require('spawn.BuildCreeps');
 var spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
 var spawn_BuildInstruction = require('spawn.BuildInstruction');
 var spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
+var Traveler = require('Traveler.js');
 var bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
 
@@ -39,6 +40,8 @@ const profiler = require('screeps-profiler');
 //Creep calculator : http://codepen.io/findoff/full/RPmqOd/
 //Profiler commands : https://github.com/gdborton/screeps-profiler
 //Emoji Unicode converter : https://r12a.github.io/apps/conversion/
+//Traveler API : https://github.com/bonzaiferroni/Traveler/wiki/Traveler-API
+
 
 profiler.enable();
 module.exports.loop = function() {

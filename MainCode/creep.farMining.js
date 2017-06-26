@@ -11,12 +11,14 @@ var creep_farMining = {
                 }
 
                 if (creep.room.name != creep.memory.destination) {
-                    creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+                    if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
+                        creep.travelTo(creep.room.controller);
+                    } else {
+                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
+                    }
                 } else {
                     if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(creep.room.controller, {
-                            reusePath: 25
-                        });
+                        creep.travelTo(creep.room.controller);
                     } else {
                         if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
                             creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
