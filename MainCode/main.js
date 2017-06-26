@@ -22,7 +22,7 @@ var spawn_BuildCreeps = require('spawn.BuildCreeps');
 var spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
 var spawn_BuildInstruction = require('spawn.BuildInstruction');
 var spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
-var Traveler = require('traveler.js');
+var Traveler = require('traveler');
 var bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
 
