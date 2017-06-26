@@ -13,7 +13,7 @@ var creep_farMining = {
 
                 if (creep.room.name != creep.memory.destination) {
                     if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
-                        creep.travelTo(creep.room.controller);
+                        creep.travelTo(Game.rooms[creep.memory.destination].controller);
                     } else {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
                     }
