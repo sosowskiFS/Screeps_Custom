@@ -379,7 +379,7 @@ var creep_work5 = {
                             }
                         }
                     }
-                    
+
                     if (doRepair) {
                         var thisStructure = Game.getObjectById(creep.memory.structureTarget);
                         if (thisStructure) {
@@ -611,7 +611,7 @@ var creep_work5 = {
                 } else if (Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
                     //Just in case
                     Game.flags[creep.memory.primaryFlag].remove();
-                } else if (Game.flags[creep.memory.backupFlag] && creep.memory.resourceChecks >= 28 && _.sum(creep.carry) == 0){
+                } else if (Game.flags[creep.memory.backupFlag] && creep.memory.resourceChecks >= 28 && _.sum(creep.carry) == 0) {
                     creep.suicide();
                 }
 
@@ -754,7 +754,11 @@ var creep_work5 = {
                                     creep.travelTo(labArray[i], {
                                         maxRooms: 1
                                     });
+                                    creep.memory.structureTarget = labArray[i];
+                                    creep.memory.direction = 'Withdraw';
+                                    creep.memory.mineralToMove = labArray[i].mineralType;
                                 }
+                                break;
                             }
                         }
                     } else if (creep.memory.movingOtherMineral) {
@@ -766,8 +770,14 @@ var creep_work5 = {
                             creep.travelTo(creep.room.terminal, {
                                 maxRooms: 1
                             });
+                            creep.memory.structureTarget = creep.room.terminal;
+                            creep.memory.direction = 'Transfer';
+                            creep.memory.mineralToMove = currentlyCarrying;
                         } else if (transferResult == OK) {
                             creep.memory.movingOtherMineral = false;
+                            creep.memory.structureTarget = undefined;
+                            creep.memory.direction = undefined;
+                            creep.memory.mineralToMove = undefined;
                         }
                     } else if (!thisTarget) {
                         creep.memory.structureTarget = undefined;
