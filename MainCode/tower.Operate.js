@@ -21,7 +21,7 @@ var tower_Operate = {
             if (closestHostile) {
                 Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
                 //Keep target for defenders to lock on
-                var randomTarget = creep.room.find(FIND_HOSTILE_CREEPS);
+                var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
                 if (randomTarget.length) {
                     tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)])
                 }
