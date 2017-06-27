@@ -11,18 +11,18 @@ var creep_Helper = {
                 if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
-                creep.moveTo(thisPortal)
+                creep.travelTo(thisPortal)
             } else if (creep.memory.path) {
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
+                creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
             } else {
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }
         } else {
             creep.memory.priority = 'harvester';
-            creep.moveTo(creep.room.controller);
+            creep.travelTo(creep.room.controller);
         }
     }
 };
