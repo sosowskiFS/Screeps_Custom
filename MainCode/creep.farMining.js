@@ -24,7 +24,6 @@ var creep_farMining = {
                 } else {
                     if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.controller, {
-                            stuckValue: 50,
                             ignoreRoads: true
                         });
                     } else {
