@@ -364,14 +364,20 @@ var creep_farMining = {
                             thisContainer = Game.getObjectById(creep.memory.containerTarget);
                         }
                         if (thisContainer) {
-                            creep.travelTo(thisContainer);
+                            creep.travelTo(thisContainer, {
+                                ignoreRoads: true
+                            });
                         } else if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag])
-                                /*creep.moveTo(Game.flags[creep.memory.targetFlag], {
-                                    reusePath: 50
-                                });*/
+                            creep.travelTo(Game.flags[creep.memory.targetFlag], {
+                                ignoreRoads: true
+                            });
+                            /*creep.moveTo(Game.flags[creep.memory.targetFlag], {
+                                reusePath: 50
+                            });*/
                         } else {
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
+                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
+                                ignoreRoads: true
+                            });
                             /*creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
                                 reusePath: 50
                             });*/
@@ -420,10 +426,14 @@ var creep_farMining = {
                                 if (thisContainer) {
                                     if (Object.keys(thisContainer.store).length > 1) {
                                         if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(thisContainer);
+                                            creep.travelTo(thisContainer, {
+                                                ignoreRoads: true
+                                            });
                                         }
                                     } else if (Object.keys(thisContainer.store).length && creep.withdraw(thisContainer, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
-                                        creep.travelTo(thisContainer);
+                                        creep.travelTo(thisContainer, {
+                                            ignoreRoads: true
+                                        });
                                     }
                                 }
                             } else {
@@ -454,14 +464,20 @@ var creep_farMining = {
                                             creep.memory.containerTarget = containers[0].id;
                                             if (Object.keys(containers[0].store).length > 1) {
                                                 if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
-                                                    creep.travelTo(containers[0]);
+                                                    creep.travelTo(containers[0], {
+                                                        ignoreRoads: true
+                                                    });
                                                 }
                                             } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
-                                                creep.travelTo(containers[0]);
+                                                creep.travelTo(containers[0], {
+                                                    ignoreRoads: true
+                                                });
                                             }
                                         }
                                     } else {
-                                        creep.travelTo(thisSource)
+                                        creep.travelTo(thisSource, {
+                                            ignoreRoads: true
+                                        })
                                     }
                                 }
                             }
