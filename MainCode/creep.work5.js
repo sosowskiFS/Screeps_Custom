@@ -31,17 +31,13 @@ var creep_work5 = {
 
                     if (mineTarget.energy > 0) {
                         if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(mineTarget, {
-                                reusePath: 5
-                            });
+                            creep.travelTo(mineTarget);
                         }
                     }
 
                     if (creep.carry.energy >= 48) {
                         if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(storageTarget, {
-                                reusePath: 5
-                            });
+                            creep.travelTo(storageTarget);
                         }
                     }
 
@@ -73,13 +69,9 @@ var creep_work5 = {
                 if (_.sum(creep.carry) > 0) {
                     if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                         if (Game.flags[creep.room.name + "Controller"]) {
-                            creep.moveTo(Game.flags[creep.room.name + "Controller"], {
-                                reusePath: 25
-                            });
+                            creep.travelTo(Game.flags[creep.room.name + "Controller"]);
                         } else {
-                            creep.moveTo(creep.room.controller, {
-                                reusePath: 25
-                            });
+                            creep.travelTo(creep.room.controller);
                         }
                     } else {
                         if (Game.time % 2 == 0) {
@@ -93,9 +85,7 @@ var creep_work5 = {
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
                 if (linkTarget && _.sum(creep.carry) <= creep.getActiveBodyparts(WORK)) {
                     if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(linkTarget, {
-                            reusePath: 25
-                        });
+                        creep.travelTo(linkTarget);
                     }
                 }
 
@@ -104,7 +94,7 @@ var creep_work5 = {
                     var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
                     var upgradeLab = Game.getObjectById(Memory.labList[creep.room.name][4]);
                     if (upgradeLab && upgradeLab.mineralAmount >= mineralCost && upgradeLab.energy >= energyCost) {
-                        creep.moveTo(upgradeLab);
+                        creep.travelTo(upgradeLab);
                         if (upgradeLab.boostCreep(creep) == OK) {
                             creep.memory.hasBoosted = true;
                         } else {
@@ -129,17 +119,13 @@ var creep_work5 = {
                         if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
                             //Get from container
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(storageTarget, {
-                                    reusePath: 5
-                                });
+                                creep.travelTo(storageTarget);
                             }
                         } else {
                             var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
                             if (spawnTarget) {
                                 if (!creep.pos.isNearTo(spawnTarget)) {
-                                    creep.moveTo(spawnTarget, {
-                                        reusePath: 5
-                                    });
+                                    creep.travelTo(spawnTarget);
                                 }
                             }
                         }
@@ -149,16 +135,12 @@ var creep_work5 = {
                         if (creep.room.terminal) {
                             var currentlyCarrying = _.findKey(creep.carry);
                             if (creep.transfer(creep.room.terminal, currentlyCarrying) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.terminal, {
-                                    reusePath: 5
-                                });
+                                creep.travelTo(creep.room.terminal);
                             }
                         } else if (!creep.room.terminal && creep.room.storage) {
                             var currentlyCarrying = _.findKey(creep.carry);
                             if (creep.transfer(creep.room.storage, currentlyCarrying) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.storage, {
-                                    reusePath: 5
-                                });
+                                creep.travelTo(creep.room.storage);
                             }
                         }
                     } else {
@@ -178,17 +160,13 @@ var creep_work5 = {
                                     if (newRampart) {
                                         creep.memory.structureTarget = newRampart.id;
                                         if (creep.repair(newRampart) == ERR_NOT_IN_RANGE) {
-                                            creep.moveTo(newRampart, {
-                                                reusePath: 5
-                                            });
+                                            creep.travelTo(newRampart);
                                         }
                                     }
                                 } else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
                                     //Storing in spawn/extension/tower/link
                                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
-                                        creep.moveTo(savedTarget, {
-                                            reusePath: 5
-                                        });
+                                        creep.travelTo(savedTarget);
                                     } else {
                                         //assumed OK, drop target
                                         creep.memory.structureTarget = undefined;
@@ -200,17 +178,13 @@ var creep_work5 = {
                                         var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
                                         if (upgraderLink && upgraderLink.energy < 100) {
                                             if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                creep.moveTo(upgraderLink);
+                                                creep.travelTo(upgraderLink);
                                             }
                                         } else if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
                                             if (Game.flags[creep.room.name + "Controller"]) {
-                                                creep.moveTo(Game.flags[creep.room.name + "Controller"], {
-                                                    reusePath: 20
-                                                });
+                                                creep.travelTo(Game.flags[creep.room.name + "Controller"]);
                                             } else {
-                                                creep.moveTo(savedTarget, {
-                                                    reusePath: 20
-                                                });
+                                                creep.travelTo(savedTarget);
                                             }
                                         }
                                     }
@@ -219,9 +193,7 @@ var creep_work5 = {
                                 }
                             } else {
                                 if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(savedTarget, {
-                                        reusePath: 5
-                                    });
+                                    creep.travelTo(savedTarget);
                                 } else if (creep.build(savedTarget) != OK) {
                                     creep.memory.structureTarget = undefined;
                                 }
@@ -275,7 +247,7 @@ var creep_work5 = {
                             if (targets) {
                                 creep.memory.structureTarget = targets.id;
                                 if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(targets);
+                                    creep.travelTo(targets);
                                 } else {
                                     creep.memory.structureTarget = undefined;
                                 }
@@ -293,7 +265,7 @@ var creep_work5 = {
                                 if (targets2) {
                                     creep.memory.structureTarget = targets2.id;
                                     if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                        creep.moveTo(targets2);
+                                        creep.travelTo(targets2);
                                     } else {
                                         creep.memory.structureTarget = undefined;
                                     }
@@ -307,9 +279,7 @@ var creep_work5 = {
                                         }
 
                                         if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
-                                            creep.moveTo(targets2, {
-                                                reusePath: 20
-                                            });
+                                            creep.travelTo(targets2);
                                         } else if (creep.build(targets2) == ERR_NO_BODYPART) {
                                             creep.suicide();
                                         }
@@ -320,9 +290,7 @@ var creep_work5 = {
                                             if (terminalTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
                                                 creep.memory.structureTarget = terminalTarget.id;
                                                 if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                    creep.moveTo(terminalTarget, {
-                                                        reusePath: 20
-                                                    });
+                                                    creep.travelTo(terminalTarget);
                                                 }
                                             } else {
                                                 terminalTarget = undefined;
@@ -338,7 +306,7 @@ var creep_work5 = {
                                                     if (upgraderLink && upgraderLink.energy < 200) {
                                                         creep.memory.structureTarget = upgraderLink.id;
                                                         if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                            creep.moveTo(upgraderLink);
+                                                            creep.travelTo(upgraderLink);
                                                         }
                                                     } else {
                                                         //Turn into a repair worker temporarily
@@ -350,13 +318,9 @@ var creep_work5 = {
                                                 creep.memory.structureTarget = creep.room.controller.id;
                                                 if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                                                     if (Game.flags[creep.room.name + "Controller"]) {
-                                                        creep.moveTo(Game.flags[creep.room.name + "Controller"], {
-                                                            reusePath: 20
-                                                        });
+                                                        creep.travelTo(Game.flags[creep.room.name + "Controller"]);
                                                     } else {
-                                                        creep.moveTo(creep.room.controller, {
-                                                            reusePath: 20
-                                                        });
+                                                        creep.travelTo(creep.room.controller);
                                                     }
                                                 } else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
                                                     creep.suicide();
@@ -386,8 +350,7 @@ var creep_work5 = {
                         if (storageTarget) {
                             if (storageTarget.store[RESOURCE_ENERGY] >= 200) {
                                 if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(storageTarget, {
-                                        reusePath: 25,
+                                    creep.travelTo(storageTarget, {
                                         maxRooms: 1
                                     });
                                 }
@@ -395,8 +358,7 @@ var creep_work5 = {
                                 var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
                                 if (spawnTarget) {
                                     if (!creep.pos.isNearTo(spawnTarget)) {
-                                        creep.moveTo(spawnTarget, {
-                                            reusePath: 25,
+                                        creep.travelTo(spawnTarget, {
                                             maxRooms: 1
                                         });
                                     }
@@ -413,7 +375,7 @@ var creep_work5 = {
                             creep.memory.priority = 'mule';
                             creep.memory.structureTarget = upgraderLink.id;
                             if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(upgraderLink);
+                                creep.travelTo(upgraderLink);
                             }
                         }
                     }
@@ -425,14 +387,12 @@ var creep_work5 = {
                                 creep.memory.structureTarget = undefined;
                             } else {
                                 if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE && Memory.warMode) {
-                                    creep.moveTo(thisStructure, {
-                                        reusePath: 25,
+                                    creep.travelTo(thisStructure, {
                                         maxRooms: 1
                                     });
                                 } else if (!Memory.warMode) {
                                     if (!creep.pos.isNearTo(thisStructure)) {
-                                        creep.moveTo(thisStructure, {
-                                            reusePath: 25,
+                                        creep.travelTo(thisStructure, {
                                             maxRooms: 1
                                         });
                                     }
@@ -452,8 +412,7 @@ var creep_work5 = {
                         closestDamagedStructure.sort(repairCompare);
                         creep.memory.structureTarget = closestDamagedStructure[0].id;
                         if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(closestDamagedStructure[0], {
-                                reusePath: 25,
+                            creep.travelTo(closestDamagedStructure[0], {
                                 maxRooms: 1
                             });
                         }
@@ -465,7 +424,7 @@ var creep_work5 = {
                     var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
                     var repairLab = Game.getObjectById(Memory.labList[creep.room.name][5]);
                     if (repairLab && repairLab.mineralAmount >= mineralCost && repairLab.energy >= energyCost) {
-                        creep.moveTo(repairLab);
+                        creep.travelTo(repairLab);
                         if (repairLab.boostCreep(creep) == OK) {
                             creep.memory.hasBoosted = true;
                         } else {
@@ -485,15 +444,13 @@ var creep_work5 = {
                 }
 
                 if (Game.flags[creep.room.name + "Supply"] && (creep.pos.x != Game.flags[creep.room.name + "Supply"].pos.x || creep.pos.y != Game.flags[creep.room.name + "Supply"].pos.y)) {
-                    creep.moveTo(Game.flags[creep.room.name + "Supply"]);
+                    creep.travelTo(Game.flags[creep.room.name + "Supply"]);
                 } else if (_.sum(creep.carry) == 0) {
                     //Get from storage
                     var storageTarget = creep.room.storage;
                     if (storageTarget) {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(storageTarget, {
-                                reusePath: 2
-                            });
+                            creep.travelTo(storageTarget);
                         }
                     }
                 } else {
@@ -501,7 +458,7 @@ var creep_work5 = {
                         var target = Game.getObjectById(Memory.towerNeedEnergy[creep.room.name][0]);
                         if (target) {
                             if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(target);
+                                creep.travelTo(target);
                             }
                         }
                     }
@@ -519,9 +476,7 @@ var creep_work5 = {
                     var storageTarget = creep.room.storage;
                     if (storageTarget) {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(storageTarget, {
-                                reusePath: 2
-                            });
+                            creep.travelTo(storageTarget);
                         }
                     }
                 } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
@@ -529,7 +484,7 @@ var creep_work5 = {
                     var getNewStructure = false;
                     if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
                         if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(savedTarget);
+                            creep.travelTo(savedTarget);
                         } else {
                             getNewStructure = true;
                             creep.memory.structureTarget = undefined;
@@ -558,7 +513,7 @@ var creep_work5 = {
 
                         if (target) {
                             if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(target);
+                                creep.travelTo(target);
                                 creep.memory.structureTarget = target.id;
                             }
                         }
@@ -568,15 +523,13 @@ var creep_work5 = {
                     var storageTarget = creep.room.storage;
                     if (storageTarget) {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(storageTarget, {
-                                reusePath: 2
-                            });
+                            creep.travelTo(storageTarget);
                         }
                     }
                 } else {
                     var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
                     if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
-                        creep.moveTo(homeSpawn);
+                        creep.travelTo(homeSpawn);
                     }
                 }
                 break;
@@ -589,20 +542,16 @@ var creep_work5 = {
                     //Creep will immediately harvest and store mined materials
                     var storageTarget = creep.room.terminal;
                     if (!creep.pos.isNearTo(thisMineral)) {
-                        creep.moveTo(thisMineral, {
-                            reusePath: 25
-                        });
+                        creep.travelTo(thisMineral);
                     } else if (storageTarget && Game.time % 6 == 0) {
                         if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(thisMineral, {
-                                reusePath: 25
-                            });
+                            creep.travelTo(thisMineral);
                         }
                     }
                     if (_.sum(creep.carry) > 0) {
                         if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
                             //This should never actually fire, if ideal.
-                            creep.moveTo(storageTarget);
+                            creep.travelTo(storageTarget);
                         }
                     }
                 }
@@ -614,23 +563,17 @@ var creep_work5 = {
                     //creep.suicide();
                 } else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
                     if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources, {
-                            reusePath: 25
-                        });
+                        creep.travelTo(sources);
                     }
                 }
                 if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) > 100) {
                     var storageTarget = creep.room.storage;
                     if (Object.keys(creep.carry).length > 1) {
                         if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(storageTarget, {
-                                reusePath: 25
-                            });
+                            creep.travelTo(storageTarget);
                         }
                     } else if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(storageTarget, {
-                            reusePath: 25
-                        });
+                        creep.travelTo(storageTarget);
                     }
                 }
                 break;
@@ -780,8 +723,7 @@ var creep_work5 = {
                             foundWork = true;
                             var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove);
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(thisTarget, {
-                                    reusePath: 25,
+                                creep.travelTo(thisTarget, {
                                     maxRooms: 1
                                 });
                             } else if (withdrawResult != ERR_NOT_IN_RANGE) {
@@ -793,8 +735,7 @@ var creep_work5 = {
                             foundWork = true;
                             var transferResult = creep.transfer(thisTarget, creep.memory.mineralToMove)
                             if (transferResult == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(thisTarget, {
-                                    reusePath: 25,
+                                creep.travelTo(thisTarget, {
                                     maxRooms: 1
                                 });
                             } else if (transferResult != ERR_NOT_IN_RANGE) {
@@ -810,8 +751,7 @@ var creep_work5 = {
                                 creep.memory.movingOtherMineral = true;
                                 var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
                                 if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                    creep.moveTo(labArray[i], {
-                                        reusePath: 25,
+                                    creep.travelTo(labArray[i], {
                                         maxRooms: 1
                                     });
                                 }
@@ -823,8 +763,7 @@ var creep_work5 = {
                         var currentlyCarrying = _.findKey(creep.carry);
                         var transferResult = creep.transfer(creep.room.terminal, currentlyCarrying)
                         if (transferResult == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(creep.room.terminal, {
-                                reusePath: 25,
+                            creep.travelTo(creep.room.terminal, {
                                 maxRooms: 1
                             });
                         } else if (transferResult == OK) {
@@ -854,8 +793,7 @@ var creep_work5 = {
                                                 creep.memory.mineralToMove = mineralArray[i];
                                                 var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i])
                                                 if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                                    creep.moveTo(creep.room.terminal, {
-                                                        reusePath: 25,
+                                                    creep.travelTo(creep.room.terminal, {
                                                         maxRooms: 1
                                                     });
                                                 }
@@ -868,8 +806,7 @@ var creep_work5 = {
                                         creep.memory.mineralToMove = mineralArray[i];
                                         var transferResult = creep.transfer(labArray[i], mineralArray[i])
                                         if (transferResult == ERR_NOT_IN_RANGE) {
-                                            creep.moveTo(labArray[i], {
-                                                reusePath: 25,
+                                            creep.travelTo(labArray[i], {
                                                 maxRooms: 1
                                             });
                                         }
@@ -886,8 +823,7 @@ var creep_work5 = {
                                             creep.memory.mineralToMove = mineralArray[i];
                                             var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
                                             if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                                creep.moveTo(labArray[i], {
-                                                    reusePath: 25,
+                                                creep.travelTo(labArray[i], {
                                                     maxRooms: 1
                                                 });
                                             }
@@ -915,8 +851,7 @@ var creep_work5 = {
                                                 creep.memory.direction = 'Transfer';
                                                 creep.memory.mineralToMove = RESOURCE_GHODIUM;
                                                 if (creep.transfer(thisNuker, mineralArray[i]) == ERR_NOT_IN_RANGE) {
-                                                    creep.moveTo(thisNuker, {
-                                                        reusePath: 25,
+                                                    creep.travelTo(thisNuker, {
                                                         maxRooms: 1
                                                     });
                                                 }
@@ -929,8 +864,7 @@ var creep_work5 = {
                                         creep.memory.direction = 'Transfer';
                                         creep.memory.mineralToMove = mineralArray[i];
                                         if (creep.transfer(creep.room.terminal, mineralArray[i]) == ERR_NOT_IN_RANGE) {
-                                            creep.moveTo(creep.room.terminal, {
-                                                reusePath: 25,
+                                            creep.travelTo(creep.room.terminal, {
                                                 maxRooms: 1
                                             });
                                         }
@@ -951,8 +885,7 @@ var creep_work5 = {
                                             creep.memory.mineralToMove = mineralArray[i];
                                             var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i]);
                                             if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                                creep.moveTo(creep.room.terminal, {
-                                                    reusePath: 25,
+                                                creep.travelTo(creep.room.terminal, {
                                                     maxRooms: 1
                                                 });
                                             }
@@ -966,8 +899,7 @@ var creep_work5 = {
                                             creep.memory.mineralToMove = mineralArray[i];
                                             var transferResult = creep.transfer(labArray[i], mineralArray[i]);
                                             if (transferResult == ERR_NOT_IN_RANGE) {
-                                                creep.moveTo(labArray[i], {
-                                                    reusePath: 25,
+                                                creep.travelTo(labArray[i], {
                                                     maxRooms: 1
                                                 });
                                             }
@@ -986,9 +918,9 @@ var creep_work5 = {
                         if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
                             var withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.storage);
+                                creep.travelTo(creep.room.storage);
                             } else if (withdrawResult != ERR_NOT_IN_RANGE) {
-                                creep.moveTo(creep.room.terminal);
+                                creep.travelTo(creep.room.terminal);
                                 creep.memory.movingOtherMineral = true;
                             }
                         }
@@ -1027,7 +959,7 @@ var creep_work5 = {
                 if (creep.memory.fromSpawn) {
                     var thisSpawn = Game.getObjectById(creep.memory.fromSpawn);
                     if (thisSpawn) {
-                        creep.moveTo(spawnTarget);
+                        creep.travelTo(spawnTarget);
                     }
                 } else {
                     var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -1036,7 +968,7 @@ var creep_work5 = {
                         }
                     });
                     if (spawnTarget) {
-                        creep.moveTo(spawnTarget);
+                        creep.travelTo(spawnTarget);
                     }
                 }
             }
