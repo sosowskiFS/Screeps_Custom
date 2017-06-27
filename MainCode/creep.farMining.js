@@ -13,14 +13,19 @@ var creep_farMining = {
 
                 if (creep.room.name != creep.memory.destination) {
                     if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
-                        creep.travelTo(Game.rooms[creep.memory.destination].controller);
+                        creep.travelTo(Game.rooms[creep.memory.destination].controller, {
+                            ignoreRoads: true
+                        });
                     } else {
-                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
+                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
+                            ignoreRoads: true
+                        })
                     }
                 } else {
                     if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.controller, {
                             stuckValue: 50
+                            ignoreRoads: true
                         });
                     } else {
                         if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
