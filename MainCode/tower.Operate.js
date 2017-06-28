@@ -20,11 +20,12 @@ var tower_Operate = {
             }
             if (closestHostile) {
                 Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
+                tower.attack(closestHostile)
                 //Keep target for defenders to lock on
-                var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
+                /*var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
                 if (randomTarget.length) {
                     tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)])
-                }
+                }*/
             } else if (tower.energy > (tower.energyCapacity * 0.5)) {
                 //Save 50% of the tower's energy to use on repelling attackers
                 var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
