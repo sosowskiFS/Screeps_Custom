@@ -249,7 +249,9 @@ var creep_work = {
                 //If target is destroyed, this will prevent creep from locking up
                 if (savedTarget) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
-                        creep.travelTo(savedTarget);
+                        creep.travelTo(savedTarget, {
+                            ignoreRoads: true
+                        });
                     } else {
                         getNewStructure = true;
                         creep.memory.structureTarget = undefined;
@@ -275,7 +277,9 @@ var creep_work = {
 
                     if (target) {
                         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(target);
+                            creep.travelTo(target, {
+                                ignoreRoads: true
+                            });
                             creep.memory.structureTarget = target.id;
                         }
                     }
@@ -285,13 +289,17 @@ var creep_work = {
                 var storageTarget = creep.room.storage;
                 if (storageTarget) {
                     if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(storageTarget);
+                        creep.travelTo(storageTarget, {
+                            ignoreRoads: true
+                        });
                     }
                 }
             } else {
                 var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
                 if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
-                    creep.travelTo(homeSpawn);
+                    creep.travelTo(homeSpawn, {
+                        ignoreRoads: true
+                    });
                 }
             }
 
