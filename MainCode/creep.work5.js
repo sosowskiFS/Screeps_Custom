@@ -734,7 +734,8 @@ var creep_work5 = {
                             var withdrawResult = creep.withdraw(thisTarget, creep.memory.mineralToMove);
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(thisTarget, {
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreRoads: true
                                 });
                             } else if (withdrawResult != ERR_NOT_IN_RANGE) {
                                 creep.memory.structureTarget = undefined;
@@ -746,7 +747,8 @@ var creep_work5 = {
                             var transferResult = creep.transfer(thisTarget, creep.memory.mineralToMove)
                             if (transferResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(thisTarget, {
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreRoads: true
                                 });
                             } else if (transferResult != ERR_NOT_IN_RANGE) {
                                 creep.memory.structureTarget = undefined;
@@ -762,7 +764,8 @@ var creep_work5 = {
                                 var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
                                 if (withdrawResult == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(labArray[i], {
-                                        maxRooms: 1
+                                        maxRooms: 1,
+                                        ignoreRoads: true
                                     });
                                     creep.memory.structureTarget = labArray[i];
                                     creep.memory.direction = 'Withdraw';
@@ -778,7 +781,8 @@ var creep_work5 = {
                         var transferResult = creep.transfer(creep.room.terminal, currentlyCarrying)
                         if (transferResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(creep.room.terminal, {
-                                maxRooms: 1
+                                maxRooms: 1,
+                                ignoreRoads: true
                             });
                             creep.memory.structureTarget = creep.room.terminal;
                             creep.memory.direction = 'Transfer';
@@ -814,7 +818,8 @@ var creep_work5 = {
                                                 var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i])
                                                 if (withdrawResult == ERR_NOT_IN_RANGE) {
                                                     creep.travelTo(creep.room.terminal, {
-                                                        maxRooms: 1
+                                                        maxRooms: 1,
+                                                        ignoreRoads: true
                                                     });
                                                 }
                                                 foundWork = true;
@@ -827,7 +832,8 @@ var creep_work5 = {
                                         var transferResult = creep.transfer(labArray[i], mineralArray[i])
                                         if (transferResult == ERR_NOT_IN_RANGE) {
                                             creep.travelTo(labArray[i], {
-                                                maxRooms: 1
+                                                maxRooms: 1,
+                                                ignoreRoads: true
                                             });
                                         }
                                         foundWork = true;
@@ -844,7 +850,8 @@ var creep_work5 = {
                                             var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
                                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                                 creep.travelTo(labArray[i], {
-                                                    maxRooms: 1
+                                                    maxRooms: 1,
+                                                    ignoreRoads: true
                                                 });
                                             }
                                             foundWork = true;
@@ -872,7 +879,8 @@ var creep_work5 = {
                                                 creep.memory.mineralToMove = RESOURCE_GHODIUM;
                                                 if (creep.transfer(thisNuker, mineralArray[i]) == ERR_NOT_IN_RANGE) {
                                                     creep.travelTo(thisNuker, {
-                                                        maxRooms: 1
+                                                        maxRooms: 1,
+                                                        ignoreRoads: true
                                                     });
                                                 }
                                                 foundWork = true;
@@ -885,7 +893,8 @@ var creep_work5 = {
                                         creep.memory.mineralToMove = mineralArray[i];
                                         if (creep.transfer(creep.room.terminal, mineralArray[i]) == ERR_NOT_IN_RANGE) {
                                             creep.travelTo(creep.room.terminal, {
-                                                maxRooms: 1
+                                                maxRooms: 1,
+                                                ignoreRoads: true
                                             });
                                         }
                                         foundWork = true;
@@ -906,7 +915,8 @@ var creep_work5 = {
                                             var withdrawResult = creep.withdraw(creep.room.terminal, mineralArray[i]);
                                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                                 creep.travelTo(creep.room.terminal, {
-                                                    maxRooms: 1
+                                                    maxRooms: 1,
+                                                    ignoreRoads: true
                                                 });
                                             }
                                             foundWork = true;
@@ -920,7 +930,8 @@ var creep_work5 = {
                                             var transferResult = creep.transfer(labArray[i], mineralArray[i]);
                                             if (transferResult == ERR_NOT_IN_RANGE) {
                                                 creep.travelTo(labArray[i], {
-                                                    maxRooms: 1
+                                                    maxRooms: 1,
+                                                    ignoreRoads: true
                                                 });
                                             }
                                             foundWork = true;
@@ -938,9 +949,15 @@ var creep_work5 = {
                         if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
                             var withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(creep.room.storage);
+                                creep.travelTo(creep.room.storage, {
+                                    maxRooms: 1,
+                                    ignoreRoads: true
+                                });
                             } else if (withdrawResult != ERR_NOT_IN_RANGE) {
-                                creep.travelTo(creep.room.terminal);
+                                creep.travelTo(creep.room.terminal, {
+                                    maxRooms: 1,
+                                    ignoreRoads: true
+                                });
                                 creep.memory.movingOtherMineral = true;
                             }
                         }
