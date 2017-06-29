@@ -217,7 +217,9 @@ var spawn_BuildFarCreeps = {
 						farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL];
 					}
 				} else {
-					if (thisRoom.energyCapacityAvailable >= 1270) {
+					if (thisRoom.energyCapacityAvailable >= 1790) {
+						farGuardConfig = [TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, HEAL];
+					} else if (thisRoom.energyCapacityAvailable >= 1270) {
 						farGuardConfig = [TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
 					}
 				}
@@ -633,7 +635,8 @@ var spawn_BuildFarCreeps = {
 						});
 						Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
 					}
-				} /*else if (prioritizedRole == 'SKAttackGuard') {
+				}
+				/*else if (prioritizedRole == 'SKAttackGuard') {
 					if (spawn.canCreateCreep(SKGuardAttackerConfig) == OK) {
 						var warnMulti = 5;
 						if (Memory.warMode) {

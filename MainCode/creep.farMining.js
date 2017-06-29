@@ -614,14 +614,13 @@ var creep_farMining = {
                         creep.heal(creep);
                     }
                 } else if (Foe.length) {
-                    var closeRangeresult = "";
-                    var attackResult = creep.attack(closeFoe);
-                    closeRangeResult = creep.rangedAttack(closeFoe);
-                    creep.rangedAttack(closeFoe);
-                    if (Foe.length) {
-                        attackResult = creep.attack(Foe[0]);
-                        creep.rangedAttack(Foe[0]);
-                    }
+                    var closeRangeResult = "";
+                    var attackResult = creep.attack(closeFoe);   
+                    if (Foe.length >= 2){
+                        creep.rangedMassAttack();
+                    } else {
+                       closeRangeResult = creep.rangedAttack(closeFoe);
+                    }            
                     if (attackResult != OK) {
                         if (creep.hits < creep.hitsMax) {
                             creep.heal(creep);
