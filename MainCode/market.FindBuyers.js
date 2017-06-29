@@ -9,7 +9,7 @@ var market_buyers = {
         var ForNuker = true;
         //Always requested minerals for boosts
         if (thisRoom.controller.level >= 7) {
-            neededMinerals.push(RESOURCE_UTRIUM_ACID); //Attack boost, defenders
+            neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID); //Attack boost, defenders
             neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID); //Upgrade boost
             neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ACID); //Repair boost
             if (thisRoom.controller.level == 7) {
@@ -135,7 +135,7 @@ var market_buyers = {
                 Memory.mineralNeed[neededMinerals[i]] = [];
             }
             var mineralCap = 10000;
-            if (neededMinerals[i] == RESOURCE_GHODIUM && ForNuker) {
+            if ((neededMinerals[i] == RESOURCE_GHODIUM && ForNuker) || neededMinerals[i] == RESOURCE_CATALYZED_UTRIUM_ACID || neededMinerals[i] == RESOURCE_CATALYZED_GHODIUM_ACID || neededMinerals[i] == RESOURCE_CATALYZED_LEMERGIUM_ACID) {
                 mineralCap = 5000;
             }
             if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < mineralCap) {
