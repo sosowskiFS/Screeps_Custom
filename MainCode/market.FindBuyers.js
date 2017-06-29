@@ -229,11 +229,11 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
         var targetTerminal = Game.rooms[targetRoom].terminal
         var amountAvailable = thisTerminal.store[thisMineral];
         var targetStoreCap = 15000;
-        if (nukerLimit) {
+        if (nukerLimit || thisMineral == RESOURCE_CATALYZED_UTRIUM_ACID || thisMineral == RESOURCE_CATALYZED_GHODIUM_ACID || thisMineral == RESOURCE_CATALYZED_LEMERGIUM_ACID) {
             targetStoreCap = 5000;
         }
         if (saveFlag) {
-            if (thisMineral == RESOURCE_GHODIUM) {
+            if (thisMineral == RESOURCE_GHODIUM || thisMineral == RESOURCE_CATALYZED_UTRIUM_ACID || thisMineral == RESOURCE_CATALYZED_GHODIUM_ACID || thisMineral == RESOURCE_CATALYZED_LEMERGIUM_ACID) {
                 amountAvailable = thisTerminal.store[thisMineral] - 5000;
             } else {
                 amountAvailable = thisTerminal.store[thisMineral] - 20000;
