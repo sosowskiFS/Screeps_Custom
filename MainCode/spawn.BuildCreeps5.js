@@ -189,7 +189,7 @@ var spawn_BuildCreeps5 = {
                 min1 = RESOURCE_ZYNTHIUM_ALKALIDE;
                 min2 = RESOURCE_CATALYST;
                 min3 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
-                primaryFlag = thisRoom.name + "XZH2OProducer";
+                primaryFlag = thisRoom.name + "XZHO2Producer";
                 backupFlag = thisRoom.name + "XUH2OProducer";
             }
 
