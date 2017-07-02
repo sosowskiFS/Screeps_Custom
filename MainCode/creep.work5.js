@@ -524,6 +524,15 @@ var creep_work5 = {
                             }
                         }
                     }
+                } else if (creep.room.controller.level != 8 && Memory.linkList[creep.room.name].length > 1) {
+                    var upLink = Game.getObjectById(Memory.linkList[creep.room.name][1])
+                    if (upLink) {
+                        if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(upLink, {
+                                ignoreRoads: true
+                            });
+                        }
+                    }
                 } else if (_.sum(creep.carry) < creep.carryCapacity) {
                     //Get from storage
                     var storageTarget = creep.room.storage;
