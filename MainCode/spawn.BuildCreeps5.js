@@ -46,6 +46,8 @@ var spawn_BuildCreeps5 = {
         var primaryFlag = '';
         var backupFlag = '';
         if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
+            //Need to produce : 
+            //CATALYZED_LEMERGIUM_ALKALIDE (Need more L)
             if (Memory.labList[thisRoom.name].length >= 6 && Game.flags[thisRoom.name + "WarBoosts"]) {
                 min1 = RESOURCE_CATALYZED_UTRIUM_ACID;
                 min2 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
@@ -191,6 +193,30 @@ var spawn_BuildCreeps5 = {
                 min3 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
                 primaryFlag = thisRoom.name + "XZHO2Producer";
                 backupFlag = thisRoom.name + "XUH2OProducer";
+            } else if (Game.flags[thisRoom.name + "KOProducer"]) {
+                min1 = RESOURCE_OXYGEN;
+                min2 = RESOURCE_KEANIUM;
+                min3 = RESOURCE_KEANIUM_OXIDE;
+                primaryFlag = thisRoom.name + "KOProducer";
+                backupFlag = thisRoom.name + "KHO2Producer";
+            } else if (Game.flags[thisRoom.name + "KHO2Producer"]) {
+                min1 = RESOURCE_KEANIUM_OXIDE;
+                min2 = RESOURCE_HYDROXIDE;
+                min3 = RESOURCE_KEANIUM_ALKALIDE;
+                primaryFlag = thisRoom.name + "KHO2Producer";
+                backupFlag = thisRoom.name + "XKHO2Producer";
+            } else if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
+                min1 = RESOURCE_KEANIUM_ALKALIDE;
+                min2 = RESOURCE_CATALYST;
+                min3 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+                primaryFlag = thisRoom.name + "XKHO2Producer";
+                backupFlag = thisRoom.name + "XGHO2Producer";
+            } else if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
+                min1 = RESOURCE_GHODIUM_ALKALIDE;
+                min2 = RESOURCE_CATALYST;
+                min3 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
+                primaryFlag = thisRoom.name + "XGHO2Producer";
+                backupFlag = thisRoom.name + "KOProducer";
             }
 
             var min1Count = min1 in thisRoom.terminal.store;

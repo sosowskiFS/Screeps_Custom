@@ -120,6 +120,24 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_GHODIUM_ACID);
             neededMinerals.push(RESOURCE_CATALYST);
         }
+        if (Game.flags[thisRoom.name + "KOProducer"]) {
+            neededMinerals.push(RESOURCE_OXYGEN);
+            neededMinerals.push(RESOURCE_KEANIUM);
+        }
+        if (Game.flags[thisRoom.name + "KHO2Producer"]) {
+            neededMinerals.push(RESOURCE_KEANIUM_OXIDE);
+            neededMinerals.push(RESOURCE_HYDROXIDE);
+            HydroxidePriority = 2;
+        }
+        if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
+            neededMinerals.push(RESOURCE_KEANIUM_ALKALIDE);
+            neededMinerals.push(RESOURCE_CATALYST);
+        }
+        if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
+            neededMinerals.push(RESOURCE_GHODIUM_ALKALIDE);
+            neededMinerals.push(RESOURCE_CATALYST);
+        }
+
         //Flag room to transfer War Boosts
         if (Game.flags[thisRoom.name + "WarBoosts"]) {
             neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID);
