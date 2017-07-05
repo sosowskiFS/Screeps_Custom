@@ -1,13 +1,5 @@
 var spawn_BuildCreeps = {
 	run: function(spawn, bestWorker, thisRoom, RoomCreeps) {
-
-		if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
-			//Clear creep from que array
-			var queSpawnIndex = Memory.creepInQue.indexOf(spawn.name);
-			Memory.creepInQue.splice(queSpawnIndex - 3, 4);
-		}
-
-
 		//var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
 		var harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
