@@ -2,12 +2,6 @@ var spawn_BuildCreeps5 = {
     run: function(spawn, thisRoom, RoomCreeps) {
         //var strStorage = Memory.storageList[thisRoom.name];
         var roomStorage = thisRoom.storage
-
-        if (Memory.creepInQue.indexOf(spawn.name) >= 0) {
-            //Clear creep from que array
-            var queSpawnIndex = Memory.creepInQue.indexOf(spawn.name);
-            Memory.creepInQue.splice(queSpawnIndex - 3, 4);
-        }
         //var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
         var miners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source

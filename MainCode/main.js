@@ -579,6 +579,11 @@ module.exports.loop = function() {
             }
 
             if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
+                if (Memory.creepInQue.indexOf(Game.spawns[i].name) >= 0) {
+                    //Clear creep from que array
+                    var queSpawnIndex = Memory.creepInQue.indexOf(Game.spawns[i].name);
+                    Memory.creepInQue.splice(queSpawnIndex - 3, 4);
+                }
 
                 if (Game.flags["ClaimThis"] && thisRoom.name == 'E87N85') {
                     if (Game.flags["UseDefinedRoute"]) {
