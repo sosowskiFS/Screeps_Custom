@@ -447,10 +447,15 @@ var creep_work5 = {
                     creep.travelTo(Game.flags[creep.room.name + "Supply"]);
                 } else if (_.sum(creep.carry) == 0) {
                     //Get from storage
-                    var storageTarget = creep.room.storage;
-                    if (storageTarget) {
-                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget);
+                    var sources = creep.pos.lookFor(LOOK_ENERGY);
+                    if (sources.length) {
+                        creep.pickup(sources[0]);
+                    } else {
+                        var storageTarget = creep.room.storage;
+                        if (storageTarget) {
+                            if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(storageTarget);
+                            }
                         }
                     }
                 } else {
@@ -996,7 +1001,7 @@ var creep_work5 = {
                 break;
         }
 
-        if (Memory.roomsUnderAttack.indexOf(creep.room.name) > -1 && creep.memory.priority != 'repair' && creep.memory.priority != 'distributor') {
+        if (Memory.roomsUnderAttack.indexOf(creep.room.name) > -1 && creep.memory.priority != 'repair' && creep.memory.priority != 'distributor' && creep.memory.priority != 'supplier') {
             var Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 7, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
