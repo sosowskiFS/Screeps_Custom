@@ -675,12 +675,14 @@ module.exports.loop = function() {
                 }
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
-                    //Check for hostiles in this room
+                    var RampartDirection = ""
+                        //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
                     if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
                         Memory.roomsUnderAttack.push(towers[y].room.name);
+                        RampartDirection = "Closed";
                         if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
                             Memory.roomsPrepSalvager.push(towers[y].room.name);
                         } else if (Memory.RoomsAt5.indexOf(towers[y].room.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
@@ -694,6 +696,7 @@ module.exports.loop = function() {
                         var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
                         if (UnderAttackPos >= 0) {
                             Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+                            RampartDirection = "Open"
                         }
                         if (salvagerPos >= 0) {
                             Memory.roomsPrepSalvager.splice(salvagerPos, 1);
@@ -714,6 +717,30 @@ module.exports.loop = function() {
                         Memory.attackDuration = 0;
                         if (Game.flags[towers[y].room.name + "eFarGuard"]) {
                             Game.flags[towers[y].room.name + "eFarGuard"].remove();
+                        }
+                    }
+
+                    if (RampartDirection == "Closed") {
+                        var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
+                            filter: {
+                                structureType: STRUCTURE_RAMPART
+                            }
+                        });
+                        for (var thisRampart in roomRamparts) {
+                            if (thisRampart.isPublic) {
+                                thisRampart.setPublic(false)
+                            }
+                        }
+                    } else if (RampartDirection == "Open") {
+                        var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
+                            filter: {
+                                structureType: STRUCTURE_RAMPART
+                            }
+                        });
+                        for (var thisRampart in roomRamparts) {
+                            if (!thisRampart.isPublic) {
+                                thisRampart.setPublic(true)
+                            }
                         }
                     }
                     alreadySearched.push(towers[y].room.name);
