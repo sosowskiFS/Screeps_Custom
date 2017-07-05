@@ -274,18 +274,27 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
                 }
             } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < targetStoreCap) {
                 var neededAmount = targetStoreCap - targetTerminal.store[thisMineral]
-                if (amountAvailable < neededAmount) {
-                    neededAmount = amountAvailable
-                }
-                if (neededAmount > 100) {
-                    if (thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
-                        var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
-                        if (thisRoomIndex != -1) {
-                            Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
+                if (neededAmount < 100) {
+                    var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                    if (thisRoomIndex != -1) {
+                        Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
+                    }
+                    return false;
+                } else {
+                    if (amountAvailable < neededAmount) {
+                        neededAmount = amountAvailable
+                    }
+                    if (neededAmount >= 100) {
+                        if (thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
+                            var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                            if (thisRoomIndex != -1) {
+                                Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
+                            }
+                            return true;
                         }
-                        return true;
                     }
                 }
+
             } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] >= targetStoreCap) {
                 var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
                 if (thisRoomIndex != -1) {
