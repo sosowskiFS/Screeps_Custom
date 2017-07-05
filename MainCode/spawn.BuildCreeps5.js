@@ -360,14 +360,14 @@ var spawn_BuildCreeps5 = {
                         }
                     }
                     if (!blockedRole.includes('salvager')) { //Produce a salvager unit to pick up the dropped resources
+                        Memory.isSpawning = true;
                         if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
                             spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
                                 priority: 'salvager',
                                 deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
                                 storageTarget: thisRoom.storage.id
                             });
-                            Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
-                            Memory.isSpawning = true;
+                            Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);                          
                         }
                     }
 
@@ -538,6 +538,7 @@ var spawn_BuildCreeps5 = {
 
             if (prioritizedRole != '') {
                 if (prioritizedRole == 'miner') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(minerConfig) == OK) {
                         spawn.createCreep(minerConfig, undefined, {
                             priority: prioritizedRole,
@@ -548,9 +549,9 @@ var spawn_BuildCreeps5 = {
                             fromSpawn: spawn.id
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
                     }
                 } else if (prioritizedRole == 'mule') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(muleConfig) == OK) {
                         spawn.createCreep(muleConfig, undefined, {
                             priority: prioritizedRole,
@@ -560,10 +561,10 @@ var spawn_BuildCreeps5 = {
                             deathWarn: _.size(muleConfig) * 4,
                             fromSpawn: spawn.id
                         });
-                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);                       
                     }
                 } else if (prioritizedRole == 'upgrader') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(upgraderConfig) == OK) {
                         spawn.createCreep(upgraderConfig, undefined, {
                             priority: prioritizedRole,
@@ -572,10 +573,10 @@ var spawn_BuildCreeps5 = {
                             deathWarn: _.size(upgraderConfig) * 4,
                             fromSpawn: spawn.id
                         });
-                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);                        
                     }
                 } else if (prioritizedRole == 'repair') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(repairConfig) == OK) {
                         spawn.createCreep(repairConfig, undefined, {
                             priority: prioritizedRole,
@@ -584,9 +585,10 @@ var spawn_BuildCreeps5 = {
                             fromSpawn: spawn.id
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
+                        
                     }
                 } else if (prioritizedRole == 'supplier') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(supplierConfig) == OK) {
                         spawn.createCreep(supplierConfig, undefined, {
                             priority: prioritizedRole,
@@ -594,9 +596,10 @@ var spawn_BuildCreeps5 = {
                             fromSpawn: spawn.id
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
+                        
                     }
                 } else if (prioritizedRole == 'distributor') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(distributorConfig) == OK) {
                         spawn.createCreep(distributorConfig, undefined, {
                             priority: prioritizedRole,
@@ -604,9 +607,10 @@ var spawn_BuildCreeps5 = {
                             fromSpawn: spawn.id
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
+                        
                     }
                 } else if (prioritizedRole == 'mineralMiner') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(mineralMinerConfig) == OK) {
                         spawn.createCreep(mineralMinerConfig, undefined, {
                             priority: prioritizedRole,
@@ -616,9 +620,10 @@ var spawn_BuildCreeps5 = {
                             fromSpawn: spawn.id
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
+                        
                     }
                 } else if (prioritizedRole == 'labWorker') {
+                    Memory.isSpawning = true;
                     if (spawn.canCreateCreep(labWorkerConfig) == OK) {
                         if (Memory.labList[thisRoom.name].length >= 9) {
                             spawn.createCreep(labWorkerConfig, undefined, {
@@ -696,8 +701,7 @@ var spawn_BuildCreeps5 = {
                                 fromSpawn: spawn.id
                             });
                         }
-                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-                        Memory.isSpawning = true;
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);                     
                     }
                 }
             }
@@ -714,6 +718,7 @@ var spawn_BuildCreeps5 = {
             }
             if (!blockedRole.includes('mule')) {
                 //Spawn a crappy mule
+                Memory.isSpawning = true;
                 if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
                     spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
                         priority: 'mule',
@@ -723,8 +728,7 @@ var spawn_BuildCreeps5 = {
                         deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
                         fromSpawn: spawn.id
                     });
-                    Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
-                    Memory.isSpawning = true;
+                    Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);                   
                 }
             }
         }
