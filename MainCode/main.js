@@ -726,9 +726,9 @@ module.exports.loop = function() {
                                 structureType: STRUCTURE_RAMPART
                             }
                         });
-                        for (var thisRampart in roomRamparts) {
-                            if (thisRampart.isPublic) {
-                                thisRampart.setPublic(false)
+                        for (var n = 0; n < roomRamparts.length; n++) {
+                            if (roomRamparts[n].isPublic) {
+                                roomRamparts[n].setPublic(false);
                             }
                         }
                     } else if (RampartDirection == "Open") {
@@ -737,9 +737,9 @@ module.exports.loop = function() {
                                 structureType: STRUCTURE_RAMPART
                             }
                         });
-                        for (var thisRampart in roomRamparts) {
-                            if (!thisRampart.isPublic) {
-                                thisRampart.setPublic(true)
+                        for (var n = 0; n < roomRamparts.length; n++) {
+                            if (!roomRamparts[n].isPublic) {
+                                roomRamparts[n].setPublic(true);
                             }
                         }
                     }
