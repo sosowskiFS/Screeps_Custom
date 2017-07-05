@@ -720,6 +720,13 @@ module.exports.loop = function() {
                         }
                     }
 
+                    if (Game.time % 500 == 0) {
+                        var nukes = towers[y].room.find(FIND_NUKES);
+                        if (nukes.length) {
+                            RampartDirection = "Closed";
+                        }
+                    }
+
                     if (RampartDirection == "Closed") {
                         var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
                             filter: {
@@ -732,14 +739,17 @@ module.exports.loop = function() {
                             }
                         }
                     } else if (RampartDirection == "Open") {
-                        var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
-                            filter: {
-                                structureType: STRUCTURE_RAMPART
-                            }
-                        });
-                        for (var n = 0; n < roomRamparts.length; n++) {
-                            if (!roomRamparts[n].isPublic) {
-                                roomRamparts[n].setPublic(true);
+                        var nukes = towers[y].room.find(FIND_NUKES);
+                        if (!nukes.length) {
+                            var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
+                                filter: {
+                                    structureType: STRUCTURE_RAMPART
+                                }
+                            });
+                            for (var n = 0; n < roomRamparts.length; n++) {
+                                if (!roomRamparts[n].isPublic) {
+                                    roomRamparts[n].setPublic(true);
+                                }
                             }
                         }
                     }
