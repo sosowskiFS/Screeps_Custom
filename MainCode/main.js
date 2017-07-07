@@ -605,7 +605,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "Assault"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags["Assault"].pos.roomName, '', Game.spawns[i].room.name);
+                    spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags[thisRoom.name + "Assault"].pos.roomName, '', Game.spawns[i].room.name);
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
