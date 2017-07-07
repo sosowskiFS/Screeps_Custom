@@ -34,7 +34,9 @@ var creep_asshealer = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
             if (ToughLab.length && ToughLab.mineralAmount > 0) {
-                creep.travelTo(ToughLab);
+                creep.travelTo(ToughLab, {
+                    ignoreRoads: true
+                });
                 ToughLab.boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedHeal > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
@@ -42,7 +44,9 @@ var creep_asshealer = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
             if (HealLab.length && HealLab.mineralAmount > 0) {
-                creep.travelTo(HealLab);
+                creep.travelTo(HealLab, {
+                    ignoreRoads: true
+                });
                 HealLab.boostCreep(creep);
             }
         } else {
@@ -73,10 +77,13 @@ var creep_asshealer = {
                     } else {*/
                     if (targetAttacker.room.name == creep.room.name) {
                         creep.travelTo(targetAttacker, {
-                            maxRooms: 1
+                            maxRooms: 1,
+                            ignoreRoads: true
                         });
                     } else {
-                        creep.travelTo(targetAttacker);
+                        creep.travelTo(targetAttacker, {
+                            ignoreRoads: true
+                        });
                     }
                     //}
                 }
@@ -110,7 +117,9 @@ var creep_asshealer = {
                 }
             } else {
                 if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
-                    creep.travelTo(Game.flags["RallyHere"]);
+                    creep.travelTo(Game.flags["RallyHere"], {
+                        ignoreRoads: true
+                    });
                 }
                 var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
                     filter: (mCreep) => (mCreep.memory.priority == "assattacker")

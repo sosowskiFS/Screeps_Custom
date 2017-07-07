@@ -53,7 +53,9 @@ var creep_assattacker = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
             if (ToughLab.length && ToughLab.mineralAmount > 0) {
-                creep.travelTo(ToughLab);
+                creep.travelTo(ToughLab, {
+                    ignoreRoads: true
+                });
                 ToughLab.boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedAttack > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
@@ -61,7 +63,9 @@ var creep_assattacker = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
             });
             if (AttackLab.length && AttackLab.mineralAmount > 0) {
-                creep.travelTo(AttackLab);
+                creep.travelTo(AttackLab, {
+                    ignoreRoads: true
+                });
                 AttackLab.boostCreep(creep);
             }
         } else {
@@ -78,7 +82,8 @@ var creep_assattacker = {
                 if (eTowers) {
                     creep.travelTo(eTowers, {
                         ignoreDestructibleStructures: true,
-                        stuckValue: 500
+                        stuckValue: 500,
+                        ignoreRoads: true
                     });
                     creep.attack(eTowers);
                 } else {
@@ -86,7 +91,8 @@ var creep_assattacker = {
                     if (eSpawns.length) {
                         creep.travelTo(eSpawns[0], {
                             ignoreDestructibleStructures: true,
-                            stuckValue: 500
+                            stuckValue: 500,
+                            ignoreRoads: true
                         });
                         creep.attack(eSpawns[0]);
                     } else {
@@ -96,11 +102,14 @@ var creep_assattacker = {
                         if (eStructures) {
                             creep.travelTo(eStructures, {
                                 ignoreDestructibleStructures: true,
-                                stuckValue: 500
+                                stuckValue: 500,
+                                ignoreRoads: true
                             });
                             creep.attack(eStructures);
                         } else if (closeFoe) {
-                            creep.travelTo(closeFoe);
+                            creep.travelTo(closeFoe, {
+                                ignoreRoads: true
+                            });
                         } else if (Game.flags[creep.memory.homeRoom + "Assault"]) {
                             Game.flags[creep.memory.homeRoom + "Assault"].remove();
                         }
@@ -129,15 +138,21 @@ var creep_assattacker = {
                         creep.moveTo(xTarget, yTarget);
                     }
                 } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
-                    creep.travelTo(Game.flags["RallyHere"]);
+                    creep.travelTo(Game.flags["RallyHere"], {
+                        ignoreRoads: true
+                    });
                 }
             } else if (healerIsNear) {
                 creep.memory.getOutOfStartRoom = true;
                 if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
                     if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
-                        creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"]);
+                        creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"], {
+                            ignoreRoads: true
+                        });
                     } else {
-                        creep.travelTo(new RoomPosition(25, 25, Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName));
+                        creep.travelTo(new RoomPosition(25, 25, Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName), {
+                            ignoreRoads: true
+                        });
                     }
                 }
             }
