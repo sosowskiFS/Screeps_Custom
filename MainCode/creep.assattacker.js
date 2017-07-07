@@ -23,7 +23,7 @@ var creep_assattacker = {
 
         if (!creep.memory.healerID && !creep.spawning) {
             var nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
-                filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.homeRoom == creep.memory.homeRoom)
+                filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.attackerID = creep.id)
             });
             if (nearbyHealer.length) {
                 creep.memory.healerID = nearbyHealer[0].id;
@@ -136,10 +136,6 @@ var creep_assattacker = {
                             xTarget = creep.pos.x;
                         }
                         creep.moveTo(xTarget, yTarget);
-                    } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
-                        creep.travelTo(Game.flags["RallyHere"], {
-                            ignoreRoads: true
-                        });
                     }
                 } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
                     creep.travelTo(Game.flags["RallyHere"], {
