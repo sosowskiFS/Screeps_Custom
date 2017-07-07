@@ -30,8 +30,10 @@ var creep_combat = {
 						}
 					});
 				}
-				if (boostFlag && creep.room.controller.level >= 7 && Memory.labList[thisRoom.name].length >= 6) {
-					var attackLab = Game.getObjectById(Memory.labList[thisRoom.name][3]);
+				if (boostFlag && creep.room.controller.level >= 7) {
+					var attackLab = creep.room.find(FIND_MY_STRUCTURES, {
+						filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
+					});
 					var mineralCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_MINERAL;
 					var energyCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_ENERGY;
 					if (attackLab && attackLab.mineralAmount >= mineralCost && attackLab.energy >= energyCost) {
