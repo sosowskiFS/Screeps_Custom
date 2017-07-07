@@ -77,14 +77,16 @@ var creep_assattacker = {
                 });
                 if (eTowers) {
                     creep.travelTo(eTowers, {
-                        ignoreDestructibleStructures: true
+                        ignoreDestructibleStructures: true,
+                        stuckValue: 500
                     });
                     creep.attack(eTowers);
                 } else {
                     var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
                     if (eSpawns.length) {
                         creep.travelTo(eSpawns[0], {
-                            ignoreDestructibleStructures: true
+                            ignoreDestructibleStructures: true,
+                            stuckValue: 500
                         });
                         creep.attack(eSpawns[0]);
                     } else {
@@ -93,7 +95,8 @@ var creep_assattacker = {
                         });
                         if (eStructures) {
                             creep.travelTo(eStructures, {
-                                ignoreDestructibleStructures: true
+                                ignoreDestructibleStructures: true,
+                                stuckValue: 500
                             });
                             creep.attack(eStructures);
                         } else if (closeFoe) {
