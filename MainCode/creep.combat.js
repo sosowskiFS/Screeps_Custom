@@ -92,7 +92,9 @@ var creep_combat = {
 				if (creep.pos.inRangeTo(closeFoe, 3)) {
 					creep.rangedMassAttack();
 				}
-				creep.attack(closeFoe);
+				if (creep.attack(closeFoe) == OK) {
+					creep.memory.waitingTimer = 0;
+				}
 			}
 		} else {
 			var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
