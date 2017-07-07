@@ -125,7 +125,7 @@ var creep_assattacker = {
                         }
                         creep.moveTo(xTarget, yTarget);
                     }
-                } else {
+                } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
                     creep.travelTo(Game.flags["RallyHere"]);
                 }
             } else if (healerIsNear) {

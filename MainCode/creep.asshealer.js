@@ -26,7 +26,7 @@ var creep_asshealer = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
             });
             if (MoveLab.length && MoveLab.mineralAmount > 0) {
-                creep.moveTo(MoveLab);
+                creep.travelTo(MoveLab);
                 MoveLab.boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
@@ -34,7 +34,7 @@ var creep_asshealer = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
             if (ToughLab.length && ToughLab.mineralAmount > 0) {
-                creep.moveTo(ToughLab);
+                creep.travelTo(ToughLab);
                 ToughLab.boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedHeal > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
@@ -42,7 +42,7 @@ var creep_asshealer = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
             if (HealLab.length && HealLab.mineralAmount > 0) {
-                creep.moveTo(HealLab);
+                creep.travelTo(HealLab);
                 HealLab.boostCreep(creep);
             }
         } else {
@@ -109,8 +109,8 @@ var creep_asshealer = {
                     }
                 }
             } else {
-                if (Game.flags["RallyHere"]) {
-                    creep.moveTo(Game.flags["RallyHere"]);
+                if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
+                    creep.travelTo(Game.flags["RallyHere"]);
                 }
                 var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
                     filter: (mCreep) => (mCreep.memory.priority == "assattacker")
