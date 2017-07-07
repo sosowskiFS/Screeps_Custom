@@ -391,11 +391,10 @@ var creep_work5 = {
                                         maxRooms: 1
                                     });
                                 } else if (!Memory.warMode) {
-                                    if (!creep.pos.isNearTo(thisStructure)) {
-                                        creep.travelTo(thisStructure, {
-                                            maxRooms: 1
-                                        });
-                                    }
+                                    creep.travelTo(thisStructure, {
+                                        maxRooms: 1,
+                                        range: 2
+                                    });
                                 }
                             }
                         } else {
