@@ -36,7 +36,7 @@ var creep_combat = {
 				if (boostFlag && creep.room.controller.level >= 7 && Memory.labList[thisRoom.name].length >= 6) {
 					var attackLab = Game.getObjectById(Memory.labList[thisRoom.name][3]);
 					var mineralCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_MINERAL;
-                    var energyCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_ENERGY;
+					var energyCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_ENERGY;
 					if (attackLab && attackLab.mineralAmount >= mineralCost && attackLab.energy >= energyCost) {
 						creep.memory.needBoosts = true;
 					} else {
@@ -70,10 +70,14 @@ var creep_combat = {
 				});
 			}
 
+			closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+			});
+
 			if (closeFoe) {
 				if (creep.pos.inRangeTo(closeFoe, 3)) {
 					creep.rangedMassAttack();
-				}			
+				}
 				creep.attack(closeFoe);
 			}
 		} else {
