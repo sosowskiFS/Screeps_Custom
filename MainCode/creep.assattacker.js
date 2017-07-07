@@ -136,6 +136,10 @@ var creep_assattacker = {
                             xTarget = creep.pos.x;
                         }
                         creep.moveTo(xTarget, yTarget);
+                    } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
+                        creep.travelTo(Game.flags["RallyHere"], {
+                            ignoreRoads: true
+                        });
                     }
                 } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
                     creep.travelTo(Game.flags["RallyHere"], {
