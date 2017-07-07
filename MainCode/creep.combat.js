@@ -62,9 +62,18 @@ var creep_combat = {
 					creep.memory.needBoost = false;
 				}
 			} else if (closeFoe) {
-				creep.travelTo(closeFoe, {
-					maxRooms: 1
-				});
+				if (!creep.memory.waitingTimer) {
+					creep.memory.waitingTimer = 0
+				}
+				var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
+				if (lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART && creep.memory.waitingTimer < 10) {
+					creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
+				} else {
+					creep.memory.waitingTimer = 0;
+					creep.travelTo(closeFoe, {
+						maxRooms: 1
+					});
+				}
 			}
 
 			if (closeFoe) {
