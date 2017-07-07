@@ -40,32 +40,70 @@ var creep_assattacker = {
             healerIsNear = creep.pos.isNearTo(thisHealer);
         }
 
-        if (Game.flags["DoBoost"] && unboostedMove > 0 && Game.flags["Assault"]) {
+        if (Game.flags["DoBoost"] && unboostedMove > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
             });
             if (MoveLab.length && MoveLab.mineralAmount > 0) {
-                creep.moveTo(MoveLab);
+                creep.travelTo(MoveLab);
                 MoveLab.boostCreep(creep);
             }
-        } else if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags["Assault"]) {
+        } else if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
             if (ToughLab.length && ToughLab.mineralAmount > 0) {
-                creep.moveTo(ToughLab);
+                creep.travelTo(ToughLab);
                 ToughLab.boostCreep(creep);
             }
-        } else if (Game.flags["DoBoost"] && unboostedAttack > 0 && Game.flags["Assault"]) {
+        } else if (Game.flags["DoBoost"] && unboostedAttack > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var AttackLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
             });
             if (AttackLab.length && AttackLab.mineralAmount > 0) {
-                creep.moveTo(AttackLab);
+                creep.travelTo(AttackLab);
                 AttackLab.boostCreep(creep);
             }
         } else {
-            if (!healerIsNear) {
+            if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName == creep.pos.roomName) {
+                //In target room
+                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
+                if (somethingNearby) {
+                    creep.attack(somethingNearby);
+                }
+
+                var eTowers = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                    filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy > 0)
+                });
+                if (eTowers) {
+                    creep.travelTo(eTowers, {
+                        ignoreDestructibleStructures: true
+                    });
+                    creep.attack(eTowers);
+                } else {
+                    var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
+                    if (eSpawns.length) {
+                        creep.travelTo(eSpawns[0], {
+                            ignoreDestructibleStructures: true
+                        });
+                        creep.attack(eSpawns[0]);
+                    } else {
+                        var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER)
+                        });
+                        if (eStructures) {
+                            creep.travelTo(eStructures, {
+                                ignoreDestructibleStructures: true
+                            });
+                            creep.attack(eStructures);
+                        } else if (closeFoe) {
+                            creep.travelTo(closeFoe);
+                        } else if (Game.flags[creep.memory.homeRoom + "Assault"]) {
+                            Game.flags[creep.memory.homeRoom + "Assault"].remove();
+                        }
+                    }
+                }
+            } else if (!healerIsNear) {
                 if (creep.memory.getOutOfStartRoom) {
                     //Probably in a new room, hold.
                     if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
@@ -88,45 +126,15 @@ var creep_assattacker = {
                         creep.moveTo(xTarget, yTarget);
                     }
                 } else {
-                    creep.moveTo(Game.flags["RallyHere"]);
+                    creep.travelTo(Game.flags["RallyHere"]);
                 }
             } else if (healerIsNear) {
                 creep.memory.getOutOfStartRoom = true;
-
-                if (Game.flags["Assault"] && Game.flags["Assault"].pos.roomName != creep.pos.roomName) {
-                    creep.moveTo(new RoomPosition(25, 25, Game.flags["Assault"].pos.roomName));
-                } else {
-                    //In target room
-                    var eTowers = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy > 0)
-                    });
-                    if (eTowers) {
-                        creep.moveTo(eTowers, {
-                            ignoreDestructibleStructures: true
-                        });
-                        creep.attack(eTowers);
+                if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
+                    if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
+                        creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"]);
                     } else {
-                        var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
-                        if (eSpawns.length) {
-                            creep.moveTo(eSpawns[0], {
-                                ignoreDestructibleStructures: true
-                            });
-                            creep.attack(eSpawns[0]);
-                        } else {
-                            var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER)
-                            });
-                            if (eStructures) {
-                                creep.moveTo(eStructures, {
-                                    ignoreDestructibleStructures: true
-                                });
-                                creep.attack(eStructures);
-                            } else if (closeFoe) {
-                                creep.moveTo(closeFoe);
-                            } else if (Game.flags["Assault"]) {
-                                creep.moveTo(Game.flags["Assault"]);
-                            }
-                        }
+                        creep.travelTo(new RoomPosition(25, 25, Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName));
                     }
                 }
             }

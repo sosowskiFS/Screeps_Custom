@@ -604,7 +604,7 @@ module.exports.loop = function() {
                     }
                 }
 
-                if (Game.flags["Assault"] && thisRoom.controller.level >= 7) {
+                if (Game.flags[thisRoom.name + "Assault"]) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags["Assault"].pos.roomName, '', Game.spawns[i].room.name);
                 }
 

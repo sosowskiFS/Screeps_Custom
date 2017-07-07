@@ -14,7 +14,7 @@ class Traveler {
      */
     static travelTo(creep, destination, options = {}) {
         // uncomment if you would like to register hostile rooms entered
-        this.updateRoomStatus(creep.room);
+        //this.updateRoomStatus(creep.room);
         if (!destination) {
             return ERR_INVALID_ARGS;
         }

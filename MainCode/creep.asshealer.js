@@ -21,7 +21,7 @@ var creep_asshealer = {
         });
 
         //console.log("unboosted heal : " + unboostedHeal + "| unboosted Tough : " + unboostedTough);
-        if (Game.flags["DoBoost"] && unboostedMove > 0 && Game.flags["Assault"]) {
+        if (Game.flags["DoBoost"] && unboostedMove > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
             });
@@ -29,7 +29,7 @@ var creep_asshealer = {
                 creep.moveTo(MoveLab);
                 MoveLab.boostCreep(creep);
             }
-        } else if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags["Assault"]) {
+        } else if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
@@ -37,7 +37,7 @@ var creep_asshealer = {
                 creep.moveTo(ToughLab);
                 ToughLab.boostCreep(creep);
             }
-        } else if (Game.flags["DoBoost"] && unboostedHeal > 0 && Game.flags["Assault"]) {
+        } else if (Game.flags["DoBoost"] && unboostedHeal > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var HealLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
@@ -68,39 +68,43 @@ var creep_asshealer = {
 
                     creep.moveTo(xTarget, yTarget);
                 } else {
-                    if (creep.pos.inRangeTo(targetAttacker, 2)) {
+                    /*if (creep.pos.inRangeTo(targetAttacker, 2)) {
                         creep.move(creep.pos.getDirectionTo(targetAttacker));
+                    } else {*/
+                    if (targetAttacker.room.name == creep.room.name) {
+                        creep.travelTo(targetAttacker, {
+                            maxRooms: 1
+                        });
                     } else {
-                        if (targetAttacker.room.name == creep.room.name) {
-                            creep.moveTo(targetAttacker, {
-                                reusePath: 2,
-                                maxRooms: 1
-                            });
-                        } else {
-                            creep.moveTo(targetAttacker, {
-                                reusePath: 0
-                            });
-                        }
+                        creep.travelTo(targetAttacker);
                     }
+                    //}
                 }
 
-                if (creep.hits < creep.hitsMax - 99) {
+                if (creep.hits < creep.hitsMax - 300) {
                     creep.heal(creep);
-                } else if (targetAttacker.hits < targetAttacker.hitsMax) {
-                    if (creep.pos.getRangeTo(targetAttacker) > 1) {
-                        creep.rangedHeal(targetAttacker);
-                    } else {
-                        creep.heal(targetAttacker);
-                    }
                 } else {
                     var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax && thisCreep.id != targetAttacker.id
                     });
+                    var healedAlly = false
                     if (hurtAlly.length > 0) {
                         if (creep.pos.getRangeTo(hurtAlly[0]) > 1) {
-                            creep.rangedHeal(hurtAlly[0]);
+                            if (creep.rangedHeal(hurtAlly[0]) == OK) {
+                                healedAlly = true;
+                            }
                         } else {
-                            creep.heal(hurtAlly[0]);
+                            if (creep.heal(hurtAlly[0]) == OK) {
+                                healedAlly = true;
+                            }
+                        }
+                    }
+
+                    if (!healedAlly) {
+                        if (creep.pos.getRangeTo(targetAttacker) > 1) {
+                            creep.rangedHeal(targetAttacker);
+                        } else {
+                            creep.heal(targetAttacker);
                         }
                     }
                 }

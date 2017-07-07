@@ -248,7 +248,7 @@ var spawn_BuildInstruction = {
             case 'assault':
                 var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == spawn.room.name);
                 var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == spawn.room.name);
-                if (attackers.length < 1) {
+                if (attackers.length < healers.length || attackers.length == healers.length) {
                     //var attackerConfig = [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,MOVE];
                     //Testing movement config
                     var attackerConfig = [TOUGH, TOUGH, MOVE, MOVE];
@@ -267,7 +267,7 @@ var spawn_BuildInstruction = {
                     } else {
                         //console.log('Could not execute constructor. Spawn cannot create creep.');
                     }
-                } else if (healers.length < 1) {
+                } else if (healers.length < attackers.length) {
                     //var healerConfig = [TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL];
                     //Testing movement config
                     var healerConfig = [TOUGH, MOVE];
@@ -278,8 +278,8 @@ var spawn_BuildInstruction = {
                         healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     }
                     var attackerID = '';
-                    if (attackers[0]) {
-                        attackerID = attackers[0].id
+                    if (attackers[attackers.length - 1]) {
+                        attackerID = attackers[attackers.length - 1].id
                         if (spawn.canCreateCreep(healerConfig) == OK && attackerID != '') {
                             spawn.createCreep(healerConfig, undefined, {
                                 priority: 'asshealer',
