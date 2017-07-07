@@ -12,32 +12,51 @@ var tower_Operate = {
 
 		var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
 		if (UnderAttackPos >= 0 && tower.energy > 0) {
-			var shootRandom = false;
-			var closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
-			if (!closestHostile) {
-				closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-				});
-				shootRandom = true;
-			}
-			if (closestHostile) {
-				Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
-				if (shootRandom) {
-					var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
-					if (randomTarget.length) {
-						tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)])
+			//Memory.roomCreeps[thisRoom.name];
+			//Only if no salvager flag
+			var didHeal = false
+			var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+			if (salvagerPos == -1) {
+				var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
+				if (defenders.length) {
+					for (var y = 0; y < defenders.length; y++) {
+						if (defenders[0].hits < defenders[0].hitsMax) {
+							tower.heal(defenders[0]);
+							didHeal = true;
+							break;
+						}
 					}
-				} else {
-					tower.attack(closestHostile);
 				}
-				//Keep target for defenders to lock on
-			} else if (tower.energy > (tower.energyCapacity * 0.5)) {
-				//Save 50% of the tower's energy to use on repelling attackers
-				var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
-					filter: (creep) => creep.hits < creep.hitsMax - 50
-				});
-				if (closestDamagedCreep) {
-					tower.heal(closestDamagedCreep);
+			}
+
+			if (!didHeal) {
+				var shootRandom = false;
+				var closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
+				if (!closestHostile) {
+					closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+					});
+					shootRandom = true;
+				}
+				if (closestHostile) {
+					Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
+					if (shootRandom) {
+						var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
+						if (randomTarget.length) {
+							tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)])
+						}
+					} else {
+						tower.attack(closestHostile);
+					}
+					//Keep target for defenders to lock on
+				} else if (tower.energy > (tower.energyCapacity * 0.5)) {
+					//Save 50% of the tower's energy to use on repelling attackers
+					var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
+						filter: (creep) => creep.hits < creep.hitsMax - 50
+					});
+					if (closestDamagedCreep) {
+						tower.heal(closestDamagedCreep);
+					}
 				}
 			}
 		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % 10 == 0)) {
