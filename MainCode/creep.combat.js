@@ -59,13 +59,13 @@ var creep_combat = {
 			if (creep.memory.needBoosts && unboostedAttack > 0) {
 				var thisLab = Game.getObjectById(Memory.labList[thisRoom.name][3]);
 				if (thisLab) {
-					creep.moveTo(thisLab);
+					creep.travelTo(thisLab);
 					thisLab.boostCreep(creep);
 				} else {
 					creep.memory.needBoost = false;
 				}
 			} else if (closeFoe) {
-				creep.moveTo(closeFoe, {
+				creep.travelTo(closeFoe, {
 					maxRooms: 1
 				});
 			}
@@ -82,7 +82,7 @@ var creep_combat = {
 			if (lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART) {
 
 			} else if (homeSpawn) {
-				creep.moveTo(homeSpawn);
+				creep.travelTo(homeSpawn);
 			}
 		}
 	}
