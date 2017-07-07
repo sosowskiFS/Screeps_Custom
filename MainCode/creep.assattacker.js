@@ -97,7 +97,7 @@ var creep_assattacker = {
                         creep.attack(eSpawns[0]);
                     } else {
                         var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                            filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER)
+                            filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART)
                         });
                         if (eStructures) {
                             creep.travelTo(eStructures, {
