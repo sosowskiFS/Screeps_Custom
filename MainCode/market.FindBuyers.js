@@ -153,7 +153,7 @@ var market_buyers = {
                 Memory.mineralNeed[neededMinerals[i]] = [];
             }
             var mineralCap = 10000;
-            if ((neededMinerals[i] == RESOURCE_GHODIUM && ForNuker) || neededMinerals[i] == RESOURCE_CATALYZED_UTRIUM_ACID || neededMinerals[i] == RESOURCE_CATALYZED_GHODIUM_ACID || neededMinerals[i] == RESOURCE_CATALYZED_LEMERGIUM_ACID) {
+            if ((neededMinerals[i] == RESOURCE_GHODIUM && ForNuker) || _.includes(neededMinerals[i], "X")) {
                 mineralCap = 5000;
             }
             if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < mineralCap) {
@@ -250,11 +250,11 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
         var targetTerminal = Game.rooms[targetRoom].terminal
         var amountAvailable = thisTerminal.store[thisMineral];
         var targetStoreCap = 15000;
-        if (nukerLimit || thisMineral == RESOURCE_CATALYZED_UTRIUM_ACID || thisMineral == RESOURCE_CATALYZED_GHODIUM_ACID || thisMineral == RESOURCE_CATALYZED_LEMERGIUM_ACID) {
+        if (nukerLimit || _.includes(thisMineral, "X")) {
             targetStoreCap = 5000;
         }
         if (saveFlag) {
-            if (thisMineral == RESOURCE_GHODIUM || thisMineral == RESOURCE_CATALYZED_UTRIUM_ACID || thisMineral == RESOURCE_CATALYZED_GHODIUM_ACID || thisMineral == RESOURCE_CATALYZED_LEMERGIUM_ACID) {
+            if (thisMineral == RESOURCE_GHODIUM || _.includes(neededMinerals[i], "X")) {
                 amountAvailable = thisTerminal.store[thisMineral] - 5000;
             } else {
                 amountAvailable = thisTerminal.store[thisMineral] - 20000;

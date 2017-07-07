@@ -478,7 +478,7 @@ module.exports.loop = function() {
                 }
 
                 //Review market data and sell to buy orders
-                if (Game.time % 250 == 0 && thisRoom.terminal) {
+                if (Game.time % 50 == 0 && thisRoom.terminal) {
                     market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
                     for (var y in Object.keys(thisRoom.terminal.store)) {
                         Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]] = thisRoom.terminal.store[Object.keys(thisRoom.terminal.store)[y]] + Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]];
