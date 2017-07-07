@@ -16,12 +16,9 @@ var creep_combat = {
 				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 			});
 
-			var closeFoe = Game.getObjectById(Memory.towerPickedTarget[creep.room.name]);
-			if (!closeFoe) {
-				closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-				});
-			}
+			var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+			});
 
 			if (Foe.length) {
 				Foe.sort(targetOther);
@@ -69,10 +66,6 @@ var creep_combat = {
 					maxRooms: 1
 				});
 			}
-
-			closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-			});
 
 			if (closeFoe) {
 				if (creep.pos.inRangeTo(closeFoe, 3)) {
