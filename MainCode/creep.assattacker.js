@@ -176,6 +176,7 @@ var creep_assattacker = {
                     var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
                     });
+                    Game.notify('Portal room has been successfully reached');
                 }
                 if (thisPortal) {
                     creep.memory.destination = undefined;
