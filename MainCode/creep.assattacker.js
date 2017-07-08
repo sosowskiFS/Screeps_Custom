@@ -132,8 +132,17 @@ var creep_assattacker = {
                 }
             } else if (!healerIsNear) {
                 if (creep.memory.getOutOfStartRoom) {
-                    //Probably in a new room, hold.
-                    if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                    var thisPortal = undefined;
+                    if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
+                        var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                        });
+                    }
+                    if (thisPortal) {
+                        creep.memory.destination = undefined;
+                        creep.memory.usedPortal = true;
+                        creep.moveTo(thisPortal);
+                    } else if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                         var xTarget = 0;
                         var yTarget = 0;
                         if (creep.pos.x == 0) {
