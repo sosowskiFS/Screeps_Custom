@@ -124,6 +124,7 @@ var creep_asshealer = {
                     }
                 }
             } else {
+                creep.heal(creep);
                 if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
                     creep.travelTo(Game.flags["RallyHere"], {
                         ignoreRoads: true
