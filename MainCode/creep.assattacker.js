@@ -153,7 +153,7 @@ var creep_assattacker = {
                             yTarget = 47;
                             xTarget = creep.pos.x;
                         }
-                        creep.travelTo(xTarget, yTarget);
+                        creep.moveTo(xTarget, yTarget);
                     }
                 } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
                     creep.travelTo(Game.flags["RallyHere"], {
