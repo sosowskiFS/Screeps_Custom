@@ -157,7 +157,8 @@ var creep_assattacker = {
                     }
                 } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
                     creep.travelTo(Game.flags["RallyHere"], {
-                        ignoreRoads: true
+                        ignoreRoads: true,
+                        repath: 0.1
                     });
                 }
             } else if (healerIsNear) {
@@ -187,11 +188,13 @@ var creep_assattacker = {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
                     } else if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"], {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            repath: 0.1
                         });
                     } else {
                         creep.travelTo(new RoomPosition(25, 25, Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName), {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            repath: 0.1
                         });
                     }
                 }
