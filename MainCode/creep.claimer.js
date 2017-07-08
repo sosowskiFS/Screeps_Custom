@@ -19,8 +19,8 @@ var creep_claimer = {
             }
             if (thisPortal) {
                 if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
-    creep.memory.path.splice(0, 1);
-}
+                    creep.memory.path.splice(0, 1);
+                }
 
                 creep.moveTo(thisPortal);
             } else if (creep.memory.path && creep.memory.path.length) {

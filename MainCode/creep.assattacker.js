@@ -143,8 +143,18 @@ var creep_assattacker = {
                     });
                 }
             } else if (healerIsNear) {
-                creep.memory.getOutOfStartRoom = true;
-                if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
+                if (!creep.memory.getOutOfStartRoom) {
+                    creep.memory.getOutOfStartRoom = true;
+                }
+                var thisPortal = undefined;
+                if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
+                    var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                    });
+                }
+                if (thisPortal) {
+                    creep.travelTo(thisPortal);
+                } else if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
                     if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"], {
                             ignoreRoads: true

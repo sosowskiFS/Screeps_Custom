@@ -52,7 +52,15 @@ var creep_asshealer = {
         } else {
             var targetAttacker = Game.getObjectById(creep.memory.attackerID);
             if (targetAttacker) {
-                if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
+                var thisPortal = undefined;
+                if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
+                    var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                    });
+                }
+                if (thisPortal) {
+                    creep.travelTo(thisPortal);
+                } else if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
                     var xTarget = 0;
                     var yTarget = 0;
                     if (creep.pos.x == 0) {
