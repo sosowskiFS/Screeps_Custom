@@ -59,7 +59,7 @@ var creep_asshealer = {
                     });
                 }
                 if (thisPortal) {
-                    creep.travelTo(thisPortal);
+                    creep.moveTo(thisPortal);
                 } else if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
                     var xTarget = 0;
                     var yTarget = 0;
@@ -84,12 +84,12 @@ var creep_asshealer = {
                         creep.move(creep.pos.getDirectionTo(targetAttacker));
                     } else {*/
                     if (targetAttacker.room.name == creep.room.name) {
-                        creep.travelTo(targetAttacker, {
+                        creep.moveTo(targetAttacker, {
                             maxRooms: 1,
                             ignoreRoads: true
                         });
                     } else {
-                        creep.travelTo(targetAttacker, {
+                        creep.moveTo(targetAttacker, {
                             ignoreRoads: true
                         });
                     }
