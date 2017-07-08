@@ -89,8 +89,7 @@ var creep_assattacker = {
                         Game.flags["WallFlag"].remove();
                     }
                 } else if (eOthers) {
-                    creep.travelTo(eTowers, {
-                        stuckValue: 5,
+                    creep.moveTo(eTowers, {
                         ignoreRoads: true
                     });
                     creep.attack(eOthers);
@@ -99,16 +98,14 @@ var creep_assattacker = {
                         filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy > 0)
                     });
                     if (eTowers) {
-                        creep.travelTo(eTowers, {
-                            stuckValue: 5,
+                        creep.moveTo(eTowers, {
                             ignoreRoads: true
                         });
                         creep.attack(eTowers);
                     } else {
                         var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
                         if (eSpawns.length) {
-                            creep.travelTo(eSpawns[0], {
-                                stuckValue: 5,
+                            creep.moveTo(eSpawns[0], {
                                 ignoreRoads: true
                             });
                             creep.attack(eSpawns[0]);
@@ -117,13 +114,12 @@ var creep_assattacker = {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART)
                             });
                             if (eStructures) {
-                                creep.travelTo(eStructures, {
-                                    stuckValue: 5,
+                                creep.moveTo(eStructures, {
                                     ignoreRoads: true
                                 });
                                 creep.attack(eStructures);
                             } else if (closeFoe) {
-                                creep.travelTo(closeFoe, {
+                                creep.moveTo(closeFoe, {
                                     ignoreRoads: true
                                 });
                             } else if (Game.flags[creep.memory.homeRoom + "Assault"]) {
@@ -156,9 +152,8 @@ var creep_assattacker = {
                         creep.moveTo(xTarget, yTarget);
                     }
                 } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
-                    creep.travelTo(Game.flags["RallyHere"], {
-                        ignoreRoads: true,
-                        repath: 0.1
+                    creep.moveTo(Game.flags["RallyHere"], {
+                        ignoreRoads: true
                     });
                 }
             } else if (healerIsNear) {
@@ -182,19 +177,17 @@ var creep_assattacker = {
                     creep.memory.destination = undefined;
                     creep.memory.usedPortal = true;
                     Game.notify('Portal room has been ACTUALLY reached. Creep TTL : ' + creep.ticksToLive);
-                    creep.travelTo(thisPortal);
+                    creep.moveTo(thisPortal);
                 } else if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
                     if (creep.memory.destination && !creep.memory.usedPortal) {
-                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
+                        creep.moveTo(new RoomPosition(25, 25, creep.memory.destination))
                     } else if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
-                        creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"], {
-                            ignoreRoads: true,
-                            repath: 0.1
+                        creep.moveTo(Game.flags[creep.memory.homeRoom + "Assault"], {
+                            ignoreRoads: true
                         });
                     } else {
-                        creep.travelTo(new RoomPosition(25, 25, Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName), {
-                            ignoreRoads: true,
-                            repath: 0.1
+                        creep.moveTo(new RoomPosition(25, 25, Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName), {
+                            ignoreRoads: true
                         });
                     }
                 }
