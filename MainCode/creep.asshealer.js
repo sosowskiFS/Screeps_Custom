@@ -100,7 +100,7 @@ var creep_asshealer = {
                     creep.heal(creep);
                 } else {
                     var hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax && thisCreep.id != targetAttacker.id && (thisCreep.owner == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
                     });
                     var healedAlly = false
                     if (hurtAlly.length > 0) {
