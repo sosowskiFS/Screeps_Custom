@@ -146,6 +146,13 @@ var creep_assattacker = {
                 if (!creep.memory.getOutOfStartRoom) {
                     creep.memory.getOutOfStartRoom = true;
                 }
+                if (creep.memory.usedPortal == undefined) {
+                    creep.memory.usedPortal = false
+                }
+                if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName != creep.pos.roomName) {
+                    creep.memory.destination = Game.flags["TakePortal"].pos.roomName;
+                }
+
                 var thisPortal = undefined;
                 if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                     var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -153,9 +160,13 @@ var creep_assattacker = {
                     });
                 }
                 if (thisPortal) {
+                    creep.memory.destination = undefined;
+                    creep.memory.usedPortal = true;
                     creep.travelTo(thisPortal);
                 } else if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
-                    if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
+                    if (creep.memory.destination && !creep.memory.usedPortal) {
+                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
+                    } else if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"], {
                             ignoreRoads: true
                         });
