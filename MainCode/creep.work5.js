@@ -814,7 +814,7 @@ var creep_work5 = {
 
                     if (!foundWork) {
                         for (var i in labArray) {
-                            if (Game.flags[thisRoom.name + "WarBoosts"]) {
+                            if (Game.flags[creep.room.name + "WarBoosts"]) {
                                 switch (labArray[i].id) {
                                     case creep.memory.lab4:
                                     case creep.memory.lab5:
