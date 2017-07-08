@@ -180,9 +180,9 @@ var creep_assattacker = {
                 if (thisPortal) {
                     creep.memory.destination = undefined;
                     creep.memory.usedPortal = true;
+                    Game.notify('Portal room has been ACTUALLY reached. Creep TTL : ' + creep.ticksToLive);
                     creep.travelTo(thisPortal);
                 } else if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
-                    Game.notify('Portal room has been successfully reached. Creep TTL : ' + creep.ticksToLive);
                     if (creep.memory.destination && !creep.memory.usedPortal) {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
                     } else if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
