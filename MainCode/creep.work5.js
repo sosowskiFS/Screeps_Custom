@@ -821,10 +821,7 @@ var creep_work5 = {
                                     case creep.memory.lab6:
                                     case creep.memory.lab1:
                                     case creep.memory.lab2:
-                                    case creep.memory.lab7:
-                                    case creep.memory.lab8:
                                     case creep.memory.lab3:
-                                    case creep.memory.lab9:
                                         //Boost labs
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
                                             var minAmount = mineralArray[i] in creep.room.terminal.store;
