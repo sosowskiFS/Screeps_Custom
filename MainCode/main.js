@@ -337,9 +337,7 @@ module.exports.loop = function() {
                                     minerLink = linkCounter
                                 } else {
                                     var nearLink = roomLinks[linkCounter].pos.findInRange(FIND_STRUCTURES, 2, {
-                                        filter: {
-                                            structureType: STRUCTURE_LINK
-                                        }
+                                        filter: (structure) => (structure.structureType == STRUCTURE_LINK) && (structure.id != roomLinks[linkCounter].id)
                                     });
                                     if (nearLink.length) {
                                         //If next to another link, this is the secondary
