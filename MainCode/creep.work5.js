@@ -46,7 +46,7 @@ var creep_work5 = {
                         }
                     }
 
-                    if (creep.carry.energy >= 48) {
+                    if (creep.carry.energy >= 40) {
                         if (creep.memory.jobSpecific == 'upgradeMiner') {
                             if (storageTarget2 && storageTarget.energy == storageTarget.energyCapacity) {
                                 if (creep.transfer(storageTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
