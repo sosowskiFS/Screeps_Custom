@@ -469,6 +469,30 @@ var creep_work5 = {
                 }
 
                 break;
+            case 'upSupplier':
+            case 'upSupplierNearDeath':
+                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'upSupplierNearDeath') {
+                    creep.memory.priority = 'upSupplierNearDeath';
+                }
+
+                if (_.sum(creep.carry) == 0) {
+                    //Get from storage
+                    var storageTarget = creep.room.storage;
+                    if (storageTarget) {
+                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(storageTarget);
+                        }
+                    }
+                } else {
+                    //Drop off in upgrader link
+                    var upLink = Game.getObjectById(creep.memory.linkTarget);
+                    if (upLink) {
+                        if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(upLink);
+                        }
+                    }
+                }
+                break;
             case 'distributor':
             case 'distributorNearDeath':
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
