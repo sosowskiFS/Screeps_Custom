@@ -28,9 +28,16 @@ var creep_work5 = {
                 }
                 if (mineTarget && storageTarget) {
                     if (storageTarget.structureType == STRUCTURE_LINK) {
-                        if (storageTarget.energy == storageTarget.energyCapacity) {
-                            return;
+                        if (storageTarget2) {
+                            if (storageTarget2.energy == storageTarget2.energyCapacity && storageTarget.energy == storageTarget.energyCapacity) {
+                                return;
+                            }
+                        } else {
+                            if (storageTarget.energy == storageTarget.energyCapacity) {
+                                return;
+                            }
                         }
+
                     }
 
                     if (mineTarget.energy > 0) {
