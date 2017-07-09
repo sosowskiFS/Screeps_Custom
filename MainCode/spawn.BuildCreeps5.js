@@ -520,6 +520,9 @@ var spawn_BuildCreeps5 = {
                 }
             } else if (distributors.length < distributorMax && !blockedRole.includes('distributor')) {
                 prioritizedRole = 'distributor';
+                if (strLinks.length >= 4) {
+                    connectedLink = strLinks[3];
+                }
             } else if (suppliers.length < supplierMax && !blockedRole.includes('supplier')) {
                 prioritizedRole = 'supplier';
             } else if (mules.length < muleMax && !blockedRole.includes('mule')) {
@@ -638,11 +641,20 @@ var spawn_BuildCreeps5 = {
                 } else if (prioritizedRole == 'distributor') {
                     Memory.isSpawning = true;
                     if (spawn.canCreateCreep(distributorConfig) == OK) {
-                        spawn.createCreep(distributorConfig, undefined, {
-                            priority: prioritizedRole,
-                            deathWarn: _.size(distributorConfig) * 4,
-                            fromSpawn: spawn.id
-                        });
+                        if (connectedLink != '') {
+                            spawn.createCreep(distributorConfig, undefined, {
+                                priority: prioritizedRole,
+                                linkSource: connectedLink,
+                                deathWarn: _.size(distributorConfig) * 4,
+                                fromSpawn: spawn.id
+                            });
+                        } else {
+                            spawn.createCreep(distributorConfig, undefined, {
+                                priority: prioritizedRole,
+                                deathWarn: _.size(distributorConfig) * 4,
+                                fromSpawn: spawn.id
+                            });
+                        }
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
                     }

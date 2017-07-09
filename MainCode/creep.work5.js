@@ -522,12 +522,25 @@ var creep_work5 = {
 
                 if (_.sum(creep.carry) == 0) {
                     //Get from storage
-                    var storageTarget = creep.room.storage;
-                    if (storageTarget) {
-                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget, {
+                    //Check 4th link first just in case
+                    var linkTarget = undefined;
+                    if (creep.memory.linkSource) {
+                        linkTarget = Game.getObjectById(creep.memory.linkSource)
+                    }
+                    if (linkTarget && linkTarget.energy >= 200) {
+                        if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(linkTarget, {
                                 ignoreRoads: true
                             });
+                        }
+                    } else {
+                        var storageTarget = creep.room.storage;
+                        if (storageTarget) {
+                            if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(storageTarget, {
+                                    ignoreRoads: true
+                                });
+                            }
                         }
                     }
                 } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
@@ -584,12 +597,25 @@ var creep_work5 = {
                     }
                 } else if (_.sum(creep.carry) < creep.carryCapacity) {
                     //Get from storage
-                    var storageTarget = creep.room.storage;
-                    if (storageTarget) {
-                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget, {
+                    //Check 4th link first just in case
+                    var linkTarget = undefined;
+                    if (creep.memory.linkSource) {
+                        linkTarget = Game.getObjectById(creep.memory.linkSource)
+                    }
+                    if (linkTarget && linkTarget.energy >= 200) {
+                        if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(linkTarget, {
                                 ignoreRoads: true
                             });
+                        }
+                    } else {
+                        var storageTarget = creep.room.storage;
+                        if (storageTarget) {
+                            if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(storageTarget, {
+                                    ignoreRoads: true
+                                });
+                            }
                         }
                     }
                 } else {
