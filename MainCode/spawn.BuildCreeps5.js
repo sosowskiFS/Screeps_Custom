@@ -527,7 +527,7 @@ var spawn_BuildCreeps5 = {
                 prioritizedRole = 'upgrader';
                 storageID = thisRoom.storage.id;
                 connectedLink = strLinks[1];
-            } else if (upSuppliers.length < upSupplierMax && !blockedRole.include('upSupplier')) {
+            } else if (upSuppliers.length < upSupplierMax && !blockedRole.includes('upSupplier')) {
                 prioritizedRole = 'upSupplier';
                 storageID = thisRoom.storage.id;
                 connectedLink = strLinks[1];
