@@ -481,7 +481,8 @@ var creep_work5 = {
                     if (storageTarget) {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(storageTarget, {
-                                ignoreCreeps: false
+                                ignoreCreeps: false,
+                                ignoreRoads: true
                             });
                         }
                     }
