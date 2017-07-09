@@ -22,6 +22,10 @@ var creep_work5 = {
                 //Creep will immediately harvest and store mined materials
                 var storageTarget = Game.getObjectById(creep.memory.linkSource);
                 var mineTarget = Game.getObjectById(creep.memory.mineSource);
+                var storageTarget2 = undefined;
+                if (creep.memory.linkSource2) {
+                    storageTarget2 = Game.getObjectById(creep.memory.linkSource2);
+                }
                 if (mineTarget && storageTarget) {
                     if (storageTarget.structureType == STRUCTURE_LINK) {
                         if (storageTarget.energy == storageTarget.energyCapacity) {
@@ -36,8 +40,20 @@ var creep_work5 = {
                     }
 
                     if (creep.carry.energy >= 48) {
-                        if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget);
+                        if (creep.memory.jobSpecific == 'upgraderMiner') {
+                            if (storageTarget2 && storageTarget.energy == storageTarget.energyCapacity) {
+                                if (creep.transfer(storageTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(storageTarget2);
+                                }
+                            } else {
+                                if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(storageTarget);
+                                }
+                            }
+                        } else {
+                            if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(storageTarget);
+                            }
                         }
                     }
 

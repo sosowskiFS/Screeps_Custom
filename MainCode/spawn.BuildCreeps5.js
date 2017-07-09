@@ -471,6 +471,7 @@ var spawn_BuildCreeps5 = {
             var prioritizedRole = '';
             var creepSource = '';
             var connectedLink = '';
+            var backupLink = '';
             var storageID = '';
             var jobSpecificPri = '';
             var blockedRole = '';
@@ -510,6 +511,9 @@ var spawn_BuildCreeps5 = {
                             prioritizedRole = 'miner';
                             creepSource = strSources[1];
                             connectedLink = strLinks[0];
+                            if (strLinks.length >= 4) {
+                                backupLink = strLinks[2];
+                            }
                             jobSpecificPri = 'upgradeMiner';
                         }
                         break;
@@ -548,14 +552,26 @@ var spawn_BuildCreeps5 = {
                 if (prioritizedRole == 'miner') {
                     Memory.isSpawning = true;
                     if (spawn.canCreateCreep(minerConfig) == OK) {
-                        spawn.createCreep(minerConfig, undefined, {
-                            priority: prioritizedRole,
-                            mineSource: creepSource,
-                            linkSource: connectedLink,
-                            jobSpecific: jobSpecificPri,
-                            deathWarn: _.size(minerConfig) * 4,
-                            fromSpawn: spawn.id
-                        });
+                        if (jobSpecificPri == 'upgradeMiner' && strLinks.length >= 4) {
+                            spawn.createCreep(minerConfig, undefined, {
+                                priority: prioritizedRole,
+                                mineSource: creepSource,
+                                linkSource: connectedLink,
+                                linkSource2: backupLink,
+                                jobSpecific: jobSpecificPri,
+                                deathWarn: _.size(minerConfig) * 4,
+                                fromSpawn: spawn.id
+                            });
+                        } else {
+                            spawn.createCreep(minerConfig, undefined, {
+                                priority: prioritizedRole,
+                                mineSource: creepSource,
+                                linkSource: connectedLink,
+                                jobSpecific: jobSpecificPri,
+                                deathWarn: _.size(minerConfig) * 4,
+                                fromSpawn: spawn.id
+                            });
+                        }
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'mule') {
