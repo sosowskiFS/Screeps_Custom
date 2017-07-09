@@ -336,7 +336,32 @@ module.exports.loop = function() {
                                 if (minerLink == -1) {
                                     minerLink = linkCounter
                                 } else {
-                                    minerLink2 = linkCounter
+                                    var nearLink = roomLinks[linkCounter].pos.findInRange(FIND_STRUCTURES, 2, {
+                                        filter: {
+                                            structureType: STRUCTURE_LINK
+                                        }
+                                    });
+                                    if (nearLink.length) {
+                                        //If next to another link, this is the secondary
+                                        minerLink2 = linkCounter
+                                    } else {
+                                        //If not next to another link, this is the storage
+                                        if (upgraderLink != -1) {
+                                            storageLink = linkCounter
+                                        } else {
+                                            //This is possibly the upgrader?
+                                            var nearUpgrader = roomLinks[linkCounter].pos.findInRange(FIND_STRUCTURES, 5, {
+                                                filter: {
+                                                    structureType: STRUCTURE_CONTROLLER
+                                                }
+                                            });
+                                            if (nearUpgrader.length) {
+                                                upgraderLink = linkCounter
+                                            } else {
+                                                storageLink = linkCounter
+                                            }
+                                        }
+                                    }
                                 }
                             } else {
                                 var nearUpgrader = roomLinks[linkCounter].pos.findInRange(FIND_STRUCTURES, 5, {
