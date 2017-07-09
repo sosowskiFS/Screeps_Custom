@@ -323,22 +323,69 @@ module.exports.loop = function() {
                     var reverseFlag = false;
                     if (roomLinks) {
                         var linkCounter = 0;
+                        var upgraderLink = -1;
+                        var minerLink = -1;
+                        var minerLink2 = -1;
+                        var storageLink = -1;
                         while (roomLinks[linkCounter]) {
-                            if (Memory.linkList[thisRoom.name].indexOf(roomLinks[linkCounter].id) == -1) {
+                            //Determine what link is before it's placed.
+                            //Miner link = 0, upgrader link = 1, Miner link 2 = 2, StorageLink = 3
+                            var nearSources = roomLinks[linkCounter].pos.findInRange(FIND_SOURCES, 3);
+                            if (nearSources.length) {
+                                //This is a miner link
+                                if (minerLink == -1) {
+                                    minerLink = linkCounter
+                                } else {
+                                    minerLink2 = linkCounter
+                                }
+                            } else {
+                                var nearUpgrader = roomLinks[linkCounter].pos.findInRange(FIND_STRUCTURES, 3, {
+                                    filter: {
+                                        structureType: STRUCTURE_CONTROLLER
+                                    }
+                                });
+                                if (nearUpgrader.length) {
+                                    //This is the upgrader link
+                                    if (upgraderLink == -1) {
+                                        upgraderLink = linkCounter
+                                    }
+                                } else {
+                                    //This is the storage link
+                                    storageLink = linkCounter
+                                }
+
+                            }
+                            /*if (Memory.linkList[thisRoom.name].indexOf(roomLinks[linkCounter].id) == -1) {
                                 Memory.linkList[thisRoom.name].push(roomLinks[linkCounter].id)
                             }
                             //If there is no source nearby, this should not be #1
                             var nearSources = roomLinks[linkCounter].pos.findInRange(FIND_SOURCES, 3);
                             if (linkCounter == 0 && nearSources.length == 0) {
                                 reverseFlag = true;
-                            }
+                            }*/
                             linkCounter++;
                         }
-                        if (reverseFlag) {
+
+                        if (minerLink != -1) {
+                            Memory.linkList[thisRoom.name].push(roomLinks[minerLink].id);
+                        }
+                        if (upgraderLink != -1) {
+                            Memory.linkList[thisRoom.name].push(roomLinks[upgraderLink].id);
+                        }
+                        if (minerLink2 != -1) {
+                            Memory.linkList[thisRoom.name].push(roomLinks[minerLink2].id);
+                        }
+                        if (storageLink != -1) {
+                            Memory.linkList[thisRoom.name].push(roomLinks[storageLink].id);
+                        }
+
+                        //Add all links in their designated positions
+
+                        /*if (reverseFlag) {
                             //Wipe sources to be rechecked too
                             Memory.sourceList[thisRoom.name] = undefined;
                             Memory.linkList[thisRoom.name].reverse();
-                        }
+                        }*/
                     }
                 }
 
