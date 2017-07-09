@@ -339,7 +339,7 @@ module.exports.loop = function() {
                                     minerLink2 = linkCounter
                                 }
                             } else {
-                                var nearUpgrader = roomLinks[linkCounter].pos.findInRange(FIND_STRUCTURES, 7, {
+                                var nearUpgrader = roomLinks[linkCounter].pos.findInRange(FIND_STRUCTURES, 5, {
                                     filter: {
                                         structureType: STRUCTURE_CONTROLLER
                                     }
