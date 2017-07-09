@@ -480,7 +480,9 @@ var creep_work5 = {
                     var storageTarget = creep.room.storage;
                     if (storageTarget) {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget);
+                            creep.travelTo(storageTarget, {
+                                ignoreCreeps: false
+                            });
                         }
                     }
                 } else {
@@ -488,7 +490,9 @@ var creep_work5 = {
                     var upLink = Game.getObjectById(creep.memory.linkTarget);
                     if (upLink) {
                         if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(upLink);
+                            creep.travelTo(upLink, {
+                                ignoreCreeps: false
+                            });
                         }
                     }
                 }
