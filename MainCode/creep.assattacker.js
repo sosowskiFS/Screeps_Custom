@@ -76,11 +76,7 @@ var creep_assattacker = {
                     creep.attack(somethingNearby);
                 }
 
-                if (healerIsNear) {
-                    var eOthers = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_TOWER && structure.structureType != STRUCTURE_SPAWN)
-                    });
-
+                if (!healerIsNear) {
                     if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                         var xTarget = 0;
                         var yTarget = 0;
@@ -99,7 +95,13 @@ var creep_assattacker = {
                             xTarget = creep.pos.x;
                         }
                         creep.moveTo(xTarget, yTarget);
-                    }else if (Game.flags["WallFlag"]) {
+                    }
+                } else if (healerIsNear) {
+                    var eOthers = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_TOWER && structure.structureType != STRUCTURE_SPAWN)
+                    });
+
+                    if (Game.flags["WallFlag"]) {
                         var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
                         if (thisWall.length) {
                             creep.travelTo(thisWall[0], {
@@ -219,7 +221,7 @@ var creep_assattacker = {
                 } else if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
                     /*if (creep.memory.destination && !creep.memory.usedPortal) {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
-                    } else*/ 
+                    } else*/
                     if (creep.memory.path && creep.memory.path.length) {
                         if (creep.memory.path[0] == creep.room.name) {
                             creep.memory.path.splice(0, 1);
