@@ -145,7 +145,7 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE);
             neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ACID);
             neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID);
+            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ALKALIDE);
         }
 
         for (var i in neededMinerals) {
