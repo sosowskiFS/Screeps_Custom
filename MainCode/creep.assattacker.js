@@ -242,7 +242,17 @@ var creep_assattacker = {
 
         if (closeFoe) {
             //prioritize foebashing
-            creep.attack(closeFoe);
+            var found = closeFoe.pos.lookFor(LOOK_STRUCTURES);
+            var hasRampart = false;
+            for (var building in found) {
+                if (building.structureType == STRUCTURE_RAMPART) {
+                    hasRampart = true;
+                    break;
+                }
+            }
+            if (!hasRampart) {
+                creep.attack(closeFoe);
+            }
         }
 
     }
