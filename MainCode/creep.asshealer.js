@@ -59,7 +59,7 @@ var creep_asshealer = {
                     });
                 }
                 if (thisPortal) {
-                    creep.moveTo(thisPortal);
+                    creep.travelTo(thisPortal);
                 } else if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
                     var xTarget = 0;
                     var yTarget = 0;
@@ -78,18 +78,18 @@ var creep_asshealer = {
                         xTarget = creep.pos.x;
                     }
 
-                    creep.moveTo(xTarget, yTarget);
+                    creep.travelTo(xTarget, yTarget);
                 } else {
                     /*if (creep.pos.inRangeTo(targetAttacker, 2)) {
                         creep.move(creep.pos.getDirectionTo(targetAttacker));
                     } else {*/
                     if (targetAttacker.room.name == creep.room.name) {
-                        creep.moveTo(targetAttacker, {
+                        creep.travelTo(targetAttacker, {
                             maxRooms: 1,
                             ignoreRoads: true
                         });
                     } else {
-                        creep.moveTo(targetAttacker, {
+                        creep.travelTo(targetAttacker, {
                             ignoreRoads: true
                         });
                     }
@@ -126,7 +126,7 @@ var creep_asshealer = {
             } else {
                 creep.heal(creep);
                 if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
-                    creep.moveTo(Game.flags["RallyHere"], {
+                    creep.travelTo(Game.flags["RallyHere"], {
                         ignoreRoads: true
                     });
                 }
