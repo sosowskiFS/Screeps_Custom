@@ -409,6 +409,7 @@ var creep_farMining = {
                                 }
                             }
                         }
+                        evadeAttacker(creep, 5);
                     } else {
                         creep.memory.path = undefined;
                         if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
