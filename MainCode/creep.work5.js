@@ -449,7 +449,7 @@ var creep_work5 = {
                     var repairLab = creep.room.find(FIND_MY_STRUCTURES, {
                         filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ACID)
                     });
-                    if (repairLab && repairLab[0].mineralAmount >= mineralCost && repairLab[0].energy >= energyCost) {
+                    if (repairLab.length && repairLab[0].mineralAmount >= mineralCost && repairLab[0].energy >= energyCost) {
                         creep.travelTo(repairLab[0]);
                         if (repairLab[0].boostCreep(creep) == OK) {
                             creep.memory.hasBoosted = true;
