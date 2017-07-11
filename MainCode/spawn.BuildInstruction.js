@@ -256,16 +256,35 @@ var spawn_BuildInstruction = {
                         //This expects tough/attack/move boost
                         attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
-                    if (spawn.canCreateCreep(attackerConfig) == OK) {
-                        spawn.createCreep(attackerConfig, undefined, {
-                            priority: 'assattacker',
-                            destination: params,
-                            homeRoom: spawn.room.name
-                        });
-                        Memory.isSpawning = true;
-                        console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+                    if (params2 != '') {
+                        //Claimer with defined path
+                        var creepPath = params2.split(";");
+                        if (creepPath.length) {
+                            if (spawn.canCreateCreep(attackerConfig) == OK) {
+                                spawn.createCreep(attackerConfig, undefined, {
+                                    priority: 'assattacker',
+                                    destination: params,
+                                    path: creepPath,
+                                    homeRoom: spawn.room.name
+                                });
+                                Memory.isSpawning = true;
+                                console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+                            } else {
+                                //console.log('Could not execute constructor. Spawn cannot create creep.');
+                            }
+                        }
                     } else {
-                        //console.log('Could not execute constructor. Spawn cannot create creep.');
+                        if (spawn.canCreateCreep(attackerConfig) == OK) {
+                            spawn.createCreep(attackerConfig, undefined, {
+                                priority: 'assattacker',
+                                destination: params,
+                                homeRoom: spawn.room.name
+                            });
+                            Memory.isSpawning = true;
+                            console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+                        } else {
+                            //console.log('Could not execute constructor. Spawn cannot create creep.');
+                        }
                     }
                 } else if (healers.length < 1 && healers.length < attackers.length) {
                     var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];

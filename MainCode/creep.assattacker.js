@@ -186,10 +186,19 @@ var creep_assattacker = {
                 if (thisPortal) {
                     creep.memory.destination = undefined;
                     creep.memory.usedPortal = true;
+                    if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
+                        creep.memory.path.splice(0, 1);
+                    }
                     creep.travelTo(thisPortal);
                 } else if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName != creep.pos.roomName) {
-                    if (creep.memory.destination && !creep.memory.usedPortal) {
+                    /*if (creep.memory.destination && !creep.memory.usedPortal) {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
+                    } else*/ 
+                    if (creep.memory.path && creep.memory.path.length) {
+                        if (creep.memory.path[0] == creep.room.name) {
+                            creep.memory.path.splice(0, 1);
+                        }
+                        creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
                     } else if (Game.flags[creep.memory.homeRoom + "Assault"].pos) {
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "Assault"], {
                             ignoreRoads: true
