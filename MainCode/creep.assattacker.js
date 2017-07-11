@@ -31,7 +31,7 @@ var creep_assattacker = {
         }
 
         var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != 'Eiskalt')
         });
 
         var thisHealer = Game.getObjectById(creep.memory.healerID);
