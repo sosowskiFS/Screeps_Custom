@@ -682,7 +682,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "Assault"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags[thisRoom.name + "Assault"].pos.roomName, '', 'E86N85;E85N85;W75S5;W75S6;W74S6;W73S6;W72S6;W71S6;W71S5;W70S6;W69S6;W68S7;W66S7;');
+                    spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags[thisRoom.name + "Assault"].pos.roomName, '', 'E86N85;E85N85;W75S5;W75S6;W74S6;W73S6;W72S6;W71S6;W71S5;W70S6;W69S6;W68S7;W66S7');
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
