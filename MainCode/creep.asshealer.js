@@ -130,7 +130,7 @@ var creep_asshealer = {
                         ignoreRoads: true
                     });
                 }
-                var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
+                var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
                     filter: (mCreep) => (mCreep.memory.priority == "assattacker")
                 });
                 if (newTarget.length) {
