@@ -214,7 +214,7 @@ var creep_assattacker = {
                 if (thisPortal) {
                     creep.memory.destination = undefined;
                     creep.memory.usedPortal = true;
-                    if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
+                    if (creep.memory.path && creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
                         creep.memory.path.splice(0, 1);
                     }
                     creep.travelTo(thisPortal);

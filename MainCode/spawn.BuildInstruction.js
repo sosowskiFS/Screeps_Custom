@@ -248,7 +248,7 @@ var spawn_BuildInstruction = {
             case 'assault':
                 var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == spawn.room.name);
                 var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == spawn.room.name);
-                if (attackers.length < 1 && (attackers.length < healers.length || attackers.length == healers.length)) {
+                if (attackers.length < 3 && (attackers.length < healers.length || attackers.length == healers.length)) {
                     var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
                     //Testing movement config
                     //var attackerConfig = [TOUGH, TOUGH, MOVE, MOVE];
@@ -286,7 +286,7 @@ var spawn_BuildInstruction = {
                             //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     }
-                } else if (healers.length < 1 && healers.length < attackers.length) {
+                } else if (healers.length < 3 && healers.length < attackers.length) {
                     var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     //Testing movement config
                     //var healerConfig = [TOUGH, MOVE];
