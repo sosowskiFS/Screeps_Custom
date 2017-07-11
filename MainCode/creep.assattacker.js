@@ -84,14 +84,18 @@ var creep_assattacker = {
                     if (Game.flags["WallFlag"]) {
                         var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
                         if (thisWall.length) {
-                            creep.travelTo(thisWall[0]);
+                            creep.travelTo(thisWall[0], {
+                                maxRooms: 1
+                            });
                             creep.attack(thisWall[0]);
                         } else {
                             Game.flags["WallFlag"].remove();
                         }
                     } else if (eOthers) {
                         creep.travelTo(eTowers, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            maxRooms: 1
+
                         });
                         creep.attack(eOthers);
                     } else {
@@ -100,14 +104,16 @@ var creep_assattacker = {
                         });
                         if (eTowers) {
                             creep.travelTo(eTowers, {
-                                ignoreRoads: true
+                                ignoreRoads: true,
+                                maxRooms: 1
                             });
                             creep.attack(eTowers);
                         } else {
                             var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
                             if (eSpawns.length) {
                                 creep.travelTo(eSpawns[0], {
-                                    ignoreRoads: true
+                                    ignoreRoads: true,
+                                    maxRooms: 1
                                 });
                                 creep.attack(eSpawns[0]);
                             } else {
@@ -116,12 +122,14 @@ var creep_assattacker = {
                                 });
                                 if (eStructures) {
                                     creep.travelTo(eStructures, {
-                                        ignoreRoads: true
+                                        ignoreRoads: true,
+                                        maxRooms: 1
                                     });
                                     creep.attack(eStructures);
                                 } else if (closeFoe) {
                                     creep.travelTo(closeFoe, {
-                                        ignoreRoads: true
+                                        ignoreRoads: true,
+                                        maxRooms: 1
                                     });
                                 } else if (Game.flags[creep.memory.homeRoom + "Assault"]) {
                                     Game.flags[creep.memory.homeRoom + "Assault"].remove();
