@@ -25,29 +25,29 @@ var creep_asshealer = {
             var MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
             });
-            if (MoveLab.length && MoveLab.mineralAmount > 0) {
-                creep.travelTo(MoveLab);
-                MoveLab.boostCreep(creep);
+            if (MoveLab.length && MoveLab[0].mineralAmount > 0) {
+                creep.travelTo(MoveLab[0]);
+                MoveLab[0].boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
-            if (ToughLab.length && ToughLab.mineralAmount > 0) {
-                creep.travelTo(ToughLab, {
+            if (ToughLab.length && ToughLab[0].mineralAmount > 0) {
+                creep.travelTo(ToughLab[0], {
                     ignoreRoads: true
                 });
-                ToughLab.boostCreep(creep);
+                ToughLab[0].boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedHeal > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var HealLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
-            if (HealLab.length && HealLab.mineralAmount > 0) {
-                creep.travelTo(HealLab, {
+            if (HealLab.length && HealLab[0].mineralAmount > 0) {
+                creep.travelTo(HealLab[0], {
                     ignoreRoads: true
                 });
-                HealLab.boostCreep(creep);
+                HealLab[0].boostCreep(creep);
             }
         } else {
             var targetAttacker = Game.getObjectById(creep.memory.attackerID);

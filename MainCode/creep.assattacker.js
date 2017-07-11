@@ -44,29 +44,29 @@ var creep_assattacker = {
             var MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
             });
-            if (MoveLab.length && MoveLab.mineralAmount > 0) {
-                creep.travelTo(MoveLab);
-                MoveLab.boostCreep(creep);
+            if (MoveLab.length && MoveLab[0].mineralAmount > 0) {
+                creep.travelTo(MoveLab[0]);
+                MoveLab[0].boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedTough > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
-            if (ToughLab.length && ToughLab.mineralAmount > 0) {
-                creep.travelTo(ToughLab, {
+            if (ToughLab.length && ToughLab[0].mineralAmount > 0) {
+                creep.travelTo(ToughLab[0], {
                     ignoreRoads: true
                 });
-                ToughLab.boostCreep(creep);
+                ToughLab[0].boostCreep(creep);
             }
         } else if (Game.flags["DoBoost"] && unboostedAttack > 0 && Game.flags[creep.memory.homeRoom + "Assault"]) {
             var AttackLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
             });
-            if (AttackLab.length && AttackLab.mineralAmount > 0) {
-                creep.travelTo(AttackLab, {
+            if (AttackLab.length && AttackLab[0].mineralAmount > 0) {
+                creep.travelTo(AttackLab[0], {
                     ignoreRoads: true
                 });
-                AttackLab.boostCreep(creep);
+                AttackLab[0].boostCreep(creep);
             }
         } else {
             if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName == creep.pos.roomName) {
