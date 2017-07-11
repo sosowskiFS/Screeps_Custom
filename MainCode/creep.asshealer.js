@@ -78,7 +78,7 @@ var creep_asshealer = {
                         xTarget = creep.pos.x;
                     }
 
-                    creep.moveto(xTarget, yTarget);
+                    creep.moveTo(xTarget, yTarget);
                 } else {
                     /*if (creep.pos.inRangeTo(targetAttacker, 2)) {
                         creep.move(creep.pos.getDirectionTo(targetAttacker));
