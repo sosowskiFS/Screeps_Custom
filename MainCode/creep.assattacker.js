@@ -81,7 +81,25 @@ var creep_assattacker = {
                         filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_TOWER && structure.structureType != STRUCTURE_SPAWN)
                     });
 
-                    if (Game.flags["WallFlag"]) {
+                    if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                        var xTarget = 0;
+                        var yTarget = 0;
+                        if (creep.pos.x == 0) {
+                            xTarget = 2;
+                            yTarget = creep.pos.y;
+                        } else if (creep.pos.x == 49) {
+                            xTarget = 47;
+                            yTarget = creep.pos.y;
+                        }
+                        if (creep.pos.y == 0) {
+                            yTarget = 2;
+                            xTarget = creep.pos.x;
+                        } else if (creep.pos.y == 49) {
+                            yTarget = 47;
+                            xTarget = creep.pos.x;
+                        }
+                        creep.moveTo(xTarget, yTarget);
+                    }else if (Game.flags["WallFlag"]) {
                         var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
                         if (thisWall.length) {
                             creep.travelTo(thisWall[0], {
