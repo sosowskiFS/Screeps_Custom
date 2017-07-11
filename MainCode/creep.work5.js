@@ -557,9 +557,7 @@ var creep_work5 = {
                     var getNewStructure = false;
                     if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
                         if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(savedTarget, {
-                                ignoreRoads: true
-                            });
+                            creep.travelTo(savedTarget);
                         } else {
                             getNewStructure = true;
                             creep.memory.structureTarget = undefined;
@@ -588,9 +586,7 @@ var creep_work5 = {
 
                         if (target) {
                             if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(target, {
-                                    ignoreRoads: true
-                                });
+                                creep.travelTo(target);
                                 creep.memory.structureTarget = target.id;
                             }
                         }
@@ -599,9 +595,7 @@ var creep_work5 = {
                     var upLink = Game.getObjectById(Memory.linkList[creep.room.name][1])
                     if (upLink) {
                         if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(upLink, {
-                                ignoreRoads: true
-                            });
+                            creep.travelTo(upLink);
                         }
                     }
                 } else if (_.sum(creep.carry) < creep.carryCapacity) {
@@ -613,26 +607,20 @@ var creep_work5 = {
                     }
                     if (linkTarget && linkTarget.energy >= 200) {
                         if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(linkTarget, {
-                                ignoreRoads: true
-                            });
+                            creep.travelTo(linkTarget);
                         }
                     } else {
                         var storageTarget = creep.room.storage;
                         if (storageTarget) {
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(storageTarget, {
-                                    ignoreRoads: true
-                                });
+                                creep.travelTo(storageTarget);
                             }
                         }
                     }
                 } else {
                     var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
                     if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
-                        creep.travelTo(homeSpawn, {
-                            ignoreRoads: true
-                        });
+                        creep.travelTo(homeSpawn);
                     }
                 }
                 break;
