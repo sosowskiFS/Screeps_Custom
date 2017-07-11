@@ -446,7 +446,9 @@ var creep_work5 = {
                 if (!creep.memory.hasBoosted && creep.room.controller.level >= 7 && Memory.labList[creep.room.name].length >= 6 && !creep.memory.previousPriority) {
                     var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
                     var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
-                    var repairLab = Game.getObjectById(Memory.labList[creep.room.name][5]);
+                    var repairLab = creep.room.find(FIND_MY_STRUCTURES, {
+                        filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ACID)
+                    });
                     if (repairLab && repairLab.mineralAmount >= mineralCost && repairLab.energy >= energyCost) {
                         creep.travelTo(repairLab);
                         if (repairLab.boostCreep(creep) == OK) {
