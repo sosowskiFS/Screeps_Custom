@@ -243,9 +243,10 @@ var creep_assattacker = {
             }
         }
 
-        /*if (closeFoe) {
+        if (closeFoe) {
+            creep.rangedMassAttack();
             //prioritize foebashing
-            var found = closeFoe.pos.lookFor(LOOK_STRUCTURES);
+            /*var found = closeFoe.pos.lookFor(LOOK_STRUCTURES);
             var hasRampart = false;
             for (var building in found) {
                 if (found[building].structureType == STRUCTURE_RAMPART) {
@@ -255,8 +256,8 @@ var creep_assattacker = {
             }
             if (!hasRampart) {
                 creep.attack(closeFoe);
-            }
-        }*/
+            }*/
+        }
 
     }
 
