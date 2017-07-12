@@ -63,139 +63,9 @@ var creep_farMining = {
                     }
                 }
 
-                if (creep.room.name != creep.memory.destination) {
-                    if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
-                        creep.travelTo(Game.flags[creep.memory.targetFlag]);
-                    } else {
-                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
-                    }
-                } else {
-                    if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-                        if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
-                            Memory.FarClaimerNeeded[creep.room.name] = true;
-                        } else if (Memory.FarClaimerNeeded[creep.room.name]) {
-                            Memory.FarClaimerNeeded[creep.room.name] = false;
-                        }
-                    } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
-                        Memory.FarClaimerNeeded[creep.room.name] = true;
-                    } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
-                        Memory.FarClaimerNeeded[creep.room.name] = false;
-                    }
 
-                    if (Game.flags[creep.room.name + "SKRoom"] && !Memory.SKMineralTimers[creep.room.name]) {
-                        Memory.SKMineralTimers[creep.room.name] = 0;
-                    }
+                var isEvading = false;
 
-                    var mineTarget = undefined;
-                    var thisUnit = undefined;
-
-                    if (creep.memory.storageUnit) {
-                        thisUnit = Game.getObjectById(creep.memory.storageUnit);
-                    }
-
-                    if (creep.memory.mineSource) {
-                        mineTarget = Game.getObjectById(creep.memory.mineSource);
-                        var StorageOK = true;
-                        if (thisUnit && _.sum(thisUnit.store) == thisUnit.storeCapacity) {
-                            StorageOK = false;
-                        }
-                        if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {
-                            creep.harvest(mineTarget);
-                            if (Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
-                                creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
-                            } else if (!creep.pos.isNearTo(mineTarget)) {
-                                creep.travelTo(Game.flags[creep.memory.targetFlag]);
-                            }
-                        } else if (mineTarget && Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
-                        } else if (mineTarget && !creep.pos.isNearTo(mineTarget)) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag]);
-                        }
-                    } else {
-                        //Get the source ID while in the room
-                        var markedSources = [];
-                        if (Game.flags[creep.memory.targetFlag]) {
-                            markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
-                        }
-                        if (markedSources.length) {
-                            creep.memory.mineSource = markedSources[0].id;
-                        }
-                        mineTarget = Game.getObjectById(creep.memory.mineSource);
-                        if (mineTarget) {
-                            if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(Game.flags[creep.memory.targetFlag]);
-                            }
-                        }
-                    }
-
-                    if (creep.memory.storageUnit) {
-                        if (thisUnit) {
-                            if (thisUnit.hits < thisUnit.hitsMax && hostiles.length == 0) {
-                                creep.repair(thisUnit);
-                            } else if (creep.carry.energy >= 36) {
-                                if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(thisUnit);
-                                }
-                            }
-                        }
-                    } else {
-                        if (mineTarget) {
-                            if (creep.pos.inRangeTo(mineTarget, 2)) {
-                                var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
-                                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                                });
-                                if (containers.length) {
-                                    if (creep.transfer(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                        creep.travelTo(containers[0]);
-                                    }
-                                    creep.memory.storageUnit = containers[0].id;
-                                } else {
-                                    if (creep.carry[RESOURCE_ENERGY] >= 36) {
-                                        var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
-                                        var nearFoe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                                        });
-                                        if (sites.length && !nearFoe.length) {
-                                            if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
-                                                creep.travelTo(sites[0]);
-                                            }
-                                        } else if (!sites.length && !nearFoe.length) {
-                                            //Create new container
-                                            if (creep.pos.isNearTo(mineTarget)) {
-                                                var x = Math.floor(Math.random() * 3);
-                                                switch (x) {
-                                                    case 0:
-                                                        x = -1;
-                                                        break;
-                                                    case 1:
-                                                        x = 0;
-                                                        break;
-                                                    case 2:
-                                                        x = 1;
-                                                        break;
-                                                }
-                                                var y = Math.floor(Math.random() * 3);
-                                                switch (y) {
-                                                    case 0:
-                                                        y = -1;
-                                                        break;
-                                                    case 1:
-                                                        y = 0;
-                                                        break;
-                                                    case 2:
-                                                        y = 1;
-                                                        break;
-                                                }
-                                                creep.room.createConstructionSite(creep.pos.x + x, creep.pos.y + y, STRUCTURE_CONTAINER);
-                                            }
-                                            //Math.floor(Math.random() * 2) - 1;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
                 if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
                     //Memory.SKRoomsUnderAttack
                     var Foe = [];
@@ -216,13 +86,150 @@ var creep_farMining = {
                     }
 
                     if (Memory.SKRoomsUnderAttack.indexOf(creep.room.name) != -1) {
-                        attackInvader(creep);
+                        isEvading = attackInvader(creep);
                     } else {
-                        evadeAttacker(creep, 2);
+                        isEvading = evadeAttacker(creep, 2);
                     }
                 } else {
-                    evadeAttacker(creep, 5);
+                    isEvading = evadeAttacker(creep, 5);
                 }
+
+                if (!isEvading) {
+                    if (creep.room.name != creep.memory.destination) {
+                        if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
+                            creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                        } else {
+                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
+                        }
+                    } else {
+                        if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
+                            if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
+                                Memory.FarClaimerNeeded[creep.room.name] = true;
+                            } else if (Memory.FarClaimerNeeded[creep.room.name]) {
+                                Memory.FarClaimerNeeded[creep.room.name] = false;
+                            }
+                        } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
+                            Memory.FarClaimerNeeded[creep.room.name] = true;
+                        } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
+                            Memory.FarClaimerNeeded[creep.room.name] = false;
+                        }
+
+                        if (Game.flags[creep.room.name + "SKRoom"] && !Memory.SKMineralTimers[creep.room.name]) {
+                            Memory.SKMineralTimers[creep.room.name] = 0;
+                        }
+
+                        var mineTarget = undefined;
+                        var thisUnit = undefined;
+
+                        if (creep.memory.storageUnit) {
+                            thisUnit = Game.getObjectById(creep.memory.storageUnit);
+                        }
+
+                        if (creep.memory.mineSource) {
+                            mineTarget = Game.getObjectById(creep.memory.mineSource);
+                            var StorageOK = true;
+                            if (thisUnit && _.sum(thisUnit.store) == thisUnit.storeCapacity) {
+                                StorageOK = false;
+                            }
+                            if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {
+                                creep.harvest(mineTarget);
+                                if (Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
+                                    creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
+                                } else if (!creep.pos.isNearTo(mineTarget)) {
+                                    creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                                }
+                            } else if (mineTarget && Game.flags[creep.memory.targetFlag + "Here"] && !creep.pos.isNearTo(mineTarget)) {
+                                creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
+                            } else if (mineTarget && !creep.pos.isNearTo(mineTarget)) {
+                                creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                            }
+                        } else {
+                            //Get the source ID while in the room
+                            var markedSources = [];
+                            if (Game.flags[creep.memory.targetFlag]) {
+                                markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
+                            }
+                            if (markedSources.length) {
+                                creep.memory.mineSource = markedSources[0].id;
+                            }
+                            mineTarget = Game.getObjectById(creep.memory.mineSource);
+                            if (mineTarget) {
+                                if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                                }
+                            }
+                        }
+
+                        if (creep.memory.storageUnit) {
+                            if (thisUnit) {
+                                if (thisUnit.hits < thisUnit.hitsMax && hostiles.length == 0) {
+                                    creep.repair(thisUnit);
+                                } else if (creep.carry.energy >= 36) {
+                                    if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                        creep.travelTo(thisUnit);
+                                    }
+                                }
+                            }
+                        } else {
+                            if (mineTarget) {
+                                if (creep.pos.inRangeTo(mineTarget, 2)) {
+                                    var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
+                                        filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                                    });
+                                    if (containers.length) {
+                                        if (creep.transfer(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                            creep.travelTo(containers[0]);
+                                        }
+                                        creep.memory.storageUnit = containers[0].id;
+                                    } else {
+                                        if (creep.carry[RESOURCE_ENERGY] >= 36) {
+                                            var sites = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 2)
+                                            var nearFoe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                                                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                                            });
+                                            if (sites.length && !nearFoe.length) {
+                                                if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
+                                                    creep.travelTo(sites[0]);
+                                                }
+                                            } else if (!sites.length && !nearFoe.length) {
+                                                //Create new container
+                                                if (creep.pos.isNearTo(mineTarget)) {
+                                                    var x = Math.floor(Math.random() * 3);
+                                                    switch (x) {
+                                                        case 0:
+                                                            x = -1;
+                                                            break;
+                                                        case 1:
+                                                            x = 0;
+                                                            break;
+                                                        case 2:
+                                                            x = 1;
+                                                            break;
+                                                    }
+                                                    var y = Math.floor(Math.random() * 3);
+                                                    switch (y) {
+                                                        case 0:
+                                                            y = -1;
+                                                            break;
+                                                        case 1:
+                                                            y = 0;
+                                                            break;
+                                                        case 2:
+                                                            y = 1;
+                                                            break;
+                                                    }
+                                                    creep.room.createConstructionSite(creep.pos.x + x, creep.pos.y + y, STRUCTURE_CONTAINER);
+                                                }
+                                                //Math.floor(Math.random() * 2) - 1;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 break;
             case 'farMineralMiner':
                 if ((_.sum(creep.carry) >= creep.carryCapacity || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
@@ -616,12 +623,12 @@ var creep_farMining = {
                     }
                 } else if (Foe.length) {
                     var closeRangeResult = "";
-                    var attackResult = creep.attack(closeFoe);   
-                    if (Foe.length >= 2){
+                    var attackResult = creep.attack(closeFoe);
+                    if (Foe.length >= 2) {
                         creep.rangedMassAttack();
                     } else {
-                       closeRangeResult = creep.rangedAttack(closeFoe);
-                    }            
+                        closeRangeResult = creep.rangedAttack(closeFoe);
+                    }
                     if (attackResult != OK) {
                         if (creep.hits < creep.hitsMax) {
                             creep.heal(creep);
@@ -1179,6 +1186,8 @@ function evadeAttacker(creep, evadeRange) {
         creep.moveTo(x, y, {
             ignoreRoads: true
         });
+
+        return true;
     } else if (!closeFoe && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
         var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
         if (UnderAttackPos >= 0) {
@@ -1304,10 +1313,12 @@ function attackInvader(creep) {
         creep.moveTo(x, y, {
             ignoreRoads: true
         });
+        return true;
     } else if (closeFoe) {
         creep.moveTo(closeFoe, {
             maxRooms: 1
         });
+        return true;
     }
 }
 
