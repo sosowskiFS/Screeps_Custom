@@ -151,7 +151,7 @@ module.exports.loop = function() {
                 var found = Game.spawns[i].pos.lookFor(LOOK_STRUCTURES);
                 var hasRampart = false;
                 for (var building in found) {
-                    if (building.structureType == STRUCTURE_RAMPART) {
+                    if (found[building].structureType == STRUCTURE_RAMPART) {
                         hasRampart = true;
                         break;
                     }
@@ -183,7 +183,7 @@ module.exports.loop = function() {
                     var found = thisRoom.storage.pos.lookFor(LOOK_STRUCTURES);
                     var hasRampart = false;
                     for (var building in found) {
-                        if (building.structureType == STRUCTURE_RAMPART) {
+                        if (found[building].structureType == STRUCTURE_RAMPART) {
                             hasRampart = true;
                             break;
                         }
@@ -198,7 +198,7 @@ module.exports.loop = function() {
                     var found = thisRoom.terminal.pos.lookFor(LOOK_STRUCTURES);
                     var hasRampart = false;
                     for (var building in found) {
-                        if (building.structureType == STRUCTURE_RAMPART) {
+                        if (found[building].structureType == STRUCTURE_RAMPART) {
                             hasRampart = true;
                             break;
                         }
@@ -495,7 +495,7 @@ module.exports.loop = function() {
                             var found = powerSpawns[0].pos.lookFor(LOOK_STRUCTURES);
                             var hasRampart = false;
                             for (var building in found) {
-                                if (building.structureType == STRUCTURE_RAMPART) {
+                                if (found[building].structureType == STRUCTURE_RAMPART) {
                                     hasRampart = true;
                                     break;
                                 }
@@ -535,7 +535,7 @@ module.exports.loop = function() {
                             var found = theseNukes[0].pos.lookFor(LOOK_STRUCTURES);
                             var hasRampart = false;
                             for (var building in found) {
-                                if (building.structureType == STRUCTURE_RAMPART) {
+                                if (found[building].structureType == STRUCTURE_RAMPART) {
                                     hasRampart = true;
                                     break;
                                 }
@@ -741,7 +741,7 @@ module.exports.loop = function() {
                     var found = towers[y].pos.lookFor(LOOK_STRUCTURES);
                     var hasRampart = false;
                     for (var building in found) {
-                        if (building.structureType == STRUCTURE_RAMPART) {
+                        if (found[building].structureType == STRUCTURE_RAMPART) {
                             hasRampart = true;
                             break;
                         }
