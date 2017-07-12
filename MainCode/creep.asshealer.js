@@ -104,6 +104,7 @@ var creep_asshealer = {
                     });
                     var healedAlly = false
                     if (hurtAlly.length > 0) {
+                        hurtAlly.sort(healCompare);
                         if (creep.pos.getRangeTo(hurtAlly[0]) > 1) {
                             if (creep.rangedHeal(hurtAlly[0]) == OK) {
                                 healedAlly = true;
@@ -141,5 +142,13 @@ var creep_asshealer = {
     }
 
 };
+
+function healCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
 
 module.exports = creep_asshealer;
