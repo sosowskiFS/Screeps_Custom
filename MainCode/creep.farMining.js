@@ -1114,7 +1114,7 @@ function evadeAttacker(creep, evadeRange) {
     }
 
     if (Foe.length) {
-        creep.memory.evadingUntil = Game.time + 5;
+        creep.memory.evadingUntil = Game.time + 10;
         if (!closeFoe) {
             closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
