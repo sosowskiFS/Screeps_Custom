@@ -11,31 +11,34 @@ var creep_farMining = {
                     creep.memory.priority = 'farClaimerNearDeath';
                 }
 
-                if (creep.room.name != creep.memory.destination) {
-                    if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
-                        creep.travelTo(Game.rooms[creep.memory.destination].controller, {
-                            ignoreRoads: true
-                        });
+                var isEvading = evadeAttacker(creep, 5);
+
+                if (!isEvading) {
+                    if (creep.room.name != creep.memory.destination) {
+                        if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
+                            creep.travelTo(Game.rooms[creep.memory.destination].controller, {
+                                ignoreRoads: true
+                            });
+                        } else {
+                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
+                                ignoreRoads: true
+                            })
+                        }
                     } else {
-                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
-                            ignoreRoads: true
-                        })
-                    }
-                } else {
-                    if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(creep.room.controller, {
-                            ignoreRoads: true
-                        });
-                    } else {
-                        if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
-                            creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
-                        } else if (!creep.room.controller.sign) {
-                            creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
+                        if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(creep.room.controller, {
+                                ignoreRoads: true
+                            });
+                        } else {
+                            if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
+                                creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
+                            } else if (!creep.room.controller.sign) {
+                                creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
+                            }
                         }
                     }
                 }
 
-                evadeAttacker(creep, 5);
                 break;
             case 'farMiner':
             case 'farMinerNearDeath':
@@ -229,7 +232,7 @@ var creep_farMining = {
                         }
                     }
                 }
-                
+
                 break;
             case 'farMineralMiner':
                 if ((_.sum(creep.carry) >= creep.carryCapacity || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
@@ -1193,7 +1196,10 @@ function evadeAttacker(creep, evadeRange) {
         if (UnderAttackPos >= 0) {
             Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
         }
+        return false;
     }
+
+    return false;
 }
 
 function attackInvader(creep) {
@@ -1319,6 +1325,8 @@ function attackInvader(creep) {
             maxRooms: 1
         });
         return true;
+    } else {
+        return false;
     }
 }
 
