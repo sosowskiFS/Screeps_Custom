@@ -112,7 +112,7 @@ var creep_assattacker = {
                             Game.flags["WallFlag"].remove();
                         }
                     } else if (eOthers) {
-                        creep.travelTo(eTowers, {
+                        creep.travelTo(eOthers, {
                             ignoreRoads: true,
                             maxRooms: 1
 
