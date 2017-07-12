@@ -71,9 +71,7 @@ var creep_assattacker = {
         } else {
             if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName == creep.pos.roomName) {
                 //In target room
-                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.hits <= 100000)
-                });
+                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
                 if (somethingNearby) {
                     creep.attack(somethingNearby);
                 }
