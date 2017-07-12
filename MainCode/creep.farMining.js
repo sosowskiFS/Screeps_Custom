@@ -1199,7 +1199,7 @@ function evadeAttacker(creep, evadeRange) {
         return false;
     }
 
-    return false;
+    return didRanged;
 }
 
 function attackInvader(creep) {
