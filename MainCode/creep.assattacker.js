@@ -97,10 +97,6 @@ var creep_assattacker = {
                         creep.moveTo(xTarget, yTarget);
                     }
                 } else if (healerIsNear) {
-                    var eOthers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_TOWER && structure.structureType != STRUCTURE_SPAWN && structure.structureType != STRUCTURE_LINK && structure.structureType != STRUCTURE_ROAD)
-                    });
-
                     if (Game.flags["WallFlag"]) {
                         var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
                         if (thisWall.length) {
@@ -111,13 +107,6 @@ var creep_assattacker = {
                         } else {
                             Game.flags["WallFlag"].remove();
                         }
-                    } else if (eOthers) {
-                        creep.travelTo(eOthers, {
-                            ignoreRoads: true,
-                            maxRooms: 1
-
-                        });
-                        creep.attack(eOthers);
                     } else {
                         var eTowers = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                             filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy > 0)
