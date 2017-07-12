@@ -98,7 +98,7 @@ var creep_assattacker = {
                     }
                 } else if (healerIsNear) {
                     var eOthers = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_TOWER && structure.structureType != STRUCTURE_SPAWN)
+                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_TOWER && structure.structureType != STRUCTURE_SPAWN && structure.structureType != STRUCTURE_LINK)
                     });
 
                     if (Game.flags["WallFlag"]) {
