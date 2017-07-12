@@ -109,7 +109,7 @@ var creep_assattacker = {
                         }
                     } else {
                         var eTowers = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                            filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy > 0)
+                            filter: (structure) => (structure.structureType == STRUCTURE_TOWER && structure.energy >= 10)
                         });
                         if (eTowers) {
                             creep.travelTo(eTowers, {
