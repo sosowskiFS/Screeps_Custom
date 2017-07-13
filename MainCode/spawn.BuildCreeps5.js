@@ -436,10 +436,6 @@ var spawn_BuildCreeps5 = {
                     ChosenCreepSet.push(TOUGH);
                     ToughCount--;
                 }
-                while (MoveCount > 1) {
-                    ChosenCreepSet.push(MOVE);
-                    MoveCount--;
-                }
                 while (AttackCount > 0) {
                     ChosenCreepSet.push(ATTACK);
                     AttackCount--;
@@ -448,9 +444,10 @@ var spawn_BuildCreeps5 = {
                     ChosenCreepSet.push(RANGED_ATTACK);
                     RangedCount--;
                 }
-
-                //Insert one move module last so the creep can still run
-                ChosenCreepSet.push(MOVE);
+                while (MoveCount > 0) {
+                    ChosenCreepSet.push(MOVE);
+                    MoveCount--;
+                }
 
                 if (ChosenCreepSet.length > 50) {
                     while (ChosenCreepSet.length > 50) {
