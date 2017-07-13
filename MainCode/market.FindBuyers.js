@@ -10,13 +10,13 @@ var market_buyers = {
         //Always requested minerals for boosts
         if (thisRoom.controller.level >= 7) {
             neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID); //Attack boost, defenders
-            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID); //Upgrade boost
-            neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ACID); //Repair boost
             if (thisRoom.controller.level == 7) {
+                neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID); //Upgrade boost
                 GH2OPriority = 0;
             } else {
-                GH2OPriority = 1;
+                neededMinerals.push(RESOURCE_CATALYZED_KEANIUM_ALKALIDE); //Ranged boost
             }
+            neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ACID); //Repair boost
         }
         if (thisRoom.controller.level == 8) {
             neededMinerals.push(RESOURCE_GHODIUM);
@@ -207,7 +207,7 @@ var market_buyers = {
                 var MaxSaleAmount = 30000;
                 for (var y in sellMinerals) {
                     var mineralInTerminal = thisTerminal.store[sellMinerals[y]] - 20000;
-                    if (sellMinerals[y] == RESOURCE_CATALYST){
+                    if (sellMinerals[y] == RESOURCE_CATALYST) {
                         mineralInTerminal = thisTerminal.store[sellMinerals[y]] - 40000;
                     }
                     if (mineralInTerminal > 100) {
