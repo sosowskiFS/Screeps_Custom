@@ -1218,6 +1218,7 @@ function attackInvader(creep) {
         filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
     });
     if (Foe.length > 1) {
+        Foe.sort(targetRanged);
         creep.rangedMassAttack();
         didRanged = true;
     } else if (Foe.length) {
@@ -1321,9 +1322,16 @@ function attackInvader(creep) {
         });
         return true;
     } else if (closeFoe) {
-        creep.moveTo(closeFoe, {
-            maxRooms: 1
-        });
+        if (Foe.length) {
+            creep.moveTo(Foe[0], {
+                maxRooms: 1
+            });
+        } else {
+            creep.moveTo(closeFoe, {
+                maxRooms: 1
+            });
+        }
+
         return true;
     } else {
         return false;
@@ -1334,6 +1342,14 @@ function targetAttacker(a, b) {
     if (a.getActiveBodyparts(ATTACK) > b.getActiveBodyparts(ATTACK))
         return -1;
     if (a.getActiveBodyparts(ATTACK) < b.getActiveBodyparts(ATTACK))
+        return 1;
+    return 0;
+}
+
+function targetRanged(a, b) {
+    if (a.getActiveBodyparts(RANGED_ATTACK) > b.getActiveBodyparts(RANGED_ATTACK))
+        return -1;
+    if (a.getActiveBodyparts(RANGED_ATTACK) < b.getActiveBodyparts(RANGED_ATTACK))
         return 1;
     return 0;
 }
