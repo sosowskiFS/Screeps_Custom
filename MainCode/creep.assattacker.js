@@ -99,7 +99,7 @@ var creep_assattacker = {
                 }
 
                 creep.rangedMassAttack();
-                if (creep.hits < creep.hitsMax - 900 && Game.flags["FallBack"] && Game.flags["FallBack"].pos) {
+                if (creep.hits < creep.hitsMax - 700 && Game.flags["FallBack"] && Game.flags["FallBack"].pos) {
                     //Fall back
                     creep.travelTo(Game.flags["FallBack"], {
                         ignoreRoads: true;
