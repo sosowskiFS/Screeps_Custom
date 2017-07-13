@@ -102,7 +102,7 @@ var creep_assattacker = {
                 if (creep.hits < creep.hitsMax - 700 && Game.flags["FallBack"] && Game.flags["FallBack"].pos) {
                     //Fall back
                     creep.travelTo(Game.flags["FallBack"], {
-                        ignoreRoads: true;
+                        ignoreRoads: true
                     });
                 } else if (!healerIsNear) {
                     if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
