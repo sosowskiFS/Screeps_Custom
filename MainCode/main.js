@@ -310,7 +310,7 @@ module.exports.loop = function() {
                         //Get the fuck off!
                         if (creepCheck[0].memory.priority != "supplierNearDeath") {
                             creepCheck[0].moveTo(thisRoom.controller);
-                        }                     
+                        }
                     }
                 }
 
@@ -684,7 +684,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "Assault"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags[thisRoom.name + "Assault"].pos.roomName, '', 'E86N85;E85N85;W75S5;W75S6;W74S6;W73S6;W72S6;W71S6;W71S5;W70S6;W69S7;W69S6;W69S7;W68S7;W67S7;W66S7');
+                    spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags[thisRoom.name + "Assault"].pos.roomName, '', 'E86N85;E85N85;W75S5;W75S6;W74S6;W73S6;W72S6;W71S6;W71S5;W70S5;W69S5;W69S6;W69S7;W68S7;W67S7;W66S7');
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
