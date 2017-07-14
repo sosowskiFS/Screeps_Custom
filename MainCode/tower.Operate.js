@@ -66,6 +66,15 @@ var tower_Operate = {
 			});
 			if (closestDamagedCreep) {
 				tower.heal(closestDamagedCreep);
+			} else {
+				//Repair ramparts about to decay
+				var decayingRampart = tower.room.find(FIND_MY_STRUCTURES, {
+					filter: (structure) => (structure.structureType = STRUCTURE_RAMPART && structure.ticksToDecay <= 3)
+				});
+				if (decayingRampart.length){
+					decayingRampart.sort(repairCompare);
+					tower.repair(decayingRampart[0]);
+				}
 			}
 		}
 
@@ -80,5 +89,13 @@ var tower_Operate = {
 		//wew
 	}
 };
+
+function repairCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
 
 module.exports = tower_Operate;
