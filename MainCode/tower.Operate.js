@@ -59,7 +59,7 @@ var tower_Operate = {
 					}
 				}
 			}
-		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % 2 == 0)) {
+		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % 5 == 0)) {
 			//Save 50% of the tower's energy to use on repelling attackers
 			var closestDamagedCreep = tower.pos.findClosestByRange(FIND_CREEPS, {
 				filter: (creep) => (creep.hits < creep.hitsMax - 150) && (Memory.whiteList.includes(creep.owner.username) || creep.owner.username == "Montblanc")
@@ -69,7 +69,7 @@ var tower_Operate = {
 			} else {
 				//Repair ramparts about to decay
 				var decayingRampart = tower.room.find(FIND_MY_STRUCTURES, {
-					filter: (structure) => (structure.structureType = STRUCTURE_RAMPART && structure.ticksToDecay <= 3)
+					filter: (structure) => (structure.structureType = STRUCTURE_RAMPART && structure.ticksToDecay <= 10)
 				});
 				if (decayingRampart.length){
 					decayingRampart.sort(repairCompare);
