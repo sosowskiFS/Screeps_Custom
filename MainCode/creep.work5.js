@@ -89,29 +89,6 @@ var creep_work5 = {
                     creep.memory.priority = 'upgraderNearDeath';
                 }
 
-                if (_.sum(creep.carry) > 0) {
-                    if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                        if (Game.flags[creep.room.name + "Controller"]) {
-                            creep.travelTo(Game.flags[creep.room.name + "Controller"]);
-                        } else {
-                            creep.travelTo(creep.room.controller);
-                        }
-                    } else {
-                        if (Game.time % 2 == 0) {
-                            creep.say("\u261D\uD83D\uDE3C", true);
-                        } else {
-                            creep.say("\uD83D\uDC4C\uD83D\uDE39", true);
-                        }
-                    }
-                }
-
-                var linkTarget = Game.getObjectById(creep.memory.linkSource);
-                if (linkTarget && _.sum(creep.carry) <= creep.getActiveBodyparts(WORK)) {
-                    if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(linkTarget);
-                    }
-                }
-
                 if (!creep.memory.hasBoosted && creep.room.controller.level >= 7 && Memory.labList[creep.room.name].length >= 6 && !creep.memory.previousPriority) {
                     var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
                     var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
@@ -129,7 +106,32 @@ var creep_work5 = {
                         creep.memory.hasBoosted = true;
                     }
                 } else {
-                    creep.memory.hasBoosted = true;
+                    if (!creep.memory.hasBoosted) {
+                        creep.memory.hasBoosted = true;
+                    }
+
+                    if (_.sum(creep.carry) > 0) {
+                        if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                            if (Game.flags[creep.room.name + "Controller"]) {
+                                creep.travelTo(Game.flags[creep.room.name + "Controller"]);
+                            } else {
+                                creep.travelTo(creep.room.controller);
+                            }
+                        } else {
+                            if (Game.time % 2 == 0) {
+                                creep.say("\u261D\uD83D\uDE3C", true);
+                            } else {
+                                creep.say("\uD83D\uDC4C\uD83D\uDE39", true);
+                            }
+                        }
+                    }
+
+                    var linkTarget = Game.getObjectById(creep.memory.linkSource);
+                    if (linkTarget && _.sum(creep.carry) <= creep.getActiveBodyparts(WORK)) {
+                        if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(linkTarget);
+                        }
+                    }
                 }
                 break;
             case 'mule':
@@ -365,84 +367,6 @@ var creep_work5 = {
                     creep.memory.priority = 'repairNearDeath';
                 }
 
-                if (_.sum(creep.carry) == 0) {
-                    creep.memory.structureTarget = undefined;
-                    if (creep.memory.previousPriority && creep.memory.previousPriority == 'mule') {
-                        creep.memory.priority = "mule";
-                    } else {
-                        //Get from storage
-                        var storageTarget = creep.room.storage;
-                        if (storageTarget) {
-                            if (storageTarget.store[RESOURCE_ENERGY] >= 200) {
-                                if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(storageTarget, {
-                                        maxRooms: 1
-                                    });
-                                }
-                            } else {
-                                var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
-                                if (spawnTarget) {
-                                    if (!creep.pos.isNearTo(spawnTarget)) {
-                                        creep.travelTo(spawnTarget, {
-                                            maxRooms: 1
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else if (creep.memory.structureTarget) {
-                    var doRepair = true;
-                    if (creep.memory.previousPriority == 'mule' && creep.carry.energy > 300 && Memory.linkList[creep.room.name].length > 1) {
-                        var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
-                        if (upgraderLink && upgraderLink.energy < 100) {
-                            doRepair = false;
-                            creep.memory.priority = 'mule';
-                            creep.memory.structureTarget = upgraderLink.id;
-                            if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(upgraderLink);
-                            }
-                        }
-                    }
-
-                    if (doRepair) {
-                        var thisStructure = Game.getObjectById(creep.memory.structureTarget);
-                        if (thisStructure) {
-                            if (thisStructure.hits == thisStructure.hitsMax) {
-                                creep.memory.structureTarget = undefined;
-                            } else {
-                                if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE && Memory.warMode) {
-                                    creep.travelTo(thisStructure, {
-                                        maxRooms: 1
-                                    });
-                                } else if (!Memory.warMode) {
-                                    creep.travelTo(thisStructure, {
-                                        maxRooms: 1,
-                                        range: 2
-                                    });
-                                }
-                            }
-                        } else {
-                            creep.memory.structureTarget = undefined;
-                        }
-                    }
-                } else {
-                    var closestDamagedStructure = [];
-                    closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
-                    });
-
-                    if (closestDamagedStructure.length > 0) {
-                        closestDamagedStructure.sort(repairCompare);
-                        creep.memory.structureTarget = closestDamagedStructure[0].id;
-                        if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(closestDamagedStructure[0], {
-                                maxRooms: 1
-                            });
-                        }
-                    }
-                }
-
                 if (!creep.memory.hasBoosted && creep.room.controller.level >= 7 && Memory.labList[creep.room.name].length >= 6 && !creep.memory.previousPriority) {
                     var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
                     var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
@@ -460,7 +384,87 @@ var creep_work5 = {
                         creep.memory.hasBoosted = true;
                     }
                 } else {
-                    creep.memory.hasBoosted = true;
+                    if (!creep.memory.hasBoosted) {
+                        creep.memory.hasBoosted = true;
+                    }
+
+                    if (_.sum(creep.carry) == 0) {
+                        creep.memory.structureTarget = undefined;
+                        if (creep.memory.previousPriority && creep.memory.previousPriority == 'mule') {
+                            creep.memory.priority = "mule";
+                        } else {
+                            //Get from storage
+                            var storageTarget = creep.room.storage;
+                            if (storageTarget) {
+                                if (storageTarget.store[RESOURCE_ENERGY] >= 200) {
+                                    if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                        creep.travelTo(storageTarget, {
+                                            maxRooms: 1
+                                        });
+                                    }
+                                } else {
+                                    var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
+                                    if (spawnTarget) {
+                                        if (!creep.pos.isNearTo(spawnTarget)) {
+                                            creep.travelTo(spawnTarget, {
+                                                maxRooms: 1
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else if (creep.memory.structureTarget) {
+                        var doRepair = true;
+                        if (creep.memory.previousPriority == 'mule' && creep.carry.energy > 300 && Memory.linkList[creep.room.name].length > 1) {
+                            var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+                            if (upgraderLink && upgraderLink.energy < 100) {
+                                doRepair = false;
+                                creep.memory.priority = 'mule';
+                                creep.memory.structureTarget = upgraderLink.id;
+                                if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(upgraderLink);
+                                }
+                            }
+                        }
+
+                        if (doRepair) {
+                            var thisStructure = Game.getObjectById(creep.memory.structureTarget);
+                            if (thisStructure) {
+                                if (thisStructure.hits == thisStructure.hitsMax) {
+                                    creep.memory.structureTarget = undefined;
+                                } else {
+                                    if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE && Memory.warMode) {
+                                        creep.travelTo(thisStructure, {
+                                            maxRooms: 1
+                                        });
+                                    } else if (!Memory.warMode) {
+                                        creep.travelTo(thisStructure, {
+                                            maxRooms: 1,
+                                            range: 2
+                                        });
+                                    }
+                                }
+                            } else {
+                                creep.memory.structureTarget = undefined;
+                            }
+                        }
+                    } else {
+                        var closestDamagedStructure = [];
+                        closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+                        });
+
+                        if (closestDamagedStructure.length > 0) {
+                            closestDamagedStructure.sort(repairCompare);
+                            creep.memory.structureTarget = closestDamagedStructure[0].id;
+                            if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(closestDamagedStructure[0], {
+                                    maxRooms: 1
+                                });
+                            }
+                        }
+                    }
                 }
                 break;
             case 'supplier':
