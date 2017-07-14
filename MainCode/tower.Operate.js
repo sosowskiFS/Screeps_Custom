@@ -16,6 +16,8 @@ var tower_Operate = {
 				checkDelay = 2;
 			} else if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
 				checkDelay = 5;
+			} else if (thisRoom.storage.store[RESOURCE_ENERGY] <= 75000) {
+				checkDelay = 500;
 			}
 		}
 
