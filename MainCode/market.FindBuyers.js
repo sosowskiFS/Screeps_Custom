@@ -180,22 +180,24 @@ var market_buyers = {
             //Memory.needMin room name
             //resource
             var hasSent = false;
-            for (var y in Memory.mineralNeed) {
-                //sendMineral(thisMineral, thisTerminal, targetRoom);
-                if (hasSent) {
-                    break;
-                } else if (Memory.mineralNeed[y].length) {
-                    if (neededMinerals.indexOf(y) != -1) {
-                        if (y == RESOURCE_GHODIUM) {
-                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, ForNuker);
+            if (Game.time % 1000 != 0) {
+                for (var y in Memory.mineralNeed) {
+                    //sendMineral(thisMineral, thisTerminal, targetRoom);
+                    if (hasSent) {
+                        break;
+                    } else if (Memory.mineralNeed[y].length) {
+                        if (neededMinerals.indexOf(y) != -1) {
+                            if (y == RESOURCE_GHODIUM) {
+                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, ForNuker);
+                            } else {
+                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, false);
+                            }
                         } else {
-                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, false);
-                        }
-                    } else {
-                        if (y == RESOURCE_GHODIUM) {
-                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, ForNuker);
-                        } else {
-                            hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, false);
+                            if (y == RESOURCE_GHODIUM) {
+                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, ForNuker);
+                            } else {
+                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, false);
+                            }
                         }
                     }
                 }
