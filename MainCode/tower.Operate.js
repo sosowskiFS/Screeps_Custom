@@ -59,7 +59,7 @@ var tower_Operate = {
 					}
 				}
 			}
-		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % 10 == 0)) {
+		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % 2 == 0)) {
 			//Save 50% of the tower's energy to use on repelling attackers
 			var closestDamagedCreep = tower.pos.findClosestByRange(FIND_CREEPS, {
 				filter: (creep) => (creep.hits < creep.hitsMax - 150) && (Memory.whiteList.includes(creep.owner.username) || creep.owner.username == "Montblanc")
