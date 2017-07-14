@@ -332,6 +332,40 @@ var spawn_BuildInstruction = {
                     }
                 }
                 break;
+            case 'powerGather':
+                var powerAttackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'powerAttack' && creep.memory.homeRoom == spawn.room.name));
+                var powerHealers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'powerHeal' && creep.memory.homeRoom == spawn.room.name);
+                if (powerAttackers.length < 1) {
+                    var powerAttackConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
+                    if (spawn.canCreateCreep(powerAttackConfig) == OK) {
+                        spawn.createCreep(powerAttackConfig, undefined, {
+                            priority: 'powerAttack',
+                            destination: params,
+                            homeRoom: spawn.room.name,
+                            deathWarn: _.size(powerAttackConfig) * 4
+                        });
+                        Memory.isSpawning = true;
+                        console.log('Power Mining - Attacker, ' + spawn.room.name);
+                    }
+                } else if (powerHealers.length < 2) {
+                    var healerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+                    var attackerID = '';
+                    if (powerAttackers[0]) {
+                        attackerID = powerAttackers[0].id
+                        if (spawn.canCreateCreep(healerConfig) == OK && attackerID != '') {
+                            spawn.createCreep(healerConfig, undefined, {
+                                priority: 'powerHeal',
+                                destination: params,
+                                homeRoom: spawn.room.name,
+                                attackerID: attackerID,
+                                deathWarn: _.size(healerConfig) * 4
+                            });
+                            Memory.isSpawning = true;
+                            console.log('Power Mining - Healer, ' + spawn.room.name);
+                        }
+                    }
+                }
+                break;
         }
     }
 };

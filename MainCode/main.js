@@ -16,6 +16,8 @@ var creep_looter = require('creep.looter');
 var creep_assattacker = require('creep.assattacker');
 var creep_asshealer = require('creep.asshealer');
 var creep_distractor = require('creep.distractor');
+var creep_powerAttack = require('creep.powerAttack');
+var creep_powerHeal = require('creep.powerHeal');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -703,6 +705,10 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', '');
                 }
 
+                /*if (Game.flags[thisRoom.name + "PowerGather"]) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'powerGather', Game.flags[thisRoom.name + "PowerGather"].pos.roomName, '', '');
+                }*/
+
                 if (!Memory.isSpawning) {
                     if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                         if (!Game.flags["DoNotBuild"]) {
@@ -973,6 +979,12 @@ module.exports.loop = function() {
                         break;
                     case 'distractor':
                         creep_distractor.run(creep);
+                        break;
+                    case 'powerAttack':
+                        creep_powerAttack.run(creep);
+                        break;
+                    case 'powerHeal':
+                        creep_powerHeal(creep);
                         break;
                     default:
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {

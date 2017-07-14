@@ -1080,13 +1080,18 @@ var creep_work5 = {
 
                     if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
                         if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
-                            var withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
+                            var withdrawResult = "N/A"
+                            if (Object.keys(creep.room.storage.store)[1] == RESOURCE_POWER && Object.keys(creep.room.storage.store).length > 2) {
+                                withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[2]);
+                            } else {
+                                withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
+                            }
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(creep.room.storage, {
                                     maxRooms: 1,
                                     ignoreRoads: true
                                 });
-                            } else if (withdrawResult != ERR_NOT_IN_RANGE) {
+                            } else if (withdrawResult != ERR_NOT_IN_RANGE && withdrawResult != "N/A") {
                                 creep.travelTo(creep.room.terminal, {
                                     maxRooms: 1,
                                     ignoreRoads: true
