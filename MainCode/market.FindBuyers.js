@@ -230,6 +230,7 @@ var market_buyers = {
                             if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
                                 console.log('Successfully made a deal');
                                 Memory.PriceList[sellMinerals[y]] = FilteredOrders[0].price;
+                                break;
                             }
                         } else {
                             //No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
