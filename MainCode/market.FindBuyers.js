@@ -228,7 +228,7 @@ var market_buyers = {
                                 tradeAmount = mineralInTerminal;
                             }
                             if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
-                                console.log('Successfully made a deal');
+                                console.log('DEAL: ' + thisRoom.name + '|' + sellMinerals[y] + '|' + tradeAmount + 'u');
                                 Memory.PriceList[sellMinerals[y]] = FilteredOrders[0].price;
                                 break;
                             }
