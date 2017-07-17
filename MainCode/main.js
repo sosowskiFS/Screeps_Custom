@@ -666,19 +666,19 @@ module.exports.loop = function() {
                     Memory.creepInQue.splice(queSpawnIndex - 3, 4);
                 }
 
-                if (Game.flags["ClaimThis"] && thisRoom.name == 'E87N85') {
+                if (Game.flags["ClaimThis"] && thisRoom.name == 'E88N75') {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E88N76;E87N76;E87N77;E87N78;E86N78;E86N77;E85N77;E84N77');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName);
                     }
                 }
 
-                if (Game.flags["BuildThis"] && thisRoom.name == 'E87N85') {
+                if (Game.flags["BuildThis"] && thisRoom.name == 'E88N75') {
                     var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E88N76;E87N76;E87N77;E87N78;E86N78;E86N77;E85N77;E84N77');
                         } else {
                             spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
                         }
@@ -691,7 +691,7 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E88N76;E87N76;E87N77;E87N78;E86N78;E86N77;E85N77;E84N77');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
                     }
