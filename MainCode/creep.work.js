@@ -321,7 +321,7 @@ var creep_work = {
                 } else {
                     var harvestResult = creep.harvest(savedTarget);
                     if (harvestResult == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(savedTarget);
+                        creep.travelTo(savedTarget);
                         if (savedTarget.energy == 0) {
                             creep.memory.structureTarget = undefined;
                         }
@@ -413,9 +413,7 @@ var creep_work = {
                     }
                     var harvestResult = creep.harvest(sources);
                     if (harvestResult == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources, {
-                            reusePath: moveRecalc
-                        });
+                        creep.travelTo(sources);
                     } else if (harvestResult == ERR_INVALID_TARGET) {
                         if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(sources);
