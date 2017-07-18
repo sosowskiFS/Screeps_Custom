@@ -144,6 +144,10 @@ module.exports.loop = function() {
         //Log average CPU for spawn processes in memory.
         var preSpawnCPU = Game.cpu.getUsed();
 
+        if (Game.time % 1000 == 0) {
+            Memory.ordersFilled = [];
+        }    
+
         for (var i in Game.spawns) {
             var thisRoom = Game.spawns[i].room;
             var controllerLevel = thisRoom.controller.level;
@@ -1097,6 +1101,9 @@ function memCheck() {
     }
     if (!Memory.hasFired) {
         Memory.hasFired = [];
+    }
+    if (!Memory.ordersFilled) {
+        Memory.ordersFilled = [];
     }
     if (!Memory.whiteList) {
         Memory.whiteList = ['DomNomNom', 'Kotarou', 'ICED_COFFEE', 'demawi', 'o4kapuk', 'ben2', 'Jibol', 'szumi', 'Xist', 'Xolym', 'SirFrump', 'ART999', 'ThyReaper']; //'ThyReaper'
