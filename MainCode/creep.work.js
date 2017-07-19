@@ -68,7 +68,9 @@ var creep_work = {
             if (savedTarget) {
                 var buildResult = creep.build(savedTarget)
                 if (buildResult == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(savedTarget);
+                    creep.travelTo(savedTarget, {
+                    	maxRooms: 1
+                    });
                 } else if (buildResult != OK) {
                     creep.memory.structureTarget = undefined;
                 } else if (buildResult == OK && savedTarget.structureType == STRUCTURE_RAMPART) {
@@ -83,7 +85,9 @@ var creep_work = {
                 if (targets) {
                     creep.memory.structureTarget = targets.id;
                     if (creep.build(targets) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(targets);
+                        creep.travelTo(targets, {
+                        	maxRooms: 1
+                        });
                     }
                 } else {
                     //Store in container
@@ -103,7 +107,9 @@ var creep_work = {
             var getNewStructure = false;
             if (savedTarget) {
                 if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
-                    creep.travelTo(savedTarget);
+                    creep.travelTo(savedTarget, {
+                    	maxRooms: 1
+                    });
                 } else {
                     getNewStructure = true;
                     creep.memory.structureTarget = undefined;
@@ -148,7 +154,9 @@ var creep_work = {
 
                 if (targets) {
                     if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(targets);
+                        creep.travelTo(targets, {
+                        	maxRooms: 1
+                        });
                         creep.memory.structureTarget = targets.id;
                     }
                 } else {
@@ -159,7 +167,9 @@ var creep_work = {
                     });
                     if (targets) {
                         if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(targets);
+                            creep.travelTo(targets, {
+                            	maxRooms: 1
+                            });
                             creep.memory.structureTarget = targets.id;
                         }
                     } else {
@@ -174,7 +184,9 @@ var creep_work = {
                         if (containers && creep.memory.priority == 'harvester') {
                             creep.memory.structureTarget = containers.id;
                             if (creep.transfer(containers, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(containers);
+                                creep.travelTo(containers, {
+                                	maxRooms: 1
+                                });
                             } else {
                                 creep.memory.structureTarget = undefined;
                             }
@@ -194,9 +206,13 @@ var creep_work = {
         } else if (creep.memory.upgrading) {
             if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                 if (Game.flags[creep.room.name + "Controller"]) {
-                    creep.travelTo(Game.flags[creep.room.name + "Controller"]);
+                    creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                    	maxRooms: 1
+                    });
                 } else {
-                    creep.travelTo(creep.room.controller);
+                    creep.travelTo(creep.room.controller, {
+                    	maxRooms: 1
+                    });
                 }
             }
         } else if (creep.memory.repairing) {
@@ -208,7 +224,9 @@ var creep_work = {
                             creep.memory.structureTarget = undefined;
                         } else {
                             if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(thisStructure);
+                                creep.travelTo(thisStructure, {
+                                	maxRooms: 1
+                                });
                             }
                         }
                     } else {
@@ -222,7 +240,9 @@ var creep_work = {
                         closestDamagedStructure.sort(repairCompare);
                         creep.memory.structureTarget = closestDamagedStructure[0].id;
                         if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(closestDamagedStructure[0]);
+                            creep.travelTo(closestDamagedStructure[0], {
+                            	maxRooms: 1
+                            });
                         }
                     }
                 }
@@ -237,10 +257,14 @@ var creep_work = {
             });
             if (target) {
                 if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(target);
+                    creep.travelTo(target, {
+                    	maxRooms: 1
+                    });
                 }
             } else if (Game.flags[creep.room.name + "Supply"] && creep.pos != Game.flags[creep.room.name + "Supply"].pos) {
-                creep.travelTo(Game.flags[creep.room.name + "Supply"]);
+                creep.travelTo(Game.flags[creep.room.name + "Supply"], {
+                	maxRooms: 1
+                });
             }
         } else if (creep.memory.distributing) {
             if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
@@ -250,7 +274,8 @@ var creep_work = {
                 if (savedTarget) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
                         creep.travelTo(savedTarget, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            maxRooms: 1
                         });
                     } else {
                         getNewStructure = true;
@@ -278,7 +303,8 @@ var creep_work = {
                     if (target) {
                         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(target, {
-                                ignoreRoads: true
+                                ignoreRoads: true,
+                                maxRooms: 1
                             });
                             creep.memory.structureTarget = target.id;
                         }
@@ -290,7 +316,8 @@ var creep_work = {
                 if (storageTarget) {
                     if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(storageTarget, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            maxRooms: 1
                         });
                     }
                 }
@@ -298,7 +325,8 @@ var creep_work = {
                 var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
                 if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
                     creep.travelTo(homeSpawn, {
-                        ignoreRoads: true
+                        ignoreRoads: true,
+                        maxRooms: 1
                     });
                 }
             }
@@ -313,7 +341,9 @@ var creep_work = {
                 if (savedTarget.structureType == STRUCTURE_CONTAINER || savedTarget.structureType == STRUCTURE_STORAGE) {
                     if (savedTarget.store[RESOURCE_ENERGY] > 0) {
                         if (creep.withdraw(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(savedTarget);
+                            creep.travelTo(savedTarget, {
+                            	maxRooms: 1
+                            });
                         }
                     } else {
                         creep.memory.structureTarget = undefined;
@@ -321,7 +351,9 @@ var creep_work = {
                 } else {
                     var harvestResult = creep.harvest(savedTarget);
                     if (harvestResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(savedTarget);
+                        creep.travelTo(savedTarget, {
+                        	maxRooms: 1
+                        });
                         if (savedTarget.energy == 0) {
                             creep.memory.structureTarget = undefined;
                         }
@@ -333,7 +365,9 @@ var creep_work = {
                         creep.memory.waitingTimer = 0;
                     } else if (harvestResult == ERR_INVALID_TARGET) {
                         if (creep.pickup(savedTarget) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(savedTarget);
+                            creep.travelTo(savedTarget, {
+                            	maxRooms: 1
+                            });
                         }
                     } else {
                         creep.memory.structureTarget = undefined;
@@ -353,7 +387,9 @@ var creep_work = {
                     if (targets) {
                         creep.memory.structureTarget = targets.id;
                         if (creep.withdraw(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(targets);
+                            creep.travelTo(targets, {
+                            	maxRooms: 1
+                            });
                         }
                     }
                 }
@@ -413,16 +449,22 @@ var creep_work = {
                     }
                     var harvestResult = creep.harvest(sources);
                     if (harvestResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(sources);
+                        creep.travelTo(sources, {
+                        	maxRooms: 1
+                        });
                     } else if (harvestResult == ERR_INVALID_TARGET) {
                         if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(sources);
+                            creep.travelTo(sources, {
+                            	maxRooms: 1
+                            });
                         }
                     }
                 } else {
                     var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
                     if (homeSpawn && !creep.pos.isNearTo(homeSpawn)) {
-                        creep.travelTo(homeSpawn);
+                        creep.travelTo(homeSpawn, {
+                        	maxRooms: 1
+                        });
                     }
                 }
             }
@@ -437,7 +479,9 @@ var creep_work = {
                 if (creep.memory.fromSpawn) {
                     var thisSpawn = Game.getObjectById(creep.memory.fromSpawn);
                     if (thisSpawn) {
-                        creep.travelTo(spawnTarget);
+                        creep.travelTo(spawnTarget, {
+                        	maxRooms: 1
+                        });
                     }
                 } else {
                     var spawnTarget = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -446,7 +490,9 @@ var creep_work = {
                         }
                     });
                     if (spawnTarget) {
-                        creep.travelTo(spawnTarget);
+                        creep.travelTo(spawnTarget, {
+                        	maxRooms: 1
+                        });
                     }
                 }
             }
