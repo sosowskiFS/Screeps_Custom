@@ -220,7 +220,7 @@ var market_buyers = {
                             //Initalize this memory object
                             Memory.PriceList[sellMinerals[y]] = 0;
                         }
-                        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == sellMinerals[y] && order.type == ORDER_BUY && order.price >= Memory.PriceList[sellMinerals[y]] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
+                        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == sellMinerals[y] && order.amount >= 100 && order.type == ORDER_BUY && order.price >= Memory.PriceList[sellMinerals[y]] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
                         if (FilteredOrders.length > 0) {
                             FilteredOrders.sort(orderPriceCompare);
                             var tradeAmount = FilteredOrders[0].amount;
