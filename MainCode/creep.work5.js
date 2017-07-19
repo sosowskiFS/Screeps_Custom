@@ -89,7 +89,7 @@ var creep_work5 = {
                     creep.memory.priority = 'upgraderNearDeath';
                 }
 
-                if (!creep.memory.hasBoosted && creep.room.controller.level >= 7 && Memory.labList[creep.room.name].length >= 6 && !creep.memory.previousPriority) {
+                if (!creep.memory.hasBoosted && creep.room.controller.level >= 6 && Memory.labList[creep.room.name].length >= 3 && !creep.memory.previousPriority) {
                     var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
                     var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
                     var upgradeLab = creep.room.find(FIND_MY_STRUCTURES, {
@@ -367,7 +367,7 @@ var creep_work5 = {
                     creep.memory.priority = 'repairNearDeath';
                 }
 
-                if (!creep.memory.hasBoosted && creep.room.controller.level >= 7 && Memory.labList[creep.room.name].length >= 6 && !creep.memory.previousPriority) {
+                if (!creep.memory.hasBoosted && creep.room.controller.level >= 6 && Memory.labList[creep.room.name].length >= 3 && !creep.memory.previousPriority) {
                     var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
                     var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
                     var repairLab = creep.room.find(FIND_MY_STRUCTURES, {

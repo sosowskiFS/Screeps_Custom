@@ -30,7 +30,7 @@ var creep_combat = {
                         }
                     });
                 }
-                if (boostFlag && creep.room.controller.level >= 7) {
+                if (boostFlag && creep.room.controller.level >= 6) {
                     var attackLab = creep.room.find(FIND_MY_STRUCTURES, {
                         filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
                     });
@@ -47,7 +47,7 @@ var creep_combat = {
             }
 
             var unboostedAttack = 0;
-            if (creep.memory.needBoosts && creep.room.controller.level >= 7) {
+            if (creep.memory.needBoosts && creep.room.controller.level >= 6) {
                 creep.body.forEach(function(thisPart) {
                     if (thisPart.type == ATTACK && !thisPart.boost) {
                         unboostedAttack = unboostedAttack + 1;
