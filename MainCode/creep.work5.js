@@ -680,15 +680,15 @@ var creep_work5 = {
                     creep.memory.priority = 'labWorkerNearDeath';
                 }
 
-                if (Game.time % 50 == 0 && Game.flags[creep.memory.primaryFlag]) {
+                if (Game.time % 50 == 0 && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
                     if (creep.memory.resourceChecks < 28) {
-                        var lab1 = Game.getObjectById(creep.memory.lab1);
-                        var lab2 = Game.getObjectById(creep.memory.lab2);
-                        if (creep.room.terminal.store[creep.memory.mineral3] >= 40000) {
+                        var lab4 = Game.getObjectById(creep.memory.lab4);
+                        var lab5 = Game.getObjectById(creep.memory.lab5);
+                        if (creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
                             //Immediately swap flags
                             creep.memory.resourceChecks = 28;
                             //Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
-                        } else if (lab1 && lab2 && (lab1.mineralAmount < 250 || lab2.mineralAmount < 250) && _.sum(creep.carry) == 0) {
+                        } else if (lab4 && lab5 && (lab4.mineralAmount < 250 || lab5.mineralAmount < 250) && _.sum(creep.carry) == 0) {
                             //tick up, but don't swap yet
                             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
                             if (creep.memory.resourceChecks >= 28) {
@@ -713,7 +713,7 @@ var creep_work5 = {
                 }
 
                 if (!creep.memory.offlineUntil || (creep.memory.offlineUntil && creep.memory.offlineUntil <= Game.time)) {
-                    if (creep.memory.mineral4 == creep.memory.mineral3 || creep.memory.mineral5 == creep.memory.mineral3 || creep.memory.mineral6 == creep.memory.mineral3) {
+                    if (creep.memory.mineral1 == creep.memory.mineral6 || creep.memory.mineral2 == creep.memory.mineral6 || creep.memory.mineral3 == creep.memory.mineral6) {
                         creep.memory.storeProduced = true;
                     } else {
                         creep.memory.storeProduced = false;
@@ -751,29 +751,29 @@ var creep_work5 = {
                     }
 
                     var alreadyAddedFlag = false;
-                    if (lab1 && lab2 && lab3) {
+                    if (lab4 && lab5 && lab6) {
                         if (lab7 && lab8 && lab9) {
-                            if (lab7.mineralAmount < lab1.mineralAmount || lab8.mineralAmount < lab2.mineralAmount) {
+                            if (lab7.mineralAmount < lab4.mineralAmount || lab8.mineralAmount < lab5.mineralAmount) {
                                 labArray.push(lab7);
                                 labArray.push(lab8);
                                 labArray.push(lab9);
                                 mineralArray.push(creep.memory.mineral7);
                                 mineralArray.push(creep.memory.mineral8);
                                 mineralArray.push(creep.memory.mineral9);
-                                labArray.push(lab1);
-                                labArray.push(lab2);
-                                labArray.push(lab3);
-                                mineralArray.push(creep.memory.mineral1);
-                                mineralArray.push(creep.memory.mineral2);
-                                mineralArray.push(creep.memory.mineral3);
+                                labArray.push(lab4);
+                                labArray.push(lab5);
+                                labArray.push(lab6);
+                                mineralArray.push(creep.memory.mineral4);
+                                mineralArray.push(creep.memory.mineral5);
+                                mineralArray.push(creep.memory.mineral6);
                                 alreadyAddedFlag = true;
                             } else {
-                                labArray.push(lab1);
-                                labArray.push(lab2);
-                                labArray.push(lab3);
-                                mineralArray.push(creep.memory.mineral1);
-                                mineralArray.push(creep.memory.mineral2);
-                                mineralArray.push(creep.memory.mineral3);
+                                labArray.push(lab4);
+                                labArray.push(lab5);
+                                labArray.push(lab6);
+                                mineralArray.push(creep.memory.mineral4);
+                                mineralArray.push(creep.memory.mineral5);
+                                mineralArray.push(creep.memory.mineral6);
                                 labArray.push(lab7);
                                 labArray.push(lab8);
                                 labArray.push(lab9);
@@ -783,21 +783,21 @@ var creep_work5 = {
                                 alreadyAddedFlag = true;
                             }
                         } else {
-                            labArray.push(lab1);
-                            labArray.push(lab2);
-                            labArray.push(lab3);
-                            mineralArray.push(creep.memory.mineral1);
-                            mineralArray.push(creep.memory.mineral2);
-                            mineralArray.push(creep.memory.mineral3);
+                            labArray.push(lab4);
+                            labArray.push(lab5);
+                            labArray.push(lab6);
+                            mineralArray.push(creep.memory.mineral4);
+                            mineralArray.push(creep.memory.mineral5);
+                            mineralArray.push(creep.memory.mineral6);
                         }
                     }
-                    if (lab4 && lab5 && lab6) {
-                        labArray.push(lab4);
-                        labArray.push(lab5);
-                        labArray.push(lab6);
-                        mineralArray.push(creep.memory.mineral4);
-                        mineralArray.push(creep.memory.mineral5);
-                        mineralArray.push(creep.memory.mineral6);
+                    if (lab1 && lab2 && lab3) {
+                        labArray.push(lab1);
+                        labArray.push(lab2);
+                        labArray.push(lab3);
+                        mineralArray.push(creep.memory.mineral1);
+                        mineralArray.push(creep.memory.mineral2);
+                        mineralArray.push(creep.memory.mineral3);
                     }
                     if (!alreadyAddedFlag && lab7 && lab8 && lab9) {
                         labArray.push(lab7);
@@ -934,13 +934,13 @@ var creep_work5 = {
                             } else {
                                 //Write a different switch for the war flag
                                 switch (labArray[i].id) {
-                                    case creep.memory.lab1:
-                                    case creep.memory.lab2:
+                                    case creep.memory.lab4:
+                                    case creep.memory.lab5:
                                     case creep.memory.lab7:
                                     case creep.memory.lab8:
                                         //Reagent labs
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-                                            if (creep.room.terminal.store[creep.memory.mineral3] < 40000 || !creep.room.terminal.store[creep.memory.mineral3]) {
+                                            if (creep.room.terminal.store[creep.memory.mineral6] < 40000 || !creep.room.terminal.store[creep.memory.mineral6]) {
                                                 var mineralAmount = mineralArray[i] in creep.room.terminal.store;
                                                 if (mineralAmount > 0 && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
                                                     creep.memory.structureTarget = creep.room.terminal.id;
@@ -970,7 +970,7 @@ var creep_work5 = {
                                             foundWork = true;
                                         }
                                         break;
-                                    case creep.memory.lab3:
+                                    case creep.memory.lab6:
                                     case creep.memory.lab9:
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
                                             var mineralAmount = labArray[i].mineralAmount;
@@ -990,12 +990,12 @@ var creep_work5 = {
                                         } else if (creep.carry[mineralArray[i]]) {
                                             if (creep.memory.storeProduced) {
                                                 var labAmount = 9999;
-                                                if (mineralArray[i] == creep.memory.mineral4) {
-                                                    labAmount = lab4.mineralAmount;
-                                                } else if (mineralArray[i] == creep.memory.mineral5) {
-                                                    labAmount = lab5.mineralAmount;
-                                                } else if (mineralArray[i] == creep.memory.mineral6) {
-                                                    labAmount = lab6.mineralAmount;
+                                                if (mineralArray[i] == creep.memory.mineral1) {
+                                                    labAmount = lab1.mineralAmount;
+                                                } else if (mineralArray[i] == creep.memory.mineral2) {
+                                                    labAmount = lab2.mineralAmount;
+                                                } else if (mineralArray[i] == creep.memory.mineral3) {
+                                                    labAmount = lab3.mineralAmount;
                                                 }
                                                 if (labAmount <= 2500) {
                                                     continue;
@@ -1032,9 +1032,9 @@ var creep_work5 = {
                                         }
                                         //Result labs
                                         break;
-                                    case creep.memory.lab4:
-                                    case creep.memory.lab5:
-                                    case creep.memory.lab6:
+                                    case creep.memory.lab1:
+                                    case creep.memory.lab2:
+                                    case creep.memory.lab3:
                                         //Boost labs
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
                                             var minAmount = mineralArray[i] in creep.room.terminal.store;

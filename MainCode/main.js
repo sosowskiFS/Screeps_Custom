@@ -590,12 +590,12 @@ module.exports.loop = function() {
                 }
 
                 //Handle Labs
-                if (Game.time % 10 == 0 && Memory.labList[thisRoom.name].length >= 3) {
-                    var lab1 = Game.getObjectById(Memory.labList[thisRoom.name][0]);
-                    var lab2 = Game.getObjectById(Memory.labList[thisRoom.name][1]);
-                    var lab3 = Game.getObjectById(Memory.labList[thisRoom.name][2]);
-                    if (lab1 && lab2 && lab3 && lab1.mineralAmount >= 5 && lab2.mineralAmount >= 5 && lab3.mineralAmount <= lab3.mineralCapacity - 5) {
-                        lab3.runReaction(lab1, lab2)
+                if (Game.time % 10 == 0 && Memory.labList[thisRoom.name].length >= 6) {
+                    var lab4 = Game.getObjectById(Memory.labList[thisRoom.name][3]);
+                    var lab5 = Game.getObjectById(Memory.labList[thisRoom.name][4]);
+                    var lab6 = Game.getObjectById(Memory.labList[thisRoom.name][5]);
+                    if (lab4 && lab5 && lab6 && lab4.mineralAmount >= 5 && lab5.mineralAmount >= 5 && lab6.mineralAmount <= lab6.mineralCapacity - 5) {
+                        lab6.runReaction(lab4, lab5)
                     }
                     if (Memory.labList[thisRoom.name].length >= 9) {
                         var lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);

@@ -8,9 +8,9 @@ var market_buyers = {
         var GH2OPriority = -1;
         var ForNuker = true;
         //Always requested minerals for boosts
-        if (thisRoom.controller.level >= 7) {
+        if (thisRoom.controller.level >= 6) {
             neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID); //Attack boost, defenders
-            if (thisRoom.controller.level == 7) {
+            if (thisRoom.controller.level != 8) {
                 neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID); //Upgrade boost
                 GH2OPriority = 0;
             } else {
