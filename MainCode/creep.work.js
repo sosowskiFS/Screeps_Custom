@@ -211,10 +211,12 @@ var creep_work = {
                     });
                 }
             } else if (!creep.pos.isNearTo(creep.room.controller)) {
-                creep.upgradeController(creep.room.controller)
+                creep.upgradeController(creep.room.controller);
                 creep.travelTo(creep.room.controller, {
                     maxRooms: 1
                 });
+            } else {
+                creep.upgradeController(creep.room.controller);
             }
         } else if (creep.memory.repairing) {
             if (!creep.memory.holdOneTick) {
