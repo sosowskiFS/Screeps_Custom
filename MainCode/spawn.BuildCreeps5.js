@@ -342,14 +342,16 @@ var spawn_BuildCreeps5 = {
                     storageSource: thisRoom.storage.id,
                     terminalID: strTerminal,
                     deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
-                    fromSpawn: spawn.id
+                    fromSpawn: spawn.id,
+                    homeRoom: thisRoom.name
                 });
                 Memory.isSpawning = true;
             } else {
                 spawn.createCreep(bareMinConfig, undefined, {
                     priority: 'harvester',
                     deathWarn: _.size(bareMinConfig) * 4,
-                    sourceLocation: strSources[1]
+                    sourceLocation: strSources[1],
+                    homeRoom: thisRoom.name
                 });
                 Memory.isSpawning = true;
             }
@@ -373,7 +375,8 @@ var spawn_BuildCreeps5 = {
                             spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
                                 priority: 'salvager',
                                 deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
-                                storageTarget: thisRoom.storage.id
+                                storageTarget: thisRoom.storage.id,
+                                homeRoom: thisRoom.name
                             });
                             Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
                         }
@@ -460,7 +463,8 @@ var spawn_BuildCreeps5 = {
 
                 spawn.createCreep(ChosenCreepSet, undefined, {
                     priority: 'defender',
-                    fromSpawn: spawn.id
+                    fromSpawn: spawn.id,
+                    homeRoom: thisRoom.name
                 });
                 Memory.isSpawning = true;
             } else {
@@ -564,7 +568,8 @@ var spawn_BuildCreeps5 = {
                                 linkSource2: backupLink,
                                 jobSpecific: jobSpecificPri,
                                 deathWarn: _.size(minerConfig) * 4,
-                                fromSpawn: spawn.id
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
                             });
                         } else {
                             spawn.createCreep(minerConfig, undefined, {
@@ -573,7 +578,8 @@ var spawn_BuildCreeps5 = {
                                 linkSource: connectedLink,
                                 jobSpecific: jobSpecificPri,
                                 deathWarn: _.size(minerConfig) * 4,
-                                fromSpawn: spawn.id
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
                             });
                         }
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
@@ -587,7 +593,8 @@ var spawn_BuildCreeps5 = {
                             storageSource: storageID,
                             terminalID: creepSource,
                             deathWarn: _.size(muleConfig) * 4,
-                            fromSpawn: spawn.id
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
@@ -599,7 +606,8 @@ var spawn_BuildCreeps5 = {
                             linkSource: connectedLink,
                             storageSource: storageID,
                             deathWarn: _.size(upgraderConfig) * 4,
-                            fromSpawn: spawn.id
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
@@ -611,7 +619,8 @@ var spawn_BuildCreeps5 = {
                             linkTarget: connectedLink,
                             storageSource: storageID,
                             deathWarn: _.size(repairConfig) * 4,
-                            fromSpawn: spawn.id
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
@@ -623,7 +632,8 @@ var spawn_BuildCreeps5 = {
                             priority: prioritizedRole,
                             storageSource: storageID,
                             deathWarn: _.size(repairConfig) * 4,
-                            fromSpawn: spawn.id
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
@@ -634,7 +644,8 @@ var spawn_BuildCreeps5 = {
                         spawn.createCreep(supplierConfig, undefined, {
                             priority: prioritizedRole,
                             deathWarn: _.size(supplierConfig) * 4,
-                            fromSpawn: spawn.id
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
@@ -647,13 +658,15 @@ var spawn_BuildCreeps5 = {
                                 priority: prioritizedRole,
                                 linkSource: connectedLink,
                                 deathWarn: _.size(distributorConfig) * 4,
-                                fromSpawn: spawn.id
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
                             });
                         } else {
                             spawn.createCreep(distributorConfig, undefined, {
                                 priority: prioritizedRole,
                                 deathWarn: _.size(distributorConfig) * 4,
-                                fromSpawn: spawn.id
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
                             });
                         }
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
@@ -667,7 +680,8 @@ var spawn_BuildCreeps5 = {
                             terminalID: storageID,
                             mineralID: creepSource,
                             extractorID: connectedLink,
-                            fromSpawn: spawn.id
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
@@ -704,7 +718,8 @@ var spawn_BuildCreeps5 = {
                                 movingOtherMineral2: false,
                                 resourceChecks: 0,
                                 deathWarn: _.size(labWorkerConfig) * 4,
-                                fromSpawn: spawn.id
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
                             });
                         } else if (Memory.labList[thisRoom.name].length >= 6) {
                             spawn.createCreep(labWorkerConfig, undefined, {
@@ -729,7 +744,8 @@ var spawn_BuildCreeps5 = {
                                 movingOtherMineral2: false,
                                 resourceChecks: 0,
                                 deathWarn: _.size(labWorkerConfig) * 4,
-                                fromSpawn: spawn.id
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
                             });
                         } else {
                             spawn.createCreep(labWorkerConfig, undefined, {
@@ -748,7 +764,8 @@ var spawn_BuildCreeps5 = {
                                 movingOtherMineral2: false,
                                 resourceChecks: 0,
                                 deathWarn: _.size(labWorkerConfig) * 4,
-                                fromSpawn: spawn.id
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
                             });
                         }
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
@@ -776,7 +793,8 @@ var spawn_BuildCreeps5 = {
                         storageSource: thisRoom.storage.id,
                         terminalID: strTerminal,
                         deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
-                        fromSpawn: spawn.id
+                        fromSpawn: spawn.id,
+                        homeRoom: thisRoom.name
                     });
                     Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
                 }

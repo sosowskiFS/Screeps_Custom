@@ -56,14 +56,16 @@ var spawn_BuildCreeps = {
 				if (spawn.canCreateCreep(bareMinConfig) == OK) {
 					spawn.createCreep(bareMinConfig, undefined, {
 						priority: 'harvester',
-						sourceLocation: strSources[1]
+						sourceLocation: strSources[1],
+						homeRoom: thisRoom.name
 					});
 				}
 			} else {
 				if (spawn.canCreateCreep(bareMinConfig) == OK) {
 					spawn.createCreep(bareMinConfig, undefined, {
 						priority: 'harvester',
-						sourceLocation: strSources[0]
+						sourceLocation: strSources[0],
+						homeRoom: thisRoom.name
 					});
 				}
 			}
@@ -146,7 +148,8 @@ var spawn_BuildCreeps = {
 
 			spawn.createCreep(ChosenCreepSet, undefined, {
 				priority: 'defender',
-				fromSpawn: spawn.id
+				fromSpawn: spawn.id,
+				homeRoom: thisRoom.name
 			});
 			Memory.isSpawning = true;
 
@@ -184,7 +187,8 @@ var spawn_BuildCreeps = {
 				spawn.createCreep(bestWorker, undefined, {
 					priority: prioritizedRole,
 					fromSpawn: spawn.id,
-					sourceLocation: creepSourceID
+					sourceLocation: creepSourceID,
+					homeRoom: thisRoom.name
 				});
 			}
 			Memory.isSpawning = true;
