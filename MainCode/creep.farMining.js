@@ -11,7 +11,7 @@ var creep_farMining = {
                     creep.memory.priority = 'farClaimerNearDeath';
                 }
 
-                var isEvading = evadeAttacker(creep, 5);
+                var isEvading = evadeAttacker(creep, 4);
 
                 if (!isEvading) {
                     if (creep.room.name != creep.memory.destination) {
@@ -94,7 +94,7 @@ var creep_farMining = {
                         isEvading = evadeAttacker(creep, 2);
                     }
                 } else {
-                    isEvading = evadeAttacker(creep, 5);
+                    isEvading = evadeAttacker(creep, 4);
                 }
 
                 if (!isEvading) {
@@ -370,7 +370,7 @@ var creep_farMining = {
                 }
 
                 if (creep.memory.evadingUntil && creep.memory.evadingUntil > Game.time) {
-                    evadeAttacker(creep, 5);
+                    evadeAttacker(creep, 4);
                 } else {
                     if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
                         var thisContainer = undefined;
@@ -396,7 +396,7 @@ var creep_farMining = {
                                 reusePath: 50
                             });*/
                         }
-                        evadeAttacker(creep, 5);
+                        evadeAttacker(creep, 4);
                     } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
                         if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                             creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
@@ -419,7 +419,7 @@ var creep_farMining = {
                                 }
                             }
                         }
-                        evadeAttacker(creep, 5);
+                        evadeAttacker(creep, 4);
                     } else {
                         creep.memory.path = undefined;
                         if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
@@ -496,7 +496,7 @@ var creep_farMining = {
                                     }
                                 }
                             }
-                            evadeAttacker(creep, 5);
+                            evadeAttacker(creep, 4);
                         } else {
                             //in home room, drop off energy
                             var storageUnit = Game.getObjectById(creep.memory.storageSource)
@@ -512,7 +512,7 @@ var creep_farMining = {
                                     roadSearchTarget = storageUnit.pos;
                                 }
                             }
-                            evadeAttacker(creep, 5);
+                            evadeAttacker(creep, 4);
                         }
                     }
 
@@ -1125,32 +1125,32 @@ function evadeAttacker(creep, evadeRange) {
         var x = 0;
         switch (foeDirection) {
             case TOP:
-                y = 2;
+                y = 5;
                 break;
             case TOP_RIGHT:
-                y = 2;
-                x = -2;
+                y = 5;
+                x = -5;
                 break;
             case RIGHT:
-                x = -2;
+                x = -5;
                 break;
             case BOTTOM_RIGHT:
-                y = -2;
-                x = -2;
+                y = -5;
+                x = -5;
                 break;
             case BOTTOM:
-                y = -2;
+                y = -5;
                 break;
             case BOTTOM_LEFT:
-                y = -2;
-                x = 2;
+                y = -5;
+                x = 5;
                 break;
             case LEFT:
-                x = 2;
+                x = 5;
                 break;
             case TOP_LEFT:
-                y = 2;
-                x = 2
+                y = 5;
+                x = 5;
                 break;
         }
         x = creep.pos.x + x;
@@ -1218,7 +1218,7 @@ function attackInvader(creep) {
         filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
     });
     if (Foe.length > 1) {
-        Foe.sort(targetRanged);
+        Foe.sort(targetHeal);
         creep.rangedMassAttack();
         didRanged = true;
     } else if (Foe.length) {
@@ -1257,32 +1257,32 @@ function attackInvader(creep) {
         var x = 0;
         switch (foeDirection) {
             case TOP:
-                y = 2;
+                y = 5;
                 break;
             case TOP_RIGHT:
-                y = 2;
-                x = -2;
+                y = 5;
+                x = -5;
                 break;
             case RIGHT:
-                x = -2;
+                x = -5;
                 break;
             case BOTTOM_RIGHT:
-                y = -2;
-                x = -2;
+                y = -5;
+                x = -5;
                 break;
             case BOTTOM:
-                y = -2;
+                y = -5;
                 break;
             case BOTTOM_LEFT:
-                y = -2;
-                x = 2;
+                y = -5;
+                x = 5;
                 break;
             case LEFT:
-                x = 2;
+                x = 5;
                 break;
             case TOP_LEFT:
-                y = 2;
-                x = 2
+                y = 5;
+                x = 5;
                 break;
         }
         x = creep.pos.x + x;
@@ -1346,10 +1346,10 @@ function targetAttacker(a, b) {
     return 0;
 }
 
-function targetRanged(a, b) {
-    if (a.getActiveBodyparts(RANGED_ATTACK) > b.getActiveBodyparts(RANGED_ATTACK))
+function targetHeal(a, b) {
+    if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
         return -1;
-    if (a.getActiveBodyparts(RANGED_ATTACK) < b.getActiveBodyparts(RANGED_ATTACK))
+    if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
         return 1;
     return 0;
 }
