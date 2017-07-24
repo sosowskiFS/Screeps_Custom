@@ -365,14 +365,7 @@ var creep_farMining = {
                         }
                     }
                 }
-
-                if (_.sum(creep.carry) < creep.carryCapacity) {
-                    someEnergy = creep.pos.lookFor(LOOK_ENERGY);
-                    if (someEnergy.length) {
-                        creep.pickup(someEnergy[0]);
-                    }
-                }
-
+                
                 if (((_.sum(creep.carry) > creep.carryCapacity - 300) || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 120)) && !creep.memory.storing && creep.carryCapacity >= 300) {
                     creep.memory.storing = true;
                 } else if (_.sum(creep.carry) == 0 && creep.memory.storing) {
@@ -531,6 +524,21 @@ var creep_farMining = {
                         }
                         evadeAttacker(creep, 4);
                     }
+
+                    if (_.sum(creep.carry) < creep.carryCapacity) {
+	                	if (Game.flags[creep.room.name + "SKRoom"]) {
+	                		var someEnergy = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
+	                		if (someEnergy.length) {
+	                			creep.moveTo(someEnergy[0]);
+	                			creep.pickup(someEnergy[0]);
+	                		}
+	                	} else {
+	                    	var someEnergy = creep.pos.lookFor(LOOK_ENERGY);
+	                    	if (someEnergy.length) {
+	                        	creep.pickup(someEnergy[0]);
+	                    	}
+	                	}
+	                }
                     //}
 
                     if (!creep.memory.didRoadSearch && roadSearchTarget) {
