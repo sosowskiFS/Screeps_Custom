@@ -525,7 +525,7 @@ var creep_farMining = {
                         evadeAttacker(creep, 4);
                     }
 
-                    if (_.sum(creep.carry) < creep.carryCapacity) {
+                    if (_.sum(creep.carry) < creep.carryCapacity - 100) {
 	                	if (Game.flags[creep.room.name + "SKRoom"]) {
 	                		var someEnergy = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 	                		if (someEnergy.length) {
