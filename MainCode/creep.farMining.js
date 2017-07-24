@@ -529,8 +529,9 @@ var creep_farMining = {
 	                	if (Game.flags[creep.room.name + "SKRoom"]) {
 	                		var someEnergy = creep.pos.findInRange(FIND_DROPPED_ENERGY, 3);
 	                		if (someEnergy.length) {
-	                			creep.moveTo(someEnergy[0]);
-	                			creep.pickup(someEnergy[0]);
+	                			if (creep.pickup(someEnergy[0]) == ERR_NOT_IN_RANGE){
+	                				creep.moveTo(someEnergy[0]);
+	                			}
 	                		}
 	                	} else {
 	                    	var someEnergy = creep.pos.lookFor(LOOK_ENERGY);
