@@ -50,6 +50,9 @@ var tower_Operate = {
 					shootRandom = true;
 				}
 				if (closestHostile) {
+					if (closestHostile.owner.username != "Invader") {
+						Game.notify('ROOM DEFENCE : ' + closestHostile.owner.username + ' is tresspassing in ' + thisRoom.name);
+					}
 					Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
 					if (shootRandom) {
 						var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
