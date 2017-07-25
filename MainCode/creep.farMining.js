@@ -542,7 +542,7 @@ var creep_farMining = {
 	                }
                     //}
 
-                    if (!creep.memory.didRoadSearch && roadSearchTarget) {
+                    if (_.sum(creep.carry) > creep.carryCapacity - 300 && !creep.memory.didRoadSearch && roadSearchTarget) {
                         creep.memory.didRoadSearch = true;
                         //Autogenerate roads
                         //.dest.x, .dest.y, .dest.room
