@@ -435,23 +435,17 @@ var creep_farMining = {
                             if (thisContainer) {
                                 if (Object.keys(thisContainer.store).length > 1) {
                                     if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
-                                        creep.travelTo(thisContainer, {
-                                            ignoreRoads: true
-                                        });
+                                        creep.travelTo(thisContainer);
                                     }
                                 } else if (Object.keys(thisContainer.store).length && creep.withdraw(thisContainer, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(thisContainer, {
-                                        ignoreRoads: true
-                                    });
+                                    creep.travelTo(thisContainer);
                                 }
                                 if (creep.memory.didRoadSearch == false) {
                                     roadSearchTarget = thisContainer.pos;
                                 }
                             } else {
                                 //Can't see container, travel to room
-                                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                    ignoreRoads: true
-                                });
+                                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
                             }
                         } else {
                             //No container yet, move to be near source
@@ -481,26 +475,18 @@ var creep_farMining = {
                                         creep.memory.containerTarget = containers[0].id;
                                         if (Object.keys(containers[0].store).length > 1) {
                                             if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
-                                                creep.travelTo(containers[0], {
-                                                    ignoreRoads: true
-                                                });
+                                                creep.travelTo(containers[0]);
                                             }
                                         } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(containers[0], {
-                                                ignoreRoads: true
-                                            });
+                                            creep.travelTo(containers[0]);
                                         }
                                     }
                                 } else {
-                                    creep.travelTo(thisSource, {
-                                        ignoreRoads: true
-                                    })
+                                    creep.travelTo(thisSource)
                                 }
                             } else {
                                 //Can't see source, travel to room.
-                                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                    ignoreRoads: true
-                                });
+                                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
                             }
                         }
                         evadeAttacker(creep, 4);
