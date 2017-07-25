@@ -451,7 +451,7 @@ var creep_farMining = {
                             //No container yet, move to be near source
                             if (!creep.memory.mineSource) {
                                 var markedSources = [];
-                                if (Game.flags[creep.memory.targetFlag]) {
+                                if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].room) {
                                     markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
                                 }
                                 if (markedSources.length) {
