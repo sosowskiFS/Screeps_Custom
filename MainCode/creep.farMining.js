@@ -63,6 +63,8 @@ var creep_farMining = {
                             Game.notify('War mode has been enabled.');
                         }
                         Game.flags[creep.memory.targetFlag].remove();
+                    } else if (hostiles.length > 0 && hostiles[0].owner.username == 'Source Keeper') {
+                        Game.notify(creep.memory.targetFlag + ' died early. TTL ' + creep.ticksToLive);
                     }
                 }
 
