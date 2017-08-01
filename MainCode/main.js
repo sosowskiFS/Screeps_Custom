@@ -174,7 +174,7 @@ module.exports.loop = function() {
                 drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5);
 
                 //Bucket
-                drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 4, 0.5);
+                drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 6, 0.5);
 
                 //Controller Progress + Storage Amount
                 if (thisRoom.controller.level < 8) {
