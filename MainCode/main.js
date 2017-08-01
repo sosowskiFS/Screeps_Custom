@@ -146,7 +146,7 @@ module.exports.loop = function() {
 
         if (Game.time % 1000 == 0) {
             Memory.ordersFilled = [];
-        }    
+        }
 
         for (var i in Game.spawns) {
             var thisRoom = Game.spawns[i].room;
@@ -176,9 +176,14 @@ module.exports.loop = function() {
                 //Bucket
                 drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 2, 1.5);
 
-                //Controller Progress
+                //Controller Progress + Storage Amount
                 if (thisRoom.controller.level < 8) {
-                    drawPie(vis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 2.5);
+                    drawPie(vis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 2.0);
+                    if (thisRoom.storage) {
+                        drawPie(vis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
+                    }
+                } else if (thisRoom.storage) {
+                    drawPie(vis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.0);
                 }
 
                 //Populate the room creeps memory.
