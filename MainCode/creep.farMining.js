@@ -367,7 +367,7 @@ var creep_farMining = {
                         }
                     }
                 }
-                
+
                 if (((_.sum(creep.carry) > creep.carryCapacity - 300) || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 120)) && !creep.memory.storing && creep.carryCapacity >= 300) {
                     creep.memory.storing = true;
                 } else if (_.sum(creep.carry) == 0 && creep.memory.storing) {
@@ -443,7 +443,16 @@ var creep_farMining = {
                                     creep.travelTo(thisContainer);
                                 }
                                 if (creep.memory.didRoadSearch == false) {
-                                    roadSearchTarget = thisContainer.pos;
+                                    if (creep.memory.storageSource) {
+                                        var storageUnit = Game.getObjectById(creep.memory.storageSource)
+                                        if (storageUnit && creep.pos.isNearTo(storageUnit)) {
+                                            roadSearchTarget = thisContainer.pos;
+                                        } else {
+                                            creep.memory.didRoadSearch = true;
+                                        }
+                                    } else {
+                                        creep.memory.didRoadSearch = true;
+                                    }
                                 }
                             } else {
                                 //Can't see container, travel to room
@@ -504,7 +513,16 @@ var creep_farMining = {
                                 creep.travelTo(storageUnit);
                             }
                             if (creep.memory.didRoadSearch == false) {
-                                roadSearchTarget = storageUnit.pos;
+                                if (creep.memory.containerTarget) {
+                                    var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+                                    if (thisContainer && creep.pos.isNearTo(thisContainer)) {
+                                        roadSearchTarget = storageUnit.pos;
+                                    } else {
+                                        creep.memory.didRoadSearch = true;
+                                    }
+                                } else {
+                                    creep.memory.didRoadSearch = true;
+                                }
                             }
                         } else {
                             //Can't see storage, travel to home
@@ -514,20 +532,20 @@ var creep_farMining = {
                     }
 
                     if (_.sum(creep.carry) < creep.carryCapacity - 100) {
-	                	if (Game.flags[creep.room.name + "SKRoom"]) {
-	                		var someEnergy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 3);
-	                		if (someEnergy.length) {
-	                			if (creep.pickup(someEnergy[0]) == ERR_NOT_IN_RANGE){
-	                				creep.moveTo(someEnergy[0]);
-	                			}
-	                		}
-	                	} else {
-	                    	var someEnergy = creep.pos.lookFor(LOOK_ENERGY);
-	                    	if (someEnergy.length) {
-	                        	creep.pickup(someEnergy[0]);
-	                    	}
-	                	}
-	                }
+                        if (Game.flags[creep.room.name + "SKRoom"]) {
+                            var someEnergy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 3);
+                            if (someEnergy.length) {
+                                if (creep.pickup(someEnergy[0]) == ERR_NOT_IN_RANGE) {
+                                    creep.moveTo(someEnergy[0]);
+                                }
+                            }
+                        } else {
+                            var someEnergy = creep.pos.lookFor(LOOK_ENERGY);
+                            if (someEnergy.length) {
+                                creep.pickup(someEnergy[0]);
+                            }
+                        }
+                    }
                     //}
 
                     if (_.sum(creep.carry) > creep.carryCapacity - 300 && !creep.memory.didRoadSearch && roadSearchTarget) {
