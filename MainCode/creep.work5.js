@@ -96,9 +96,9 @@ var creep_work5 = {
                         }
                     }
 
-                    var linkTarget = Game.getObjectById(creep.memory.linkSource);
-                    if (linkTarget && _.sum(creep.carry) <= creep.getActiveBodyparts(WORK)) {
-                        if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    if (_.sum(creep.carry) <= creep.getActiveBodyparts(WORK)) {
+                        var linkTarget = Game.getObjectById(creep.memory.linkSource);
+                        if (linkTarget && creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(linkTarget);
                         }
                     }
