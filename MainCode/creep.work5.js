@@ -20,26 +20,8 @@ var creep_work5 = {
                 }
 
                 //Creep will immediately harvest and store mined materials
-                var storageTarget = Game.getObjectById(creep.memory.linkSource);
                 var mineTarget = Game.getObjectById(creep.memory.mineSource);
-                var storageTarget2 = undefined;
-                if (creep.memory.linkSource2) {
-                    storageTarget2 = Game.getObjectById(creep.memory.linkSource2);
-                }
-                if (mineTarget && storageTarget) {
-                    if (storageTarget.structureType == STRUCTURE_LINK) {
-                        if (storageTarget2) {
-                            if (storageTarget2.energy == storageTarget2.energyCapacity && storageTarget.energy == storageTarget.energyCapacity) {
-                                return;
-                            }
-                        } else {
-                            if (storageTarget.energy == storageTarget.energyCapacity) {
-                                return;
-                            }
-                        }
-
-                    }
-
+                if (mineTarget) {
                     if (mineTarget.energy > 0) {
                         if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(mineTarget);
@@ -47,7 +29,12 @@ var creep_work5 = {
                     }
 
                     if (creep.carry.energy >= 40) {
+                        var storageTarget = Game.getObjectById(creep.memory.linkSource);
                         if (creep.memory.jobSpecific == 'upgradeMiner') {
+                            var storageTarget2 = undefined;
+                            if (creep.memory.linkSource2) {
+                                storageTarget2 = Game.getObjectById(creep.memory.linkSource2);
+                            }
                             if (storageTarget2 && storageTarget.energy == storageTarget.energyCapacity) {
                                 if (creep.transfer(storageTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(storageTarget2);
@@ -64,23 +51,6 @@ var creep_work5 = {
                         }
                     }
 
-                    /*if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        if (creep.carry.energy > 0) {
-                            creep.moveTo(storageTarget, {
-                                reusePath: 5
-                            });
-                        } else {
-                            if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                                creep.moveTo(mineTarget, {
-                                    reusePath: 5
-                                });
-                            }
-                        }
-                    } else if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(mineTarget, {
-                            reusePath: 5
-                        });
-                    }*/
                 }
                 break;
             case 'upgrader':
