@@ -432,9 +432,12 @@ var creep_farMining = {
 
                     if (!creep.memory.storing) {
                         //in farRoom, pick up container contents
-                        if (creep.memory.containerTarget) {
+                        if (creep.memory.containerPosition) {
+                            creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.destination))
+                        } else if (creep.memory.containerTarget) {
                             var thisContainer = Game.getObjectById(creep.memory.containerTarget);
                             if (thisContainer) {
+                                creep.memory.containerPosition = thisContainer.pos
                                 if (Object.keys(thisContainer.store).length > 1) {
                                     if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
                                         creep.travelTo(thisContainer);
