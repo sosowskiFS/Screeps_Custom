@@ -245,25 +245,6 @@ var creep_farMining = {
                     creep.memory.storing = false;
                 }
 
-                /*if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
-                    var thisMineral = undefined;
-                    if (creep.memory.mineralTarget) {
-                        thisMineral = Game.getObjectById(creep.memory.mineralTarget);
-                    }
-                    if (thisMineral) {
-                        creep.travelTo(thisMineral);
-                    } else {
-                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
-                    }
-
-                } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
-                    var storageUnit = Game.getObjectById(creep.memory.storageSource)
-                    if (storageUnit) {
-                        creep.travelTo(storageUnit);
-                    } else {
-                        creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
-                    }
-                } else {*/
                 if (!creep.memory.storing) {
                     //in farRoom, mine mineral
                     if (creep.memory.mineralTarget) {
@@ -313,7 +294,6 @@ var creep_farMining = {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
                     }
                 }
-                //}
                 evadeAttacker(creep, 2);
                 break;
             case 'farMule':
@@ -377,44 +357,6 @@ var creep_farMining = {
                 if (creep.memory.evadingUntil && creep.memory.evadingUntil > Game.time) {
                     evadeAttacker(creep, 4);
                 } else {
-                    /*if (creep.room.name != creep.memory.destination && !creep.memory.storing) {
-                        var thisContainer = undefined;
-                        if (creep.memory.containerTarget) {
-                            thisContainer = Game.getObjectById(creep.memory.containerTarget);
-                        }
-                        if (thisContainer) {
-                            creep.travelTo(thisContainer, {
-                                ignoreRoads: true
-                            });
-                        } else if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag], {
-                                ignoreRoads: true
-                            });
-                        } else {
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                ignoreRoads: true
-                            });
-                        }
-                        evadeAttacker(creep, 4);
-                    } else if (creep.room.name != creep.memory.homeRoom && creep.memory.storing) {
-                        if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
-                            creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
-                        } else {
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
-                        }
-                        if (creep.memory.didRoadSearch == false) {
-                            if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
-                                roadSearchTarget = new RoomPosition(25, 25, creep.memory.homeRoom);
-                            } else if (creep.memory.containerTarget) {
-                                var thisContainer = Game.getObjectById(creep.memory.containerTarget);
-                                if (thisContainer && thisContainer.pos.roomName == creep.pos.roomName && creep.pos.isNearTo(thisContainer)) {
-                                    roadSearchTarget = new RoomPosition(25, 25, creep.memory.homeRoom);
-                                }
-                            }
-                        }
-                        evadeAttacker(creep, 4);
-                    } else {*/
-                    //creep.memory.path = undefined;
                     if (creep.room.name == creep.memory.destination) {
                         if (creep.room.controller && creep.room.controller.reservation) {
                             if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
@@ -432,9 +374,26 @@ var creep_farMining = {
 
                     if (!creep.memory.storing) {
                         //in farRoom, pick up container contents
-                        if (creep.memory.containerTarget) {
+                        if (creep.room.name != creep.memory.destination && creep.memory.containerPosition) {
+                            creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName));
+                            if (creep.memory.didRoadSearch == false) {
+                                if (creep.memory.storageSource) {
+                                    var storageUnit = Game.getObjectById(creep.memory.storageSource)
+                                    if ((storageUnit && creep.pos.isNearTo(storageUnit)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                                        roadSearchTarget = creep.memory.containerPosition;
+                                    } else {
+                                        creep.memory.didRoadSearch = true;
+                                    }
+                                } else {
+                                    creep.memory.didRoadSearch = true;
+                                }
+                            }
+                        } else if (creep.memory.containerTarget) {
                             var thisContainer = Game.getObjectById(creep.memory.containerTarget);
                             if (thisContainer) {
+                                if (!creep.memory.containerPosition) {
+                                    creep.memory.containerPosition = thisContainer.pos;
+                                }
                                 if (Object.keys(thisContainer.store).length > 1) {
                                     if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
                                         creep.travelTo(thisContainer);
@@ -445,7 +404,7 @@ var creep_farMining = {
                                 if (creep.memory.didRoadSearch == false) {
                                     if (creep.memory.storageSource) {
                                         var storageUnit = Game.getObjectById(creep.memory.storageSource)
-                                        if (storageUnit && creep.pos.isNearTo(storageUnit)) {
+                                        if ((storageUnit && creep.pos.isNearTo(storageUnit)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                                             roadSearchTarget = thisContainer.pos;
                                         } else {
                                             creep.memory.didRoadSearch = true;
@@ -497,31 +456,54 @@ var creep_farMining = {
                                 }
                             } else {
                                 //Can't see source, travel to room.
-                                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
+                                if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
+                                    creep.travelTo(new RoomPosition(Game.flags[creep.memory.targetFlag].pos.x, Game.flags[creep.memory.targetFlag].pos.y, Game.flags[creep.memory.targetFlag].pos.roomName));
+                                } else {
+                                    creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
+                                }
                             }
                         }
                         evadeAttacker(creep, 4);
                     } else {
-                        //in home room, drop off energy
-                        var storageUnit = Game.getObjectById(creep.memory.storageSource)
-                        if (storageUnit) {
-                            if (Object.keys(creep.carry).length > 1) {
-                                if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(storageUnit);
-                                }
-                            } else if (Object.keys(creep.carry).length && creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(storageUnit);
-                            }
+                        //Drop off energy
+                        if (creep.room.name != creep.memory.homeRoom && creep.memory.storagePosition) {
+                            creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
                             if (creep.memory.didRoadSearch == false) {
                                 if (creep.memory.containerTarget) {
                                     var thisContainer = Game.getObjectById(creep.memory.containerTarget);
-                                    if (thisContainer && creep.pos.isNearTo(thisContainer)) {
-                                        roadSearchTarget = storageUnit.pos;
+                                    if ((thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                                        roadSearchTarget = creep.memory.storagePosition;
                                     } else {
                                         creep.memory.didRoadSearch = true;
                                     }
                                 } else {
                                     creep.memory.didRoadSearch = true;
+                                }
+                            }
+                        } else if (creep.memory.storageSource) {
+                            var storageUnit = Game.getObjectById(creep.memory.storageSource);
+                            if (storageUnit) {
+                                if (!creep.memory.storagePosition) {
+                                    creep.memory.storagePosition = storageUnit.pos
+                                }
+                                if (Object.keys(creep.carry).length > 1) {
+                                    if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+                                        creep.travelTo(storageUnit);
+                                    }
+                                } else if (Object.keys(creep.carry).length && creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(storageUnit);
+                                }
+                                if (creep.memory.didRoadSearch == false) {
+                                    if (creep.memory.containerTarget) {
+                                        var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+                                        if ((thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                                            roadSearchTarget = storageUnit.pos;
+                                        } else {
+                                            creep.memory.didRoadSearch = true;
+                                        }
+                                    } else {
+                                        creep.memory.didRoadSearch = true;
+                                    }
                                 }
                             }
                         } else {
