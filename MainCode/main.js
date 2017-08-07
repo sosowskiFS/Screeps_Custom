@@ -849,7 +849,7 @@ module.exports.loop = function() {
                     }
                     alreadySearched.push(towers[y].room.name);
                 }
-                tower_Operate.run(towers[y], Memory.attackDuration);
+                tower_Operate.run(towers[y], Memory.attackDuration, y);
             }
         }
 
