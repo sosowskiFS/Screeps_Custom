@@ -26,115 +26,96 @@ var market_buyers = {
         if (Game.flags[thisRoom.name + "UHProducer"]) {
             neededMinerals.push(RESOURCE_UTRIUM);
             neededMinerals.push(RESOURCE_HYDROGEN);
-        }
-        if (Game.flags[thisRoom.name + "UH2OProducer"]) {
+        } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
             neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 0;
-        }
-        if (Game.flags[thisRoom.name + "OHProducer"]) {
+        } else if (Game.flags[thisRoom.name + "OHProducer"]) {
             neededMinerals.push(RESOURCE_OXYGEN);
             neededMinerals.push(RESOURCE_HYDROGEN);
-        }
-        if (Game.flags[thisRoom.name + "ZKProducer"]) {
+        } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM);
             neededMinerals.push(RESOURCE_KEANIUM);
-        }
-        if (Game.flags[thisRoom.name + "ZOProducer"]) {
+        } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM);
             neededMinerals.push(RESOURCE_OXYGEN);
-        }
-        if (Game.flags[thisRoom.name + "ZHProducer"]) {
+        } else if (Game.flags[thisRoom.name + "ZHProducer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM);
             neededMinerals.push(RESOURCE_HYDROGEN);
-        }
-        if (Game.flags[thisRoom.name + "LHProducer"]) {
+        } else if (Game.flags[thisRoom.name + "LHProducer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM);
             neededMinerals.push(RESOURCE_HYDROGEN);
-        }
-        if (Game.flags[thisRoom.name + "LHProducer"]) {
+        } else if (Game.flags[thisRoom.name + "LHProducer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM);
             neededMinerals.push(RESOURCE_OXYGEN);
-        }
-        if (Game.flags[thisRoom.name + "ULProducer"]) {
+        } else if (Game.flags[thisRoom.name + "ULProducer"]) {
             neededMinerals.push(RESOURCE_UTRIUM);
             neededMinerals.push(RESOURCE_LEMERGIUM);
-        }
-        if (Game.flags[thisRoom.name + "GProducer"]) {
+        } else if (Game.flags[thisRoom.name + "GProducer"]) {
             neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE);
             neededMinerals.push(RESOURCE_ZYNTHIUM_KEANITE);
-        }
-        if (Game.flags[thisRoom.name + "GHProducer"]) {
+        } else if (Game.flags[thisRoom.name + "GHProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM);
             ForNuker = false;
             neededMinerals.push(RESOURCE_HYDROGEN);
-        }
-        if (Game.flags[thisRoom.name + "GOProducer"]) {
+        } else if (Game.flags[thisRoom.name + "GOProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM);
             ForNuker = false;
             neededMinerals.push(RESOURCE_OXYGEN);
-        }
-        if (Game.flags[thisRoom.name + "GHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "GHO2Producer"]) {
             neededMinerals.push(RESOURCE_GHODIUM_OXIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
-        }
-        if (Game.flags[thisRoom.name + "GH2OProducer"]) {
+        } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 0;
-        }
-        if (Game.flags[thisRoom.name + "LH2OProducer"]) {
+        } else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
-        }
-        if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
-        }
-        if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM_OXIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
-        }
-        if (Game.flags[thisRoom.name + "LHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "LHO2Producer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM_OXIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
-        }
-        if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
+        } else if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
             neededMinerals.push(RESOURCE_UTRIUM_ACID);
             neededMinerals.push(RESOURCE_CATALYST);
-        }
-        if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
+        } else if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM_ACID);
             neededMinerals.push(RESOURCE_CATALYST);
-        }
-        if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM_ALKALIDE);
             neededMinerals.push(RESOURCE_CATALYST);
-        }
-        if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
+        } else if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
             neededMinerals.push(RESOURCE_GHODIUM_ACID);
             neededMinerals.push(RESOURCE_CATALYST);
-        }
-        if (Game.flags[thisRoom.name + "KOProducer"]) {
+        } else if (Game.flags[thisRoom.name + "KOProducer"]) {
             neededMinerals.push(RESOURCE_OXYGEN);
             neededMinerals.push(RESOURCE_KEANIUM);
-        }
-        if (Game.flags[thisRoom.name + "KHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "KHO2Producer"]) {
             neededMinerals.push(RESOURCE_KEANIUM_OXIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
-        }
-        if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
             neededMinerals.push(RESOURCE_KEANIUM_ALKALIDE);
             neededMinerals.push(RESOURCE_CATALYST);
-        }
-        if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
             neededMinerals.push(RESOURCE_GHODIUM_ALKALIDE);
+            neededMinerals.push(RESOURCE_CATALYST);
+        } else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
+            neededMinerals.push(RESOURCE_LEMERGIUM_ACID);
+            neededMinerals.push(RESOURCE_CATALYST);
+        } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
+            neededMinerals.push(RESOURCE_LEMERGIUM_ALKALIDE);
             neededMinerals.push(RESOURCE_CATALYST);
         }
 

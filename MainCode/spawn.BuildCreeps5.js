@@ -46,8 +46,16 @@ var spawn_BuildCreeps5 = {
         var primaryFlag = '';
         var backupFlag = '';
         if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
-            //Need to produce : 
-            //CATALYZED_LEMERGIUM_ALKALIDE (Need more L)
+            //MINERAL LOOPS:
+            //1: UH/LO/ZH
+            //2: OH/G/GH/GH2O/XGH2O
+            //3: UH2O/ZHO2/LHO2/ZH2O
+            //4: ZK/ZO
+            //5: LH/UL/XLHO2
+            //6: GHO2/LH2O/XLH2O/GO
+            //7: XUH2O/XZH2O/XZHO2
+            //8: KO/KHO2/XKHO2/XGHO2
+            //DO NOT CARE LIST : UO/KH
             if (Memory.labList[thisRoom.name].length >= 6) {
                 if (Game.flags[thisRoom.name + "WarBoosts"]) {
                     min1 = RESOURCE_CATALYZED_UTRIUM_ACID;
@@ -127,6 +135,12 @@ var spawn_BuildCreeps5 = {
                     min5 = RESOURCE_LEMERGIUM;
                     min6 = RESOURCE_UTRIUM_LEMERGITE;
                     primaryFlag = thisRoom.name + "ULProducer";
+                    backupFlag = thisRoom.name + "XLHO2Producer";
+                } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
+                    min4 = RESOURCE_LEMERGIUM_ALKALIDE;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
+                    primaryFlag = thisRoom.name + "XLHO2Producer";
                     backupFlag = thisRoom.name + "LHProducer";
                 } else if (Game.flags[thisRoom.name + "GProducer"]) {
                     min4 = RESOURCE_UTRIUM_LEMERGITE;
