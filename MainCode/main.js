@@ -220,49 +220,8 @@ module.exports.loop = function() {
                 }
 
                 //Execute special instruction written into console
-                //if (Game.flags["ClaimThis"] && !Memory.claimSpawn) {
-                if (Game.flags["ClaimThis"] && thisRoom.name == 'E87N85') {
-                    instructionSpawn = Game.spawns[i];
-                    //Default - Looks at route and writes best room to Memory.InstructionRoom.
-                    //If InstructionRoom matches in main spawn loop, run instruction first.
-                    /*var thisRoute = Game.map.findRoute(Game.flags["ClaimThis"].pos.roomName, thisRoom.name, {
-                        routeCallback(roomName, fromRoomName) {
-                            if (Memory.blockedRooms.indexOf(roomName) > -1) { // avoid this room
-                                return Infinity;
-                            }
-                            return 1;
-                        }
-                    });
-                    if (thisRoute != -2) {
-                        var theDistance = _.size(thisRoute);
-                        if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                            roomDist = theDistance;
-                            roomName = thisRoom.name;
-                            roomEnergy = thisRoom.energyCapacityAvailable;
-                            instructionSpawn = Game.spawns[i];
-                        }
-                    }*/
-                }
-
-                //if (Game.flags["BuildThis"]) {
-                if (Game.flags["BuildThis"] && thisRoom.name == 'E87N85') {
-                    instructionSpawn = Game.spawns[i];
-                    /*if (thisRoom.energyCapacityAvailable >= 1250) {
-                        var thisRoute = Game.map.getRoomLinearDistance(Game.flags["BuildThis"].pos.roomName, thisRoom.name);
-                        if (thisRoute != -2) {
-                            var theDistance = _.size(thisRoute);
-                            if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                                roomDist = theDistance;
-                                roomName = thisRoom.name;
-                                roomEnergy = thisRoom.energyCapacityAvailable;
-                                instructionSpawn = Game.spawns[i];
-                            }
-                        }
-
-                    }*/
-                }
-
-                if (Game.flags["DrainTurret"]) {
+                //DEPRECIATED - ADD INSTRUCTION TO SPAWN BLOCK
+                /*if (Game.flags["DrainTurret"]) {
                     var theDistance = Game.map.getRoomLinearDistance(Game.flags["DrainTurret"].pos.roomName, thisRoom.name);
                     if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
                         roomDist = theDistance;
@@ -312,7 +271,7 @@ module.exports.loop = function() {
                         roomEnergy = thisRoom.energyCapacityAvailable;
                         instructionSpawn = Game.spawns[i];
                     }
-                }
+                }*/
 
                 //Get non-suppliers off the supplier spot
                 if (Game.flags[thisRoom.name + "Supply"]) {
@@ -863,34 +822,7 @@ module.exports.loop = function() {
         Memory.roomCreeps = new Object();
         //Memory.creepInQue = [];
 
-        if (Game.flags["ClaimThis"] && Memory.claimSpawn) {
-            var thisSpawn = Game.getObjectById(Memory.claimSpawn);
-            if (Game.flags["UseDefinedRoute"]) {
-                spawn_BuildInstruction.run(thisSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
-            } else {
-                spawn_BuildInstruction.run(thisSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
-            }
-        } else if (Game.flags["ClaimThis"]) {
-            Memory.claimSpawn = instructionSpawn.id;
-            if (Game.flags["UseDefinedRoute"]) {
-                spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
-            } else {
-                spawn_BuildInstruction.run(instructionSpawn, 'claim', Game.flags["ClaimThis"].pos.roomName);
-            }
-        }
-
-        if (Game.flags["BuildThis"]) {
-            var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
-            if (sitesOnTile.length) {
-                if (Game.flags["UseDefinedRoute"]) {
-                    spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E85N85;E35S95;E34S95;E33S95;E33S94;E32S94;E31S94');
-                } else {
-                    spawn_BuildInstruction.run(instructionSpawn, 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
-                }
-            }
-        }
-
-        if (Game.flags["DrainTurret"]) {
+        /*if (Game.flags["DrainTurret"]) {
             spawn_BuildInstruction.run(instructionSpawn, 'tDrain', Game.flags["DrainTurret"].pos.roomName);
         }
 
@@ -908,7 +840,7 @@ module.exports.loop = function() {
 
         if (Game.flags["WallThis"]) {
             spawn_BuildInstruction.run(instructionSpawn, 'trump', Game.flags["WallThis"].pos.roomName, '', instructionSpawn.room.name);
-        }
+        }*/
 
         if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
             //Periodically look for cheap subscription tokens
