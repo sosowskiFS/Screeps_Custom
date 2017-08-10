@@ -33,8 +33,8 @@ var creep_claimer = {
                     ignoreRoads: true
                 });
             } else {
-                if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos) {
-                    creep.moveTo(Game.flags["TakePortal"], {
+                if (Game.flags["ClaimThis"] && Game.flags["ClaimThis"].pos) {
+                    creep.moveTo(Game.flags["ClaimThis"], {
                         ignoreRoads: true
                     });
                 } else {
