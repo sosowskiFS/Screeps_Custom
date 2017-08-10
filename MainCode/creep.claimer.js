@@ -22,18 +22,26 @@ var creep_claimer = {
                     creep.memory.path.splice(0, 1);
                 }
 
-                creep.moveTo(thisPortal);
+                creep.moveTo(thisPortal, {
+                    ignoreRoads: true
+                });
             } else if (creep.memory.path && creep.memory.path.length) {
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
+                creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]), {
+                    ignoreRoads: true
+                });
             } else {
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
+                creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                    ignoreRoads: true
+                });
             }
         } else {
             if (creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(creep.room.controller);
+                creep.moveTo(creep.room.controller, {
+                    ignoreRoads: true
+                });
             } else if (creep.claimController(creep.room.controller) == OK) {
                 Memory.claimSpawn = false;
                 creep.suicide();
