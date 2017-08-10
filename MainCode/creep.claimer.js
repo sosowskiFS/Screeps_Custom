@@ -33,9 +33,15 @@ var creep_claimer = {
                     ignoreRoads: true
                 });
             } else {
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                    ignoreRoads: true
-                });
+                if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos) {
+                    creep.moveTo(Game.flags["TakePortal"], {
+                        ignoreRoads: true
+                    });
+                } else {
+                    creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
+                        ignoreRoads: true
+                    });
+                }
             }
         } else {
             if (creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
