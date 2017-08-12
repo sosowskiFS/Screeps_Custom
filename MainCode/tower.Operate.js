@@ -83,7 +83,7 @@ var tower_Operate = {
 			} else {
 				//Repair ramparts about to decay
 				var decayingRampart = tower.room.find(FIND_MY_STRUCTURES, {
-					filter: (structure) => (structure.structureType = STRUCTURE_RAMPART && structure.ticksToDecay <= 10)
+					filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
 				});
 				if (decayingRampart.length){
 					//decayingRampart.sort(repairCompare);
