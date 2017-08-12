@@ -411,7 +411,7 @@ var creep_work5 = {
                                     } else if (!Memory.warMode) {
                                         creep.travelTo(thisStructure, {
                                             maxRooms: 1,
-                                            range: 2
+                                            range: 1
                                         });
                                     }
                                 }
