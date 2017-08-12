@@ -930,7 +930,7 @@ module.exports.loop = function() {
                     default:
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                             var pre = Game.cpu.getUsed();
-                            if (pre <= Game.cpu.limit) {
+                            if (pre <= Game.cpu.limit || Memory.warMode) {
                                 creep_work.run(creep, 25);
                                 pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
                             }
@@ -940,7 +940,7 @@ module.exports.loop = function() {
                                 creep_work.run(creep, 25);
                             } else {
                                 var pre = Game.cpu.getUsed();
-                                if (pre <= Game.cpu.limit) {
+                                if (pre <= Game.cpu.limit || Memory.warMode) {
                                     creep_work5.run(creep);
                                     post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
                                 }
