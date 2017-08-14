@@ -82,7 +82,7 @@ var tower_Operate = {
 				tower.heal(closestDamagedCreep);
 			} else {
 				//Repair ramparts about to decay
-				var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5 {
+				var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5, {
 					filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
 				});
 				if (decayingRampart.length){
