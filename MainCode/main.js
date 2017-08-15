@@ -634,6 +634,10 @@ module.exports.loop = function() {
                     Memory.creepInQue.splice(queSpawnIndex - 3, 4);
                 }
 
+                if (Game.flags["SignThis"] && Game.flags["SignThis"].pos.roomName == Game.spawns[i].pos.roomName) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', '', '');
+                }
+
                 if (Game.flags["ClaimThis"] && thisRoom.name == 'E84N77') {
                     if (Game.flags["UseDefinedRoute"]) {
                         spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E83N78;E81N78;E80N78;E80N80;E78N80;E78N81;E77N81;E77N83');
