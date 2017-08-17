@@ -171,32 +171,22 @@ var spawn_BuildFarCreeps = {
                 farMineralMiners2 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral2");
             }
 
-            var farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
+            /*var farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
             if (thisRoom.energyCapacityAvailable >= 2300 && thisRoom.controller.level >= 7) {
                 farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
             } else if (thisRoom.energyCapacityAvailable >= 1700) {
                 farMuleConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK];
-            }
+            }*/
 
             var farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
-
-            //1300 Points
-            var farClaimerConfig = [CLAIM, CLAIM, MOVE, MOVE];
-            if (thisRoom.energyCapacityAvailable >= 2600) {
-                //2600 Points
-                farClaimerConfig = [CLAIM, CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE, MOVE];
-            } else if (thisRoom.energyCapacityAvailable >= 1950) {
-                //1950 Points
-                farClaimerConfig = [CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE];
-            }
 
             //760 Points (Level 3)
             var farGuardConfig = [TOUGH, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
 
             //2650
-            var SKGuardAttackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
+            //var SKGuardAttackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
             //3000
-            var SKGuardHealerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+            //var SKGuardHealerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
 
             if (Memory.warMode) {
                 if (Memory.guardType) {
@@ -563,7 +553,7 @@ var spawn_BuildFarCreeps = {
                             farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                         } else {
                             farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
-                        }                   
+                        }
                     } else if (Game.flags[Game.flags[thisRoom.name + "FarMining8"].pos.roomName + "NoSKRoom"]) {
                         farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
@@ -629,6 +619,7 @@ var spawn_BuildFarCreeps = {
 
             if (prioritizedRole != '') {
                 if (prioritizedRole == 'farClaimer') {
+                    var farClaimerConfig = getClaimerBuild(thisRoom.energyCapacityAvailable);
                     if (spawn.canCreateCreep(farClaimerConfig) == OK) {
                         spawn.createCreep(farClaimerConfig, undefined, {
                             priority: prioritizedRole,
@@ -654,6 +645,7 @@ var spawn_BuildFarCreeps = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMule') {
+                    var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable);
                     if (spawn.canCreateCreep(farMuleConfig) == OK) {
                         spawn.createCreep(farMuleConfig, undefined, {
                             priority: prioritizedRole,
@@ -735,6 +727,51 @@ var spawn_BuildFarCreeps = {
 
         }
     }
+}
+
+function getClaimerBuild(energyCap) {
+    var thisConfig = [];
+
+    var ConfigCost = BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]
+
+    //CLAIM, CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE, MOVE
+    while ((energyCap / ConfigCost) >= 1) {
+        thisConfig.push(CLAIM);
+        thisConfig.push(MOVE);
+        energyCap = energyCap - ConfigCost;
+        if (thisConfig.length >= 8) {
+            break;
+        }
+    }
+    thisConfig.sort();
+    return thisConfig;
+}
+
+function getMuleBuild(energyCap) {
+    var thisConfig = [CARRY, MOVE, WORK];
+    var ConfigCost = (BODYPART_COST[CARRY] * 2) + BODYPART_COST[MOVE];
+    energyCap = energyCap - (BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]);
+    //initial : 1 move, 1 work, 1 carry
+    //Add to each loop : 2 carry, 1 move
+
+    while ((energyCap / ConfigCost) >= 1) {
+        thisConfig.push(MOVE);
+        thisConfig.push(CARRY);
+        thisConfig.push(CARRY);
+        energyCap = energyCap - ConfigCost;
+        if (thisConfig.length >= 50) {
+            break;
+        }
+    }
+
+    if (thisConfig.length > 50) {
+        while (thisConfig.length > 50) {
+            thisConfig.splice(0, 1);
+        }
+    }
+
+    thisConfig.sort();
+    return thisConfig;
 }
 
 module.exports = spawn_BuildFarCreeps;
