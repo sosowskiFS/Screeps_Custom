@@ -886,7 +886,11 @@ module.exports.loop = function() {
                     case 'SKHealGuardNearDeath':
                     case 'farMineralMiner':
                         var pre = Game.cpu.getUsed();
-                        creep_farMining.run(creep);
+                        var doExcessWork = true;
+                        if (pre > Game.cpu.limit) {
+                            doExcessWork = false;
+                        }
+                        creep_farMining.run(creep, doExcessWork);
                         farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
                         break;
                     case 'claimer':

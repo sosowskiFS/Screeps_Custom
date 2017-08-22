@@ -2,7 +2,7 @@ var creep_farMining = {
 
     /** @param {Creep} creep **/
     //Previous Usages - 55.9 mining / 104 overall
-    run: function(creep) {
+    run: function(creep, doExcessWork) {
         switch (creep.memory.priority) {
             case 'farClaimer':
             case 'farClaimerNearDeath':
@@ -361,8 +361,7 @@ var creep_farMining = {
                 if (creep.memory.evadingUntil && creep.memory.evadingUntil > Game.time) {
                     evadeAttacker(creep, 4);
                 } else {
-                    var pre = Game.cpu.getUsed();
-                    if (pre <= Game.cpu.limit) {
+                    if (doExcessWork) {
                         if (creep.room.name == creep.memory.destination) {
                             if (creep.room.controller && creep.room.controller.reservation) {
                                 if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
