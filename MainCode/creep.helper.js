@@ -12,12 +12,12 @@ var creep_Helper = {
                     creep.memory.path.splice(0, 1);
                 }
                 creep.travelTo(thisPortal)
-            } else if (creep.memory.path) {
+            } else if (creep.memory.path && creep.memory.path.length) {
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
-                //creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
-                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
+                creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
+                //creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             } else {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }

@@ -663,7 +663,7 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E83N78;E81N78;E80N78;E80N80;E78N80;E78N81;E77N81;E77N83');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E83N78;E81N79');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
                     }
