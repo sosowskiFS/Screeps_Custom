@@ -16,7 +16,8 @@ var creep_Helper = {
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
-                creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
+                //creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
+                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             } else {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }
