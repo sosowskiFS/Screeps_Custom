@@ -483,7 +483,8 @@ var creep_work5 = {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(storageTarget, {
                                 ignoreRoads: true,
-                                stuckValue: 1
+                                stuckValue: 1,
+                                maxRooms: 1
                             });
                         }
                     }
@@ -493,7 +494,8 @@ var creep_work5 = {
                     if (upLink) {
                         if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(upLink, {
-                                stuckValue: 1
+                                stuckValue: 1,
+                                maxRooms: 1
                             });
                         }
                     }
