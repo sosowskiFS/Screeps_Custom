@@ -175,13 +175,19 @@ var creep_work5 = {
                                         var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
                                         if (upgraderLink && upgraderLink.energy < 100) {
                                             if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                creep.travelTo(upgraderLink);
+                                                creep.travelTo(upgraderLink, {
+                                                	maxRooms: 1
+                                                });
                                             }
                                         } else if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
                                             if (Game.flags[creep.room.name + "Controller"]) {
-                                                creep.travelTo(Game.flags[creep.room.name + "Controller"]);
+                                                creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                                                	maxRooms: 1
+                                                });
                                             } else {
-                                                creep.travelTo(savedTarget);
+                                                creep.travelTo(savedTarget, {
+                                                	maxRooms: 1
+                                                });
                                             }
                                         }
                                     }
@@ -303,7 +309,9 @@ var creep_work5 = {
                                                     if (upgraderLink && upgraderLink.energy < 200) {
                                                         creep.memory.structureTarget = upgraderLink.id;
                                                         if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                            creep.travelTo(upgraderLink);
+                                                            creep.travelTo(upgraderLink, {
+                                                            	maxRooms: 1
+                                                            });
                                                         }
                                                     } else {
                                                         //Turn into a repair worker temporarily
@@ -315,9 +323,13 @@ var creep_work5 = {
                                                 creep.memory.structureTarget = creep.room.controller.id;
                                                 if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                                                     if (Game.flags[creep.room.name + "Controller"]) {
-                                                        creep.travelTo(Game.flags[creep.room.name + "Controller"]);
+                                                        creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                                                        	maxRooms: 1
+                                                        });
                                                     } else {
-                                                        creep.travelTo(creep.room.controller);
+                                                        creep.travelTo(creep.room.controller, {
+                                                        	maxRooms: 1
+                                                        });
                                                     }
                                                 } else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
                                                     creep.suicide();
