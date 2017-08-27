@@ -1119,9 +1119,9 @@ var creep_work5 = {
             }
         }
 
-        if (creep.memory.homeRoom && creep.room.name != creep.memory.homeRoom) {
+        /*if (creep.memory.homeRoom && creep.room.name != creep.memory.homeRoom) {
             creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom))
-        }
+        }*/
     }
 };
 
