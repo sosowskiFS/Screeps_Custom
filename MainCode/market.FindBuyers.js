@@ -117,6 +117,9 @@ var market_buyers = {
         } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM_ALKALIDE);
             neededMinerals.push(RESOURCE_CATALYST);
+        } else if (Game.flags[thisRoom.name + "LOProducer"]) {
+            neededMinerals.push(RESOURCE_LEMERGIUM);
+            neededMinerals.push(RESOURCE_OXYGEN);
         }
 
         //Flag room to transfer War Boosts
