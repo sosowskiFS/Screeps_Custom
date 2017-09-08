@@ -350,7 +350,6 @@ var spawn_BuildCreeps5 = {
             upSupplierMax = 0;
             supplierMax = 1;
             distributorMax = 1;
-            labWorkerMax = 1;
         }
 
         if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
