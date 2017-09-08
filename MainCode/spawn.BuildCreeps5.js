@@ -341,6 +341,18 @@ var spawn_BuildCreeps5 = {
 
         var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
+        if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+            //Custom limits for beseiged rooms
+            minerMax = 1;
+            muleMax = 1;
+            upgraderMax = 0;
+            repairMax = 2;
+            upSupplierMax = 0;
+            supplierMax = 1;
+            distributorMax = 1;
+            labWorkerMax = 1;
+        }
+
         if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
             //In case of complete destruction, make a minimum viable worker
             //Make sure 5+ work code has harvester backup path
