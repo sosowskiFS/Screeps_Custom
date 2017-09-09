@@ -670,7 +670,12 @@ var creep_work5 = {
                     creep.memory.priority = 'labWorkerNearDeath';
                 }
 
-                if (Game.time % 50 == 0 && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
+                if (!creep.memory.nextResourceCheck) {
+                	creep.memory.nextResourceCheck = Game.time + 50;
+                }
+
+                if (Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
+                	creep.memory.nextResourceCheck = Game.time + 50;
                     if (creep.memory.resourceChecks < 15) {
                         var lab4 = Game.getObjectById(creep.memory.lab4);
                         var lab5 = Game.getObjectById(creep.memory.lab5);
