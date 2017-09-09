@@ -671,17 +671,17 @@ var creep_work5 = {
                 }
 
                 if (Game.time % 50 == 0 && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
-                    if (creep.memory.resourceChecks < 22) {
+                    if (creep.memory.resourceChecks < 15) {
                         var lab4 = Game.getObjectById(creep.memory.lab4);
                         var lab5 = Game.getObjectById(creep.memory.lab5);
                         if (creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
                             //Immediately swap flags
-                            creep.memory.resourceChecks = 22;
+                            creep.memory.resourceChecks = 15;
                             //Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
                         } else if (lab4 && lab5 && (lab4.mineralAmount < 250 || lab5.mineralAmount < 250) && _.sum(creep.carry) == 0) {
                             //tick up, but don't swap yet
                             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
-                            if (creep.memory.resourceChecks >= 22) {
+                            if (creep.memory.resourceChecks >= 15) {
                                 //Game.notify('NO MATERIALS:' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
                             }
                         }
@@ -698,7 +698,7 @@ var creep_work5 = {
                 } else if (Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
                     //Just in case
                     Game.flags[creep.memory.primaryFlag].remove();
-                } else if (Game.flags[creep.memory.backupFlag] && creep.memory.resourceChecks >= 22 && _.sum(creep.carry) == 0) {
+                } else if (Game.flags[creep.memory.backupFlag] && creep.memory.resourceChecks >= 15 && _.sum(creep.carry) == 0) {
                     creep.suicide();
                 }
 
