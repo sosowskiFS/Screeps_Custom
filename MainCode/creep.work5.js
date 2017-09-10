@@ -622,6 +622,10 @@ var creep_work5 = {
                 break;
             case 'mineralMiner':
                 var thisMineral = Game.getObjectById(creep.memory.mineralID);
+                if (!creep.memory.nextMine) {
+                	creep.memory.nextMine = Game.time + 5;
+                }
+
                 if (thisMineral.mineralAmount == 0 && _.sum(creep.carry) == 0) {
                     //Nothing left to do
                     creep.suicide();
@@ -630,10 +634,13 @@ var creep_work5 = {
                     var storageTarget = creep.room.terminal;
                     if (!creep.pos.isNearTo(thisMineral)) {
                         creep.travelTo(thisMineral);
-                    } else if (storageTarget && Game.time % 6 == 0) {
+                    } else if (storageTarget && Game.time >= creep.memory.nextMine) {
                         if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisMineral);
+                        } else {
+                        	creep.memory.nextMine = Game.time + 5;
                         }
+
                     }
                     if (_.sum(creep.carry) > 0) {
                         if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
