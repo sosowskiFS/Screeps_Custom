@@ -623,7 +623,7 @@ var creep_work5 = {
             case 'mineralMiner':
                 var thisMineral = Game.getObjectById(creep.memory.mineralID);
                 if (!creep.memory.nextMine) {
-                	creep.memory.nextMine = Game.time + 5;
+                	creep.memory.nextMine = Game.time + 6;
                 }
 
                 if (thisMineral.mineralAmount == 0 && _.sum(creep.carry) == 0) {
@@ -638,7 +638,7 @@ var creep_work5 = {
                         if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisMineral);
                         } else {
-                        	creep.memory.nextMine = Game.time + 5;
+                        	creep.memory.nextMine = Game.time + 6;
                         }
 
                     }
