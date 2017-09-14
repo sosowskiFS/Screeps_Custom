@@ -18,6 +18,7 @@ var creep_asshealer = require('creep.asshealer');
 var creep_distractor = require('creep.distractor');
 var creep_powerAttack = require('creep.powerAttack');
 var creep_powerHeal = require('creep.powerHeal');
+var creep_powerCollect = require('creep.powerCollect');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -544,7 +545,7 @@ module.exports.loop = function() {
                 }
 
                 //Handle Power Spawn
-                if (Memory.powerSpawnList[thisRoom.name][0]) {
+                if (Memory.powerSpawnList[thisRoom.name][0] && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 75000) {
                     var thisPowerSpawn = Game.getObjectById(Memory.powerSpawnList[thisRoom.name][0]);
                     if (thisPowerSpawn) {
                         if (thisPowerSpawn.energy >= 50 && thisPowerSpawn.power > 0) {
@@ -587,7 +588,7 @@ module.exports.loop = function() {
                     Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
                 }
 
-                if (Game.time % 50 == 0 && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
+                if (Game.time % 50 == 0 && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"] && thisRoom.storage && thisRoom.storage.store[RESOURCE_POWER] < 300000) {
                     var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
                     if (thisObserver) {
                         thisObserver.observeRoom(Memory.powerCheckList[thisRoom.name][0]);
@@ -679,6 +680,20 @@ module.exports.loop = function() {
 
                 /*if (Game.flags[thisRoom.name + "PowerGather"]) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'powerGather', Game.flags[thisRoom.name + "PowerGather"].pos.roomName, '', '');
+                }*/
+
+                /*if (Game.flags[thisRoom.name + "PowerCollect"]) {
+                    //Mule capacity = 1650
+                    if (Game.flags[thisRoom.name + "PowerGather"] && Game.flags[thisRoom.name + "PowerGather"].pos) {
+                        //Calculate needed number of mules
+                        var powerBanks = Game.flags[thisRoom.name + "PowerGather"].pos.lookFor(LOOK_STRUCTURES);
+                        if (powerBanks.length) {
+                            var muleNeed = Math.round(powerBanks[0].power / 1650);
+                            if (muleNeed > 0) {
+                                spawn_BuildInstruction.run(Game.spawns[i], 'powerCollect', Game.flags[thisRoom.name + "PowerCollect"].pos.roomName, '', muleNeed);
+                            }                        
+                        }
+                    }            
                 }*/
 
                 if (!Memory.isSpawning) {
@@ -934,6 +949,9 @@ module.exports.loop = function() {
                         break;
                     case 'powerHeal':
                         creep_powerHeal(creep);
+                        break;
+                    case 'powerCollector':
+                        creep_powerCollect(creep);
                         break;
                     default:
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {

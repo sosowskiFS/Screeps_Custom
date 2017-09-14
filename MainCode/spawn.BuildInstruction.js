@@ -366,6 +366,22 @@ var spawn_BuildInstruction = {
                     }
                 }
                 break;
+            case 'powerCollect':
+                var powerCollectors = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'powerCollector' && creep.memory.homeRoom == spawn.room.name));
+                if (powerCollectors.length < params2) {
+                    var powerCollectConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    if (spawn.canCreateCreep(powerCollectConfig) == OK) {
+                        spawn.createCreep(powerCollectConfig, undefined, {
+                            priority: 'powerCollector',
+                            destination: params,
+                            homeRoom: spawn.room.name,
+                            deathWarn: _.size(powerCollectConfig) * 4
+                        });
+                        Memory.isSpawning = true;
+                        console.log('Power Mining - Mule, ' + spawn.room.name);
+                    }
+                }
+                break;
         }
     }
 };
