@@ -678,11 +678,11 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', '');
                 }
 
-                /*if (Game.flags[thisRoom.name + "PowerGather"]) {
+                if (Game.flags[thisRoom.name + "PowerGather"]) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'powerGather', Game.flags[thisRoom.name + "PowerGather"].pos.roomName, '', '');
-                }*/
+                }
 
-                /*if (Game.flags[thisRoom.name + "PowerCollect"]) {
+                if (Game.flags[thisRoom.name + "PowerCollect"]) {
                     //Mule capacity = 1650
                     if (Game.flags[thisRoom.name + "PowerGather"] && Game.flags[thisRoom.name + "PowerGather"].pos) {
                         //Calculate needed number of mules
@@ -694,7 +694,7 @@ module.exports.loop = function() {
                             }                        
                         }
                     }            
-                }*/
+                }
 
                 if (!Memory.isSpawning) {
                     if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
