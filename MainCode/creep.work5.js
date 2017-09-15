@@ -182,17 +182,17 @@ var creep_work5 = {
                                         if (upgraderLink && upgraderLink.energy < 100) {
                                             if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                                 creep.travelTo(upgraderLink, {
-                                                	maxRooms: 1
+                                                    maxRooms: 1
                                                 });
                                             }
                                         } else if (creep.upgradeController(savedTarget) == ERR_NOT_IN_RANGE) {
                                             if (Game.flags[creep.room.name + "Controller"]) {
                                                 creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                                                	maxRooms: 1
+                                                    maxRooms: 1
                                                 });
                                             } else {
                                                 creep.travelTo(savedTarget, {
-                                                	maxRooms: 1
+                                                    maxRooms: 1
                                                 });
                                             }
                                         }
@@ -316,7 +316,7 @@ var creep_work5 = {
                                                         creep.memory.structureTarget = upgraderLink.id;
                                                         if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                                             creep.travelTo(upgraderLink, {
-                                                            	maxRooms: 1
+                                                                maxRooms: 1
                                                             });
                                                         }
                                                     } else {
@@ -330,11 +330,11 @@ var creep_work5 = {
                                                 if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                                                     if (Game.flags[creep.room.name + "Controller"]) {
                                                         creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                                                        	maxRooms: 1
+                                                            maxRooms: 1
                                                         });
                                                     } else {
                                                         creep.travelTo(creep.room.controller, {
-                                                        	maxRooms: 1
+                                                            maxRooms: 1
                                                         });
                                                     }
                                                 } else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
@@ -496,25 +496,60 @@ var creep_work5 = {
 
                 if (_.sum(creep.carry) == 0) {
                     //Get from storage
+                    //Get power if available and powerSpawn is empty
                     var storageTarget = creep.room.storage;
                     if (storageTarget) {
-                        if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget, {
-                                ignoreRoads: true,
-                                stuckValue: 1,
-                                maxRooms: 1
-                            });
+                        var getPower = false;
+                        var powerAmount = 100;
+                        if (Memory.powerSpawnList[creep.room.name].length && creep.room.storage.store[RESOURCE_POWER] > 0) {
+                            var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
+                            if (pSpawn && pSpawn.power == 0) {
+                                getPower = true;
+                                if (creep.room.storage.store[RESOURCE_POWER] < 100) {
+                                    powerAmount = creep.room.storage.store[RESOURCE_POWER];
+                                }
+                            }
+                        }
+                        if (getPower) {
+                            if (creep.withdraw(storageTarget, RESOURCE_POWER, powerAmount) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(storageTarget, {
+                                    ignoreRoads: true,
+                                    stuckValue: 1,
+                                    maxRooms: 1
+                                });
+                            }
+                        } else {
+                            if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(storageTarget, {
+                                    ignoreRoads: true,
+                                    stuckValue: 1,
+                                    maxRooms: 1
+                                });
+                            }
                         }
                     }
                 } else {
-                    //Drop off in upgrader link
-                    var upLink = Game.getObjectById(creep.memory.linkTarget);
-                    if (upLink) {
-                        if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(upLink, {
-                                stuckValue: 1,
-                                maxRooms: 1
-                            });
+                    if (creep.carry[RESOURCE_POWER] > 0) {
+                        //Drop off in power Spawn
+                        var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
+                        if (pSpawn) {
+                            if (creep.transfer(pSpawn, RESOURCE_POWER) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(pSpawn, {
+                                    stuckValue: 1,
+                                    maxRooms: 1
+                                });
+                            }
+                        }
+                    } else {
+                        //Drop off in upgrader link
+                        var upLink = Game.getObjectById(creep.memory.linkTarget);
+                        if (upLink) {
+                            if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(upLink, {
+                                    stuckValue: 1,
+                                    maxRooms: 1
+                                });
+                            }
                         }
                     }
                 }
@@ -623,7 +658,7 @@ var creep_work5 = {
             case 'mineralMiner':
                 var thisMineral = Game.getObjectById(creep.memory.mineralID);
                 if (!creep.memory.nextMine) {
-                	creep.memory.nextMine = Game.time + 6;
+                    creep.memory.nextMine = Game.time + 6;
                 }
 
                 if (thisMineral.mineralAmount == 0 && _.sum(creep.carry) == 0) {
@@ -638,7 +673,7 @@ var creep_work5 = {
                         if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisMineral);
                         } else {
-                        	creep.memory.nextMine = Game.time + 6;
+                            creep.memory.nextMine = Game.time + 6;
                         }
 
                     }
@@ -678,11 +713,11 @@ var creep_work5 = {
                 }
 
                 if (!creep.memory.nextResourceCheck) {
-                	creep.memory.nextResourceCheck = Game.time + 50;
+                    creep.memory.nextResourceCheck = Game.time + 50;
                 }
 
                 if (Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
-                	creep.memory.nextResourceCheck = Game.time + 50;
+                    creep.memory.nextResourceCheck = Game.time + 50;
                     if (creep.memory.resourceChecks < 15) {
                         var lab4 = Game.getObjectById(creep.memory.lab4);
                         var lab5 = Game.getObjectById(creep.memory.lab5);
