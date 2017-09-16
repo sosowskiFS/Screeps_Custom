@@ -237,7 +237,7 @@ var market_buyers = {
 module.exports = market_buyers;
 
 function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit) {
-    if (thisTerminal.store[thisMineral]) {
+    if (thisTerminal.store[thisMineral] && Game.rooms[targetRoom]) {
         var targetTerminal = Game.rooms[targetRoom].terminal
         var amountAvailable = thisTerminal.store[thisMineral];
         var targetStoreCap = 15000;
