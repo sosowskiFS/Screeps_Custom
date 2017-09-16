@@ -948,10 +948,10 @@ module.exports.loop = function() {
                         creep_powerAttack.run(creep);
                         break;
                     case 'powerHeal':
-                        creep_powerHeal(creep);
+                        creep_powerHeal.run(creep);
                         break;
                     case 'powerCollector':
-                        creep_powerCollect(creep);
+                        creep_powerCollect.run(creep);
                         break;
                     default:
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
