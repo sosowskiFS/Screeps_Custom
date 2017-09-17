@@ -35,7 +35,7 @@ var creep_powerAttack = {
                         if (creep.attack(thisBank) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisBank);
                         }
-                        if (thisBank.hits <= 288000 && !Game.flags[creep.memory.homeRoom + "PowerCollect"]) {
+                        if (thisBank.hits <= 468000 && !Game.flags[creep.memory.homeRoom + "PowerCollect"]) {
                             //Set flag to signal mule creation
                             Game.rooms[creep.room.name].createFlag(25, 25, creep.memory.homeRoom + "PowerCollect");
                         }
