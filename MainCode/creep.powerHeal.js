@@ -21,7 +21,7 @@ var creep_powerHeal = {
 						filter: (creep) => (creep.getActiveBodyparts(ATTACK) >= 1)
 					});
 					if (attackers.length) {
-						creep.memory.targetAttacker = attackers[0];
+						creep.memory.targetAttacker = attackers[0].id;
 						creep.travelTo(attackers[0]);
 					} else {
 						creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"], {
