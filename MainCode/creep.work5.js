@@ -1118,10 +1118,12 @@ var creep_work5 = {
                     if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
                         if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
                             var withdrawResult = "N/A"
-                            if (Object.keys(creep.room.storage.store)[1] == RESOURCE_POWER && Object.keys(creep.room.storage.store).length > 2) {
-                                withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[2]);
-                            } else {
-                                withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1]);
+                            for (var i = 0, len = Object.keys(creep.room.storage.store).length;i < len; i++){
+                            	if (Object.keys(creep.room.storage.store)[i] == RESOURCE_POWER || Object.keys(creep.room.storage.store)[i] == RESOURCE_ENERGY) {
+                            		continue;
+                            	} else {
+                            		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[i]);
+                            	}
                             }
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(creep.room.storage, {
