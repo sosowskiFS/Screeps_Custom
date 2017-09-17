@@ -19,12 +19,12 @@ var creep_powerAttack = {
 				if (!creep.memory.targetBank) {
 					var powerBanks = Game.flags[creep.memory.homeRoom + "PowerGather"].pos.lookFor(LOOK_STRUCTURES);
 					if (powerBanks.length) {
-						creep.memory.targetBank = powerBanks[0]
+						creep.memory.targetBank = powerBanks[0].id
 						creep.travelTo(powerBanks[0]);
 					} else {
 						//No bank located, delete flag
-						//Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
-						Game.notify('Power flag deleted - Cannot find bank. Initial look |' + creep.room.name);
+						Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
+						//Game.notify('Power flag deleted - Cannot find bank. Initial look |' + creep.room.name);
 					}
 				} else if (creep.hits >= 2400) {
 					var thisBank = Game.getObjectById(creep.memory.targetBank);
@@ -39,7 +39,7 @@ var creep_powerAttack = {
 					} else {
 						//Cannot find bank, abort
 						Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
-						Game.notify('Power flag deleted - Cannot find bank. |' + creep.room.name);
+						//Game.notify('Power flag deleted - Cannot find bank. |' + creep.room.name);
 					}
 				}
 			}
