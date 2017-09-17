@@ -945,9 +945,11 @@ module.exports.loop = function() {
                         creep_distractor.run(creep);
                         break;
                     case 'powerAttack':
+                    case 'powerAttackNearDeath':
                         creep_powerAttack.run(creep);
                         break;
                     case 'powerHeal':
+                    case 'powerHealNearDeath':
                         creep_powerHeal.run(creep);
                         break;
                     case 'powerCollector':
