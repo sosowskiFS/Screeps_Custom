@@ -336,7 +336,7 @@ var spawn_BuildInstruction = {
                 var powerAttackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'powerAttack' && creep.memory.homeRoom == spawn.room.name));
                 var powerHealers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'powerHeal' && creep.memory.homeRoom == spawn.room.name);
                 if (powerAttackers.length < 1) {
-                    var powerAttackConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
+                    var powerAttackConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
                     if (spawn.canCreateCreep(powerAttackConfig) == OK) {
                         spawn.createCreep(powerAttackConfig, undefined, {
                             priority: 'powerAttack',
@@ -348,7 +348,7 @@ var spawn_BuildInstruction = {
                         console.log('Power Mining - Attacker, ' + spawn.room.name);
                     }
                 } else if (powerHealers.length < 2) {
-                    var healerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+                    var healerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     var attackerID = '';
                     if (powerAttackers[0]) {
                         attackerID = powerAttackers[0].id
