@@ -29,7 +29,7 @@ var creep_powerAttack = {
                         Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
                         //Game.notify('Power flag deleted - Cannot find bank. Initial look |' + creep.room.name);
                     }
-                } else if (creep.hits >= 2400) {
+                } else if (creep.hits >= 2500) {
                     var thisBank = Game.getObjectById(creep.memory.targetBank);
                     if (thisBank) {
                         if (creep.attack(thisBank) == ERR_NOT_IN_RANGE) {
