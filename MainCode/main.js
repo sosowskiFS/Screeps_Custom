@@ -688,7 +688,7 @@ module.exports.loop = function() {
                         //Calculate needed number of mules
                         var powerBanks = Game.flags[thisRoom.name + "PowerGather"].pos.lookFor(LOOK_STRUCTURES);
                         if (powerBanks.length) {
-                            var muleNeed = Math.round(powerBanks[0].power / 1650);
+                            var muleNeed = Math.ceil(powerBanks[0].power / 1650);
                             if (muleNeed > 0) {
                                 spawn_BuildInstruction.run(Game.spawns[i], 'powerCollect', Game.flags[thisRoom.name + "PowerCollect"].pos.roomName, '', muleNeed);
                             }                        
