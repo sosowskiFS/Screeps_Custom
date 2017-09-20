@@ -691,9 +691,9 @@ module.exports.loop = function() {
                             var muleNeed = Math.ceil(powerBanks[0].power / 1650);
                             if (muleNeed > 0) {
                                 spawn_BuildInstruction.run(Game.spawns[i], 'powerCollect', Game.flags[thisRoom.name + "PowerCollect"].pos.roomName, '', muleNeed);
-                            }                        
+                            }
                         }
-                    }            
+                    }
                 }
 
                 if (!Memory.isSpawning) {
@@ -961,6 +961,8 @@ module.exports.loop = function() {
                             if (pre <= Game.cpu.limit || Memory.warMode) {
                                 creep_work.run(creep, 25);
                                 pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
+                            } else {
+                                creep.say("\u2716\uFE0F", false);
                             }
                         } else {
                             if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
@@ -971,6 +973,8 @@ module.exports.loop = function() {
                                 if ((pre <= Game.cpu.limit || Memory.warMode) || creep.memory.priority == 'upgrader') {
                                     creep_work5.run(creep);
                                     post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
+                                } else {
+                                    creep.say("\u2716\uFE0F", false);
                                 }
                             }
                         }
