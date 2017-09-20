@@ -645,7 +645,7 @@ var spawn_BuildFarCreeps = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMule') {
-                    var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable);
+                    var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable, thisRoom);
                     if (spawn.canCreateCreep(farMuleConfig) == OK) {
                         spawn.createCreep(farMuleConfig, undefined, {
                             priority: prioritizedRole,
@@ -747,10 +747,14 @@ function getClaimerBuild(energyCap) {
     return thisConfig;
 }
 
-function getMuleBuild(energyCap) {
+function getMuleBuild(energyCap, thisRoom) {
     var thisConfig = [CARRY, MOVE, WORK];
     var ConfigCost = (BODYPART_COST[CARRY] * 2) + BODYPART_COST[MOVE];
     energyCap = energyCap - (BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]);
+    var partCap = 50;
+    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
+    	partCap = 30;
+    } 
     //initial : 1 move, 1 work, 1 carry
     //Add to each loop : 2 carry, 1 move
 
@@ -759,13 +763,13 @@ function getMuleBuild(energyCap) {
         thisConfig.push(CARRY);
         thisConfig.push(CARRY);
         energyCap = energyCap - ConfigCost;
-        if (thisConfig.length >= 50) {
+        if (thisConfig.length >= partCap) {
             break;
         }
     }
 
-    if (thisConfig.length > 50) {
-        while (thisConfig.length > 50) {
+    if (thisConfig.length > partCap) {
+        while (thisConfig.length > partCap) {
             thisConfig.splice(0, 1);
         }
     }
