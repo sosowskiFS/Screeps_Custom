@@ -261,52 +261,52 @@ var creep_work5 = {
                                     creep.memory.structureTarget = undefined;
                                 }
                             } else {
-                                //Level8 Structures
-                                var targets2;
-                                if (creep.room.controller.level == 8) {
-                                    targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                        filter: (structure) => {
-                                            return (structure.structureType == STRUCTURE_POWER_SPAWN ||
-                                                structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
+                                //Store in terminal
+                                var terminalTarget = Game.getObjectById(creep.memory.terminalID)
+                                if (terminalTarget) {
+                                    if (terminalTarget.store[RESOURCE_ENERGY] < 30000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
+                                        creep.memory.structureTarget = terminalTarget.id;
+                                        if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                            creep.travelTo(terminalTarget);
                                         }
-                                    });
-                                }
-                                if (targets2) {
-                                    creep.memory.structureTarget = targets2.id;
-                                    if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                        creep.travelTo(targets2);
                                     } else {
-                                        creep.memory.structureTarget = undefined;
+                                        terminalTarget = undefined;
                                     }
-                                } else {
-                                    //Build
-                                    targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                                }
+
+                                if (!terminalTarget) {
+                                    //Level8 Structures
+                                    var targets2;
+                                    if (creep.room.controller.level == 8) {
+                                        targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                            filter: (structure) => {
+                                                return (structure.structureType == STRUCTURE_POWER_SPAWN ||
+                                                    structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
+                                            }
+                                        });
+                                    }
                                     if (targets2) {
                                         creep.memory.structureTarget = targets2.id;
-                                        if (targets2.structureType == STRUCTURE_RAMPART) {
-                                            creep.memory.lookForNewRampart = true;
-                                        }
-
-                                        if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
+                                        if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                             creep.travelTo(targets2);
-                                        } else if (creep.build(targets2) == ERR_NO_BODYPART) {
-                                            creep.suicide();
+                                        } else {
+                                            creep.memory.structureTarget = undefined;
                                         }
                                     } else {
-                                        //Store in terminal
-                                        var terminalTarget = Game.getObjectById(creep.memory.terminalID)
-                                        if (terminalTarget) {
-                                            if (terminalTarget.store[RESOURCE_ENERGY] < 30000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
-                                                creep.memory.structureTarget = terminalTarget.id;
-                                                if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                    creep.travelTo(terminalTarget);
-                                                }
-                                            } else {
-                                                terminalTarget = undefined;
+                                        //Build
+                                        targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                                        if (targets2) {
+                                            creep.memory.structureTarget = targets2.id;
+                                            if (targets2.structureType == STRUCTURE_RAMPART) {
+                                                creep.memory.lookForNewRampart = true;
                                             }
-                                        }
 
-                                        if (!terminalTarget) {
+                                            if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
+                                                creep.travelTo(targets2);
+                                            } else if (creep.build(targets2) == ERR_NO_BODYPART) {
+                                                creep.suicide();
+                                            }
+                                        } else {
                                             //Upgrade
                                             if (creep.room.controller.level == 8) {
                                                 //Check for nearby link and fill it if possible.
@@ -1118,12 +1118,12 @@ var creep_work5 = {
                     if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
                         if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
                             var withdrawResult = "N/A"
-                            for (var i = 0, len = Object.keys(creep.room.storage.store).length;i < len; i++){
-                            	if (Object.keys(creep.room.storage.store)[i] == RESOURCE_POWER || Object.keys(creep.room.storage.store)[i] == RESOURCE_ENERGY) {
-                            		continue;
-                            	} else {
-                            		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[i]);
-                            	}
+                            for (var i = 0, len = Object.keys(creep.room.storage.store).length; i < len; i++) {
+                                if (Object.keys(creep.room.storage.store)[i] == RESOURCE_POWER || Object.keys(creep.room.storage.store)[i] == RESOURCE_ENERGY) {
+                                    continue;
+                                } else {
+                                    withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[i]);
+                                }
                             }
                             if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(creep.room.storage, {
