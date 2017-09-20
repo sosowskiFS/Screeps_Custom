@@ -329,7 +329,7 @@ var spawn_BuildCreeps5 = {
 
 
         //800 Points
-        var minerConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
+        var minerConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
         //Upgrader to use minerConfig
         //2,300 Points
         var mineralMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -362,7 +362,7 @@ var spawn_BuildCreeps5 = {
                     linkSource: strLinks[1],
                     storageSource: thisRoom.storage.id,
                     terminalID: strTerminal,
-                    deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
+                    deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 6,
                     fromSpawn: spawn.id,
                     homeRoom: thisRoom.name
                 });
@@ -370,7 +370,7 @@ var spawn_BuildCreeps5 = {
             } else {
                 spawn.createCreep(bareMinConfig, undefined, {
                     priority: 'harvester',
-                    deathWarn: _.size(bareMinConfig) * 4,
+                    deathWarn: _.size(bareMinConfig) * 6,
                     sourceLocation: strSources[1],
                     homeRoom: thisRoom.name
                 });
@@ -395,7 +395,7 @@ var spawn_BuildCreeps5 = {
                         if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
                             spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
                                 priority: 'salvager',
-                                deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
+                                deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 6,
                                 storageTarget: thisRoom.storage.id,
                                 homeRoom: thisRoom.name
                             });
@@ -588,7 +588,7 @@ var spawn_BuildCreeps5 = {
                                 linkSource: connectedLink,
                                 linkSource2: backupLink,
                                 jobSpecific: jobSpecificPri,
-                                deathWarn: _.size(minerConfig) * 4,
+                                deathWarn: _.size(minerConfig) * 6,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
                             });
@@ -598,7 +598,7 @@ var spawn_BuildCreeps5 = {
                                 mineSource: creepSource,
                                 linkSource: connectedLink,
                                 jobSpecific: jobSpecificPri,
-                                deathWarn: _.size(minerConfig) * 4,
+                                deathWarn: _.size(minerConfig) * 5,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
                             });
@@ -626,7 +626,7 @@ var spawn_BuildCreeps5 = {
                             priority: prioritizedRole,
                             linkSource: connectedLink,
                             storageSource: storageID,
-                            deathWarn: _.size(upgraderConfig) * 4,
+                            deathWarn: _.size(upgraderConfig) * 6,
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name
                         });
@@ -639,7 +639,7 @@ var spawn_BuildCreeps5 = {
                             priority: prioritizedRole,
                             linkTarget: connectedLink,
                             storageSource: storageID,
-                            deathWarn: _.size(repairConfig) * 4,
+                            deathWarn: _.size(repairConfig) * 5,
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name
                         });
