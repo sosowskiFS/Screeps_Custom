@@ -545,7 +545,7 @@ module.exports.loop = function() {
                 }
 
                 //Handle Power Spawn
-                if (Memory.powerSpawnList[thisRoom.name][0] && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 75000) {
+                if (Memory.powerSpawnList[thisRoom.name][0] && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 100000) {
                     var thisPowerSpawn = Game.getObjectById(Memory.powerSpawnList[thisRoom.name][0]);
                     if (thisPowerSpawn) {
                         if (thisPowerSpawn.energy >= 50 && thisPowerSpawn.power > 0) {
