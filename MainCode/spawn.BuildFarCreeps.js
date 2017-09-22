@@ -752,9 +752,9 @@ function getMuleBuild(energyCap, thisRoom) {
     var ConfigCost = (BODYPART_COST[CARRY] * 2) + BODYPART_COST[MOVE];
     energyCap = energyCap - (BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]);
     var partCap = 50;
-    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
+    /*if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
     	partCap = 30;
-    } 
+    }*/
     //initial : 1 move, 1 work, 1 carry
     //Add to each loop : 2 carry, 1 move
 
