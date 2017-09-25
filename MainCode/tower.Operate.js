@@ -16,8 +16,10 @@ var tower_Operate = {
 				checkDelay = 5;
 			} else if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
 				checkDelay = 10;
-			} else if (thisRoom.storage.store[RESOURCE_ENERGY] <= 100000) {
+			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
 				checkDelay = 500;
+			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 225000) {
+				checkDelay = 50;
 			}
 		}
 
@@ -85,7 +87,7 @@ var tower_Operate = {
 				var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5, {
 					filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
 				});
-				if (decayingRampart.length){
+				if (decayingRampart.length) {
 					decayingRampart.sort(repairCompare);
 					tower.repair(decayingRampart[0]);
 				}
@@ -105,11 +107,11 @@ var tower_Operate = {
 };
 
 function repairCompare(a, b) {
-    if (a.hits < b.hits)
-        return -1;
-    if (a.hits > b.hits)
-        return 1;
-    return 0;
+	if (a.hits < b.hits)
+		return -1;
+	if (a.hits > b.hits)
+		return 1;
+	return 0;
 }
 
 module.exports = tower_Operate;
