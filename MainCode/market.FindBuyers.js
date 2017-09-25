@@ -74,7 +74,7 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_LEMERGIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
-        } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
+        } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
             neededMinerals.push(RESOURCE_ZYNTHIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 2;
