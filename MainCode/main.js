@@ -65,7 +65,7 @@ module.exports.loop = function() {
         }
 
         //Reset average CPU usage records on request
-        if (Game.flags["ResetAverages"]) {
+        if (Game.flags["ResetAverages"] || Memory.CPUAverages.TotalCPU.ticks >= 50000) {
             Memory.CPUAverages = new Object();
             Memory.CPUAverages.TotalCPU = new Object();
             Memory.CPUAverages.TotalCPU.ticks = 0;

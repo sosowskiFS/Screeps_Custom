@@ -86,8 +86,8 @@ var tower_Operate = {
 					filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
 				});
 				if (decayingRampart.length){
-					//decayingRampart.sort(repairCompare);
-					tower.repair(decayingRampart[Math.floor(Math.random() * decayingRampart.length)]);
+					decayingRampart.sort(repairCompare);
+					tower.repair(decayingRampart[0]);
 				}
 			}
 		}
