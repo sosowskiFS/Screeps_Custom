@@ -359,6 +359,7 @@ var creep_farMining = {
                 }
 
                 if (creep.memory.evadingUntil && creep.memory.evadingUntil > Game.time) {
+                    creep.memory.didRoadSearch = true;
                     evadeAttacker(creep, 4);
                 } else {
                     if (doExcessWork) {
