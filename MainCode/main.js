@@ -85,7 +85,9 @@ module.exports.loop = function() {
             Memory.CPUAverages.SpawnCPU = new Object();
             Memory.CPUAverages.SpawnCPU.ticks = 0;
             Memory.CPUAverages.SpawnCPU.CPU = 0;
-            Game.flags["ResetAverages"].remove();
+            if (Game.flags["ResetAverages"]) {
+                Game.flags["ResetAverages"].remove();
+            }      
         }
 
         if (Game.flags["ToggleWar"]) {
