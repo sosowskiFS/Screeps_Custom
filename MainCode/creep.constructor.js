@@ -54,7 +54,24 @@ var creep_constructor = {
                 if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(creep.room.controller);
                 }
-            } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_NOT_IN_RANGE) {
+            } else {
+                var target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                if (target) {
+                    if (creep.build(target) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(target);
+                    } else if (creep.build(target) == ERR_INVALID_TARGET) {
+                        if (Game.flags["BuildThis"]) {
+                            Game.flags["BuildThis"].remove();
+                        }
+                    }
+                } else {
+                    if (Game.flags["BuildThis"]) {
+                        Game.flags["BuildThis"].remove();
+                    }
+                }
+            }
+            
+            /*else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(Game.getObjectById(creep.memory.siteID));
             } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_INVALID_TARGET) {
                 if (Game.flags["BuildThis"]) {
@@ -65,7 +82,7 @@ var creep_constructor = {
                 if (creep.memory.homeRoom && !Game.flags[creep.memory.homeRoom + "SendHelper"]) {
                     creep.pos.createFlag(creep.memory.homeRoom + "SendHelper");
                 }
-            }
+            }*/
         }
     }
 };

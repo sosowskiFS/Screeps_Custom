@@ -65,9 +65,15 @@ var spawn_BuildInstruction = {
                     if (params2 != '') {
                         var creepPath = params2.split(";");
                         if (spawn.canCreateCreep(constructorConfig) == OK) {
-                            spawn.createCreep(constructorConfig, undefined, {
+                            /*spawn.createCreep(constructorConfig, undefined, {
                                 priority: 'constructor',
                                 siteID: params,
+                                destination: thisRoom,
+                                homeRoom: spawn.room.name,
+                                path: creepPath
+                            });*/
+                            spawn.createCreep(constructorConfig, undefined, {
+                                priority: 'constructor',
                                 destination: thisRoom,
                                 homeRoom: spawn.room.name,
                                 path: creepPath
@@ -81,7 +87,6 @@ var spawn_BuildInstruction = {
                         if (spawn.canCreateCreep(constructorConfig) == OK) {
                             spawn.createCreep(constructorConfig, undefined, {
                                 priority: 'constructor',
-                                siteID: params,
                                 destination: thisRoom,
                                 homeRoom: spawn.room.name
                             });
