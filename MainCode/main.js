@@ -960,13 +960,13 @@ module.exports.loop = function() {
                         creep_powerCollect.run(creep);
                         break;
                     default:
-                        if (!creep.memory.priority) {
+                        /*if (!creep.memory.priority) {
                             creep.memory.priority = 'constructor';
                             var creepPath = 'E38N40;E38N39'.split(";");
                             creep.memory.path = creepPath;
                             creep.memory.homeRoom = 'E38N40';
                             creep.memory.destination = 'E38N39';
-                        }
+                        }*/
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                             var pre = Game.cpu.getUsed();
                             if (Game.cpu.bucket >= 500 || Memory.warMode) {
