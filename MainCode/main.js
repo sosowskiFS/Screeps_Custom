@@ -960,6 +960,9 @@ module.exports.loop = function() {
                         creep_powerCollect.run(creep);
                         break;
                     default:
+                        if (!creep.memory.priority) {
+                            creep.memory.priority = 'claimer';
+                        }
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                             var pre = Game.cpu.getUsed();
                             if (Game.cpu.bucket >= 500 || Memory.warMode) {
