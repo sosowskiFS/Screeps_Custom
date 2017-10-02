@@ -961,9 +961,10 @@ module.exports.loop = function() {
                         break;
                     default:
                         if (!creep.memory.priority) {
-                            creep.memory.priority = 'claimer';
+                            creep.memory.priority = 'constructor';
                             var creepPath = 'E38N40;E38N39'.split(";");
                             creep.memory.path = creepPath;
+                            creep.memory.homeRoom = 'E38N40';
                             creep.memory.destination = 'E38N39';
                         }
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
