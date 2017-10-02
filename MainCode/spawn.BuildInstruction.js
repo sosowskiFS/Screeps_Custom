@@ -32,7 +32,7 @@ var spawn_BuildInstruction = {
                             Memory.isSpawning = true;
                             console.log('Claim executed from ' + spawn.room.name);
                             if (Game.flags["ClaimThis"]) {
-                                Game.flags["ClaimThis"].remove();
+                                //Game.flags["ClaimThis"].remove();
                             }
                         } else {
                             //console.log('Could not execute claim. Spawn cannot create creep.');
