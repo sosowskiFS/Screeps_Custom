@@ -962,7 +962,8 @@ module.exports.loop = function() {
                     default:
                         if (!creep.memory.priority) {
                             creep.memory.priority = 'claimer';
-                            creep.memory.path = 'E38N40;E38N39';
+                            var creepPath = 'E38N40;E38N39'.split(";");
+                            creep.memory.path = creepPath;
                         }
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                             var pre = Game.cpu.getUsed();
