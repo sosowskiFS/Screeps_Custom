@@ -81,6 +81,7 @@ var spawn_BuildInstruction = {
                             Memory.isSpawning = true;
                             console.log('Construct executed from ' + spawn.room.name);
                         } else {
+                            //E44N39!!
                             //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     } else {
