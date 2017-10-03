@@ -247,6 +247,9 @@ var creep_work = {
                                 maxRooms: 1
                             });
                         }
+                    } else {
+                        creep.memory.repairing = false;
+                        creep.memory.upgrading = true;
                     }
                 }
             } else {
