@@ -37,7 +37,7 @@ var spawn_BuildCreeps5 = {
         var min1 = RESOURCE_CATALYZED_UTRIUM_ACID;
         var min2 = RESOURCE_CATALYZED_GHODIUM_ACID;
         if (thisRoom.controller.level == 8) {
-            min2 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+            //min2 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
         }
         var min3 = RESOURCE_CATALYZED_LEMERGIUM_ACID;
         var min4 = '';
