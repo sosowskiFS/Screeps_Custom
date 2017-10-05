@@ -21,6 +21,8 @@ var tower_Operate = {
 			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 225000) {
 				checkDelay = 50;
 			}
+		} else {
+			checkDelay = 50000;
 		}
 
 		var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
