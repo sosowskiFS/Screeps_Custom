@@ -226,11 +226,11 @@ var creep_work = {
                         if (thisStructure.hits == thisStructure.hitsMax) {
                             creep.memory.structureTarget = undefined;
                         } else {
-                            if (creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(thisStructure, {
-                                    maxRooms: 1
-                                });
-                            }
+                            creep.repair(thisStructure)
+                            creep.travelTo(thisStructure, {
+                                maxRooms: 1,
+                                range: 2
+                            });
                         }
                     } else {
                         creep.memory.structureTarget = undefined;
