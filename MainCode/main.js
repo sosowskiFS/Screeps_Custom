@@ -981,7 +981,7 @@ module.exports.loop = function() {
                                 creep_work.run(creep, 25);
                             } else {
                                 var pre = Game.cpu.getUsed();
-                                if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader') {
+                                if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
                                     creep_work5.run(creep);
                                     post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
                                 } else {
