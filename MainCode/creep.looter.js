@@ -15,7 +15,7 @@ var creep_looter = {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
             }
         } else {
-            if (_.sum(creep.carry) <= 500) {
+            if (_.sum(creep.carry) >= creep.carryCapacity - 300) {
                 //In far room, loot container
                 if (creep.room.storage) {
                     if (_.sum(creep.room.storage.store) <= 0) {
