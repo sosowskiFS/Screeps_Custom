@@ -28,8 +28,8 @@ var creep_looter = {
                 if (creep.room.storage) {
                     if (_.sum(creep.room.storage.store) <= 0) {
                         //Nothing left to loot
-                        if (Game.flags["Loot"]) {
-                            Game.flags["Loot"].remove();
+                        if (Game.flags[creep.memory.homeRoom + "Loot"]) {
+                            Game.flags[creep.memory.homeRoom + "Loot"].remove();
                         }
                         if (Memory.lootSpawn) {
                             Memory.lootSpawn = undefined;

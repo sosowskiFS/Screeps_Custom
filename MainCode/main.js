@@ -87,7 +87,7 @@ module.exports.loop = function() {
             Memory.CPUAverages.SpawnCPU.CPU = 0;
             if (Game.flags["ResetAverages"]) {
                 Game.flags["ResetAverages"].remove();
-            }      
+            }
         }
 
         if (Game.flags["ToggleWar"]) {
@@ -652,13 +652,13 @@ module.exports.loop = function() {
                 if (Game.flags["BuildThis"] && thisRoom.name == 'E81N79') {
                     //var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     //if (sitesOnTile.length) {
-                        if (Game.flags["UseDefinedRoute"]) {
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E80N80;E40N40;E44N40;E44N39');
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E80N80;E40N40;E44N40;E44N39');
-                        } else {
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName);
-                        }
+                    if (Game.flags["UseDefinedRoute"]) {
+                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E80N80;E40N40;E44N40;E44N39');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E80N80;E40N40;E44N40;E44N39');
+                    } else {
+                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
+                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName);
+                    }
                     //}
                 }
 
@@ -684,6 +684,10 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "PowerGather"]) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'powerGather', Game.flags[thisRoom.name + "PowerGather"].pos.roomName, '', '');
+                }
+
+                if (Game.flags[thisRoom.name + "Loot"]) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'loot', Game.flags[thisRoom.name + "Loot"].pos.roomName, '', Game.spawns[i].room.name);
                 }
 
                 if (Game.flags[thisRoom.name + "PowerCollect"]) {
