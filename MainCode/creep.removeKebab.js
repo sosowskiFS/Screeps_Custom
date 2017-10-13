@@ -4,7 +4,7 @@ var creep_Kebab = {
     run: function(creep) {
         if (Game.flags["RemoveKebab"] && Game.flags["RemoveKebab"].pos.roomName != creep.pos.roomName) {
             if (creep.memory.path) {
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.path[0]));
+                creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
                 if (creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                     if (creep.memory.path.length == 0) {
@@ -13,17 +13,11 @@ var creep_Kebab = {
                 }
             } else {
                 if (Game.flags["WallFlag"] && Game.flags["WallFlag"].pos) {
-                    creep.moveTo(Game.flags["WallFlag"], {
-                        reusePath: 25
-                    });
+                    creep.travelTo(Game.flags["WallFlag"]);
                 } else if (Game.flags["RemoveKebab"].pos) {
-                    creep.moveTo(Game.flags["RemoveKebab"], {
-                        reusePath: 25
-                    });
+                    creep.travelTo(Game.flags["RemoveKebab"]);
                 } else {
-                    creep.moveTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName), {
-                        reusePath: 25
-                    });
+                    creep.travelTo(new RoomPosition(25, 25, Game.flags["RemoveKebab"].pos.roomName));
                 }
             }
         } else if (Game.flags["RemoveKebab"]) {
@@ -32,7 +26,7 @@ var creep_Kebab = {
                     filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
                 });
                 if (eExt) {
-                    creep.moveTo(eExt, {
+                    creep.travelTo(eExt, {
                         maxRooms: 1
                     });
                     creep.dismantle(eExt);
@@ -58,7 +52,7 @@ var creep_Kebab = {
                 if (Game.flags["WallFlag"]) {
                     var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
                     if (thisWall.length) {
-                        creep.moveTo(thisWall[0]);
+                        creep.travelTo(thisWall[0]);
                         creep.dismantle(thisWall[0]);
                     } else {
                         Game.flags["WallFlag"].remove();
@@ -66,7 +60,7 @@ var creep_Kebab = {
                 } else if (creep.memory.targetSpawn) {
                     var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
                     if (thisSpawn) {
-                        creep.moveTo(thisSpawn, {
+                        creep.travelTo(thisSpawn, {
                             maxRooms: 1
                         });
                         creep.dismantle(thisSpawn);
@@ -78,7 +72,7 @@ var creep_Kebab = {
                         filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_TOWER)
                     });
                     if (eExt) {
-                        creep.moveTo(eExt, {
+                        creep.travelTo(eExt, {
                             maxRooms: 1
                         });
                         creep.dismantle(eExt);
@@ -88,7 +82,7 @@ var creep_Kebab = {
                             creep.memory.targetSpawn = eSpawns[Math.floor(Math.random() * eSpawns.length)].id;
                             var thisSpawn = Game.getObjectById(creep.memory.targetSpawn);
                             if (thisSpawn) {
-                                creep.moveTo(thisSpawn, {
+                                creep.travelTo(thisSpawn, {
                                     maxRooms: 1
                                 });
                                 creep.dismantle(thisSpawn);
@@ -98,7 +92,7 @@ var creep_Kebab = {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_STORAGE)
                             });
                             if (eExt2) {
-                                creep.moveTo(eExt2, {
+                                creep.travelTo(eExt2, {
                                     maxRooms: 1
                                 });
                                 creep.dismantle(eExt2);

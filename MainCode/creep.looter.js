@@ -4,23 +4,15 @@ var creep_looter = {
     run: function(creep) {
         if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= 500) {
             if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].storage) {
-                creep.moveTo(Game.rooms[creep.memory.destination].storage, {
-                    reusePath: 25
-                });
+                creep.travelTo(Game.rooms[creep.memory.destination].storage);
             } else {
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.destination), {
-                    reusePath: 25
-                });
+                creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }
         } else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > 500) {
             if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
-                creep.moveTo(Game.rooms[creep.memory.homeRoom].storage, {
-                    reusePath: 25
-                });
+                creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
             } else {
-                creep.moveTo(new RoomPosition(25, 25, creep.memory.homeRoom), {
-                    reusePath: 25
-                });
+                creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
             }
         } else {
             if (_.sum(creep.carry) <= 500) {
@@ -37,9 +29,7 @@ var creep_looter = {
                         creep.suicide();
                     } else {
                         if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(creep.room.storage, {
-                                reusePath: 25
-                            });
+                            creep.travelTo(creep.room.storage);
                         }
                     }
                 }
@@ -47,9 +37,7 @@ var creep_looter = {
                 //In home room, drop off energy
                 if (creep.room.storage) {
                     if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(creep.room.storage, {
-                            reusePath: 25
-                        });
+                        creep.travelTo(creep.room.storage);
                     }
                 }
             }
