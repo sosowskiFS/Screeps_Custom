@@ -2,6 +2,10 @@ var creep_looter = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        if (creep.carryCapacity == 0){
+            //YER DED TO ME
+            creep.suicide();
+        }
         if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= creep.carryCapacity - 100) {
             if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].storage) {
                 creep.travelTo(Game.rooms[creep.memory.destination].storage);
