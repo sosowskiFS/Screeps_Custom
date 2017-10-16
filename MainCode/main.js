@@ -909,11 +909,11 @@ module.exports.loop = function() {
                     case 'SKHealGuardNearDeath':
                     case 'farMineralMiner':
                         var pre = Game.cpu.getUsed();
-                        var doExcessWork = true;
+                        /*var doExcessWork = true;
                         if (pre > Game.cpu.limit) {
                             doExcessWork = false;
-                        }
-                        creep_farMining.run(creep, doExcessWork);
+                        }*/
+                        creep_farMining.run(creep, true);
                         farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
                         break;
                     case 'claimer':
@@ -985,7 +985,7 @@ module.exports.loop = function() {
                                 creep_work.run(creep, 25);
                             } else {
                                 var pre = Game.cpu.getUsed();
-                                if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath') {
+                                if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
                                     creep_work5.run(creep);
                                     post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
                                 } else {
