@@ -21,7 +21,7 @@ var creep_constructor = {
                         creep.memory.path.splice(0, 1);
                     }
                     creep.moveTo(thisPortal)
-                } else if (creep.memory.path) {
+                } else if (creep.memory.path && creep.memory.path.length) {
                     if (creep.memory.path[0] == creep.room.name) {
                         creep.memory.path.splice(0, 1);
                     }
