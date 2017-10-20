@@ -217,6 +217,7 @@ var creep_work = {
                 });
             } else {
                 creep.upgradeController(creep.room.controller);
+                creep.signController(creep.room.controller, '(\uFF90\u24DB\u11BD\u24DB\uFF90)\u2727')
             }
         } else if (creep.memory.repairing) {
             if (!creep.memory.holdOneTick) {
