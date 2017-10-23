@@ -30,7 +30,6 @@ var creep_constructor = {
                     creep.moveTo(new RoomPosition(25, 25, creep.memory.destination));
                 }
             } else {
-
                 var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
                 if (sources) {
                     if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
@@ -46,7 +45,6 @@ var creep_constructor = {
                         }
                     }
                 }
-
             }
         } else {
             if ((creep.carry.energy <= 20 && creep.hits < 2500 && creep.room.controller.level < 2)) {
