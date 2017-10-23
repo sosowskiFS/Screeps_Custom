@@ -71,18 +71,18 @@ var creep_constructor = {
                 }
             }
             
-            /*else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_NOT_IN_RANGE) {
+            else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_NOT_IN_RANGE) {
                 creep.moveTo(Game.getObjectById(creep.memory.siteID));
             } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_INVALID_TARGET) {
                 if (Game.flags["BuildThis"]) {
                     Game.flags["BuildThis"].remove();
                 }
                 creep.memory.priority = 'harvester';
-                creep.memory.priority = 'helper';
+                //creep.memory.priority = 'helper';
                 if (creep.memory.homeRoom && !Game.flags[creep.memory.homeRoom + "SendHelper"]) {
                     creep.pos.createFlag(creep.memory.homeRoom + "SendHelper");
                 }
-            }*/
+            }
         }
     }
 };
