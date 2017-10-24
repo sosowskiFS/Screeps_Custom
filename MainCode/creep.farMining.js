@@ -31,9 +31,9 @@ var creep_farMining = {
                             });
                         } else {
                             if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
-                                creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
+                                creep.signController(creep.room.controller, "\u300C\u30CB\u30E3\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
                             } else if (!creep.room.controller.sign) {
-                                creep.signController(creep.room.controller, "Remote mining this! Not a fan of me being here? Let me know instead of obliterating me!");
+                                creep.signController(creep.room.controller, "\u300C\u30CB\u30E3\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
                             }
                         }
                     }
