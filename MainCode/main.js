@@ -877,7 +877,7 @@ module.exports.loop = function() {
             }
             var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_SELL && order.price <= availableCredits);
             if (FilteredOrders.length > 0) {
-                FilteredOrders.sort(orderPriceCompare);
+                FilteredOrders.sort(orderPriceCompareBuying);
 
                 if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
                     Game.notify('A subscription token was purchased for ' + FilteredOrders[0].price + ' credits');

@@ -724,6 +724,30 @@ var creep_work5 = {
                         if (creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
                             //Immediately swap flags
                             creep.memory.resourceChecks = 15;
+                            if (creep.memory.mineral5 == RESOURCE_CATALYST && creep.memory.mineral6 != RESOURCE_CATALYZED_GHODIUM_ACID) {
+                                //If producing something with catalyst, make an order.
+                                var foundOrder = _.findKey(Game.market.orders, {
+                                    'roomName': creep.room.name,
+                                    'resourceType': creep.memory.mineral6,
+                                    'active': true
+                                });
+                                if (foundOrder) {
+                                    //Update quantity if less than 40000
+                                    var thisOrder = Game.market.orders[foundOrder];
+                                    if (thisOrder.remainingAmount < 40000) {
+                                        Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+                                    }
+                                } else {
+                                    //Create new order, 0.001 less than lowest comperable order
+                                    var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
+                                    if (comparableOrders.length > 0) {
+                                        FilteredOrders.sort(orderPriceCompareBuying);
+                                        var targetPrice = FilteredOrders[0].price;
+                                        targetPrice = targetPrice - 0.001
+                                        Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
+                                    }
+                                }
+                            }
                             //Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
                         } else if (lab4 && lab5 && (lab4.mineralAmount < 250 || lab5.mineralAmount < 250) && _.sum(creep.carry) == 0) {
                             //tick up, but don't swap yet
@@ -1200,6 +1224,14 @@ function repairCompare(a, b) {
     if (a.hits < b.hits)
         return -1;
     if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
+
+function orderPriceCompareBuying(a, b) {
+    if (a.price < b.price)
+        return -1;
+    if (a.price > b.price)
         return 1;
     return 0;
 }
