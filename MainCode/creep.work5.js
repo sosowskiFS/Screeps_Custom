@@ -741,8 +741,8 @@ var creep_work5 = {
                                     //Create new order, 0.001 less than lowest comperable order
                                     var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
                                     if (comparableOrders.length > 0) {
-                                        FilteredOrders.sort(orderPriceCompareBuying);
-                                        var targetPrice = FilteredOrders[0].price;
+                                        comparableOrders.sort(orderPriceCompareBuying);
+                                        var targetPrice = comparableOrders[0].price;
                                         targetPrice = targetPrice - 0.001
                                         Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
                                     }
