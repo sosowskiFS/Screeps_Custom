@@ -35,7 +35,7 @@ var tower_Operate = require('tower.Operate');
 //Market
 var market_buyers = require('market.FindBuyers');
 
-const profiler = require('screeps-profiler');
+//const profiler = require('screeps-profiler');
 
 //Ctrl+Alt+f to autoformat documents.
 
@@ -46,9 +46,9 @@ const profiler = require('screeps-profiler');
 //Traveler API : https://github.com/bonzaiferroni/Traveler/wiki/Traveler-API
 
 
-profiler.enable();
+//profiler.enable();
 module.exports.loop = function() {
-    profiler.wrap(function() {
+    //profiler.wrap(function() {
         for (var name in Memory.creeps) {
             if (!Game.creeps[name]) {
                 delete Memory.creeps[name];
@@ -1031,7 +1031,7 @@ module.exports.loop = function() {
         var totalCPU = Game.cpu.getUsed();
         Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);*/
 
-    });
+    //});
 
 }
 
