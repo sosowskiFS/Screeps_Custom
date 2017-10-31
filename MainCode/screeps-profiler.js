@@ -1,6 +1,14 @@
+'use strict';
+
 let usedOnStart = 0;
 let enabled = false;
 let depth = 0;
+
+function AlreadyWrappedError() {
+  this.name = 'AlreadyWrappedError';
+  this.message = 'Error attempted to double wrap a function.';
+  this.stack = ((new Error())).stack;
+}
 
 function setupProfiler() {
   depth = 0; // reset depth, this needs to be done each tick.
@@ -75,7 +83,8 @@ const functionBlackList = [
 ];
 
 function wrapFunction(name, originalFunction) {
-  return function wrappedFunction() {
+  if (originalFunction.profilerWrapped) { throw new AlreadyWrappedError(); }
+  function wrappedFunction() {
     if (Profiler.isProfiling()) {
       const nameMatchesFilter = name === getFilter();
       const start = Game.cpu.getUsed();
@@ -94,7 +103,13 @@ function wrapFunction(name, originalFunction) {
     }
 
     return originalFunction.apply(this, arguments);
-  };
+  }
+
+  wrappedFunction.profilerWrapped = true;
+  wrappedFunction.toString = () =>
+    `// screeps-profiler wrapped function:\n${originalFunction.toString()}`;
+
+  return wrappedFunction;
 }
 
 function hookUpPrototypes() {
@@ -108,14 +123,46 @@ function profileObjectFunctions(object, label) {
 
   Object.getOwnPropertyNames(objectToWrap).forEach(functionName => {
     const extendedLabel = `${label}.${functionName}`;
-    try {
-      const isFunction = typeof objectToWrap[functionName] === 'function';
-      const notBlackListed = functionBlackList.indexOf(functionName) === -1;
-      if (isFunction && notBlackListed) {
-        const originalFunction = objectToWrap[functionName];
-        objectToWrap[functionName] = profileFunction(originalFunction, extendedLabel);
+
+    const isBlackListed = functionBlackList.indexOf(functionName) !== -1;
+    if (isBlackListed) {
+      return;
+    }
+
+    const descriptor = Object.getOwnPropertyDescriptor(objectToWrap, functionName);
+    if (!descriptor) {
+      return;
+    }
+
+    const hasAccessor = descriptor.get || descriptor.set;
+    if (hasAccessor) {
+      const configurable = descriptor.configurable;
+      if (!configurable) {
+        return;
       }
-    } catch (e) { } /* eslint no-empty:0 */
+
+      const profileDescriptor = {};
+
+      if (descriptor.get) {
+        const extendedLabelGet = `${extendedLabel}:get`;
+        profileDescriptor.get = profileFunction(descriptor.get, extendedLabelGet);
+      }
+
+      if (descriptor.set) {
+        const extendedLabelSet = `${extendedLabel}:set`;
+        profileDescriptor.set = profileFunction(descriptor.set, extendedLabelSet);
+      }
+
+      Object.defineProperty(objectToWrap, functionName, profileDescriptor);
+      return;
+    }
+
+    const isFunction = typeof descriptor.value === 'function';
+    if (!isFunction) {
+      return;
+    }
+    const originalFunction = objectToWrap[functionName];
+    objectToWrap[functionName] = profileFunction(originalFunction, extendedLabel);
   });
 
   return objectToWrap;
@@ -138,23 +185,41 @@ const Profiler = {
   },
 
   emailProfile() {
-    Game.notify(Profiler.output());
+    Game.notify(Profiler.output(1000));
   },
 
-  output(numresults) {
-    const displayresults = !!numresults ? numresults : 20;
+  output(passedOutputLengthLimit) {
+    const outputLengthLimit = passedOutputLengthLimit || 1000;
     if (!Memory.profiler || !Memory.profiler.enabledTick) {
       return 'Profiler not active.';
     }
 
-    const elapsedTicks = Game.time - Memory.profiler.enabledTick + 1;
+    const endTick = Math.min(Memory.profiler.disableTick || Game.time, Game.time);
+    const startTick = Memory.profiler.enabledTick + 1;
+    const elapsedTicks = endTick - startTick;
     const header = 'calls\t\ttime\t\tavg\t\tfunction';
     const footer = [
       `Avg: ${(Memory.profiler.totalTime / elapsedTicks).toFixed(2)}`,
       `Total: ${Memory.profiler.totalTime.toFixed(2)}`,
       `Ticks: ${elapsedTicks}`,
     ].join('\t');
-    return [].concat(header, Profiler.lines().slice(0, displayresults), footer).join('\n');
+
+    const lines = [header];
+    let currentLength = header.length + 1 + footer.length;
+    const allLines = Profiler.lines();
+    let done = false;
+    while (!done && allLines.length) {
+      const line = allLines.shift();
+      // each line added adds the line length plus a new line character.
+      if (currentLength + line.length + 1 < outputLengthLimit) {
+        lines.push(line);
+        currentLength += line.length + 1;
+      } else {
+        done = true;
+      }
+    }
+    lines.push(footer);
+    return lines.join('\n');
   },
 
   lines() {

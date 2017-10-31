@@ -145,7 +145,7 @@ module.exports.loop = function() {
         //Loop through all spawns
 
         //Log average CPU for spawn processes in memory.
-        var preSpawnCPU = Game.cpu.getUsed();
+        //var preSpawnCPU = Game.cpu.getUsed();
 
         if (Game.time % 1000 == 0) {
             Memory.ordersFilled = [];
@@ -845,9 +845,9 @@ module.exports.loop = function() {
         }
 
         //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
-        Memory.CPUAverages.SpawnCPU.ticks = Memory.CPUAverages.SpawnCPU.ticks + 1;
-        var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
-        Memory.CPUAverages.SpawnCPU.CPU = Memory.CPUAverages.SpawnCPU.CPU + ((totalSpawnCPU - Memory.CPUAverages.SpawnCPU.CPU) / Memory.CPUAverages.SpawnCPU.ticks)
+        //Memory.CPUAverages.SpawnCPU.ticks = Memory.CPUAverages.SpawnCPU.ticks + 1;
+        //var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
+        //Memory.CPUAverages.SpawnCPU.CPU = Memory.CPUAverages.SpawnCPU.CPU + ((totalSpawnCPU - Memory.CPUAverages.SpawnCPU.CPU) / Memory.CPUAverages.SpawnCPU.ticks)
 
         Memory.RoomsRun = [];
         Memory.NoSpawnNeeded = [];
@@ -892,10 +892,10 @@ module.exports.loop = function() {
 
         //Globally controlls all creeps in all rooms
         //Log average CPU for creep processes in memory.
-        var preCreepCPU = Game.cpu.getUsed();
-        var farMiningCPU = 0;
-        var pre5CPU = 0;
-        var post5CPU = 0;
+        //var preCreepCPU = Game.cpu.getUsed();
+        //var farMiningCPU = 0;
+        //var pre5CPU = 0;
+        //var post5CPU = 0;
         for (var name in Game.creeps) {
             var creep = Game.creeps[name];
             if (!creep.spawning) {
@@ -913,13 +913,13 @@ module.exports.loop = function() {
                     case 'SKAttackGuardNearDeath':
                     case 'SKHealGuardNearDeath':
                     case 'farMineralMiner':
-                        var pre = Game.cpu.getUsed();
+                        //var pre = Game.cpu.getUsed();
                         var doExcessWork = true;
                         if (Game.cpu.bucket < 500) {
                             doExcessWork = false;
                         }
                         creep_farMining.run(creep, true);
-                        farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
+                        //farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
                         break;
                     case 'claimer':
                         creep_claimer.run(creep);
@@ -977,10 +977,10 @@ module.exports.loop = function() {
                             creep.memory.destination = 'E38N39';
                         }*/
                         if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
-                            var pre = Game.cpu.getUsed();
+                            //var pre = Game.cpu.getUsed();
                             if (Game.cpu.bucket >= 500 || Memory.warMode) {
                                 creep_work.run(creep, 25);
-                                pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
+                                //pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
                             } else {
                                 creep.say("\u2716\uFE0F", false);
                             }
@@ -989,10 +989,10 @@ module.exports.loop = function() {
                                 //In case of emergency
                                 creep_work.run(creep, 25);
                             } else {
-                                var pre = Game.cpu.getUsed();
+                                //var pre = Game.cpu.getUsed();
                                 if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
                                     creep_work5.run(creep);
-                                    post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
+                                    //post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
                                 } else {
                                     creep.say("\u2716\uFE0F", false);
                                 }
@@ -1004,7 +1004,7 @@ module.exports.loop = function() {
         }
 
         //Creep - overall
-        Memory.CPUAverages.CreepCPU.ticks = Memory.CPUAverages.CreepCPU.ticks + 1;
+        /*Memory.CPUAverages.CreepCPU.ticks = Memory.CPUAverages.CreepCPU.ticks + 1;
         var totalCreepCPU = Game.cpu.getUsed() - preCreepCPU;
         Memory.CPUAverages.CreepCPU.CPU = Memory.CPUAverages.CreepCPU.CPU + ((totalCreepCPU - Memory.CPUAverages.CreepCPU.CPU) / Memory.CPUAverages.CreepCPU.ticks);
 
@@ -1029,7 +1029,7 @@ module.exports.loop = function() {
         //Total Usage
         Memory.CPUAverages.TotalCPU.ticks = Memory.CPUAverages.TotalCPU.ticks + 1;
         var totalCPU = Game.cpu.getUsed();
-        Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);
+        Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);*/
 
     });
 
