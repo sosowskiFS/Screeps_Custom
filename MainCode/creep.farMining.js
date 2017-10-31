@@ -1354,7 +1354,7 @@ function attackInvader(creep) {
                 x = x + 1;
             }
         }
-        creep.travelTo(x, y, {
+        creep.moveTo(x, y, {
             ignoreRoads: true
         });
         return true;
