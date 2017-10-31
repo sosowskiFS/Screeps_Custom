@@ -1032,7 +1032,7 @@ module.exports.loop = function() {
         Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);*/
 
     //});
-
+    RawMemory.set(JSON.stringify(Memory));
 }
 
 function recalculateBestWorker(thisEnergyCap) {
