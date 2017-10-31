@@ -127,12 +127,12 @@ module.exports.loop = function() {
             }
         }
 
-        if (Game.time % 250 == 0) {
+        /*if (Game.time % 250 == 0) {
             //Reset Terminal Counts
             for (var z in Memory.TerminalCollection) {
                 Memory.TerminalCollection[z] = 0;
             }
-        }
+        }*/
 
         //Use experimental PathFinder
         PathFinder.use(true);
@@ -526,9 +526,9 @@ module.exports.loop = function() {
                     //Review market data and sell to buy orders
                     if (Game.time % 50 == 0 && thisRoom.terminal) {
                         market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
-                        for (var y in Object.keys(thisRoom.terminal.store)) {
+                        /*for (var y in Object.keys(thisRoom.terminal.store)) {
                             Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]] = thisRoom.terminal.store[Object.keys(thisRoom.terminal.store)[y]] + Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]];
-                        }
+                        }*/
                     }
 
                     //Handle Links
@@ -1141,9 +1141,9 @@ function memCheck() {
     if (!Memory.SKMineralTimers) {
         Memory.SKMineralTimers = new Object();
     }
-    if (!Memory.TerminalCollection) {
+    /*if (!Memory.TerminalCollection) {
         Memory.TerminalCollection = new Object();
-    }
+    }*/
     if (!Memory.FarClaimerNeeded) {
         Memory.FarClaimerNeeded = new Object();
     }
