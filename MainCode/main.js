@@ -919,7 +919,7 @@ module.exports.loop = function() {
                         if (Game.cpu.bucket < 500) {
                             doExcessWork = false;
                         }
-                        creep_farMining.run(creep, doExcessWork);
+                        creep_farMining.run(creep, true);
                         farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
                         break;
                     case 'claimer':
