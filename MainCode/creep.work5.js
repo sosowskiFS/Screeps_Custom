@@ -616,7 +616,10 @@ var creep_work5 = {
                         }
 
                         if (target) {
-                            if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            if (getNewStructure) {
+                                creep.travelTo(target);
+                                creep.memory.structureTarget = target.id;
+                            } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(target);
                                 creep.memory.structureTarget = target.id;
                             }
