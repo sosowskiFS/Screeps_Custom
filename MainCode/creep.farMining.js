@@ -1225,7 +1225,7 @@ function evadeAttacker(creep, evadeRange) {
             }
         }
 
-        creep.travelTo(x, y, {
+        creep.moveTo(x, y, {
             ignoreRoads: true
         });
 
