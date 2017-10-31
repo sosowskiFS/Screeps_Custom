@@ -153,7 +153,11 @@ var creep_work = {
                 }
 
                 if (targets) {
-                    if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    if (getNewStructure) {
+                        creep.travelTo(targets, {
+                            maxRooms: 1
+                        });
+                    } else if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(targets, {
                             maxRooms: 1
                         });
@@ -308,7 +312,13 @@ var creep_work = {
                     }
 
                     if (target) {
-                        if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        if (getNewStructure) {
+                            creep.travelTo(targets, {
+                                ignoreRoads: true,
+                                maxRooms: 1
+                            });
+                            creep.memory.structureTarget = target.id;
+                        } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(target, {
                                 ignoreRoads: true,
                                 maxRooms: 1
