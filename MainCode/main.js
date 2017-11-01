@@ -290,7 +290,7 @@ module.exports.loop = function() {
                     }
 
                     //Get list of Links
-                    if (Game.time % 1000 == 0 || !Memory.linkList[thisRoom.name]) {
+                    if (Game.time % 1500 == 0 || !Memory.linkList[thisRoom.name]) {
                         Memory.linkList[thisRoom.name] = [];
                         var roomLinks = thisRoom.find(FIND_MY_STRUCTURES, {
                             filter: {
@@ -390,7 +390,7 @@ module.exports.loop = function() {
                     }
 
                     //Get list of Sources
-                    if (Game.time % 1000 == 0 || !Memory.sourceList[thisRoom.name]) {
+                    if (Game.time % 5000 == 0 || !Memory.sourceList[thisRoom.name]) {
                         Memory.sourceList[thisRoom.name] = [];
                         var roomSources = thisRoom.find(FIND_SOURCES);
                         var reverseFlag = false;
@@ -427,7 +427,7 @@ module.exports.loop = function() {
                     }
 
                     //Get list of extractors
-                    if (Game.time % 800 == 0 || !Memory.extractorList[thisRoom.name]) {
+                    if (Game.time % 10000 == 0 || !Memory.extractorList[thisRoom.name]) {
                         Memory.extractorList[thisRoom.name] = [];
                         var extractorLocations = thisRoom.find(FIND_MY_STRUCTURES, {
                             filter: {
@@ -442,7 +442,7 @@ module.exports.loop = function() {
                     }
 
                     //Get list of labs
-                    if (Game.time % 1000 == 0 || !Memory.labList[thisRoom.name]) {
+                    if (Game.time % 5000 == 0 || !Memory.labList[thisRoom.name]) {
                         Memory.labList[thisRoom.name] = [];
                         var labLocations = thisRoom.find(FIND_MY_STRUCTURES, {
                             filter: {
@@ -458,7 +458,7 @@ module.exports.loop = function() {
                     }
 
                     //Get list of power spawns
-                    if (Game.time % 2000 == 0 || !Memory.powerSpawnList[thisRoom.name]) {
+                    if (Game.time % 5000 == 0 || !Memory.powerSpawnList[thisRoom.name]) {
                         Memory.powerSpawnList[thisRoom.name] = [];
                         var powerSpawns = thisRoom.find(FIND_MY_STRUCTURES, {
                             filter: {
@@ -485,7 +485,7 @@ module.exports.loop = function() {
                     }
 
                     //Get list of observers
-                    if (Game.time % 2000 == 0 || !Memory.observerList[thisRoom.name]) {
+                    if (Game.time % 5000 == 0 || !Memory.observerList[thisRoom.name]) {
                         Memory.observerList[thisRoom.name] = [];
                         var roomObservers = thisRoom.find(FIND_MY_STRUCTURES, {
                             filter: {
@@ -498,7 +498,7 @@ module.exports.loop = function() {
                     }
 
                     //Get list of nukers
-                    if (Game.time % 2000 == 0 || !Memory.nukerList[thisRoom.name]) {
+                    if (Game.time % 5000 == 0 || !Memory.nukerList[thisRoom.name]) {
                         Memory.nukerList[thisRoom.name] = [];
                         var theseNukes = thisRoom.find(FIND_MY_STRUCTURES, {
                             filter: {

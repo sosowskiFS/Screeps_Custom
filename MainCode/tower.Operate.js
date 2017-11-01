@@ -79,21 +79,21 @@ var tower_Operate = {
 			}
 		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % checkDelay == 0)) {
 			//Save 50% of the tower's energy to use on repelling attackers
-			var closestDamagedCreep = tower.pos.findClosestByRange(FIND_CREEPS, {
+			/*var closestDamagedCreep = tower.pos.findClosestByRange(FIND_CREEPS, {
 				filter: (creep) => (creep.hits < creep.hitsMax - 150) && (Memory.whiteList.includes(creep.owner.username) || creep.owner.username == "Montblanc")
 			});
 			if (closestDamagedCreep) {
 				tower.heal(closestDamagedCreep);
-			} else {
-				//Repair ramparts about to decay
-				var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5, {
-					filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
-				});
-				if (decayingRampart.length) {
-					decayingRampart.sort(repairCompare);
-					tower.repair(decayingRampart[0]);
-				}
+			} else {*/
+			//Repair ramparts about to decay
+			var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5, {
+				filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
+			});
+			if (decayingRampart.length) {
+				decayingRampart.sort(repairCompare);
+				tower.repair(decayingRampart[0]);
 			}
+			//}
 		}
 
 		if (tower.energy <= tower.energyCapacity - 150 && Memory.towerNeedEnergy[thisRoom.name].indexOf(tower.id) == -1) {
