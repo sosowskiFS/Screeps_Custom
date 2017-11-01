@@ -591,7 +591,7 @@ module.exports.loop = function() {
                         Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
                     }
 
-                    if (Game.time % 50 == 0 && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"] && thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] < 300000)) {
+                    if (Game.time % 50 == 0 && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"] && thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] < 50000)) {
                         var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
                         if (thisObserver) {
                             thisObserver.observeRoom(Memory.powerCheckList[thisRoom.name][0]);
