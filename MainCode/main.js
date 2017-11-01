@@ -48,7 +48,6 @@ var market_buyers = require('market.FindBuyers');
 
 //profiler.enable();
 module.exports.loop = function() {
-    var myMemory = JSON.parse(RawMemory.get());
     //profiler.wrap(function() {
         for (var name in Memory.creeps) {
             if (!Game.creeps[name]) {
@@ -59,33 +58,33 @@ module.exports.loop = function() {
 
         //Set defaults on various memory values
         if (Game.time % 10000 == 0 || Game.flags["CheckMemory"]) {
-            memCheck(myMemory);
+            memCheck();
             if (Game.flags["CheckMemory"]) {
                 Game.flags["CheckMemory"].remove();
             }
         }
 
         //Reset average CPU usage records on request
-        if (Game.flags["ResetAverages"] || myMemory.CPUAverages.TotalCPU.ticks >= 50000) {
-            myMemory.CPUAverages = new Object();
-            myMemory.CPUAverages.TotalCPU = new Object();
-            myMemory.CPUAverages.TotalCPU.ticks = 0;
-            myMemory.CPUAverages.TotalCPU.CPU = 0;
-            myMemory.CPUAverages.CreepCPU = new Object();
-            myMemory.CPUAverages.CreepCPU.ticks = 0;
-            myMemory.CPUAverages.CreepCPU.CPU = 0;
-            myMemory.CPUAverages.RemoteMiningCPU = new Object();
-            myMemory.CPUAverages.RemoteMiningCPU.ticks = 0;
-            myMemory.CPUAverages.RemoteMiningCPU.CPU = 0;
-            myMemory.CPUAverages.Pre5CPU = new Object();
-            myMemory.CPUAverages.Pre5CPU.ticks = 0;
-            myMemory.CPUAverages.Pre5CPU.CPU = 0;
-            myMemory.CPUAverages.Post5CPU = new Object();
-            myMemory.CPUAverages.Post5CPU.ticks = 0;
-            myMemory.CPUAverages.Post5CPU.CPU = 0;
-            myMemory.CPUAverages.SpawnCPU = new Object();
-            myMemory.CPUAverages.SpawnCPU.ticks = 0;
-            myMemory.CPUAverages.SpawnCPU.CPU = 0;
+        if (Game.flags["ResetAverages"] || Memory.CPUAverages.TotalCPU.ticks >= 50000) {
+            Memory.CPUAverages = new Object();
+            Memory.CPUAverages.TotalCPU = new Object();
+            Memory.CPUAverages.TotalCPU.ticks = 0;
+            Memory.CPUAverages.TotalCPU.CPU = 0;
+            Memory.CPUAverages.CreepCPU = new Object();
+            Memory.CPUAverages.CreepCPU.ticks = 0;
+            Memory.CPUAverages.CreepCPU.CPU = 0;
+            Memory.CPUAverages.RemoteMiningCPU = new Object();
+            Memory.CPUAverages.RemoteMiningCPU.ticks = 0;
+            Memory.CPUAverages.RemoteMiningCPU.CPU = 0;
+            Memory.CPUAverages.Pre5CPU = new Object();
+            Memory.CPUAverages.Pre5CPU.ticks = 0;
+            Memory.CPUAverages.Pre5CPU.CPU = 0;
+            Memory.CPUAverages.Post5CPU = new Object();
+            Memory.CPUAverages.Post5CPU.ticks = 0;
+            Memory.CPUAverages.Post5CPU.CPU = 0;
+            Memory.CPUAverages.SpawnCPU = new Object();
+            Memory.CPUAverages.SpawnCPU.ticks = 0;
+            Memory.CPUAverages.SpawnCPU.CPU = 0;
             if (Game.flags["ResetAverages"]) {
                 Game.flags["ResetAverages"].remove();
             }
@@ -846,9 +845,9 @@ module.exports.loop = function() {
         }
 
         //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
-        myMemory.CPUAverages.SpawnCPU.ticks = myMemory.CPUAverages.SpawnCPU.ticks + 1;
+        Memory.CPUAverages.SpawnCPU.ticks = Memory.CPUAverages.SpawnCPU.ticks + 1;
         var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
-        myMemory.CPUAverages.SpawnCPU.CPU = myMemory.CPUAverages.SpawnCPU.CPU + ((totalSpawnCPU - myMemory.CPUAverages.SpawnCPU.CPU) / myMemory.CPUAverages.SpawnCPU.ticks)
+        Memory.CPUAverages.SpawnCPU.CPU = Memory.CPUAverages.SpawnCPU.CPU + ((totalSpawnCPU - Memory.CPUAverages.SpawnCPU.CPU) / Memory.CPUAverages.SpawnCPU.ticks)
 
         Memory.RoomsRun = [];
         Memory.NoSpawnNeeded = [];
@@ -1005,36 +1004,34 @@ module.exports.loop = function() {
         }
 
         //Creep - overall
-        myMemory.CPUAverages.CreepCPU.ticks = myMemory.CPUAverages.CreepCPU.ticks + 1;
+        Memory.CPUAverages.CreepCPU.ticks = Memory.CPUAverages.CreepCPU.ticks + 1;
         var totalCreepCPU = Game.cpu.getUsed() - preCreepCPU;
-        myMemory.CPUAverages.CreepCPU.CPU = myMemory.CPUAverages.CreepCPU.CPU + ((totalCreepCPU - myMemory.CPUAverages.CreepCPU.CPU) / myMemory.CPUAverages.CreepCPU.ticks);
+        Memory.CPUAverages.CreepCPU.CPU = Memory.CPUAverages.CreepCPU.CPU + ((totalCreepCPU - Memory.CPUAverages.CreepCPU.CPU) / Memory.CPUAverages.CreepCPU.ticks);
 
         //Creep - Remote Miners
         if (farMiningCPU > 0) {
-            myMemory.CPUAverages.RemoteMiningCPU.ticks = myMemory.CPUAverages.RemoteMiningCPU.ticks + 1;
-            myMemory.CPUAverages.RemoteMiningCPU.CPU = myMemory.CPUAverages.RemoteMiningCPU.CPU + ((farMiningCPU - myMemory.CPUAverages.RemoteMiningCPU.CPU) / myMemory.CPUAverages.RemoteMiningCPU.ticks);
+            Memory.CPUAverages.RemoteMiningCPU.ticks = Memory.CPUAverages.RemoteMiningCPU.ticks + 1;
+            Memory.CPUAverages.RemoteMiningCPU.CPU = Memory.CPUAverages.RemoteMiningCPU.CPU + ((farMiningCPU - Memory.CPUAverages.RemoteMiningCPU.CPU) / Memory.CPUAverages.RemoteMiningCPU.ticks);
         }
 
         //Creep - Pre RCL5
         if (pre5CPU > 0) {
-            myMemory.CPUAverages.Pre5CPU.ticks = myMemory.CPUAverages.Pre5CPU.ticks + 1;
-            myMemory.CPUAverages.Pre5CPU.CPU = myMemory.CPUAverages.Pre5CPU.CPU + ((pre5CPU - myMemory.CPUAverages.Pre5CPU.CPU) / myMemory.CPUAverages.Pre5CPU.ticks);
+            Memory.CPUAverages.Pre5CPU.ticks = Memory.CPUAverages.Pre5CPU.ticks + 1;
+            Memory.CPUAverages.Pre5CPU.CPU = Memory.CPUAverages.Pre5CPU.CPU + ((pre5CPU - Memory.CPUAverages.Pre5CPU.CPU) / Memory.CPUAverages.Pre5CPU.ticks);
         }
 
         //Creep - Post RCL5
         if (post5CPU > 0) {
-            myMemory.CPUAverages.Post5CPU.ticks = myMemory.CPUAverages.Post5CPU.ticks + 1;
-            myMemory.CPUAverages.Post5CPU.CPU = myMemory.CPUAverages.Post5CPU.CPU + ((post5CPU - myMemory.CPUAverages.Post5CPU.CPU) / myMemory.CPUAverages.Post5CPU.ticks);
+            Memory.CPUAverages.Post5CPU.ticks = Memory.CPUAverages.Post5CPU.ticks + 1;
+            Memory.CPUAverages.Post5CPU.CPU = Memory.CPUAverages.Post5CPU.CPU + ((post5CPU - Memory.CPUAverages.Post5CPU.CPU) / Memory.CPUAverages.Post5CPU.ticks);
         }
 
         //Total Usage
-        myMemory.CPUAverages.TotalCPU.ticks = myMemory.CPUAverages.TotalCPU.ticks + 1;
+        Memory.CPUAverages.TotalCPU.ticks = Memory.CPUAverages.TotalCPU.ticks + 1;
         var totalCPU = Game.cpu.getUsed();
-        myMemory.CPUAverages.TotalCPU.CPU = myMemory.CPUAverages.TotalCPU.CPU + ((totalCPU - myMemory.CPUAverages.TotalCPU.CPU) / myMemory.CPUAverages.TotalCPU.ticks);
+        Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);
 
     //});
-    Memory.CPUAverages = myMemory.CPUAverages;
-    RawMemory.set(JSON.stringify(Memory));
 }
 
 function recalculateBestWorker(thisEnergyCap) {
@@ -1064,7 +1061,7 @@ function recalculateBestWorker(thisEnergyCap) {
     bestWorkerConfig.sort();
 }
 
-function memCheck(myMemory) {
+function memCheck() {
     if (!Memory.RoomsRun) {
         Memory.RoomsRun = [];
         console.log('RoomsRun Defaulted');
@@ -1206,26 +1203,26 @@ function memCheck(myMemory) {
     if (!Memory.labList) {
         Memory.labList = new Object();
     }
-    if (!myMemory.CPUAverages) {
-        myMemory.CPUAverages = new Object();
-        myMemory.CPUAverages.TotalCPU = new Object();
-        myMemory.CPUAverages.TotalCPU.ticks = 0;
-        myMemory.CPUAverages.TotalCPU.CPU = 0;
-        myMemory.CPUAverages.CreepCPU = new Object();
-        myMemory.CPUAverages.CreepCPU.ticks = 0;
-        myMemory.CPUAverages.CreepCPU.CPU = 0;
-        myMemory.CPUAverages.RemoteMiningCPU = new Object();
-        myMemory.CPUAverages.RemoteMiningCPU.ticks = 0;
-        myMemory.CPUAverages.RemoteMiningCPU.CPU = 0;
-        myMemory.CPUAverages.Pre5CPU = new Object();
-        myMemory.CPUAverages.Pre5CPU.ticks = 0;
-        myMemory.CPUAverages.Pre5CPU.CPU = 0;
-        myMemory.CPUAverages.Post5CPU = new Object();
-        myMemory.CPUAverages.Post5CPU.ticks = 0;
-        myMemory.CPUAverages.Post5CPU.CPU = 0;
-        myMemory.CPUAverages.SpawnCPU = new Object();
-        myMemory.CPUAverages.SpawnCPU.ticks = 0;
-        myMemory.CPUAverages.SpawnCPU.CPU = 0;
+    if (!Memory.CPUAverages) {
+        Memory.CPUAverages = new Object();
+        Memory.CPUAverages.TotalCPU = new Object();
+        Memory.CPUAverages.TotalCPU.ticks = 0;
+        Memory.CPUAverages.TotalCPU.CPU = 0;
+        Memory.CPUAverages.CreepCPU = new Object();
+        Memory.CPUAverages.CreepCPU.ticks = 0;
+        Memory.CPUAverages.CreepCPU.CPU = 0;
+        Memory.CPUAverages.RemoteMiningCPU = new Object();
+        Memory.CPUAverages.RemoteMiningCPU.ticks = 0;
+        Memory.CPUAverages.RemoteMiningCPU.CPU = 0;
+        Memory.CPUAverages.Pre5CPU = new Object();
+        Memory.CPUAverages.Pre5CPU.ticks = 0;
+        Memory.CPUAverages.Pre5CPU.CPU = 0;
+        Memory.CPUAverages.Post5CPU = new Object();
+        Memory.CPUAverages.Post5CPU.ticks = 0;
+        Memory.CPUAverages.Post5CPU.CPU = 0;
+        Memory.CPUAverages.SpawnCPU = new Object();
+        Memory.CPUAverages.SpawnCPU.ticks = 0;
+        Memory.CPUAverages.SpawnCPU.CPU = 0;
     }
 }
 
