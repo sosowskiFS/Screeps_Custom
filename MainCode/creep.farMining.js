@@ -11,33 +11,33 @@ var creep_farMining = {
                     creep.memory.priority = 'farClaimerNearDeath';
                 }
 
-                var isEvading = evadeAttacker(creep, 4);
+                //var isEvading = evadeAttacker(creep, 4);
 
-                if (!isEvading) {
-                    if (creep.room.name != creep.memory.destination) {
-                        if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
-                            creep.travelTo(Game.rooms[creep.memory.destination].controller, {
-                                ignoreRoads: true
-                            });
-                        } else {
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                ignoreRoads: true
-                            })
-                        }
+                //if (!isEvading) {
+                if (creep.room.name != creep.memory.destination) {
+                    if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
+                        creep.travelTo(Game.rooms[creep.memory.destination].controller, {
+                            ignoreRoads: true
+                        });
                     } else {
-                        if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(creep.room.controller, {
-                                ignoreRoads: true
-                            });
-                        } else {
-                            if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
-                                creep.signController(creep.room.controller, "\u300C\u30CB\u30E3\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
-                            } else if (!creep.room.controller.sign) {
-                                creep.signController(creep.room.controller, "\u300C\u30CB\u30E3\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
-                            }
+                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
+                            ignoreRoads: true
+                        })
+                    }
+                } else {
+                    if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(creep.room.controller, {
+                            ignoreRoads: true
+                        });
+                    } else {
+                        if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
+                            creep.signController(creep.room.controller, "\u300C\u30CB\u30E3\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
+                        } else if (!creep.room.controller.sign) {
+                            creep.signController(creep.room.controller, "\u300C\u30CB\u30E3\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
                         }
                     }
                 }
+                //}
 
                 break;
             case 'farMiner':
@@ -95,9 +95,9 @@ var creep_farMining = {
                     } else {
                         isEvading = evadeAttacker(creep, 2);
                     }
-                } else {
-                    isEvading = evadeAttacker(creep, 4);
-                }
+                } // else {
+                // isEvading = evadeAttacker(creep, 4);
+                //}
 
                 if (!isEvading) {
                     if (creep.room.name != creep.memory.destination) {
