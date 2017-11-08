@@ -740,7 +740,19 @@ var creep_work5 = {
                                     //Update quantity if less than 40000
                                     var thisOrder = Game.market.orders[foundOrder];
                                     if (thisOrder.remainingAmount < 40000) {
-                                        Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+                                        var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
+                                        if (comparableOrders.length > 0) {
+                                            comparableOrders.sort(orderPriceCompareBuying);
+                                            var targetPrice = comparableOrders[0].price;
+                                            if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
+                                                //Not competing with self, undercut!
+                                                targetPrice = targetPrice - 0.001
+                                            }
+                                            Game.market.changeOrderPrice(foundOrder, targetPrice);
+                                            Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+                                        } else {
+                                            Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+                                        }
                                     }
                                 } else {
                                     //Create new order, 0.001 less than lowest comperable order
@@ -748,7 +760,10 @@ var creep_work5 = {
                                     if (comparableOrders.length > 0) {
                                         comparableOrders.sort(orderPriceCompareBuying);
                                         var targetPrice = comparableOrders[0].price;
-                                        targetPrice = targetPrice - 0.001
+                                        if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
+                                            //Not competing with self, undercut!
+                                            targetPrice = targetPrice - 0.001
+                                        }
                                         Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
                                     }
                                 }
