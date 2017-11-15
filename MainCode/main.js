@@ -19,6 +19,7 @@ var creep_distractor = require('creep.distractor');
 var creep_powerAttack = require('creep.powerAttack');
 var creep_powerHeal = require('creep.powerHeal');
 var creep_powerCollect = require('creep.powerCollect');
+var creep_scraper = require('creep.scraper');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -967,6 +968,10 @@ module.exports.loop = function() {
                         break;
                     case 'powerCollector':
                         creep_powerCollect.run(creep);
+                        break;
+                    case 'scraper':
+                    case 'scraperNearDeath':
+                        creep_scraper.run(creep);
                         break;
                     default:
                         /*if (!creep.memory.priority) {

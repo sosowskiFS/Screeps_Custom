@@ -15,6 +15,7 @@ var spawn_BuildCreeps5 = {
         var suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
         var distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
         var upSuppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upSupplier');
+        var scrapers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'scraper');
 
         var labWorkers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'labWorker');
 
@@ -30,6 +31,10 @@ var spawn_BuildCreeps5 = {
         if (roomStorage && roomStorage.store[RESOURCE_ENERGY] < 100000) {
             upSupplierMax = 0;
             repairMax = 0;
+        }
+        var scraperMax = 0;
+        if (thisRoom.controller.level < 7) {
+            scraperMax = 1;
         }
         var supplierMax = 1;
         var distributorMax = 1;
@@ -286,6 +291,7 @@ var spawn_BuildCreeps5 = {
         }
 
         var upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+        var scraperConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
 
         var roomMineral = Game.getObjectById(strMineral[0]);
         if (roomStorage) {
@@ -493,7 +499,7 @@ var spawn_BuildCreeps5 = {
                 Memory.isSpawning = true;
             }
         }
-        if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
+        if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
             var prioritizedRole = '';
             var creepSource = '';
             var connectedLink = '';
@@ -575,6 +581,9 @@ var spawn_BuildCreeps5 = {
             } else if (labWorkers.length < labWorkerMax && !blockedRole.includes('labWorker')) {
                 prioritizedRole = 'labWorker';
                 storageID = strTerminal;
+            } else if (scrapers.length < scraperMax && !blockedRole.includes('scraper')) {
+                prioritizedRole = 'scraper';
+                connectedLink = strLinks[0];
             }
 
             if (prioritizedRole != '') {
@@ -789,6 +798,18 @@ var spawn_BuildCreeps5 = {
                                 homeRoom: thisRoom.name
                             });
                         }
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+                    }
+                } else if (prioritizedRole == 'scraper') {
+                    Memory.isSpawning = true;
+                    if (spawn.canCreateCreep(scraperConfig) == OK) {
+                        spawn.createCreep(scraperConfig, undefined, {
+                            priority: prioritizedRole,
+                            linkID: connectedLink,
+                            targetResource: undefined,
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
+                        });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 }
