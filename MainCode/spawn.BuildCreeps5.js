@@ -51,10 +51,10 @@ var spawn_BuildCreeps5 = {
         var primaryFlag = '';
         var backupFlag = '';
         if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
-            //MINERAL LOOPS:
-            //1: UH/LO/ZH
-            //2: OH/G/GH/GH2O/XGH2O
-            //3: UH2O/ZHO2/LHO2/ZH2O
+            //MINERAL LOOPS: (- Shard 1 counts)
+            //1: UH/LO/ZH - 1
+            //2: OH/G/GH/GH2O/XGH2O - 1
+            //3: UH2O/ZHO2/LHO2/ZH2O - 1
             //4: ZK/ZO
             //5: LH/UL/XLHO2
             //6: GHO2/LH2O/XLH2O/GO
