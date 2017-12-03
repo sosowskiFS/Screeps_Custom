@@ -300,14 +300,14 @@ var spawn_BuildCreeps5 = {
             }
             if (roomStorage.store[RESOURCE_ENERGY] >= 225000) {
                 //Add another mule for resource management
+                if (thisRoom.controller.level != 8) {
+                    upgraderMax++;
+                }
                 muleMax++;
             }
             if (roomStorage.store[RESOURCE_ENERGY] >= 375000) {
                 //speed up that repairing a bit
-                repairMax++;
-                if (thisRoom.controller.level != 8) {
-                    upgraderMax++;
-                }
+                repairMax++;               
             }
             if (roomStorage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
                 muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
