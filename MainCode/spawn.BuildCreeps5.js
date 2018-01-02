@@ -56,7 +56,7 @@ var spawn_BuildCreeps5 = {
             //2: OH/G/GH/GH2O/XGH2O - 1
             //3: UH2O/ZHO2/LHO2/ZH2O - 1
             //4: ZK/ZO - 1
-            //5: LH/UL/XLHO2
+            //5: LH/UL/XLHO2 - 1
             //6: GHO2/LH2O/XLH2O/GO
             //7: XUH2O/XZH2O/XZHO2
             //8: KO/KHO2/XKHO2/XGHO2
