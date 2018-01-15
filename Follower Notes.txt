@@ -1,7 +1,0 @@
-Jibol Power mining -
-2 15Move/15Heal
-1 24Move/24Attack
-And spawn several mules to pick up power when near death
-
-T3 Boost -
-Only 10 T3 boosted work parts to support 50 creep
