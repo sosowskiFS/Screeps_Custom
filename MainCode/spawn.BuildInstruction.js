@@ -319,7 +319,7 @@ var spawn_BuildInstruction = {
                             //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     }
-                }*/
+                }
                 break;
             case 'distract':
                 var distractors = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'distractor' && creep.memory.homeRoom == spawn.room.name));
