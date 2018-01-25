@@ -664,7 +664,7 @@ module.exports.loop = function() {
                         }
                     }
 
-                    if (Game.flags[thisRoom.name + "Assault"]) {
+                    if (Game.flags[thisRoom.name + "Assault"] && !Game.flags[thisRoom.name + "HaltAssault"]) {
                         spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags[thisRoom.name + "Assault"].pos.roomName, '', 'E35N46');
                     }
 
