@@ -145,7 +145,7 @@ var creep_assattacker = {
                             creep.dismantle(eSpawns[0]);
                         } else {
                             var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART)
+                                filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEPPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                             });
                             if (eStructures) {
                                 creep.travelTo(eStructures, {
