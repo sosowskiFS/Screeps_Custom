@@ -96,6 +96,7 @@ var creep_assattacker = {
                 var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
                 if (somethingNearby) {
                     creep.dismantle(somethingNearby);
+                    creep.attack(somethingNearby)
                 }
 
                 creep.rangedMassAttack();
@@ -132,6 +133,7 @@ var creep_assattacker = {
                                 maxRooms: 1
                             });
                             creep.dismantle(thisWall[0]);
+                            creep.attack(thisWall[0]);
                         } else {
                             Game.flags["WallFlag"].remove();
                         }
@@ -143,6 +145,7 @@ var creep_assattacker = {
                                 maxRooms: 1
                             });
                             creep.dismantle(eSpawns[0]);
+                            creep.attack(eSpawns[0]);
                         } else {
                             var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
@@ -153,6 +156,7 @@ var creep_assattacker = {
                                     maxRooms: 1
                                 });
                                 creep.dismantle(eStructures);
+                                creep.attack(eStructures);
                             } else if (closeFoe) {
                                 creep.moveTo(closeFoe, {
                                     ignoreRoads: true,
