@@ -93,7 +93,9 @@ var creep_assattacker = {
         } else {
             if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName == creep.pos.roomName) {
                 //In target room
-                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
+                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                });
                 if (somethingNearby) {
                     creep.dismantle(somethingNearby);
                     creep.attack(somethingNearby)
