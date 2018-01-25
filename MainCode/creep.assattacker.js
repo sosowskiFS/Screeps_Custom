@@ -154,7 +154,7 @@ var creep_assattacker = {
                                 });
                                 creep.dismantle(eStructures);
                             } else if (closeFoe) {
-                                creep.travelTo(closeFoe, {
+                                creep.moveTo(closeFoe, {
                                     ignoreRoads: true,
                                     maxRooms: 1
                                 });
