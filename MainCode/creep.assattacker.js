@@ -92,6 +92,13 @@ var creep_assattacker = {
             }
         } else {
             if (Game.flags[creep.memory.homeRoom + "Assault"] && Game.flags[creep.memory.homeRoom + "Assault"].pos && Game.flags[creep.memory.homeRoom + "Assault"].pos.roomName == creep.pos.roomName) {
+                //In target room
+                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
+                if (somethingNearby) {
+                    creep.dismantle(somethingNearby);
+                    creep.attack(somethingNearby)
+                }
+
                 creep.rangedMassAttack();
                 if (creep.hits < creep.hitsMax - 700 && Game.flags["FallBack"] && Game.flags["FallBack"].pos) {
                     //Fall back
@@ -162,12 +169,6 @@ var creep_assattacker = {
 
                     }
                 }
-                var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES);
-                if (somethingNearby) {
-                    creep.dismantle(somethingNearby);
-                    creep.attack(somethingNearby)
-                }
-
             } else if (!healerIsNear) {
                 if (creep.memory.getOutOfStartRoom) {
                     var thisPortal = undefined;
