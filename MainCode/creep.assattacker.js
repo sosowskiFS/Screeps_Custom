@@ -158,6 +158,7 @@ var creep_assattacker = {
                                     ignoreRoads: true,
                                     maxRooms: 1
                                 });
+                                creep.attack(closeFoe);
                             } else if (Game.flags[creep.memory.homeRoom + "Assault"]) {
                                 Game.flags[creep.memory.homeRoom + "Assault"].remove();
                             }
