@@ -158,7 +158,6 @@ var creep_assattacker = {
                                     ignoreRoads: true,
                                     maxRooms: 1
                                 });
-                                creep.attack(closeFoe);
                             } else if (Game.flags[creep.memory.homeRoom + "Assault"]) {
                                 Game.flags[creep.memory.homeRoom + "Assault"].remove();
                             }
@@ -254,6 +253,7 @@ var creep_assattacker = {
 
         if (closeFoe) {
             creep.rangedMassAttack();
+            creep.attack(closeFoe);
             //prioritize foebashing
             /*var found = closeFoe.pos.lookFor(LOOK_STRUCTURES);
             var hasRampart = false;
