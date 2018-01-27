@@ -54,7 +54,7 @@ var creep_farMining = {
                     });
                 }
 
-                if (creep.hits < 400) {
+                if (creep.hits < 400 && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
                     //Determine if attacker is player, if so, delete flag.
                     if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
                         Game.notify(creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
