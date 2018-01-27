@@ -468,7 +468,7 @@ module.exports.loop = function() {
                             Memory.labList[thisRoom.name].push(labLocations[thisLab].id);
                         }
                         //Check and add rampart if missing
-                        var found = thisLab.pos.lookFor(LOOK_STRUCTURES);
+                        var found = labLocations[thisLab].pos.lookFor(LOOK_STRUCTURES);
                         var hasRampart = false;
                         for (var building in found) {
                             if (found[building].structureType == STRUCTURE_RAMPART) {
@@ -477,7 +477,7 @@ module.exports.loop = function() {
                             }
                         }
                         if (!hasRampart) {
-                            thisLab.room.createConstructionSite(thisLab.pos.x, thisLab.pos.y, STRUCTURE_RAMPART);
+                            labLocations[thisLab].room.createConstructionSite(labLocations[thisLab].pos.x, labLocations[thisLab].pos.y, STRUCTURE_RAMPART);
                         }
                     }
                     Memory.labList[thisRoom.name].sort();
