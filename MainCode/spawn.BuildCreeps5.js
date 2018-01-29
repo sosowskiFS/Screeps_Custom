@@ -51,7 +51,17 @@ var spawn_BuildCreeps5 = {
         var primaryFlag = '';
         var backupFlag = '';
         if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
-            //MINERAL LOOPS: (- Shard 1 counts)
+            //Mineral loops
+            //SHARD 0 COUNTS
+            //1: UH/LO/ZH - 1 (E87N85)        
+            //2: OH/G/GH/GH2O/XGH2O - 4 (E88N83, E86N83, E85N89, E88N75)           
+            //3: UH2O/ZHO2/LHO2/ZH2O - 1 (E89N83)          
+            //4: ZK/ZO - 2 (E89N86, E88N87)          
+            //5: LH/UL/XLHO2 - 2 (E84N77, E81N79)        
+            //6: GHO2/LH2O/XLH2O/GO - 2 (E88N88, E77N83)          
+            //7: XUH2O/XZH2O/XZHO2 - 1 (E86N68)            
+            //8: KO/KHO2/XKHO2/XGHO2 - 1 (E74N81)
+            //SHARD 1 COUNTS
             //1: UH/LO/ZH - 1
             //2: OH/G/GH/GH2O/XGH2O - 1
             //3: UH2O/ZHO2/LHO2/ZH2O - 1
