@@ -95,9 +95,12 @@ var creep_farMining = {
                     } else {
                         isEvading = evadeAttacker(creep, 2);
                     }
-                } // else {
-                // isEvading = evadeAttacker(creep, 4);
-                //}
+                } else {
+                    //isEvading = evadeAttacker(creep, 4);
+                    if (creep.hits < creep.hitsMax) {
+                        creep.heal(creep);
+                    }
+                }
 
                 if (!isEvading) {
                     if (creep.room.name != creep.memory.destination) {
