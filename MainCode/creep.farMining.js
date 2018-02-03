@@ -52,6 +52,9 @@ var creep_farMining = {
                     hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
                         filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0) || (creep.hits <= 500)
                     });
+                    if (creep.getActiveBodyparts(HEAL) > 0) {
+                        creep.heal(creep);
+                    }
                 }
 
                 if (creep.hits < 400 && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
@@ -94,11 +97,6 @@ var creep_farMining = {
                         isEvading = attackInvader(creep);
                     } else {
                         isEvading = evadeAttacker(creep, 2);
-                    }
-                } else {
-                    //isEvading = evadeAttacker(creep, 4);
-                    if (creep.hits < creep.hitsMax) {
-                        creep.heal(creep);
                     }
                 }
 
