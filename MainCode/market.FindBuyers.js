@@ -192,7 +192,7 @@ var market_buyers = {
             if (!hasSent && TerminalEnergy >= 30000 && Game.time % 1000 == 0) {
                 var MaxSaleAmount = 30000;
                 var keepAmount = 20000;
-                if ((thisTerminal.storeCapacity - 5000) <= _.sum(thisTerminal)) {
+                if ((thisTerminal.storeCapacity - 5000) <= _.sum(thisTerminal.store)) {
                     keepAmount = 3000;
                 }
                 for (var y in sellMinerals) {

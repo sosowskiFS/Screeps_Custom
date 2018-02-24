@@ -68,8 +68,8 @@ var spawn_BuildCreeps5 = {
             //4: ZK/ZO - 1
             //5: LH/UL/XLHO2 - 1
             //6: GHO2/LH2O/XLH2O/GO - 1
-            //7: XUH2O/XZH2O/XZHO2
-            //8: KO/KHO2/XKHO2/XGHO2
+            //7: XUH2O/XZH2O/XZHO2 - 1
+            //8: KO/KHO2/XKHO2/XGHO2 - 1
             //DO NOT CARE LIST : UO/KH
             if (Memory.labList[thisRoom.name].length >= 6) {
                 if (Game.flags[thisRoom.name + "WarBoosts"]) {
