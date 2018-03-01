@@ -585,23 +585,30 @@ module.exports.loop = function() {
                 }
 
                 //Handle Labs
-                if (Game.time % 10 == 0 && Memory.labList[thisRoom.name].length >= 6) {
-                    var lab4 = Game.getObjectById(Memory.labList[thisRoom.name][3]);
-                    var lab5 = Game.getObjectById(Memory.labList[thisRoom.name][4]);
+                if (Game.time % 5 == 0 && Memory.labList[thisRoom.name].length >= 6) {
                     var lab6 = Game.getObjectById(Memory.labList[thisRoom.name][5]);
-                    if (lab4 && lab5 && lab6 && lab4.mineralAmount >= 5 && lab5.mineralAmount >= 5 && lab6.mineralAmount <= lab6.mineralCapacity - 5) {
-                        var response = lab6.runReaction(lab4, lab5);
-                        if (response == -9) {
-                            Game.notify('Lab not in range! ' + thisRoom.name + "-" + Memory.labList[thisRoom.name][3] + "|" + Memory.labList[thisRoom.name][4] + "|" + Memory.labList[thisRoom.name][5]);
+                    if (lab6 && lab6.cooldown <= 0 && lab6.mineralAmount <= lab6.mineralCapacity - 5) {
+                        var lab4 = Game.getObjectById(Memory.labList[thisRoom.name][3]);
+                        var lab5 = Game.getObjectById(Memory.labList[thisRoom.name][4]);
+                        if (lab4 && lab5 && lab4.mineralAmount >= 5 && lab5.mineralAmount >= 5) {
+                            var response = lab6.runReaction(lab4, lab5);
+                            if (response == -9) {
+                                Game.notify('Lab not in range! ' + thisRoom.name + "-" + Memory.labList[thisRoom.name][3] + "|" + Memory.labList[thisRoom.name][4] + "|" + Memory.labList[thisRoom.name][5]);
+                            }
                         }
                     }
+                    
                     if (Memory.labList[thisRoom.name].length >= 9) {
-                        var lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
-                        var lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
                         var lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
-                        var response = lab9.runReaction(lab7, lab8);
-                        if (response == -9) {
-                            Game.notify('Lab not in range! ' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6] + "|" + Memory.labList[thisRoom.name][7] + "|" + Memory.labList[thisRoom.name][8]);
+                        if (lab9 && lab9.cooldown <= 0 && lab9.mineralAmount <= lab9.mineralCapacity - 5) {
+                            var lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
+                            var lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
+                            if (lab7 && lab8 && lab7.mineralAmount >= 5 && lab8.mineralAmount >= 5) {
+                                var response = lab9.runReaction(lab7, lab8);
+                                if (response == -9) {
+                                    Game.notify('Lab not in range! ' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6] + "|" + Memory.labList[thisRoom.name][7] + "|" + Memory.labList[thisRoom.name][8]);
+                                }
+                            }
                         }
                     }
                 }
@@ -791,7 +798,7 @@ module.exports.loop = function() {
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     var RampartDirection = ""
-                    //Check for hostiles in this room
+                        //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
