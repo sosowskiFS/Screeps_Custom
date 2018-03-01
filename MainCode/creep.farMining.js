@@ -311,6 +311,10 @@ var creep_farMining = {
                     creep.memory.didRoadSearch = true;
                 }
 
+                if (creep.memory.doNotRoadSearch == null) {
+                    creep.memory.doNotRoadSearch = false;
+                }
+
                 var roadSearchTarget;
 
                 if (!creep.memory.lastRoom || creep.memory.lastRoom != creep.room.name) {
@@ -361,6 +365,7 @@ var creep_farMining = {
 
                 if (creep.memory.evadingUntil && creep.memory.evadingUntil > Game.time) {
                     creep.memory.didRoadSearch = true;
+                    creep.memory.doNotRoadSearch = true;
                     evadeAttacker(creep, 4);
                 } else {
                     if (creep.room.name == creep.memory.destination) {
@@ -412,12 +417,12 @@ var creep_farMining = {
                                     creep.travelTo(thisContainer, {
                                         ignoreRoads: roadIgnore
                                     });
-                                }
-                                if (creep.memory.didRoadSearch == false) {
-                                    if (creep.memory.storageSource) {
+                                } else {
+                                    //Assume ok, do road search back to home
+                                    if (creep.memory.didRoadSearch == false && creep.memory.storageSource) {
                                         var storageUnit = Game.getObjectById(creep.memory.storageSource)
-                                        if ((storageUnit && creep.pos.isNearTo(storageUnit)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
-                                            roadSearchTarget = thisContainer.pos;
+                                        if ((thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                                            roadSearchTarget = storageUnit.pos;
                                         } else {
                                             creep.memory.didRoadSearch = true;
                                         }
@@ -516,6 +521,8 @@ var creep_farMining = {
                                     }
                                 } else if (Object.keys(creep.carry).length && creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(storageUnit);
+                                } else {
+                                    creep.memory.doNotRoadSearch = false;
                                 }
                                 if (creep.memory.didRoadSearch == false) {
                                     if (creep.memory.containerTarget) {
@@ -553,7 +560,7 @@ var creep_farMining = {
                     }
                     //}
 
-                    if (_.sum(creep.carry) > creep.carryCapacity - 300 && !creep.memory.didRoadSearch && roadSearchTarget) {
+                    if (_.sum(creep.carry) > creep.carryCapacity - 300 && !creep.memory.didRoadSearch && !creep.memory.doNotRoadSearch && roadSearchTarget) {
                         creep.memory.didRoadSearch = true;
                         //Autogenerate roads
                         //.dest.x, .dest.y, .dest.room
