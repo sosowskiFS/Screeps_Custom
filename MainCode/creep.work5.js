@@ -733,8 +733,7 @@ var creep_work5 = {
                                 //If producing something with catalyst, make an order.
                                 var foundOrder = _.findKey(Game.market.orders, {
                                     'roomName': creep.room.name,
-                                    'resourceType': creep.memory.mineral6,
-                                    'active': true
+                                    'resourceType': creep.memory.mineral6
                                 });
                                 if (foundOrder) {
                                     //Update quantity if less than 40000
