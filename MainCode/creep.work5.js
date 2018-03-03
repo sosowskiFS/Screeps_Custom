@@ -740,7 +740,7 @@ var creep_work5 = {
                                     //Update quantity if less than 40000
                                     var thisOrder = Game.market.orders[foundOrder];
                                     if (thisOrder.remainingAmount < 40000) {
-                                        var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
+                                        var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL && order.price < foundOrder.price);
                                         if (comparableOrders.length > 0) {
                                             comparableOrders.sort(orderPriceCompareBuying);
                                             var targetPrice = comparableOrders[0].price;
@@ -752,6 +752,18 @@ var creep_work5 = {
                                             Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                                         } else {
                                             Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+                                        }
+                                    } else {
+                                        //Keep prices up to date
+                                        var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL && order.price < foundOrder.price);
+                                        if (comparableOrders.length > 0) {
+                                            comparableOrders.sort(orderPriceCompareBuying);
+                                            var targetPrice = comparableOrders[0].price;
+                                            if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
+                                                //Not competing with self, undercut!
+                                                targetPrice = targetPrice - 0.001
+                                            }
+                                            Game.market.changeOrderPrice(foundOrder, targetPrice);
                                         }
                                     }
                                 } else {
