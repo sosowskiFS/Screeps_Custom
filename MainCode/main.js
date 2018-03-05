@@ -57,13 +57,6 @@ module.exports.loop = function() {
         }
     }
 
-    if (!Memory.structureMatrixCache) {
-        Memory.structureMatrixCache = {};
-    }
-    if (!Memory.creepMatrixCache) {
-        Memory.creepMatrixCache = {};
-    }
-
     //Set defaults on various memory values
     if (Game.time % 10000 == 0 || Game.flags["CheckMemory"]) {
         memCheck();
