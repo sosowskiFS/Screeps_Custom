@@ -50,11 +50,18 @@ var market_buyers = require('market.FindBuyers');
 //profiler.enable();
 module.exports.loop = function() {
     //profiler.wrap(function() {
-    for (var name in Memory.creeps) {
+    for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
             //console.log('Clearing non-existing creep memory:', name);
         }
+    }
+
+    if (!Memory.structureMatrixCache) {
+        Memory.structureMatrixCache = {};
+    }
+    if (!Memory.creepMatrixCache) {
+        Memory.creepMatrixCache = {};
     }
 
     //Set defaults on various memory values
