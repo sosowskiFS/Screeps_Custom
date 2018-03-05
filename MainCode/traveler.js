@@ -396,12 +396,12 @@ class Traveler {
          * @returns {any}
          */
     static getStructureMatrix(room, freshMatrix) {
-            if (!this.structureMatrixCache[room.name] || (freshMatrix && Game.time !== this.structureMatrixTick)) {
+            if (!Memory.structureMatrixCache[room.name] || (freshMatrix && Game.time !== this.structureMatrixTick)) {
                 this.structureMatrixTick = Game.time;
                 let matrix = new PathFinder.CostMatrix();
-                this.structureMatrixCache[room.name] = Traveler.addStructuresToMatrix(room, matrix, 1);
+                Memory.structureMatrixCache[room.name] = Traveler.addStructuresToMatrix(room, matrix, 1);
             }
-            return this.structureMatrixCache[room.name];
+            return Memory.structureMatrixCache[room.name];
         }
         /**
          * build a cost matrix based on creeps and structures in the room. Will be cached for one tick. Requires vision.
@@ -409,11 +409,11 @@ class Traveler {
          * @returns {any}
          */
     static getCreepMatrix(room) {
-            if (!this.creepMatrixCache[room.name] || Game.time !== this.creepMatrixTick) {
+            if (!Memory.creepMatrixCache[room.name] || Game.time !== this.creepMatrixTick) {
                 this.creepMatrixTick = Game.time;
-                this.creepMatrixCache[room.name] = Traveler.addCreepsToMatrix(room, this.getStructureMatrix(room, true).clone());
+                Memory.creepMatrixCache[room.name] = Traveler.addCreepsToMatrix(room, this.getStructureMatrix(room, true).clone());
             }
-            return this.creepMatrixCache[room.name];
+            return Memory.creepMatrixCache[room.name];
         }
         /**
          * add structures to matrix so that impassible structures can be avoided and roads given a lower cost
@@ -556,8 +556,6 @@ class Traveler {
         return stuck;
     }
 }
-Traveler.structureMatrixCache = {};
-Traveler.creepMatrixCache = {};
 exports.Traveler = Traveler;
 // this might be higher than you wish, setting it lower is a great way to diagnose creep behavior issues. When creeps
 // need to repath to often or they aren't finding valid paths, it can sometimes point to problems elsewhere in your code
