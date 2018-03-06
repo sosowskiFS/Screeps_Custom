@@ -46,7 +46,7 @@ var market_buyers = require('market.FindBuyers');
 //Emoji Unicode converter : https://r12a.github.io/apps/conversion/
 //Traveler API : https://github.com/bonzaiferroni/Traveler/wiki/Traveler-API
 
-delete global.lastMemoryTick;
+global.lastMemoryTick = undefined;
 
 //profiler.enable();
 module.exports.loop = function() {
