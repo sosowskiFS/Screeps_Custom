@@ -694,7 +694,10 @@ var creep_work5 = {
                 var sources = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
                     filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
                 });
-                var droppedResource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                var droppedResource = null;
+                if (!sources){
+                    droppedResource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                }
                 if (!sources && !droppedResource && _.sum(creep.carry) == 0) {
                     //Idle
                     if (!creep.pos.isNearTo(creep.room.controller)) {
