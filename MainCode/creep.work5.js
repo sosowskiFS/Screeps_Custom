@@ -694,11 +694,13 @@ var creep_work5 = {
                 var sources = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
                     filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
                 });
-                if (!sources && _.sum(creep.carry) == 0) {
+                var droppedResource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                if (!sources && !droppedResource && _.sum(creep.carry) == 0) {
                     //Idle
-                    if (!creep.pos.isNearTo(creep.room.controller)){
+                    if (!creep.pos.isNearTo(creep.room.controller)) {
                         creep.travelTo(creep.room.controller);
-                    }                 
+                    }
+                    return;
                 } else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
                     if (Object.keys(sources.store).length > 1) {
                         if (creep.withdraw(sources, Object.keys(sources.store)[1]) == ERR_NOT_IN_RANGE) {
@@ -707,8 +709,13 @@ var creep_work5 = {
                     } else if (Object.keys(sources.store).length && creep.withdraw(sources, Object.keys(sources.store)[0]) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(sources);
                     }
+                } else if (droppedResource && _.sum(creep.carry) < creep.carryCapacity) {
+                    if (creep.pickup(droppedResource) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(droppedResource);
+                    }
                 }
-                if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) > 100) {
+
+                if ((!sources && !droppedResource) && _.sum(creep.carry) > 0 || _.sum(creep.carry) >= 200) {
                     var storageTarget = creep.room.storage;
                     if (Object.keys(creep.carry).length > 1) {
                         if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
