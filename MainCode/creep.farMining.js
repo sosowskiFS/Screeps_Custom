@@ -545,15 +545,17 @@ var creep_farMining = {
 
                     if (_.sum(creep.carry) < creep.carryCapacity - 100) {
                         if (Game.flags[creep.room.name + "SKRoom"]) {
-                            var sources = creep.pos.findInRange(FIND_TOMBSTONES, 5);
-                            if (sources.length && _.sum(sources[0].store) > 0 && Object.keys(sources[0].store).length > 1) {
+                            var sources = creep.pos.findInRange(FIND_TOMBSTONES, 5, {
+                                filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
+                            });
+                            if (sources.length && Object.keys(sources[0].store).length > 1) {
                                 if (creep.withdraw(sources[0], Object.keys(sources[0].store)[1]) == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(sources[0], {
                                         ignoreRoads: roadIgnore,
                                         ignoreCreeps: false
                                     });
                                 }
-                            } else if (sources.length && _.sum(sources[0].store) > 0 && Object.keys(sources[0].store).length && creep.withdraw(sources[0], Object.keys(sources[0].store)[0]) == ERR_NOT_IN_RANGE) {
+                            } else if (sources.length && Object.keys(sources[0].store).length && creep.withdraw(sources[0], Object.keys(sources[0].store)[0]) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(sources[0], {
                                     ignoreRoads: roadIgnore,
                                     ignoreCreeps: false
