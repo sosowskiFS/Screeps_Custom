@@ -802,10 +802,10 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'salvager') {
                     Memory.isSpawning = true;
-                    if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
-                        spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
+                    if (spawn.canCreateCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]) == OK) {
+                        spawn.createCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], undefined, {
                             priority: prioritizedRole,
-                            deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 6,
+                            deathWarn: _.size([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]) * 6,
                             storageTarget: thisRoom.storage.id,
                             homeRoom: thisRoom.name
                         });

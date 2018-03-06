@@ -718,7 +718,7 @@ var creep_work5 = {
                     }
                 }
 
-                if ((!sources && !droppedResource) && _.sum(creep.carry) > 0 || _.sum(creep.carry) >= 200) {
+                if ((!sources && !droppedResource) && _.sum(creep.carry) > 0 || _.sum(creep.carry) >= creep.carryCapacity) {
                     var storageTarget = creep.room.storage;
                     if (Object.keys(creep.carry).length > 1) {
                         if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
