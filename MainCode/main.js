@@ -46,9 +46,11 @@ var market_buyers = require('market.FindBuyers');
 //Emoji Unicode converter : https://r12a.github.io/apps/conversion/
 //Traveler API : https://github.com/bonzaiferroni/Traveler/wiki/Traveler-API
 
+global.lastMemoryTick = undefined;
 
 //profiler.enable();
 module.exports.loop = function() {
+	tryInitSameMemory();
     //profiler.wrap(function() {
     for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
@@ -1367,4 +1369,16 @@ function formatNumber(number) {
         return n.substring(0, n.length - 9) + 'B';
     }
     return number.toString();
+}
+
+function tryInitSameMemory() {
+    if (lastMemoryTick && global.LastMemory && Game.time == (lastMemoryTick + 1)) {
+        delete global.Memory
+        global.Memory = global.LastMemory
+        RawMemory._parsed = global.LastMemory
+    } else {
+        Memory;
+        global.LastMemory = RawMemory._parsed
+    }
+    lastMemoryTick = Game.time
 }
