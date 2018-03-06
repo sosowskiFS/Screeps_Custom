@@ -549,12 +549,14 @@ var creep_farMining = {
                             if (sources.length && _.sum(sources[0].store) > 0 && Object.keys(sources[0].store).length > 1) {
                                 if (creep.withdraw(sources[0], Object.keys(sources[0].store)[1]) == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(sources[0], {
-                                        ignoreRoads: roadIgnore
+                                        ignoreRoads: roadIgnore,
+                                        ignoreCreeps: false
                                     });
                                 }
                             } else if (sources.length && _.sum(sources[0].store) > 0 && Object.keys(sources[0].store).length && creep.withdraw(sources[0], Object.keys(sources[0].store)[0]) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(sources[0], {
-                                    ignoreRoads: roadIgnore
+                                    ignoreRoads: roadIgnore,
+                                    ignoreCreeps: false
                                 });
                             }
                         } else {
