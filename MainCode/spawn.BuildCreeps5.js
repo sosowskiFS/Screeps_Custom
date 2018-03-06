@@ -39,6 +39,7 @@ var spawn_BuildCreeps5 = {
         var supplierMax = 1;
         var distributorMax = 1;
         var labWorkerMax = 0;
+        var salvagerMax = 1;
         var min1 = RESOURCE_CATALYZED_UTRIUM_ACID;
         var min2 = RESOURCE_CATALYZED_GHODIUM_ACID;
         if (thisRoom.controller.level == 8) {
@@ -317,7 +318,7 @@ var spawn_BuildCreeps5 = {
             }
             if (roomStorage.store[RESOURCE_ENERGY] >= 375000) {
                 //speed up that repairing a bit
-                repairMax++;               
+                repairMax++;
             }
             if (roomStorage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
                 muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -396,32 +397,7 @@ var spawn_BuildCreeps5 = {
             var Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
-            if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) != -1) {
-                if (thisRoom.energyAvailable >= 800 && salvagers.length == 0) {
-                    var blockedRole = '';
-
-                    var queLength = Memory.creepInQue.length;
-                    for (var i = 0; i < queLength; i++) {
-                        if (Memory.creepInQue[i] == thisRoom.name) {
-                            blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
-                        }
-                    }
-                    if (!blockedRole.includes('salvager')) { //Produce a salvager unit to pick up the dropped resources
-                        Memory.isSpawning = true;
-                        if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
-                            spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
-                                priority: 'salvager',
-                                deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 6,
-                                storageTarget: thisRoom.storage.id,
-                                homeRoom: thisRoom.name
-                            });
-                            Memory.creepInQue.push(thisRoom.name, 'salvager', '', spawn.name);
-                        }
-                    }
-
-
-                }
-            } else if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 500 && (Foe.length || defenders.length < 1)) {
+            if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 500 && (Foe.length || defenders.length < 1)) {
                 //Try to produce millitary units
 
                 //Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -509,7 +485,7 @@ var spawn_BuildCreeps5 = {
                 Memory.isSpawning = true;
             }
         }
-        if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
+        if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax || salvagers.length < salvagerMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
             var prioritizedRole = '';
             var creepSource = '';
             var connectedLink = '';
@@ -594,6 +570,8 @@ var spawn_BuildCreeps5 = {
             } else if (scrapers.length < scraperMax && !blockedRole.includes('scraper')) {
                 prioritizedRole = 'scraper';
                 connectedLink = strLinks[0];
+            } else if (salvagers.length < salvagerMax && !blockedRole.includes('salvager')){
+                prioritizedRole = 'salvager';
             }
 
             if (prioritizedRole != '') {
@@ -818,6 +796,17 @@ var spawn_BuildCreeps5 = {
                             linkID: connectedLink,
                             targetResource: undefined,
                             fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
+                        });
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+                    }
+                } else if (prioritizedRole == 'salvager') {
+                    Memory.isSpawning = true;
+                    if (spawn.canCreateCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) == OK) {
+                        spawn.createCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], undefined, {
+                            priority: prioritizedRole,
+                            deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 6,
+                            storageTarget: thisRoom.storage.id,
                             homeRoom: thisRoom.name
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);

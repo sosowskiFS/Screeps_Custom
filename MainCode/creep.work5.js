@@ -695,8 +695,10 @@ var creep_work5 = {
                     filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
                 });
                 if (!sources && _.sum(creep.carry) == 0) {
-                    //There's nothing left to do
-                    //creep.suicide();
+                    //Idle
+                    if (!creep.pos.isNearTo(creep.room.controller)){
+                        creep.travelTo(creep.room.controller);
+                    }                 
                 } else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
                     if (Object.keys(sources.store).length > 1) {
                         if (creep.withdraw(sources, Object.keys(sources.store)[1]) == ERR_NOT_IN_RANGE) {
