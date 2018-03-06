@@ -137,9 +137,6 @@ module.exports.loop = function() {
         }
     }*/
 
-    //Use experimental PathFinder
-    PathFinder.use(true);
-
     var roomDist = 999;
     var roomEnergy = 0;
     var roomName = '';
@@ -152,6 +149,111 @@ module.exports.loop = function() {
 
     if (Game.time % 1000 == 0) {
         Memory.ordersFilled = [];
+    }
+
+    var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
+    if (towers.length) {
+        var alreadySearched = [];
+        for (var y = 0; y < towers.length; y++) {
+            if (towers[y].room.controller.owner) {
+                if (Game.time % 1000 == 0) {
+                    var found = towers[y].pos.lookFor(LOOK_STRUCTURES);
+                    var hasRampart = false;
+                    for (var building in found) {
+                        if (found[building].structureType == STRUCTURE_RAMPART) {
+                            hasRampart = true;
+                            break;
+                        }
+                    }
+                    if (!hasRampart) {
+                        towers[y].room.createConstructionSite(towers[y].pos.x, towers[y].pos.y, STRUCTURE_RAMPART);
+                    }
+                }
+
+                if (alreadySearched.indexOf(towers[y].room.name) < 0) {
+                    var RampartDirection = ""
+                        //Check for hostiles in this room
+                    var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    });
+                    if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
+                        Memory.roomsUnderAttack.push(towers[y].room.name);
+                        RampartDirection = "Closed";
+                        if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
+                            Memory.roomsPrepSalvager.push(towers[y].room.name);
+                        } else if (Memory.RoomsAt5.indexOf(towers[y].room.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
+                            //No good combat code! SAFE MODE!
+                            if (!towers[y].room.controller.safeMode && (hostiles[0].getActiveBodyparts(ATTACK) > 0 || hostiles[0].getActiveBodyparts(RANGED_ATTACK) > 0 || hostiles[0].getActiveBodyparts(WORK) > 0)) {
+                                towers[y].room.controller.activateSafeMode();
+                            }
+                        }
+                    } else if (hostiles.length == 0) {
+                        var UnderAttackPos = Memory.roomsUnderAttack.indexOf(towers[y].room.name);
+                        var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
+                        if (UnderAttackPos >= 0) {
+                            Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
+                            RampartDirection = "Open"
+                        }
+                        if (salvagerPos >= 0) {
+                            Memory.roomsPrepSalvager.splice(salvagerPos, 1);
+                        }
+                    }
+
+                    if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) > -1 && !towers[y].room.controller.safeMode) {
+                        if (hostiles.length && (hostiles[0].owner.username != 'Invader')) {
+                            Memory.attackDuration = Memory.attackDuration + 1;
+                            if (Memory.attackDuration >= 250 && !Memory.warMode) {
+                                Memory.warMode = true;
+                                Game.notify('War mode was enabled due to a long attack at ' + towers[y].room.name + '.');
+                            }
+                        }
+                    } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
+                        Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
+                    } else if (Memory.roomsUnderAttack.length == 0) {
+                        Memory.attackDuration = 0;
+                        if (Game.flags[towers[y].room.name + "eFarGuard"]) {
+                            Game.flags[towers[y].room.name + "eFarGuard"].remove();
+                        }
+                    }
+
+                    if (Game.time % 500 == 0) {
+                        var nukes = towers[y].room.find(FIND_NUKES);
+                        if (nukes.length) {
+                            RampartDirection = "Closed";
+                        }
+                    }
+
+                    if (RampartDirection == "Closed") {
+                        var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
+                            filter: {
+                                structureType: STRUCTURE_RAMPART
+                            }
+                        });
+                        for (var n = 0; n < roomRamparts.length; n++) {
+                            if (roomRamparts[n].isPublic) {
+                                roomRamparts[n].setPublic(false);
+                            }
+                        }
+                    } else if (RampartDirection == "Open") {
+                        var nukes = towers[y].room.find(FIND_NUKES);
+                        if (!nukes.length) {
+                            var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
+                                filter: {
+                                    structureType: STRUCTURE_RAMPART
+                                }
+                            });
+                            for (var n = 0; n < roomRamparts.length; n++) {
+                                if (!roomRamparts[n].isPublic) {
+                                    roomRamparts[n].setPublic(true);
+                                }
+                            }
+                        }
+                    }
+                    alreadySearched.push(towers[y].room.name);
+                }
+                tower_Operate.run(towers[y], Memory.attackDuration, y);
+            }
+        }
     }
 
     for (var i in Game.spawns) {
@@ -777,111 +879,6 @@ module.exports.loop = function() {
     //Clear observe tick, rooms have been checked.
     if (Memory.postObserveTick && Game.time % 50 != 0) {
         Memory.postObserveTick = false;
-    }
-
-    var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
-    if (towers.length) {
-        var alreadySearched = [];
-        for (var y = 0; y < towers.length; y++) {
-            if (towers[y].room.controller.owner) {
-                if (Game.time % 1000 == 0) {
-                    var found = towers[y].pos.lookFor(LOOK_STRUCTURES);
-                    var hasRampart = false;
-                    for (var building in found) {
-                        if (found[building].structureType == STRUCTURE_RAMPART) {
-                            hasRampart = true;
-                            break;
-                        }
-                    }
-                    if (!hasRampart) {
-                        towers[y].room.createConstructionSite(towers[y].pos.x, towers[y].pos.y, STRUCTURE_RAMPART);
-                    }
-                }
-
-                if (alreadySearched.indexOf(towers[y].room.name) < 0) {
-                    var RampartDirection = ""
-                        //Check for hostiles in this room
-                    var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                    });
-                    if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
-                        Memory.roomsUnderAttack.push(towers[y].room.name);
-                        RampartDirection = "Closed";
-                        if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
-                            Memory.roomsPrepSalvager.push(towers[y].room.name);
-                        } else if (Memory.RoomsAt5.indexOf(towers[y].room.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
-                            //No good combat code! SAFE MODE!
-                            if (!towers[y].room.controller.safeMode && (hostiles[0].getActiveBodyparts(ATTACK) > 0 || hostiles[0].getActiveBodyparts(RANGED_ATTACK) > 0 || hostiles[0].getActiveBodyparts(WORK) > 0)) {
-                                towers[y].room.controller.activateSafeMode();
-                            }
-                        }
-                    } else if (hostiles.length == 0) {
-                        var UnderAttackPos = Memory.roomsUnderAttack.indexOf(towers[y].room.name);
-                        var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
-                        if (UnderAttackPos >= 0) {
-                            Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
-                            RampartDirection = "Open"
-                        }
-                        if (salvagerPos >= 0) {
-                            Memory.roomsPrepSalvager.splice(salvagerPos, 1);
-                        }
-                    }
-
-                    if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) > -1 && !towers[y].room.controller.safeMode) {
-                        if (hostiles.length && (hostiles[0].owner.username != 'Invader')) {
-                            Memory.attackDuration = Memory.attackDuration + 1;
-                            if (Memory.attackDuration >= 250 && !Memory.warMode) {
-                                Memory.warMode = true;
-                                Game.notify('War mode was enabled due to a long attack at ' + towers[y].room.name + '.');
-                            }
-                        }
-                    } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
-                        Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
-                    } else if (Memory.roomsUnderAttack.length == 0) {
-                        Memory.attackDuration = 0;
-                        if (Game.flags[towers[y].room.name + "eFarGuard"]) {
-                            Game.flags[towers[y].room.name + "eFarGuard"].remove();
-                        }
-                    }
-
-                    if (Game.time % 500 == 0) {
-                        var nukes = towers[y].room.find(FIND_NUKES);
-                        if (nukes.length) {
-                            RampartDirection = "Closed";
-                        }
-                    }
-
-                    if (RampartDirection == "Closed") {
-                        var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
-                            filter: {
-                                structureType: STRUCTURE_RAMPART
-                            }
-                        });
-                        for (var n = 0; n < roomRamparts.length; n++) {
-                            if (roomRamparts[n].isPublic) {
-                                roomRamparts[n].setPublic(false);
-                            }
-                        }
-                    } else if (RampartDirection == "Open") {
-                        var nukes = towers[y].room.find(FIND_NUKES);
-                        if (!nukes.length) {
-                            var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
-                                filter: {
-                                    structureType: STRUCTURE_RAMPART
-                                }
-                            });
-                            for (var n = 0; n < roomRamparts.length; n++) {
-                                if (!roomRamparts[n].isPublic) {
-                                    roomRamparts[n].setPublic(true);
-                                }
-                            }
-                        }
-                    }
-                    alreadySearched.push(towers[y].room.name);
-                }
-                tower_Operate.run(towers[y], Memory.attackDuration, y);
-            }
-        }
     }
 
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
