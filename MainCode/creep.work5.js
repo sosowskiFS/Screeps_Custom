@@ -698,14 +698,10 @@ var creep_work5 = {
                 } else if (sources && _.sum(sources.store) > 0 && _.sum(creep.carry) < creep.carryCapacity) {
                     if (Object.keys(sources.store).length > 1) {
                         if (creep.withdraw(sources, Object.keys(sources.store)[1]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(sources, {
-                                ignoreRoads: roadIgnore
-                            });
+                            creep.travelTo(sources);
                         }
                     } else if (Object.keys(sources.store).length && creep.withdraw(sources, Object.keys(sources.store)[0]) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(sources, {
-                            ignoreRoads: roadIgnore
-                        });
+                        creep.travelTo(sources);
                     }
                 }
                 if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) > 100) {

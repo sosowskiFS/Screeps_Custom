@@ -563,7 +563,7 @@ var creep_farMining = {
                                 if (Object.keys(someEnergy[0].store).length > 1) {
                                     creep.withdraw(someEnergy[0], Object.keys(someEnergy[0].store)[1]);
                                 } else {
-                                    creep.withdraw(sources[0], Object.keys(sources[0].store)[0])
+                                    creep.withdraw(someEnergy[0], Object.keys(someEnergy[0].store)[0])
                                 }
                             }
                         }
