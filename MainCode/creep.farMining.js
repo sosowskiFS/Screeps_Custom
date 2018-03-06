@@ -545,16 +545,26 @@ var creep_farMining = {
 
                     if (_.sum(creep.carry) < creep.carryCapacity - 100) {
                         if (Game.flags[creep.room.name + "SKRoom"]) {
-                            var someEnergy = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 3);
-                            if (someEnergy.length) {
-                                if (creep.pickup(someEnergy[0]) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(someEnergy[0]);
+                            var sources = creep.pos.findInRange(FIND_TOMBSTONES, 3);
+                            if (sources.length && _.sum(sources[0].store) > 0 && Object.keys(sources[0].store).length > 1) {
+                                if (creep.withdraw(sources[0], Object.keys(sources[0].store)[1]) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(sources[0], {
+                                        ignoreRoads: roadIgnore
+                                    });
                                 }
+                            } else if (sources.length && _.sum(sources[0].store) > 0 && Object.keys(sources[0].store).length && creep.withdraw(sources[0], Object.keys(sources[0].store)[0]) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(sources[0], {
+                                    ignoreRoads: roadIgnore
+                                });
                             }
                         } else {
-                            var someEnergy = creep.pos.lookFor(LOOK_ENERGY);
-                            if (someEnergy.length) {
-                                creep.pickup(someEnergy[0]);
+                            var someEnergy = creep.pos.lookFor(LOOK_TOMBSTONES);
+                            if (someEnergy.length && _.sum(someEnergy[0].store) > 0) {
+                                if (Object.keys(someEnergy[0].store).length > 1) {
+                                    creep.withdraw(someEnergy[0], Object.keys(someEnergy[0].store)[1]);
+                                } else {
+                                    creep.withdraw(sources[0], Object.keys(sources[0].store)[0])
+                                }
                             }
                         }
                     }

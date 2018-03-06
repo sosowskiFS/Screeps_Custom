@@ -691,13 +691,21 @@ var creep_work5 = {
                 }
                 break;
             case 'salvager':
-                var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                var sources = creep.pos.findClosestByRange(FIND_TOMBSTONES);
                 if (!sources && _.sum(creep.carry) == 0) {
                     //There's nothing left to do
                     //creep.suicide();
-                } else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
-                    if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(sources);
+                } else if (sources && _.sum(sources.store) > 0 && _.sum(creep.carry) < creep.carryCapacity) {
+                    if (Object.keys(sources.store).length > 1) {
+                        if (creep.withdraw(sources, Object.keys(sources.store)[1]) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(sources, {
+                                ignoreRoads: roadIgnore
+                            });
+                        }
+                    } else if (Object.keys(sources.store).length && creep.withdraw(sources, Object.keys(sources.store)[0]) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(sources, {
+                            ignoreRoads: roadIgnore
+                        });
                     }
                 }
                 if (!sources && _.sum(creep.carry) > 0 || _.sum(creep.carry) > 100) {
