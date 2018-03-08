@@ -128,8 +128,8 @@ var creep_asshealer = {
                 }
             } else {
                 creep.heal(creep);
-                if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
-                    creep.travelTo(Game.flags["RallyHere"], {
+                if (Game.flags[creep.memory.homeRoom + "RallyHere"] && Game.flags[creep.memory.homeRoom + "RallyHere"].pos) {
+                    creep.travelTo(Game.flags[creep.memory.homeRoom + "RallyHere"], {
                         ignoreRoads: true
                     });
                 }

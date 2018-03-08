@@ -128,8 +128,8 @@ var creep_assattacker = {
                         creep.moveTo(xTarget, yTarget);
                     }
                 } else if (healerIsNear) {
-                    if (Game.flags["WallFlag"]) {
-                        var thisWall = Game.flags["WallFlag"].pos.lookFor(LOOK_STRUCTURES);
+                    if (Game.flags[creep.memory.homeRoom + "WallFlag"]) {
+                        var thisWall = Game.flags[creep.memory.homeRoom + "WallFlag"].pos.lookFor(LOOK_STRUCTURES);
                         if (thisWall.length) {
                             creep.travelTo(thisWall[0], {
                                 maxRooms: 1
@@ -137,7 +137,7 @@ var creep_assattacker = {
                             creep.dismantle(thisWall[0]);
                             creep.attack(thisWall[0]);
                         } else {
-                            Game.flags["WallFlag"].remove();
+                            Game.flags[creep.memory.homeRoom + "WallFlag"].remove();
                         }
                     } else {
                         var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
@@ -202,8 +202,8 @@ var creep_assattacker = {
                         }
                         creep.moveTo(xTarget, yTarget);
                     }
-                } else if (Game.flags["RallyHere"] && Game.flags["RallyHere"].pos) {
-                    creep.travelTo(Game.flags["RallyHere"], {
+                } else if (Game.flags[creep.memory.homeRoom + "RallyHere"] && Game.flags[creep.memory.homeRoom + "RallyHere"].pos) {
+                    creep.travelTo(Game.flags[creep.memory.homeRoom + "RallyHere"], {
                         ignoreRoads: true
                     });
                 }
