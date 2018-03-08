@@ -429,6 +429,10 @@ var creep_farMining = {
                                     } else {
                                         creep.memory.didRoadSearch = true;
                                     }
+
+                                    if (creep.memory.storagePosition) {
+                                        creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
+                                    }
                                 }
                             } else {
                                 //Can't see container, travel to room
@@ -519,10 +523,18 @@ var creep_farMining = {
                                     if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
                                         creep.travelTo(storageUnit);
                                     }
-                                } else if (Object.keys(creep.carry).length && creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(storageUnit);
-                                } else {
-                                    creep.memory.doNotRoadSearch = false;
+                                } else if (Object.keys(creep.carry).length) {
+                                    var transferResult = creep.transfer(storageUnit, Object.keys(creep.carry)[0])
+                                    if (transferResult == ERR_NOT_IN_RANGE) {
+                                        creep.travelTo(storageUnit);
+                                    } else if (transferResult == OK) {
+                                        creep.memory.doNotRoadSearch = false;
+                                        if (creep.memory.containerPosition) {
+                                            creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
+                                                ignoreRoads: roadIgnore
+                                            });
+                                        }
+                                    }
                                 }
                                 if (creep.memory.didRoadSearch == false) {
                                     if (creep.memory.containerTarget) {
