@@ -431,7 +431,10 @@ var creep_farMining = {
                                     }
 
                                     if (creep.memory.storagePosition) {
-                                        creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
+                                        //Do not know the creep's carry at this tick, calculate to determine if creep is full
+                                        if ((_.sum(creep.carry) + _.sum(thisContainer.store)) > creep.carryCapacity - 300) {
+                                            creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
+                                        }
                                     }
                                 }
                             } else {
