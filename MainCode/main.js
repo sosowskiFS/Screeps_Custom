@@ -992,6 +992,10 @@ module.exports.loop = function() {
                 case 'scraperNearDeath':
                     creep_scraper.run(creep);
                     break;
+                case 'salvager':
+                case 'salvagerNearDeath':
+                    creep_salvager.run(creep);
+                    break;
                 default:
                     /*if (!creep.memory.priority) {
                         creep.memory.priority = 'constructor';
@@ -1203,6 +1207,8 @@ function memCheck() {
     Memory.powerCheckList["E81N79"] = ["E82N80", "E81N80", "E80N80", "E80N79", "E80N78"];
     Memory.powerCheckList["E74N81"] = ["E73N80", "E74N80", "E75N80"];
     Memory.powerCheckList["E88N88"] = ["E89N90", "E90N90", "E90N89"];
+    Memory.powerCheckList["E38N46"] = ["E40N47", "E40N46", "E40N45"];
+    Memory.powerCheckList["E21N58"] = ["E20N59", "E20N58", "E20N57"];
     if (!Memory.observerList) {
         Memory.observerList = new Object();
     }

@@ -690,45 +690,6 @@ var creep_work5 = {
                     }
                 }
                 break;
-            case 'salvager':
-                var sources = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
-                    filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
-                });
-                var droppedResource = null;
-                if (!sources){
-                    droppedResource = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
-                }
-                if (!sources && !droppedResource && _.sum(creep.carry) == 0) {
-                    //Idle
-                    if (!creep.pos.isNearTo(creep.room.controller)) {
-                        creep.travelTo(creep.room.controller);
-                    }
-                    return;
-                } else if (sources && _.sum(creep.carry) < creep.carryCapacity) {
-                    if (Object.keys(sources.store).length > 1) {
-                        if (creep.withdraw(sources, Object.keys(sources.store)[1]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(sources);
-                        }
-                    } else if (Object.keys(sources.store).length && creep.withdraw(sources, Object.keys(sources.store)[0]) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(sources);
-                    }
-                } else if (droppedResource && _.sum(creep.carry) < creep.carryCapacity) {
-                    if (creep.pickup(droppedResource) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(droppedResource);
-                    }
-                }
-
-                if ((!sources && !droppedResource) && _.sum(creep.carry) > 0 || _.sum(creep.carry) >= creep.carryCapacity) {
-                    var storageTarget = creep.room.storage;
-                    if (Object.keys(creep.carry).length > 1) {
-                        if (creep.transfer(storageTarget, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget);
-                        }
-                    } else if (creep.transfer(storageTarget, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(storageTarget);
-                    }
-                }
-                break;
             case 'labWorker':
             case 'labWorkerNearDeath':
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'labWorkerNearDeath') {
