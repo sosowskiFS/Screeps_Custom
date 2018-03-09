@@ -4,6 +4,7 @@ var creep_work5 = require('creep.work5');
 
 
 var creep_farMining = require('creep.farMining');
+var creep_farMule = require('creep.farMule');
 var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
@@ -50,7 +51,7 @@ global.lastMemoryTick = undefined;
 
 //profiler.enable();
 module.exports.loop = function() {
-	tryInitSameMemory();
+    tryInitSameMemory();
     //profiler.wrap(function() {
     for (let name in Memory.creeps) {
         if (!Game.creeps[name]) {
@@ -172,7 +173,7 @@ module.exports.loop = function() {
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     var RampartDirection = ""
-                        //Check for hostiles in this room
+                    //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -701,7 +702,7 @@ module.exports.loop = function() {
                             }
                         }
                     }
-                    
+
                     if (Memory.labList[thisRoom.name].length >= 9) {
                         var lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
                         if (lab9 && lab9.cooldown <= 0 && lab9.mineralAmount <= lab9.mineralCapacity - 5) {
@@ -889,38 +890,12 @@ module.exports.loop = function() {
     Memory.RoomsRun = [];
     Memory.NoSpawnNeeded = [];
     Memory.roomCreeps = new Object();
-    //Memory.creepInQue = [];
 
-    /*if (Game.flags["DrainTurret"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'tDrain', Game.flags["DrainTurret"].pos.roomName);
-    }
-
-    if (Game.flags["Loot"] && Memory.lootSpawn) {
-        var thisSpawn = Game.getObjectById(Memory.lootSpawn);
-        spawn_BuildInstruction.run(thisSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', thisSpawn.room.name);
-    } else if (Game.flags["Loot"]) {
-        Memory.lootSpawn = instructionSpawn.id;
-        spawn_BuildInstruction.run(instructionSpawn, 'loot', Game.flags["Loot"].pos.roomName, '', instructionSpawn.room.name);
-    }
-
-    if (Game.flags["SignThis"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'vandalize', '', '', '');
-    }
-
-    if (Game.flags["WallThis"]) {
-        spawn_BuildInstruction.run(instructionSpawn, 'trump', Game.flags["WallThis"].pos.roomName, '', instructionSpawn.room.name);
-    }*/
-
-    if (Game.market.credits > 1500000 && Game.time % 1000 == 0) {
-        //Periodically look for cheap subscription tokens
-        var availableCredits = Game.market.credits
-        if (availableCredits > 2500000) {
-            availableCredits = 2500000;
-        }
-        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_SELL && order.price <= availableCredits);
+    if (Game.time % 1000 == 0) {
+        //Periodically look for purchasable tokens
+        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_SELL && order.price <= Game.market.credits);
         if (FilteredOrders.length > 0) {
             FilteredOrders.sort(orderPriceCompareBuying);
-
             if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
                 Game.notify('A subscription token was purchased for ' + FilteredOrders[0].price + ' credits');
             }
@@ -937,15 +912,23 @@ module.exports.loop = function() {
         var creep = Game.creeps[name];
         if (!creep.spawning) {
             switch (creep.memory.priority) {
+                case 'farMule':
+                case 'farMuleNearDeath':
+                    var pre = Game.cpu.getUsed();
+                    var doExcessWork = true;
+                    if (Game.cpu.bucket < 500) {
+                        doExcessWork = false;
+                    }
+                    creep_farMule.run(creep, doExcessWork);
+                    farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
+                    break;
                 case 'farClaimer':
                 case 'farMiner':
-                case 'farMule':
                 case 'farGuard':
                 case 'SKAttackGuard':
                 case 'SKHealGuard':
                 case 'farClaimerNearDeath':
                 case 'farMinerNearDeath':
-                case 'farMuleNearDeath':
                 case 'farGuardNearDeath':
                 case 'SKAttackGuardNearDeath':
                 case 'SKHealGuardNearDeath':
