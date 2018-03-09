@@ -78,7 +78,7 @@ function findTarget(creep, amountWithdrawn) {
         returnObject = Game.getObjectById(creep.memory.targetId);
         if (returnObject) {
             if (creep.memory.targetType == 0) {
-                if (Object.keys(foundObject.store).length) {
+                if (Object.keys(returnObject.store).length) {
                     return returnObject;
                 } else {
                     creep.memory.targetId = undefined;
