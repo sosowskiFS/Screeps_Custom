@@ -173,7 +173,7 @@ module.exports.loop = function() {
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     var RampartDirection = ""
-                    //Check for hostiles in this room
+                        //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -806,8 +806,22 @@ module.exports.loop = function() {
                     }
                 }
 
-                if (Game.flags[thisRoom.name + "Assault"] && !Game.flags[thisRoom.name + "HaltAssault"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'assault', Game.flags[thisRoom.name + "Assault"].pos.roomName, '', 'E35N46');
+                if (Game.flags[thisRoom.name + "RunningAssault"]) {
+                    var targetFlag = Game.flags[thisRoom.name + "Assault"];
+                    if (!targetFlag) {
+                        for (i = 2; i < 6; i++) {
+                            targetFlag = Game.flags[thisRoom.name + "Assault" + i]
+                            if (targetFlag) {
+                                break;
+                            }
+                        }
+                    }
+
+                    if (targetFlag) {
+                        spawn_BuildInstruction.run(Game.spawns[i], 'assault', targetFlag.pos.roomName, '', '');
+                    } else {
+                        console.log(thisRoom.name + " has assault running, but no target!");
+                    }
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
