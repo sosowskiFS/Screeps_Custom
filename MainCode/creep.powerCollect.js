@@ -33,11 +33,22 @@ var creep_powerCollect = {
                             if (creep.pickup(something[0]) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(something[0]);
                             }
-                        } else if (_.sum(creep.carry) > 0) {
-                            creep.memory.mode = 1;
                         } else {
-                            //carrying nothing, nothing to pick up
-                            creep.suicide();
+                            returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
+                                filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
+                            });
+                            if (returnObject) {
+                                if (creep.withdraw(returnObject, Object.keys(returnObject.store)[0]) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(returnObject, {
+                                        maxRooms: 1
+                                    });
+                                }
+                            } else if (_.sum(creep.carry) > 0) {
+                                creep.memory.mode = 1;
+                            } else {
+                                //carrying nothing, nothing to pick up
+                                creep.suicide();
+                            }
                         }
                     } else {
                         creep.memory.mode = 1;
