@@ -112,7 +112,7 @@ function findTarget(creep, amountWithdrawn) {
         } else {
             if (creep.memory.lastTargetId) {
                 returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
-                    filter: (thisResource) => (thisResource.id != creep.memory.lastTargetId);
+                    filter: (thisResource) => (thisResource.id != creep.memory.lastTargetId)
                 });
             } else {
                 returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
