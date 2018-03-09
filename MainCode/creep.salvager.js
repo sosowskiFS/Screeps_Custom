@@ -11,19 +11,26 @@ var creep_salvager = {
         if (!foundObject) {
             //Idle
             if (!creep.pos.isNearTo(creep.room.controller)) {
-                creep.travelTo(creep.room.controller);
+                creep.travelTo(creep.room.controller, {
+                    maxRooms: 1,
+                    ignoreRoads: true
+                });
             }
             return;
         } else if (foundObject) {
             if (creep.memory.targetType == 0) {
                 if (Object.keys(foundObject.store).length > 1) {
                     if (creep.withdraw(foundObject, Object.keys(foundObject.store)[1]) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(foundObject);
+                        creep.travelTo(foundObject, {
+                            maxRooms: 1
+                        });
                     }
                 } else {
                     var withdrawResult = creep.withdraw(foundObject, Object.keys(foundObject.store)[0])
                     if (withdrawResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(foundObject);
+                        creep.travelTo(foundObject, {
+                            maxRooms: 1
+                        });
                     } else if (withdrawResult == OK) {
                         creep.memory.lastTargetId = creep.memory.targetId;
                         creep.memory.targetId = undefined;
@@ -35,7 +42,9 @@ var creep_salvager = {
             } else if (creep.memory.targetType == 1) {
                 var pickupResult = creep.pickup(foundObject);
                 if (pickupResult == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(foundObject);
+                    creep.travelTo(foundObject, {
+                        maxRooms: 1
+                    });
                 } else if (pickupResult == OK) {
                     creep.memory.lastTargetId = creep.memory.targetId;
                     creep.memory.targetId = undefined;
@@ -46,12 +55,16 @@ var creep_salvager = {
             } else if (creep.memory.targetType == 2) {
                 if (Object.keys(creep.carry).length > 1) {
                     if (creep.transfer(foundObject, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(foundObject);
+                        creep.travelTo(foundObject, {
+                            maxRooms: 1
+                        });
                     }
                 } else {
                     var transferResult = creep.transfer(foundObject, Object.keys(creep.carry)[0]);
                     if (transferResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(foundObject);
+                        creep.travelTo(foundObject, {
+                            maxRooms: 1
+                        });
                     } else if (transferResult == OK) {
                         creep.memory.targetId = undefined;
                         creep.memory.targetType = undefined;
@@ -65,10 +78,15 @@ var creep_salvager = {
         if (newTarget) {
             if (!foundObject) {
                 //Idle
-                creep.travelTo(creep.room.controller);
+                creep.travelTo(creep.room.controller, {
+                    maxRooms: 1,
+                    ignoreRoads: true
+                });
                 return;
             } else {
-                creep.travelTo(foundObject);
+                creep.travelTo(foundObject, {
+                    maxRooms: 1
+                });
             }
         }
     }
