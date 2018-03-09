@@ -1,7 +1,7 @@
 //Creeps
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
-
+var creep_salvager = require('creep.salvager');
 
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
