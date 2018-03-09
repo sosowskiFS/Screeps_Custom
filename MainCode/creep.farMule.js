@@ -408,5 +408,13 @@ function doReservationCheck() {
     }
 }
 
+function repairCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
+
 
 module.exports = creep_farMule;
