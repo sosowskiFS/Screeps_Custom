@@ -25,6 +25,7 @@ var creep_salvager = {
                     if (withdrawResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(foundObject);
                     } else if (withdrawResult == OK) {
+                        creep.memory.lastTargetId = creep.memory.targetId;
                         creep.memory.targetId = undefined;
                         creep.memory.targetType = undefined;
                         foundObject = findTarget(creep, _.sum(foundObject.store));
@@ -36,6 +37,7 @@ var creep_salvager = {
                 if (pickupResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(foundObject);
                 } else if (pickupResult == OK) {
+                    creep.memory.lastTargetId = creep.memory.targetId;
                     creep.memory.targetId = undefined;
                     creep.memory.targetType = undefined;
                     foundObject = findTarget(creep, foundObject.amount);
@@ -93,22 +95,38 @@ function findTarget(creep, amountWithdrawn) {
     }
 
     if ((_.sum(creep.carry) + amountWithdrawn) < creep.carryCapacity) {
-        returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
-            filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
-        });
+        if (creep.memory.lastTargetId) {
+            returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
+                filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0 && thisTombstone.id != creep.memory.lastTargetId)
+            });
+        } else {
+            returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
+                filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
+            });
+        }
         if (returnObject) {
             creep.memory.targetId = returnObject.id;
             creep.memory.targetType = 0;
+            creep.memory.lastTargetId = undefined;
             return returnObject;
         } else {
-            returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+            if (creep.memory.lastTargetId) {
+                returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+                    filter: (thisResource) => (thisResource.id != creep.memory.lastTargetId);
+                });
+            } else {
+                returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+            }
             if (returnObject) {
                 creep.memory.targetId = returnObject.id;
                 creep.memory.targetType = 1;
+                creep.memory.lastTargetId = undefined;
                 return returnObject;
             }
         }
     }
+
+    creep.memory.lastTargetId = undefined;
 
     if ((!returnObject && (_.sum(creep.carry) + amountWithdrawn) > 0 || (_.sum(creep.carry) + amountWithdrawn) >= creep.carryCapacity) && creep.room.storage) {
         creep.memory.targetId = creep.room.storage.id;
