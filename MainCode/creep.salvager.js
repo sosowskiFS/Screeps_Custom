@@ -87,6 +87,10 @@ function findTarget(creep, amountWithdrawn) {
                     creep.memory.targetType = undefined;
                     returnObject = undefined;
                 }
+            } else if (creep.memory.targetType == 2 && _.sum(creep.carry) == 0) {
+                creep.memory.targetId = undefined;
+                creep.memory.targetType = undefined;
+                returnObject = undefined;
             } else {
                 //Dropped resource wouldn't exist if it expired
                 return returnObject;
