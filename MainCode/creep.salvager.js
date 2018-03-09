@@ -26,17 +26,25 @@ var creep_salvager = {
                         });
                     }
                 } else {
-                    var withdrawResult = creep.withdraw(foundObject, Object.keys(foundObject.store)[0])
-                    if (withdrawResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(foundObject, {
-                            maxRooms: 1
-                        });
-                    } else if (withdrawResult == OK) {
+                    if (_.sum(foundObject.store) <= 0) {
                         creep.memory.lastTargetId = creep.memory.targetId;
                         creep.memory.targetId = undefined;
                         creep.memory.targetType = undefined;
                         foundObject = findTarget(creep, _.sum(foundObject.store));
                         newTarget = true;
+                    } else {
+                        var withdrawResult = creep.withdraw(foundObject, Object.keys(foundObject.store)[0])
+                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(foundObject, {
+                                maxRooms: 1
+                            });
+                        } else if (withdrawResult == OK) {
+                            creep.memory.lastTargetId = creep.memory.targetId;
+                            creep.memory.targetId = undefined;
+                            creep.memory.targetType = undefined;
+                            foundObject = findTarget(creep, _.sum(foundObject.store));
+                            newTarget = true;
+                        }
                     }
                 }
             } else if (creep.memory.targetType == 1) {
