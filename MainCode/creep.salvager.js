@@ -150,7 +150,7 @@ function findTarget(creep, amountWithdrawn) {
 
     creep.memory.lastTargetId = undefined;
 
-    if ((!returnObject && (_.sum(creep.carry) + amountWithdrawn) > 0 || (_.sum(creep.carry) + amountWithdrawn) >= creep.carryCapacity) && creep.room.storage) {
+    if ((_.sum(creep.carry) + amountWithdrawn > 0 || _.sum(creep.carry) + amountWithdrawn >= creep.carryCapacity) && creep.room.storage) {
         creep.memory.targetId = creep.room.storage.id;
         creep.memory.targetType = 2;
         return creep.room.storage;
