@@ -48,7 +48,7 @@ var creep_salvager = {
                     if (creep.transfer(foundObject, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(foundObject);
                     }
-                } else if (creep.transfer(foundObject, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+                } else {
                     var transferResult = creep.transfer(foundObject, Object.keys(creep.carry)[0]);
                     if (transferResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(foundObject);
