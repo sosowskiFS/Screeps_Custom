@@ -878,7 +878,7 @@ module.exports.loop = function() {
                         if (Game.flags[thisRoom.name + "RunningAssault"]) {
                             var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == thisRoom.name);
                             var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == thisRoom.name);
-                            if (attackers >= 3 && healers >= 3) {
+                            if (attackers.length >= 3 && healers.length >= 3) {
                                 spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
                             }
                         } else {
