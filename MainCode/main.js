@@ -173,7 +173,7 @@ module.exports.loop = function() {
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     var RampartDirection = ""
-                        //Check for hostiles in this room
+                    //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -868,7 +868,15 @@ module.exports.loop = function() {
                             spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
                         }
                     } else {
-                        spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
+                        if (Game.flags[thisRoom.name + "RunningAssault"]) {
+                            var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == thisRoom.name);
+                            var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == thisRoom.name);
+                            if (attackers >= 3 && healers >= 3) {
+                                spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
+                            }
+                        } else {
+                            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
+                        }
                     }
                 }
 
