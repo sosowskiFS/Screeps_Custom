@@ -273,9 +273,15 @@ var creep_assattacker = {
                                 ignoreRoads: true
                             });
                         } else if (targetFlag.pos) {
-                            creep.travelTo(targetFlag, {
-                                ignoreRoads: true
-                            });
+                            if (wallFlag.pos && wallFlag.pos.roomName == targetFlag.pos.roomName) {
+                                creep.travelTo(wallFlag, {
+                                    ignoreRoads: true
+                                });
+                            } else {
+                                creep.travelTo(targetFlag, {
+                                    ignoreRoads: true
+                                });
+                            }
                         } else {
                             creep.travelTo(new RoomPosition(25, 25, targetFlag.pos.roomName), {
                                 ignoreRoads: true
