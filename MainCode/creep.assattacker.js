@@ -168,35 +168,24 @@ var creep_assattacker = {
                                 wallFlag.remove();
                             }
                         } else {
-                            var eSpawns = creep.room.find(FIND_HOSTILE_SPAWNS)
-                            if (eSpawns.length) {
-                                creep.travelTo(eSpawns[0], {
+                            var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                                filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
+                            });
+                            if (eStructures) {
+                                creep.travelTo(eStructures, {
                                     ignoreRoads: true,
                                     maxRooms: 1
                                 });
-                                creep.dismantle(eSpawns[0]);
-                                creep.attack(eSpawns[0]);
-                            } else {
-                                var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                    filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
+                                creep.dismantle(eStructures);
+                                creep.attack(eStructures);
+                            } else if (closeFoe) {
+                                creep.moveTo(closeFoe, {
+                                    ignoreRoads: true,
+                                    maxRooms: 1
                                 });
-                                if (eStructures) {
-                                    creep.travelTo(eStructures, {
-                                        ignoreRoads: true,
-                                        maxRooms: 1
-                                    });
-                                    creep.dismantle(eStructures);
-                                    creep.attack(eStructures);
-                                } else if (closeFoe) {
-                                    creep.moveTo(closeFoe, {
-                                        ignoreRoads: true,
-                                        maxRooms: 1
-                                    });
-                                } else if (targetFlag) {
-                                    targetFlag.remove();
-                                }
+                            } else if (targetFlag) {
+                                targetFlag.remove();
                             }
-
                         }
                     }
                 } else if (!healerIsNear) {
