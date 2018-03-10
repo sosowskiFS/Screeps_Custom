@@ -890,7 +890,7 @@ module.exports.loop = function() {
                 if (!Memory.isSpawning) {
                     Memory.NoSpawnNeeded.push(thisRoom.name);
                     var nearbyCreeps = Game.spawns[i].pos.findInRange(FIND_MY_CREEPS, 1, {
-                        filter: (thisCreep) => (thisCreep.ticksToLive <= CREEP_LIFE_TIME - 100);
+                        filter: (thisCreep) => (thisCreep.ticksToLive <= CREEP_LIFE_TIME - 100)
                     });
                     if (nearbyCreeps.length) {
                         Game.spawns[i].renewCreep(nearbyCreeps[0]);
@@ -898,7 +898,7 @@ module.exports.loop = function() {
                 }
             } else {
                 var nearbyCreeps = Game.spawns[i].pos.findInRange(FIND_MY_CREEPS, 1, {
-                    filter: (thisCreep) => (thisCreep.ticksToLive <= CREEP_LIFE_TIME - 100);
+                    filter: (thisCreep) => (thisCreep.ticksToLive <= CREEP_LIFE_TIME - 100)
                 });
                 if (nearbyCreeps.length) {
                     Game.spawns[i].renewCreep(nearbyCreeps[0]);
