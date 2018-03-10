@@ -61,12 +61,12 @@ var creep_assattacker = {
             }
 
             var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != 'Eiskalt')
+                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
             });
 
             var thisHealer = Game.getObjectById(creep.memory.healerID);
             var otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                filter: (mCreep) => (mCreep.memory.priority == "asshealer" ** mCreep.memory.attackerID != creep.id)
+                filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.attackerID != creep.id)
             });
             var healerIsNear = false;
             if (thisHealer) {
