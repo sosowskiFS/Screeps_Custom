@@ -98,11 +98,11 @@ var creep_asshealer = {
                     //}
                 }
 
-                if (creep.hits < creep.hitsMax - 300) {
+                if (creep.hits < creep.hitsMax - 700) {
                     creep.heal(creep);
                 } else {
                     var hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 700 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
                     });
                     var healedAlly = false
                     if (hurtAlly.length > 0) {
