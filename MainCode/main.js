@@ -868,22 +868,22 @@ module.exports.loop = function() {
                             spawn_BuildCreeps.run(Game.spawns[i], bestWorkerConfig, thisRoom, Memory.roomCreeps[thisRoom.name]);
                         }
                     } else {
-                        if (Game.flags[thisRoom.name + "RunningAssault"]) {
-                            var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == thisRoom.name);
-                            var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == thisRoom.name);
-                            if (attackers >= 3 && healers >= 3) {
-                                spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
-                            }
-                        } else {
-                            spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
-                        }
+                        spawn_BuildCreeps5.run(Game.spawns[i], thisRoom, Memory.roomCreeps[thisRoom.name]);
                     }
                 }
 
                 if (!Memory.isSpawning) {
                     if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
                         //Run farMining spawn
-                        spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+                        if (Game.flags[thisRoom.name + "RunningAssault"]) {
+                            var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == thisRoom.name);
+                            var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == thisRoom.name);
+                            if (attackers >= 3 && healers >= 3) {
+                                spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+                            }
+                        } else {
+                            spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom);
+                        }
                     }
                 }
 
