@@ -257,7 +257,7 @@ module.exports.loop = function() {
         }
     }
 
-    for (var i in Game.spawns) {
+    for (const i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         if (thisRoom.controller.owner) {
             var controllerLevel = thisRoom.controller.level;
@@ -809,8 +809,8 @@ module.exports.loop = function() {
                 if (Game.flags[thisRoom.name + "RunningAssault"]) {
                     var targetFlag = Game.flags[thisRoom.name + "Assault"];
                     if (!targetFlag) {
-                        for (i = 2; i < 6; i++) {
-                            targetFlag = Game.flags[thisRoom.name + "Assault" + i]
+                        for (j = 2; j < 6; j++) {
+                            targetFlag = Game.flags[thisRoom.name + "Assault" + j]
                             if (targetFlag) {
                                 break;
                             }
