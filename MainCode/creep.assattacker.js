@@ -71,8 +71,10 @@ var creep_assattacker = {
             var healerIsNear = false;
             if (thisHealer) {
                 healerIsNear = creep.pos.isNearTo(thisHealer);
-            } else if (otherHealers.length){
+            } else if (thisHealer && otherHealers.length){
             	healerIsNear = true;
+            } else if (!thisHealer) {
+            	creep.memory.healerID = undefined;
             }
 
             if (Game.flags[creep.memory.homeRoom + "DoBoost"] && unboostedMove > 0 && Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
