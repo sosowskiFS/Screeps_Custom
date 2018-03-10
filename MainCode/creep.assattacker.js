@@ -65,9 +65,14 @@ var creep_assattacker = {
             });
 
             var thisHealer = Game.getObjectById(creep.memory.healerID);
+            var otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                filter: (mCreep) => (mCreep.memory.priority == "asshealer" ** mCreep.memory.attackerID != creep.id)
+            });
             var healerIsNear = false;
             if (thisHealer) {
                 healerIsNear = creep.pos.isNearTo(thisHealer);
+            } else if (otherHealers.length){
+            	healerIsNear = true;
             }
 
             if (Game.flags[creep.memory.homeRoom + "DoBoost"] && unboostedMove > 0 && Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
