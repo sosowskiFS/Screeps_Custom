@@ -4,6 +4,7 @@ var creep_work5 = require('creep.work5');
 var creep_salvager = require('creep.salvager');
 var creep_supplier = require('creep.supplier');
 var creep_upSupplier = require('creep.upsupplier');
+var creep_miner = require('creep.miner');
 
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
@@ -964,6 +965,30 @@ module.exports.loop = function() {
                     creep_farMining.run(creep, doExcessWork);
                     farMiningCPU = farMiningCPU + (Game.cpu.getUsed() - pre);
                     break;
+                case 'miner':
+                case 'minerNearDeath':
+                    if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
+                        creep_miner.run(creep);
+                    } else {
+                        creep_work.run(creep, 25);
+                    }
+                    break;
+                case 'scraper':
+                case 'scraperNearDeath':
+                    creep_scraper.run(creep);
+                    break;
+                case 'salvager':
+                case 'salvagerNearDeath':
+                    creep_salvager.run(creep);
+                    break;
+                case 'supplier':
+                case 'supplierNearDeath':
+                    creep_supplier.run(creep);
+                    break;
+                case 'upSupplier':
+                case 'upSupplierNearDeath':
+                    creep_upSupplier.run(creep);
+                    break;
                 case 'claimer':
                     creep_claimer.run(creep);
                     break;
@@ -1010,22 +1035,6 @@ module.exports.loop = function() {
                     break;
                 case 'powerCollector':
                     creep_powerCollect.run(creep);
-                    break;
-                case 'scraper':
-                case 'scraperNearDeath':
-                    creep_scraper.run(creep);
-                    break;
-                case 'salvager':
-                case 'salvagerNearDeath':
-                    creep_salvager.run(creep);
-                    break;
-                case 'supplier':
-                case 'supplierNearDeath':
-                    creep_supplier.run(creep);
-                    break;
-                case 'upSupplier':
-                case 'upSupplierNearDeath':
-                    creep_upSupplier.run(creep);
                     break;
                 default:
                     /*if (!creep.memory.priority) {
