@@ -3,6 +3,7 @@ var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
 var creep_salvager = require('creep.salvager');
 var creep_supplier = require('creep.supplier');
+var creep_upSupplier = require('creep.upsupplier');
 
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
@@ -1021,6 +1022,10 @@ module.exports.loop = function() {
                 case 'supplier':
                 case 'supplierNearDeath':
                     creep_supplier.run(creep);
+                    break;
+                case 'upSupplier':
+                case 'upSupplierNearDeath':
+                    creep_upSupplier.run(creep);
                     break;
                 default:
                     /*if (!creep.memory.priority) {
