@@ -2,6 +2,7 @@
 var creep_work = require('creep.work');
 var creep_work5 = require('creep.work5');
 var creep_salvager = require('creep.salvager');
+var creep_supplier = require('creep.supplier');
 
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
@@ -173,7 +174,7 @@ module.exports.loop = function() {
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     var RampartDirection = ""
-                    //Check for hostiles in this room
+                        //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -1016,6 +1017,10 @@ module.exports.loop = function() {
                 case 'salvager':
                 case 'salvagerNearDeath':
                     creep_salvager.run(creep);
+                    break;
+                case 'supplier':
+                case 'supplierNearDeath':
+                    creep_supplier.run(creep);
                     break;
                 default:
                     /*if (!creep.memory.priority) {
