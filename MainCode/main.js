@@ -5,6 +5,7 @@ var creep_salvager = require('creep.salvager');
 var creep_supplier = require('creep.supplier');
 var creep_upSupplier = require('creep.upsupplier');
 var creep_miner = require('creep.miner');
+var creep_upgrader = require('creep.upgrader');
 
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
@@ -969,6 +970,14 @@ module.exports.loop = function() {
                 case 'minerNearDeath':
                     if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
                         creep_miner.run(creep);
+                    } else {
+                        creep_work.run(creep, 25);
+                    }
+                    break;
+                case 'upgrader':
+                case 'upgraderNearDeath':
+                    if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
+                        creep_upgrader.run(creep);
                     } else {
                         creep_work.run(creep, 25);
                     }

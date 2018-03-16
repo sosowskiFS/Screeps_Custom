@@ -100,14 +100,6 @@ var creep_combat = {
                     creep.memory.waitingTimer = 0;
                 }
             }
-        } else {
-            var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
-            var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
-            if (lookResult.length && lookResult[0].structureType == STRUCTURE_RAMPART) {
-
-            } else if (homeSpawn) {
-                creep.travelTo(homeSpawn);
-            }
         }
     }
 };
