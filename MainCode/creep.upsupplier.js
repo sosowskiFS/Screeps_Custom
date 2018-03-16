@@ -27,7 +27,6 @@ var creep_upSupplier = {
                     if (withdrawResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(storageTarget, {
                             ignoreRoads: true,
-                            stuckValue: 1,
                             maxRooms: 1
                         });
                     } else if (withdrawResult == OK) {
@@ -38,7 +37,6 @@ var creep_upSupplier = {
                     if (withdrawResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(storageTarget, {
                             ignoreRoads: true,
-                            stuckValue: 1,
                             maxRooms: 1
                         });
                     } else if (withdrawResult == OK) {
@@ -54,7 +52,6 @@ var creep_upSupplier = {
                     var transferResult = creep.transfer(pSpawn, RESOURCE_POWER);
                     if (transferResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(pSpawn, {
-                            stuckValue: 1,
                             maxRooms: 1
                         });
                     } else if (transferResult == OK) {
@@ -85,7 +82,6 @@ function locateSupplierTarget(targetType, creep) {
         var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
         if (pSpawn) {
             creep.travelTo(pSpawn, {
-                stuckValue: 1,
                 maxRooms: 1
             });
         }
@@ -108,7 +104,6 @@ function determineIfEmptyPower(thisSpawn, creep) {
         if (storageTarget) {
             creep.travelTo(storageTarget, {
                 ignoreRoads: true,
-                stuckValue: 1,
                 maxRooms: 1
             });
         }
@@ -121,7 +116,6 @@ function determineIfEmptyEnergy(thisLink, creep) {
         if (storageTarget) {
             creep.travelTo(storageTarget, {
                 ignoreRoads: true,
-                stuckValue: 1,
                 maxRooms: 1
             });
         }
