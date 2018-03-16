@@ -103,7 +103,7 @@ function locateSupplierTarget(targetType, creep) {
 
 //Below functions are only fired when OK is returned
 function determineIfEmptyPower(thisSpawn, creep) {
-    if (thisSpawn.powerCapacity - thisSpawn.power <= _.sum(creep.carry)) {
+    if (_.sum(creep.carry) <= thisSpawn.powerCapacity - thisSpawn.power) {
         var storageTarget = creep.room.storage;
         if (storageTarget) {
             creep.travelTo(storageTarget, {
@@ -116,7 +116,7 @@ function determineIfEmptyPower(thisSpawn, creep) {
 }
 
 function determineIfEmptyEnergy(thisLink, creep) {
-    if (thisLink.energyCapacity - thisLink.energy <= _.sum(creep.carry)) {
+    if (_.sum(creep.carry) <= thisLink.energyCapacity - thisLink.energy) {
         var storageTarget = creep.room.storage;
         if (storageTarget) {
             creep.travelTo(storageTarget, {
