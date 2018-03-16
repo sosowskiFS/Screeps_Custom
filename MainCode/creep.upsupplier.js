@@ -31,7 +31,7 @@ var creep_upSupplier = {
                             maxRooms: 1
                         });
                     } else if (withdrawResult == OK) {
-                        locateSupplierTarget("POWER");
+                        locateSupplierTarget("POWER", creep);
                     }
                 } else {
                     var withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY);
@@ -42,7 +42,7 @@ var creep_upSupplier = {
                             maxRooms: 1
                         });
                     } else if (withdrawResult == OK) {
-                        locateSupplierTarget("ENERGY");
+                        locateSupplierTarget("ENERGY", creep);
                     }
                 }
             }
@@ -58,7 +58,7 @@ var creep_upSupplier = {
                             maxRooms: 1
                         });
                     } else if (transferResult == OK) {
-                        determineIfEmptyPower(pSpawn);
+                        determineIfEmptyPower(pSpawn, creep);
                     }
                 }
             } else {
@@ -72,7 +72,7 @@ var creep_upSupplier = {
                             maxRooms: 1
                         });
                     } else if (transferResult == OK){
-                        determineIfEmptyEnergy(upLink);
+                        determineIfEmptyEnergy(upLink, creep);
                     }
                 }
             }
@@ -80,7 +80,7 @@ var creep_upSupplier = {
     }
 };
 
-function locateSupplierTarget(targetType) {
+function locateSupplierTarget(targetType, creep) {
     if (targetType == "POWER") {
         var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
         if (pSpawn) {
@@ -102,7 +102,7 @@ function locateSupplierTarget(targetType) {
 }
 
 //Below functions are only fired when OK is returned
-function determineIfEmptyPower(thisSpawn) {
+function determineIfEmptyPower(thisSpawn, creep) {
     if (thisSpawn.powerCapacity - thisSpawn.power <= _.sum(creep.carry)) {
         var storageTarget = creep.room.storage;
         if (storageTarget) {
@@ -115,7 +115,7 @@ function determineIfEmptyPower(thisSpawn) {
     }
 }
 
-function determineIfEmptyEnergy(thisLink) {
+function determineIfEmptyEnergy(thisLink, creep) {
     if (thisLink.energyCapacity - thisLink.energy <= _.sum(creep.carry)) {
         var storageTarget = creep.room.storage;
         if (storageTarget) {
