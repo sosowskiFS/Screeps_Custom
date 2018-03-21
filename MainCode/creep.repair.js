@@ -50,7 +50,7 @@ function findNewTarget(creep, creepEnergy) {
                             maxRooms: 1
                         });
                     } else if (withdrawResult == OK) {
-                        findNewTarget(creep, creep.carryCapacity);
+                        moveToNewTarget(creep);
                     }
                 } else {
                     var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
@@ -129,6 +129,28 @@ function findNewTarget(creep, creepEnergy) {
                     });
                 }
             }
+        }
+    }
+}
+
+function moveToNewTarget(creep) {
+    var closestDamagedStructure = [];
+    closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+    });
+
+    if (closestDamagedStructure.length > 0) {
+        closestDamagedStructure.sort(repairCompare);
+        creep.memory.structureTarget = closestDamagedStructure[0].id;
+        if (!Memory.warMode) {
+            creep.travelTo(closestDamagedStructure[0], {
+                maxRooms: 1,
+                range: 1
+            });
+        } else {
+            creep.travelTo(closestDamagedStructure[0], {
+                maxRooms: 1
+            });
         }
     }
 }
