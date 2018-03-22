@@ -52,6 +52,15 @@ class Traveler {
             // check if creep is stuck
             if (this.isStuck(creep, state)) {
                 state.stuckCount++;
+                if (travelData.path && travelData.path.length > 0) {
+                    let nextDirection = parseInt(travelData.path[0], 10);
+                    if (nextDirection) {
+                        let nextPos = Traveler.positionAtDirection(creep.pos, nextDirection);
+                        if (nextPos) {
+                            creep.say(nextPos.x + ";" + nextPos.y);
+                        }
+                    }
+                }
                 //creep.say(options.returnData.nextPos.x + ";" + options.returnData.nextPos.y);
                 Traveler.circle(creep.pos, "magenta", state.stuckCount * .2);
             } else {
