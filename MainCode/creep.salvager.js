@@ -15,6 +15,19 @@ var creep_salvager = {
                     maxRooms: 1,
                     ignoreRoads: true
                 });
+            } else {
+                let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                    filter: (creep) => (creep.saying)
+                })
+                if (talkingCreeps.length) {
+                    let coords = talkingCreeps[0].saying.split(";");
+                    if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                        //Standing in the way of a creep
+                        let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                        creep.move(thisDirection);
+                        creep.say("\uD83D\uDCA6", true);
+                    }
+                }
             }
             return;
         } else if (foundObject) {
