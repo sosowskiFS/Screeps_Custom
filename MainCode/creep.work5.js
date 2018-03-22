@@ -358,7 +358,7 @@ var creep_work5 = {
                         } else {
                             //Make sure you're not in the way
                             let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                                filter: (creep) => (creep.saying)
+                                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
                             })
                             if (talkingCreeps.length) {
                                 let coords = talkingCreeps[0].saying.split(";");
@@ -909,7 +909,7 @@ var creep_work5 = {
                 } else {
                     //Determine if this creep needs to move over
                     let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                        filter: (creep) => (creep.saying)
+                        filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
                     })
                     if (talkingCreeps.length) {
                         let coords = talkingCreeps[0].saying.split(";");
