@@ -191,13 +191,13 @@ var market_buyers = {
 
             var sellEnergyCap = 30000;
             var keepAmount = 20000;
+            var MaxSaleAmount = 30000;
             if ((thisTerminal.storeCapacity - 5000) <= _.sum(thisTerminal.store)) {
             	sellEnergyCap = 10000;
                 keepAmount = 3000;
+                MaxSaleAmount = TerminalEnergy + 5000;
             }
-            if (!hasSent && TerminalEnergy >= sellEnergyCap && Game.time % 1000 == 0) {
-                var MaxSaleAmount = 30000;
-
+            if (!hasSent && TerminalEnergy >= sellEnergyCap && Game.time % 1000 == 0) {        
                 for (var y in sellMinerals) {
                     var mineralInTerminal = thisTerminal.store[sellMinerals[y]] - keepAmount;
                     if (sellMinerals[y] == RESOURCE_CATALYST) {
