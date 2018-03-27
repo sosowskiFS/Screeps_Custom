@@ -472,7 +472,7 @@ var creep_work5 = {
                                 }
                             }
                             //Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
-                        } else if (lab4 && lab5 && (lab4.mineralAmount < 250 || lab5.mineralAmount < 250) && _.sum(creep.carry) == 0) {
+                        } else if (lab4 && lab5 && (lab4.mineralAmount < creep.carryCapacity || lab5.mineralAmount < creep.carryCapacity) && _.sum(creep.carry) == 0) {
                             //tick up, but don't swap yet
                             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
                             if (creep.memory.resourceChecks >= 15) {
@@ -726,7 +726,7 @@ var creep_work5 = {
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
                                             if (creep.room.terminal.store[creep.memory.mineral6] < 40000 || !creep.room.terminal.store[creep.memory.mineral6]) {
                                                 var mineralAmount = mineralArray[i] in creep.room.terminal.store;
-                                                if (mineralAmount > 0 && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
+                                                if (mineralAmount > 0 && labArray[i].mineralAmount < labArray[i].mineralCapacity - creep.carryCapacity) {
                                                     creep.memory.structureTarget = creep.room.terminal.id;
                                                     creep.memory.direction = 'Withdraw';
                                                     creep.memory.mineralToMove = mineralArray[i];
@@ -740,7 +740,7 @@ var creep_work5 = {
                                                     foundWork = true;
                                                 }
                                             }
-                                        } else if (creep.carry[mineralArray[i]] && labArray[i].mineralAmount < labArray[i].mineralCapacity - 250) {
+                                        } else if (creep.carry[mineralArray[i]] && labArray[i].mineralAmount < labArray[i].mineralCapacity - creep.carryCapacity) {
                                             creep.memory.structureTarget = labArray[i].id;
                                             creep.memory.direction = 'Transfer';
                                             creep.memory.mineralToMove = mineralArray[i];
@@ -758,7 +758,7 @@ var creep_work5 = {
                                     case creep.memory.lab9:
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
                                             var mineralAmount = labArray[i].mineralAmount;
-                                            if (mineralAmount >= 250) {
+                                            if (mineralAmount >= creep.carryCapacity) {
                                                 creep.memory.structureTarget = labArray[i].id;
                                                 creep.memory.direction = 'Withdraw';
                                                 creep.memory.mineralToMove = mineralArray[i];
