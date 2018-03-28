@@ -684,7 +684,7 @@ var creep_work5 = {
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
                                             var minAmount = mineralArray[i] in creep.room.terminal.store;
                                             var minLab = labArray[i].mineralAmount;
-                                            if (minLab <= labArray[i].mineralCapacity - creep.carryAmount && minAmount > 0) {
+                                            if (minLab <= 2500 && minAmount > 0) {
                                                 creep.memory.structureTarget = creep.room.terminal.id;
                                                 creep.memory.direction = 'Withdraw';
                                                 creep.memory.mineralToMove = mineralArray[i];
@@ -781,7 +781,7 @@ var creep_work5 = {
                                                 } else if (mineralArray[i] == creep.memory.mineral3) {
                                                     labAmount = lab3.mineralAmount;
                                                 }
-                                                if (labAmount <= 3000 - creep.carryAmount) {
+                                                if (labAmount <= 2500) {
                                                     continue;
                                                 }
                                             }
@@ -823,7 +823,7 @@ var creep_work5 = {
                                         if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
                                             var minAmount = mineralArray[i] in creep.room.terminal.store;
                                             var minLab = labArray[i].mineralAmount;
-                                            if (minLab <= labArray[i].mineralCapacity - creep.carryAmount && minAmount > 0) {
+                                            if (minLab <= 2500 && minAmount > 0) {
                                                 creep.memory.structureTarget = creep.room.terminal.id;
                                                 creep.memory.direction = 'Withdraw';
                                                 creep.memory.mineralToMove = mineralArray[i];
