@@ -179,12 +179,12 @@ var creep_assattacker = {
                                 filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
                             });
                             if (eTowers) {
-                                creep.travelTo(eStructures, {
+                                creep.travelTo(eTowers, {
                                     ignoreRoads: true,
                                     maxRooms: 1
                                 });
-                                creep.dismantle(eStructures);
-                                creep.attack(eStructures);
+                                creep.dismantle(eTowers);
+                                creep.attack(eTowers);
                             } else {
                                 var eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                                     filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
