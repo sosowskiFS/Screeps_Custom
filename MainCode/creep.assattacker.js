@@ -71,10 +71,10 @@ var creep_assattacker = {
             var healerIsNear = false;
             if (thisHealer) {
                 healerIsNear = creep.pos.isNearTo(thisHealer);
-            } else if (thisHealer && otherHealers.length){
-            	healerIsNear = true;
+            } else if (thisHealer && otherHealers.length) {
+                healerIsNear = true;
             } else if (!thisHealer) {
-            	creep.memory.healerID = undefined;
+                creep.memory.healerID = undefined;
             }
 
             if (Game.flags[creep.memory.homeRoom + "DoBoost"] && unboostedMove > 0 && Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
@@ -128,12 +128,24 @@ var creep_assattacker = {
             } else {
                 if (targetFlag.pos.roomName == creep.pos.roomName) {
                     //In target room
-                    var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
-                    });
-                    if (somethingNearby) {
-                        creep.dismantle(somethingNearby);
-                        creep.attack(somethingNearby)
+                    var didDismantle = false;
+                    if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
+                        var thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
+                        if (thisWall.length && creep.pos.isNearTo(thisWall[0])) {
+                            creep.dismantle(thisWall[0]);
+                            creep.attack(thisWall[0]);
+                            didDismantle = true;
+                        }
+                    }
+
+                    if (!didDismantle) {
+                        var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                        });
+                        if (somethingNearby) {
+                            creep.dismantle(somethingNearby);
+                            creep.attack(somethingNearby)
+                        }
                     }
 
                     creep.rangedMassAttack();
