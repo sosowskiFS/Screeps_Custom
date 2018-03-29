@@ -63,7 +63,7 @@ var creep_asshealer = {
                         ignoreRoads: true
                     });
                 } else if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
-                    var xTarget = 0;
+                    /*var xTarget = 0;
                     var yTarget = 0;
                     if (creep.pos.x == 0) {
                         xTarget = 2;
@@ -80,7 +80,8 @@ var creep_asshealer = {
                         xTarget = creep.pos.x;
                     }
 
-                    creep.moveTo(xTarget, yTarget);
+                    creep.moveTo(xTarget, yTarget);*/
+                    creep.moveTo(targetAttacker.pos);
                 } else {
                     /*if (creep.pos.inRangeTo(targetAttacker, 2)) {
                         creep.move(creep.pos.getDirectionTo(targetAttacker));
