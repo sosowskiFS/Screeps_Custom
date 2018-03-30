@@ -307,8 +307,7 @@ var spawn_BuildInstruction = {
                     }
                     var attackerID = '';
                     if (healerlessAttackers.length) {
-                        attackerID = healerlessAttackers[0].id
-                        healerlessAttackers[0].memory.isReserved = true;
+                        attackerID = healerlessAttackers[0].id        
                         if (spawn.canCreateCreep(healerConfig) == OK && attackerID != '') {
                             spawn.createCreep(healerConfig, undefined, {
                                 priority: 'asshealer',
@@ -317,6 +316,7 @@ var spawn_BuildInstruction = {
                                 attackerID: attackerID
                             });
                             Memory.isSpawning = true;
+                            healerlessAttackers[0].memory.isReserved = true;
                             console.log('HEAL. SHIT. UP. ' + spawn.room.name);
                         } else {
                             //console.log('Could not execute constructor. Spawn cannot create creep.');
