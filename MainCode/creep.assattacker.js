@@ -54,6 +54,7 @@ var creep_assattacker = {
                 });
                 if (nearbyHealer.length) {
                     creep.memory.healerID = nearbyHealer[0].id;
+                    creep.memory.isReserved = true;
                 }
             }
 
@@ -72,6 +73,7 @@ var creep_assattacker = {
                 healerIsNear = true;
             } else if (!thisHealer) {
                 creep.memory.healerID = undefined;
+                creep.memory.isReserved = false;
             }
 
             if (Game.flags[creep.memory.homeRoom + "DoBoost"] && unboostedMove > 0 && Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
