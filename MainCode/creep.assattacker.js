@@ -151,7 +151,8 @@ var creep_assattacker = {
                         //Fall back
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "FallBack"], {
                             ignoreRoads: true,
-                            stuckValue: 2
+                            stuckValue: 2,
+                            allowSK: true
                         });
                     } else if (!healerIsNear) {
                         if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
@@ -179,7 +180,8 @@ var creep_assattacker = {
                             if (thisWall.length) {
                                 creep.travelTo(thisWall[0], {
                                     maxRooms: 1,
-                                    stuckValue: 2
+                                    stuckValue: 2,
+                                    allowSK: true
                                 });
                                 creep.dismantle(thisWall[0]);
                                 creep.attack(thisWall[0]);
@@ -194,7 +196,8 @@ var creep_assattacker = {
                                 creep.travelTo(eTowers, {
                                     ignoreRoads: true,
                                     maxRooms: 1,
-                                    stuckValue: 2
+                                    stuckValue: 2,
+                                    allowSK: true
                                 });
                                 creep.dismantle(eTowers);
                                 creep.attack(eTowers);
@@ -206,14 +209,16 @@ var creep_assattacker = {
                                     creep.travelTo(eStructures, {
                                         ignoreRoads: true,
                                         maxRooms: 1,
-                                        stuckValue: 2
+                                        stuckValue: 2,
+                                        allowSK: true
                                     });
                                     creep.dismantle(eStructures);
                                     creep.attack(eStructures);
                                 } else if (closeFoe) {
                                     creep.moveTo(closeFoe, {
                                         ignoreRoads: true,
-                                        maxRooms: 1
+                                        maxRooms: 1,
+                                        allowSK: true
                                     });
                                 } else if (targetFlag) {
                                     targetFlag.remove();
@@ -294,24 +299,28 @@ var creep_assattacker = {
                             }
                             creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]), {
                                 ignoreRoads: true,
-                                stuckValue: 2
+                                stuckValue: 2,
+                                allowSK: true
                             });
                         } else if (targetFlag.pos) {
                             if (wallFlag && wallFlag.pos && wallFlag.pos.roomName == targetFlag.pos.roomName) {
                                 creep.travelTo(wallFlag, {
                                     ignoreRoads: true,
-                                    stuckValue: 2
+                                    stuckValue: 2,
+                                    allowSK: true
                                 });
                             } else {
                                 creep.travelTo(targetFlag, {
                                     ignoreRoads: true,
-                                    stuckValue: 2
+                                    stuckValue: 2,
+                                    allowSK: true
                                 });
                             }
                         } else {
                             creep.travelTo(new RoomPosition(25, 25, targetFlag.pos.roomName), {
                                 ignoreRoads: true,
-                                stuckValue: 2
+                                stuckValue: 2,
+                                allowSK: true
                             });
                         }
                     }
