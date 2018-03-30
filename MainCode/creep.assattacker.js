@@ -3,9 +3,6 @@ var creep_assattacker = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
-
-
-
             var unboostedTough = 0;
             var unboostedAttack = 0;
             var unboostedMove = 0;
