@@ -150,7 +150,8 @@ var creep_assattacker = {
                     if (creep.hits < creep.hitsMax - 1700 && Game.flags[creep.memory.homeRoom + "FallBack"] && Game.flags[creep.memory.homeRoom + "FallBack"].pos) {
                         //Fall back
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "FallBack"], {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            stuckValue: 2
                         });
                     } else if (!healerIsNear) {
                         if (creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
@@ -177,7 +178,8 @@ var creep_assattacker = {
                             var thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
                             if (thisWall.length) {
                                 creep.travelTo(thisWall[0], {
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    stuckValue: 2
                                 });
                                 creep.dismantle(thisWall[0]);
                                 creep.attack(thisWall[0]);
@@ -191,7 +193,8 @@ var creep_assattacker = {
                             if (eTowers) {
                                 creep.travelTo(eTowers, {
                                     ignoreRoads: true,
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    stuckValue: 2
                                 });
                                 creep.dismantle(eTowers);
                                 creep.attack(eTowers);
@@ -202,7 +205,8 @@ var creep_assattacker = {
                                 if (eStructures) {
                                     creep.travelTo(eStructures, {
                                         ignoreRoads: true,
-                                        maxRooms: 1
+                                        maxRooms: 1,
+                                        stuckValue: 2
                                     });
                                     creep.dismantle(eStructures);
                                     creep.attack(eStructures);
@@ -289,21 +293,25 @@ var creep_assattacker = {
                                 creep.memory.path.splice(0, 1);
                             }
                             creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]), {
-                                ignoreRoads: true
+                                ignoreRoads: true,
+                                stuckValue: 2
                             });
                         } else if (targetFlag.pos) {
                             if (wallFlag && wallFlag.pos && wallFlag.pos.roomName == targetFlag.pos.roomName) {
                                 creep.travelTo(wallFlag, {
-                                    ignoreRoads: true
+                                    ignoreRoads: true,
+                                    stuckValue: 2
                                 });
                             } else {
                                 creep.travelTo(targetFlag, {
-                                    ignoreRoads: true
+                                    ignoreRoads: true,
+                                    stuckValue: 2
                                 });
                             }
                         } else {
                             creep.travelTo(new RoomPosition(25, 25, targetFlag.pos.roomName), {
-                                ignoreRoads: true
+                                ignoreRoads: true,
+                                stuckValue: 2
                             });
                         }
                     }

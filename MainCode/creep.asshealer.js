@@ -89,11 +89,13 @@ var creep_asshealer = {
                     if (targetAttacker.room.name == creep.room.name) {
                         creep.travelTo(targetAttacker, {
                             maxRooms: 1,
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            stuckValue: 2
                         });
                     } else {
                         creep.travelTo(targetAttacker, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            stuckValue: 2
                         });
                     }
                     //}
