@@ -161,7 +161,7 @@ module.exports.loop = function() {
     if (towers.length) {
         var alreadySearched = [];
         for (var y = 0; y < towers.length; y++) {
-            if (towers[y].room.controller.owner && towers[y].room.controller.owner == "Montblanc") {
+            if (towers[y].room.controller.owner && towers[y].room.controller.owner.username == "Montblanc") {
                 if (Game.time % 1000 == 0) {
                     var found = towers[y].pos.lookFor(LOOK_STRUCTURES);
                     var hasRampart = false;
