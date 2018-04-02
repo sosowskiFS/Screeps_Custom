@@ -790,19 +790,19 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', '', '');
                 }
 
-                if (Game.flags["ClaimThis"] && thisRoom.name == 'E21N58') {
+                if (Game.flags["ClaimThis"] && thisRoom.name == 'E38N44') {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E28N57;E25N57;E25N58;E24N58');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName);
                     }
                 }
 
-                if (Game.flags["BuildThis"] && thisRoom.name == 'E21N58') {
+                if (Game.flags["BuildThis"] && thisRoom.name == 'E38N44') {
                     var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E28N57;E25N57;E25N58;E24N58');
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
                             //spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E33N44;E33N46;E32N46');
                         } else {
                             spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
