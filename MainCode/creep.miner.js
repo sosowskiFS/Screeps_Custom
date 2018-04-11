@@ -7,11 +7,18 @@ var creep_miner = {
             creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
         }
 
+        var ignoreTravel = false;
+        if (Game.flags[creep.room.name + creep.memory.jobSpecific]) {
+            ignoreTravel = true;
+            if (creep.pos.x != Game.flags[creep.room.name + creep.memory.jobSpecific].pos.x || creep.pos.y != Game.flags[creep.room.name + creep.memory.jobSpecific].pos.y) {
+                creep.travelTo(Game.flags[creep.room.name + creep.memory.jobSpecific]);
+            }          
+        }
         //Creep will immediately harvest and store mined materials
         var mineTarget = Game.getObjectById(creep.memory.mineSource);
         if (mineTarget) {
             if (mineTarget.energy > 0) {
-                if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !ignoreTravel) {
                     creep.travelTo(mineTarget);
                 }
             }
@@ -24,16 +31,16 @@ var creep_miner = {
                         storageTarget2 = Game.getObjectById(creep.memory.linkSource2);
                     }
                     if (storageTarget2 && storageTarget.energy == storageTarget.energyCapacity) {
-                        if (creep.transfer(storageTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        if (creep.transfer(storageTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && !ignoreTravel) {
                             creep.travelTo(storageTarget2);
                         }
                     } else {
-                        if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && !ignoreTravel) {
                             creep.travelTo(storageTarget);
                         }
                     }
                 } else {
-                    if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && !ignoreTravel) {
                         creep.travelTo(storageTarget);
                     }
                 }
