@@ -88,7 +88,7 @@ var creep_farMule = {
                         }
                     }
                 } else if (creep.memory.containerTarget) {
-                    doReservationCheck(creep);
+                    //doReservationCheck(creep);
                     var thisContainer = Game.getObjectById(creep.memory.containerTarget);
                     if (thisContainer) {
                         if (!creep.memory.containerPosition) {
@@ -144,7 +144,7 @@ var creep_farMule = {
 
                     var thisSource = Game.getObjectById(creep.memory.mineSource);
                     if (thisSource) {
-                        doReservationCheck(creep);
+                        //doReservationCheck(creep);
                         if (creep.pos.inRangeTo(thisSource, 2)) {
                             //Search for container
                             var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
@@ -190,7 +190,7 @@ var creep_farMule = {
             } else {
                 //Drop off energy
                 if (creep.room.name != creep.memory.homeRoom && creep.memory.storagePosition) {
-                    doReservationCheck(creep);
+                    //doReservationCheck(creep);
                     creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
                     if (creep.memory.didRoadSearch == false) {
                         if (creep.memory.containerTarget) {
