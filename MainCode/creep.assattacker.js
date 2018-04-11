@@ -126,6 +126,13 @@ var creep_assattacker = {
             } else {
                 if (targetFlag.pos.roomName == creep.pos.roomName) {
                     //In target room
+
+                    //Cancel this flag if room is in safe mode
+                    if (creep.room.controller.safeMode){
+                        targetFlag.remove();
+                        return;
+                    }
+
                     var didDismantle = false;
                     if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
                         var thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
