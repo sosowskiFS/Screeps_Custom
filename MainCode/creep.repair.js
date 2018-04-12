@@ -29,6 +29,8 @@ var creep_repair = {
 
             if (creep.carryCapacity > 0) {
                 findNewTarget(creep, _.sum(creep.carry));
+            } else {
+                creep.suicide();
             }
         }
     }
@@ -85,6 +87,11 @@ function findNewTarget(creep, creepEnergy) {
                     creep.memory.structureTarget = undefined;
                     findNewTarget(creep, _.sum(creep.carry));
                 } else {
+                    //Fix roads on your way
+                    roadCheck = creep.pos.lookFor(LOOK_STRUCTURES);
+                    if (roadCheck.length && (roadCheck[0].hitsMax - roadCheck[0].hits >= 100)) {
+                        creep.repair(roadCheck[0]);
+                    }
                     //If using last bit of energy this tick, find new target
                     var repairResult = creep.repair(thisStructure);
                     if (repairResult == ERR_NOT_IN_RANGE && Memory.warMode) {
@@ -92,7 +99,10 @@ function findNewTarget(creep, creepEnergy) {
                             maxRooms: 1
                         });
                     } else if (!Memory.warMode) {
-                        if (creep.travelTo(thisStructure, {maxRooms: 1, range: 1}) == OK) {
+                        if (creep.travelTo(thisStructure, {
+                                maxRooms: 1,
+                                range: 1
+                            }) == OK) {
                             //Listen for creeps
                             let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                                 filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
