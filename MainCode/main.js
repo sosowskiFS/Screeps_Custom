@@ -11,6 +11,7 @@ var creep_repair = require('creep.repair');
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
 var creep_farMiner = require('creep.farMiner');
+var creep_farMinerSK = require('creep.farMinerSK');
 var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
@@ -949,10 +950,11 @@ module.exports.loop = function() {
                     break;
                 case 'farMiner':
                 case 'farMinerNearDeath':
+                    //Change to if (creep.memory.jobSpecific) after new wave is out
                     if (creep.getActiveBodyparts(HEAL) > 0) {
                         //SK Miner (TEMP, MAKE OWN FILE)
                         //Make new memory detail on SK miner spawn too, so don't have to make this check
-                        creep_farMining.run(creep, true);
+                        creep_farMinerSK.run(creep);
                     } else {
                         //Normal miner
                         creep_farMiner.run(creep);

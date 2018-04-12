@@ -87,11 +87,6 @@ function findNewTarget(creep, creepEnergy) {
                     creep.memory.structureTarget = undefined;
                     findNewTarget(creep, _.sum(creep.carry));
                 } else {
-                    //Fix roads on your way
-                    roadCheck = creep.pos.lookFor(LOOK_STRUCTURES);
-                    if (roadCheck.length && (roadCheck[0].hitsMax - roadCheck[0].hits >= 500)) {
-                        creep.repair(roadCheck[0]);
-                    }
                     //If using last bit of energy this tick, find new target
                     var repairResult = creep.repair(thisStructure);
                     if (repairResult == ERR_NOT_IN_RANGE && Memory.warMode) {
