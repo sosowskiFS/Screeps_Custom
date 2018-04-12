@@ -89,7 +89,7 @@ function findNewTarget(creep, creepEnergy) {
                 } else {
                     //Fix roads on your way
                     roadCheck = creep.pos.lookFor(LOOK_STRUCTURES);
-                    if (roadCheck.length && (roadCheck[0].hitsMax - roadCheck[0].hits >= 100)) {
+                    if (roadCheck.length && (roadCheck[0].hitsMax - roadCheck[0].hits >= 500)) {
                         creep.repair(roadCheck[0]);
                     }
                     //If using last bit of energy this tick, find new target
