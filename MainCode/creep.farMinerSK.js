@@ -431,4 +431,12 @@ function attackInvader(creep) {
     }
 }
 
+function targetHeal(a, b) {
+    if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
+        return -1;
+    if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
+        return 1;
+    return 0;
+}
+
 module.exports = creep_farMinerSK;
