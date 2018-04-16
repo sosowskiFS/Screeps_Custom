@@ -782,9 +782,9 @@ module.exports.loop = function() {
             }
 
             if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
-            	//build routines that perform on the same tick assume the same energy level even after the first spawn used the energy
-            	//Set energy level into memory per room, wipe memory when done with tick.
-            	//Have build rountines check memory to get the current room energy level after builds
+                //build routines that perform on the same tick assume the same energy level even after the first spawn used the energy
+                //Set energy level into memory per room, wipe memory when done with tick.
+                //Have build rountines check memory to get the current room energy level after builds
                 var energyIndex = Memory.CurrentRoomEnergy.indexOf(thisRoom.name);
                 if (energyIndex < 0) {
                     Memory.CurrentRoomEnergy.push(thisRoom.name);
@@ -806,9 +806,9 @@ module.exports.loop = function() {
 
                 if (Game.flags["ClaimThis"] && thisRoom.name == 'E38N44') {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, '', 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex, '', 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
                     } else {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName);
+                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex);
                     }
                 }
 
@@ -816,10 +816,10 @@ module.exports.loop = function() {
                     var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName, 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
                             //spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E33N44;E33N46;E32N46');
                         } else {
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, Game.flags["BuildThis"].pos.roomName);
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
                             //spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName);
                         }
                     }
@@ -837,7 +837,7 @@ module.exports.loop = function() {
                     }
 
                     if (targetFlag) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'assault', targetFlag.pos.roomName, '', '');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'assault', targetFlag.pos.roomName, energyIndex, '', '');
                     } else {
                         console.log(thisRoom.name + " has assault running, but no target!");
                     }
@@ -845,26 +845,26 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, '', 'E28N57;E25N57;E25N58;E24N58');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E28N57;E25N57;E25N58;E24N58');
                     } else {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName);
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex);
                     }
                 }
 
                 if (Game.flags[thisRoom.name + "Distract"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, '', Game.flags[thisRoom.name + "Distract"].name);
+                    spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, energyIndex, '', Game.flags[thisRoom.name + "Distract"].name);
                 }
 
                 if (Game.flags["RemoveKebab"] && thisRoom.name == 'E32N46') {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, '', 'E32N47;E31N47');
+                    spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, energyIndex, '', 'E32N47;E31N47');
                 }
 
                 if (Game.flags[thisRoom.name + "PowerGather"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'powerGather', Game.flags[thisRoom.name + "PowerGather"].pos.roomName, '', '');
+                    spawn_BuildInstruction.run(Game.spawns[i], 'powerGather', Game.flags[thisRoom.name + "PowerGather"].pos.roomName, energyIndex, '', '');
                 }
 
                 if (Game.flags[thisRoom.name + "Loot"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'loot', Game.flags[thisRoom.name + "Loot"].pos.roomName, '', Game.spawns[i].room.name);
+                    spawn_BuildInstruction.run(Game.spawns[i], 'loot', Game.flags[thisRoom.name + "Loot"].pos.roomName, energyIndex, '', Game.spawns[i].room.name);
                 }
 
                 if (Game.flags[thisRoom.name + "PowerCollect"]) {
@@ -875,7 +875,7 @@ module.exports.loop = function() {
                         if (powerBanks.length) {
                             var muleNeed = Math.ceil(powerBanks[0].power / 1650);
                             if (muleNeed > 0) {
-                                spawn_BuildInstruction.run(Game.spawns[i], 'powerCollect', Game.flags[thisRoom.name + "PowerCollect"].pos.roomName, '', muleNeed);
+                                spawn_BuildInstruction.run(Game.spawns[i], 'powerCollect', Game.flags[thisRoom.name + "PowerCollect"].pos.roomName, energyIndex, '', muleNeed);
                             }
                         }
                     }
@@ -1011,7 +1011,7 @@ module.exports.loop = function() {
                     } else {
                         creep_work.run(creep, 25);
                     }
-                    break;                  
+                    break;
                 case 'scraper':
                 case 'scraperNearDeath':
                     creep_scraper.run(creep);
