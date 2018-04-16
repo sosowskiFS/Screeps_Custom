@@ -1,5 +1,5 @@
 var spawn_BuildInstruction = {
-    run: function(spawn, instruction, params, thisRoom = '', params2 = '') {
+    run: function(spawn, instruction, params, energyIndex, thisRoom = '', params2 = '') {
         switch (instruction) {
             case 'claim':
                 var claimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'claimer');
@@ -8,34 +8,38 @@ var spawn_BuildInstruction = {
                         //Claimer with defined path
                         var creepPath = params2.split(";");
                         if (creepPath.length) {
-                            if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]) == OK) {
-                                spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], undefined, {
-                                    priority: 'claimer',
-                                    destination: params,
-                                    path: creepPath
+                            let configCost = calculateConfigCost([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]);
+                            if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                                Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                                spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], 'claimer_' + spawn.room.name + Game.time, {
+                                    memory: {
+                                        priority: 'claimer',
+                                        destination: params,
+                                        path: creepPath
+                                    }
                                 });
                                 Memory.isSpawning = true;
                                 console.log('Claim executed from ' + spawn.room.name);
                                 if (Game.flags["ClaimThis"]) {
                                     Game.flags["ClaimThis"].remove();
                                 }
-                            } else {
-                                //console.log('Could not execute claim. Spawn cannot create creep.');
                             }
                         }
                     } else {
-                        if (spawn.canCreateCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]) == OK) {
-                            spawn.createCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], undefined, {
-                                priority: 'claimer',
-                                destination: params
+                        let configCost = calculateConfigCost([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]);
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], 'claimer_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'claimer',
+                                    destination: params
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('Claim executed from ' + spawn.room.name);
                             if (Game.flags["ClaimThis"]) {
                                 Game.flags["ClaimThis"].remove();
                             }
-                        } else {
-                            //console.log('Could not execute claim. Spawn cannot create creep.');
                         }
                     }
                 }
@@ -43,15 +47,17 @@ var spawn_BuildInstruction = {
             case 'vandalize':
                 var vandals = _.filter(Game.creeps, (creep) => creep.memory.priority == 'vandal');
                 if (vandals.length < 1) {
-                    if (spawn.canCreateCreep([TOUGH, MOVE]) == OK) {
-                        spawn.createCreep([TOUGH, MOVE], undefined, {
-                            priority: 'vandal',
-                            message: "Wew Lad"
+                    let configCost = calculateConfigCost([TOUGH, MOVE]);
+                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        spawn.spawnCreep([TOUGH, MOVE], 'vandal_' + spawn.room.name + Game.time, {
+                            memory: {
+                                priority: 'vandal',
+                                message: "Wew Lad"
+                            }
                         });
                         Memory.isSpawning = true;
                         console.log('Vandalize executed from ' + spawn.room.name);
-                    } else {
-                        //console.log('Could not execute vandalize. Spawn cannot create creep.');
                     }
                 }
                 break;
@@ -62,40 +68,36 @@ var spawn_BuildInstruction = {
                     if (spawn.room.energyCapacityAvailable >= 2000) {
                         constructorConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
                     }
+                    let configCost = calculateConfigCost(constructorConfig);
                     if (params2 != '') {
                         var creepPath = params2.split(";");
-                        if (spawn.canCreateCreep(constructorConfig) == OK) {
-                            spawn.createCreep(constructorConfig, undefined, {
-                                priority: 'constructor',
-                                siteID: params,
-                                destination: thisRoom,
-                                homeRoom: spawn.room.name,
-                                path: creepPath
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(constructorConfig, 'constructor_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'constructor',
+                                    siteID: params,
+                                    destination: thisRoom,
+                                    homeRoom: spawn.room.name,
+                                    path: creepPath
+                                }
                             });
-                            /*spawn.createCreep(constructorConfig, undefined, {
-                                priority: 'constructor',
-                                destination: thisRoom,
-                                homeRoom: spawn.room.name,
-                                path: creepPath
-                            });*/
                             Memory.isSpawning = true;
                             console.log('Construct executed from ' + spawn.room.name);
-                        } else {
-                            //E44N39!!
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     } else {
-                        if (spawn.canCreateCreep(constructorConfig) == OK) {
-                            spawn.createCreep(constructorConfig, undefined, {
-                                priority: 'constructor',
-                                destination: thisRoom,
-                                homeRoom: spawn.room.name,
-                                siteID: params
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(constructorConfig, 'constructor_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'constructor',
+                                    destination: thisRoom,
+                                    homeRoom: spawn.room.name,
+                                    siteID: params
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('Construct executed from ' + spawn.room.name);
-                        } else {
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     }
 
@@ -109,37 +111,34 @@ var spawn_BuildInstruction = {
                     if (spawn.room.energyCapacityAvailable >= 3750) {
                         kebabConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
+                    let configCost = calculateConfigCost(kebabConfig);
                     if (params2 != '') {
                         var creepPath = params2.split(";");
-                        if (spawn.canCreateCreep(kebabConfig) == OK) {
-                            spawn.createCreep(kebabConfig, undefined, {
-                                priority: 'removeKebab',
-                                destination: params,
-                                path: creepPath,
-                                homeRoom: spawn.room.name
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(kebabConfig, 'kebab_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'removeKebab',
+                                    destination: params,
+                                    path: creepPath,
+                                    homeRoom: spawn.room.name
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('Kebab executed from ' + spawn.room.name);
-                            //if (Game.flags["RemoveKebab"]) {
-                            //Game.flags["RemoveKebab"].remove();
-                            //}
-                        } else {
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     } else {
-                        if (spawn.canCreateCreep(kebabConfig) == OK) {
-                            spawn.createCreep(kebabConfig, undefined, {
-                                priority: 'removeKebab',
-                                destination: params,
-                                homeRoom: spawn.room.name
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(kebabConfig, 'kebab_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'removeKebab',
+                                    destination: params,
+                                    homeRoom: spawn.room.name
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('Kebab executed from ' + spawn.room.name);
-                            //if (Game.flags["RemoveKebab"]) {
-                            //Game.flags["RemoveKebab"].remove();
-                            //}
-                        } else {
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     }
 
@@ -155,15 +154,16 @@ var spawn_BuildInstruction = {
                     if (spawn.room.energyCapacityAvailable >= 6300) {
                         drainCreep = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     }
-                    if (spawn.canCreateCreep(drainCreep) == OK) {
-                        spawn.createCreep(drainCreep, undefined, {
-                            priority: 'TowerDrainer',
-                            destination: params,
-                            homeRoom: spawn.room.name
+                    let configCost = calculateConfigCost(drainCreep);
+                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        spawn.spawnCreep(drainCreep, 'drainer_' + spawn.room.name + Game.time, {
+                            memory: {
+                                priority: 'TowerDrainer',
+                                destination: params,
+                                homeRoom: spawn.room.name
+                            }
                         });
-                        //if (Game.flags["DrainTurret"]) {
-                        //Game.flags["DrainTurret"].remove();
-                        //}
                         Memory.isSpawning = true;
                         console.log('Tower Drain Executed from ' + spawn.room.name);
                     }
@@ -176,37 +176,34 @@ var spawn_BuildInstruction = {
                     if (spawn.room.energyCapacityAvailable >= 2000) {
                         helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
                     }
+                    let configCost = calculateConfigCost(helperConfig);
                     if (params2 != '') {
                         var creepPath = params2.split(";");
-                        if (spawn.canCreateCreep(helperConfig) == OK) {
-                            spawn.createCreep(helperConfig, undefined, {
-                                priority: 'helper',
-                                destination: params,
-                                previousPriority: 'helper',
-                                path: creepPath
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(helperConfig, 'helper_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'helper',
+                                    destination: params,
+                                    previousPriority: 'helper',
+                                    path: creepPath
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('Helper executed from ' + spawn.room.name);
-                            /*if (Game.flags[spawn.room.name + "SendHelper"]) {
-                                Game.flags[spawn.room.name + "SendHelper"].remove();
-                            }*/
-                        } else {
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     } else {
-                        if (spawn.canCreateCreep(helperConfig) == OK) {
-                            spawn.createCreep(helperConfig, undefined, {
-                                priority: 'helper',
-                                destination: params,
-                                previousPriority: 'helper'
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(helperConfig, 'helper_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'helper',
+                                    destination: params,
+                                    previousPriority: 'helper'
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('Helper executed from ' + spawn.room.name);
-                            /*if (Game.flags[spawn.room.name + "SendHelper"]) {
-                                Game.flags[spawn.room.name + "SendHelper"].remove();
-                            }*/
-                        } else {
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     }
 
@@ -219,16 +216,18 @@ var spawn_BuildInstruction = {
                     if (spawn.room.energyCapacityAvailable >= 2500) {
                         looterConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
-                    if (spawn.canCreateCreep(looterConfig) == OK) {
-                        spawn.createCreep(looterConfig, undefined, {
-                            priority: 'looter',
-                            destination: params,
-                            homeRoom: params2
+                    let configCost = calculateConfigCost(looterConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        spawn.spawnCreep(looterConfig, 'looter_' + spawn.room.name + Game.time, {
+                            memory: {
+                                priority: 'looter',
+                                destination: params,
+                                homeRoom: params2
+                            }
                         });
                         Memory.isSpawning = true;
                         console.log('Looter executed from ' + spawn.room.name);
-                    } else {
-                        //console.log('Could not execute constructor. Spawn cannot create creep.');
                     }
                 }
                 break;
@@ -239,16 +238,18 @@ var spawn_BuildInstruction = {
                     if (spawn.room.energyCapacityAvailable >= 1800) {
                         trumpConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
-                    if (spawn.canCreateCreep(trumpConfig) == OK) {
-                        spawn.createCreep(trumpConfig, undefined, {
-                            priority: 'trump',
-                            destination: params,
-                            homeRoom: params2
+                    let configCost = calculateConfigCost(trumpConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        spawn.spawnCreep(trumpConfig, 'trump_' + spawn.room.name + Game.time, {
+                            memory: {
+                                priority: 'trump',
+                                destination: params,
+                                homeRoom: params2
+                            }
                         });
                         Memory.isSpawning = true;
                         console.log('America will be great again thanks to ' + spawn.room.name);
-                    } else {
-                        //console.log('Could not execute constructor. Spawn cannot create creep.');
                     }
                 }
                 break;
@@ -258,68 +259,72 @@ var spawn_BuildInstruction = {
                 var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == spawn.room.name);
                 if (attackers.length < 3 && (attackers.length < healers.length || attackers.length == healers.length)) {
                     var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
-                    //Testing movement config
-                    //var attackerConfig = [TOUGH, TOUGH, MOVE, MOVE];
                     if (Game.flags[spawn.room.name + "DoBoost"]) {
                         //This expects tough/attack/move boost
                         attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK];
                     }
+                    let configCost = calculateConfigCost(attackerConfig);
                     if (params2 != '') {
                         //Claimer with defined path
                         var creepPath = params2.split(";");
                         if (creepPath.length) {
-                            if (spawn.canCreateCreep(attackerConfig) == OK) {
-                                spawn.createCreep(attackerConfig, undefined, {
-                                    priority: 'assattacker',
-                                    destination: params,
-                                    path: creepPath,
-                                    homeRoom: spawn.room.name,
-                                    isReserved: false
+                            if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                                Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                                spawn.spawnCreep(attackerConfig, 'attacker_' + spawn.room.name + Game.time, {
+                                    memory: {
+                                        priority: 'assattacker',
+                                        destination: params,
+                                        path: creepPath,
+                                        homeRoom: spawn.room.name,
+                                        isReserved: false
+                                    }
                                 });
                                 Memory.isSpawning = true;
                                 console.log('FUCK. SHIT. UP. ' + spawn.room.name);
-                            } else {
-                                //console.log('Could not execute constructor. Spawn cannot create creep.');
                             }
                         }
                     } else {
-                        if (spawn.canCreateCreep(attackerConfig) == OK) {
-                            spawn.createCreep(attackerConfig, undefined, {
-                                priority: 'assattacker',
-                                destination: params,
-                                homeRoom: spawn.room.name
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(attackerConfig, 'attacker_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'assattacker',
+                                    destination: params,
+                                    homeRoom: spawn.room.name,
+                                    isReserved: false
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('FUCK. SHIT. UP. ' + spawn.room.name);
-                        } else {
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     }
                 } else if (healers.length < 3 && healers.length < attackers.length && healerlessAttackers.length) {
                     var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     //Testing movement config
                     //var healerConfig = [TOUGH, MOVE];
-                    if (Game.flags[spawn.room.name +"DoBoost"] && spawn.room.energyCapacityAvailable >= 8100) {
+                    if (Game.flags[spawn.room.name + "DoBoost"] && spawn.room.energyCapacityAvailable >= 8100) {
                         //assumes tough/move/heal boost
                         healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
-                    } else if (Game.flags[spawn.room.name +"DoBoost"]) {
+                    } else if (Game.flags[spawn.room.name + "DoBoost"]) {
                         healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     }
+                    let configCost = calculateConfigCost(healerConfig);
                     var attackerID = '';
                     if (healerlessAttackers.length) {
-                        attackerID = healerlessAttackers[0].id        
-                        if (spawn.canCreateCreep(healerConfig) == OK && attackerID != '') {
-                            spawn.createCreep(healerConfig, undefined, {
-                                priority: 'asshealer',
-                                destination: params,
-                                homeRoom: spawn.room.name,
-                                attackerID: attackerID
+                        attackerID = healerlessAttackers[0].id
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex) && attackerID != '') {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(healerConfig, 'healer_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'asshealer',
+                                    destination: params,
+                                    homeRoom: spawn.room.name,
+                                    attackerID: attackerID
+                                }
                             });
                             Memory.isSpawning = true;
                             healerlessAttackers[0].memory.isReserved = true;
                             console.log('HEAL. SHIT. UP. ' + spawn.room.name);
-                        } else {
-                            //console.log('Could not execute constructor. Spawn cannot create creep.');
                         }
                     }
                 }
@@ -328,17 +333,19 @@ var spawn_BuildInstruction = {
                 var distractors = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'distractor' && creep.memory.homeRoom == spawn.room.name));
                 if (distractors.length < 1) {
                     var distractConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK];
-                    if (spawn.canCreateCreep(distractConfig) == OK) {
-                        spawn.createCreep(distractConfig, undefined, {
-                            priority: 'distractor',
-                            destination: params,
-                            homeRoom: spawn.room.name,
-                            targetFlag: params2
+                    let configCost = calculateConfigCost(distractConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        spawn.spawnCreep(distractConfig, 'attacker_' + spawn.room.name + Game.time, {
+                            memory: {
+                                priority: 'distractor',
+                                destination: params,
+                                homeRoom: spawn.room.name,
+                                targetFlag: params2
+                            }
                         });
                         Memory.isSpawning = true;
                         console.log('Keep em busy, ' + spawn.room.name);
-                    } else {
-                        //console.log('Could not execute constructor. Spawn cannot create creep.');
                     }
                 }
                 break;
@@ -347,12 +354,16 @@ var spawn_BuildInstruction = {
                 var powerHealers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'powerHeal' && creep.memory.homeRoom == spawn.room.name);
                 if (powerAttackers.length < 1) {
                     var powerAttackConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
-                    if (spawn.canCreateCreep(powerAttackConfig) == OK) {
-                        spawn.createCreep(powerAttackConfig, undefined, {
-                            priority: 'powerAttack',
-                            destination: params,
-                            homeRoom: spawn.room.name,
-                            deathWarn: _.size(powerAttackConfig) * 4
+                    let configCost = calculateConfigCost(powerAttackConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        spawn.spawnCreep(powerAttackConfig, 'powerA_' + spawn.room.name + Game.time, {
+                            memory: {
+                                priority: 'powerAttack',
+                                destination: params,
+                                homeRoom: spawn.room.name,
+                                deathWarn: _.size(powerAttackConfig) * 4
+                            }
                         });
                         Memory.isSpawning = true;
                         console.log('Power Mining - Attacker, ' + spawn.room.name);
@@ -360,15 +371,19 @@ var spawn_BuildInstruction = {
                 } else if (powerHealers.length < 2) {
                     var healerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     var attackerID = '';
+                    let configCost = calculateConfigCost(healerConfig);
                     if (powerAttackers[0]) {
                         attackerID = powerAttackers[0].id
-                        if (spawn.canCreateCreep(healerConfig) == OK && attackerID != '') {
-                            spawn.createCreep(healerConfig, undefined, {
-                                priority: 'powerHeal',
-                                destination: params,
-                                homeRoom: spawn.room.name,
-                                attackerID: attackerID,
-                                deathWarn: _.size(healerConfig) * 4
+                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex) && attackerID != '') {
+                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            spawn.spawnCreep(healerConfig, 'powerH_' + spawn.room.name + Game.time, {
+                                memory: {
+                                    priority: 'powerHeal',
+                                    destination: params,
+                                    homeRoom: spawn.room.name,
+                                    attackerID: attackerID,
+                                    deathWarn: _.size(healerConfig) * 4
+                                }
                             });
                             Memory.isSpawning = true;
                             console.log('Power Mining - Healer, ' + spawn.room.name);
@@ -380,12 +395,16 @@ var spawn_BuildInstruction = {
                 var powerCollectors = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'powerCollector' && creep.memory.homeRoom == spawn.room.name));
                 if (powerCollectors.length < params2) {
                     var powerCollectConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-                    if (spawn.canCreateCreep(powerCollectConfig) == OK) {
-                        spawn.createCreep(powerCollectConfig, undefined, {
-                            priority: 'powerCollector',
-                            destination: params,
-                            homeRoom: spawn.room.name,
-                            deathWarn: _.size(powerCollectConfig) * 4
+                    let configCost = calculateConfigCost(powerCollectConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
+                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        spawn.spawnCreep(powerCollectConfig, 'powerC_' + spawn.room.name + Game.time, {
+                            memory: {
+                                priority: 'powerCollector',
+                                destination: params,
+                                homeRoom: spawn.room.name,
+                                deathWarn: _.size(powerCollectConfig) * 4
+                            }
                         });
                         Memory.isSpawning = true;
                         console.log('Power Mining - Mule, ' + spawn.room.name);
@@ -395,5 +414,13 @@ var spawn_BuildInstruction = {
         }
     }
 };
+
+function calculateConfigCost(bodyConfig) {
+    var totalCost = 0;
+    for (let thisPart of bodyConfig) {
+        totalCost = totalCost + BODYPART_COST[thisPart];
+    }
+    return totalCost;
+}
 
 module.exports = spawn_BuildInstruction;

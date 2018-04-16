@@ -785,6 +785,14 @@ module.exports.loop = function() {
             	//build routines that perform on the same tick assume the same energy level even after the first spawn used the energy
             	//Set energy level into memory per room, wipe memory when done with tick.
             	//Have build rountines check memory to get the current room energy level after builds
+                var energyIndex = Memory.CurrentRoomEnergy.indexOf(thisRoom.name);
+                if (energyIndex < 0) {
+                    Memory.CurrentRoomEnergy.push(thisRoom.name);
+                    Memory.CurrentRoomEnergy.push(thisRoom.energyAvailable);
+                    energyIndex = Memory.CurrentRoomEnergy.indexOf(thisRoom.name) + 1;
+                } else {
+                    energyIndex++;
+                }
 
                 if (Memory.creepInQue.indexOf(Game.spawns[i].name) >= 0) {
                     //Clear creep from que array
@@ -793,7 +801,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags["SignThis"] && Game.flags["SignThis"].pos.roomName == Game.spawns[i].pos.roomName) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', '', '');
+                    spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', energyIndex, '', '');
                 }
 
                 if (Game.flags["ClaimThis"] && thisRoom.name == 'E38N44') {
@@ -921,6 +929,7 @@ module.exports.loop = function() {
 
     Memory.RoomsRun = [];
     Memory.NoSpawnNeeded = [];
+    Memory.CurrentRoomEnergy = [];
     Memory.roomCreeps = new Object();
 
     if (Game.time % 1000 == 0) {
@@ -1167,6 +1176,10 @@ function memCheck() {
     if (!Memory.NoSpawnNeeded) {
         Memory.NoSpawnNeeded = [];
         console.log('NoSpawnNeeded Defaulted');
+    }
+    if (!Memory.CurrentRoomEnergy) {
+        Memory.CurrentRoomEnergy = [];
+        console.log('CurrentRoomEnergy Defaulted');
     }
     if (!Memory.creepInQue) {
         Memory.creepInQue = [];
