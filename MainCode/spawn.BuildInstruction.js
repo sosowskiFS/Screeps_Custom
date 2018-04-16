@@ -9,8 +9,8 @@ var spawn_BuildInstruction = {
                         var creepPath = params2.split(";");
                         if (creepPath.length) {
                             let configCost = calculateConfigCost([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]);
-                            if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                                Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                                 spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], 'claimer_' + spawn.room.name + Game.time, {
                                     memory: {
                                         priority: 'claimer',
@@ -27,8 +27,8 @@ var spawn_BuildInstruction = {
                         }
                     } else {
                         let configCost = calculateConfigCost([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]);
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], 'claimer_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'claimer',
@@ -48,8 +48,8 @@ var spawn_BuildInstruction = {
                 var vandals = _.filter(Game.creeps, (creep) => creep.memory.priority == 'vandal');
                 if (vandals.length < 1) {
                     let configCost = calculateConfigCost([TOUGH, MOVE]);
-                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep([TOUGH, MOVE], 'vandal_' + spawn.room.name + Game.time, {
                             memory: {
                                 priority: 'vandal',
@@ -71,8 +71,8 @@ var spawn_BuildInstruction = {
                     let configCost = calculateConfigCost(constructorConfig);
                     if (params2 != '') {
                         var creepPath = params2.split(";");
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(constructorConfig, 'constructor_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'constructor',
@@ -86,8 +86,8 @@ var spawn_BuildInstruction = {
                             console.log('Construct executed from ' + spawn.room.name);
                         }
                     } else {
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(constructorConfig, 'constructor_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'constructor',
@@ -114,8 +114,8 @@ var spawn_BuildInstruction = {
                     let configCost = calculateConfigCost(kebabConfig);
                     if (params2 != '') {
                         var creepPath = params2.split(";");
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(kebabConfig, 'kebab_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'removeKebab',
@@ -128,8 +128,8 @@ var spawn_BuildInstruction = {
                             console.log('Kebab executed from ' + spawn.room.name);
                         }
                     } else {
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(kebabConfig, 'kebab_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'removeKebab',
@@ -155,8 +155,8 @@ var spawn_BuildInstruction = {
                         drainCreep = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     }
                     let configCost = calculateConfigCost(drainCreep);
-                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(drainCreep, 'drainer_' + spawn.room.name + Game.time, {
                             memory: {
                                 priority: 'TowerDrainer',
@@ -179,8 +179,8 @@ var spawn_BuildInstruction = {
                     let configCost = calculateConfigCost(helperConfig);
                     if (params2 != '') {
                         var creepPath = params2.split(";");
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(helperConfig, 'helper_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'helper',
@@ -193,8 +193,8 @@ var spawn_BuildInstruction = {
                             console.log('Helper executed from ' + spawn.room.name);
                         }
                     } else {
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(helperConfig, 'helper_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'helper',
@@ -217,8 +217,8 @@ var spawn_BuildInstruction = {
                         looterConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
                     let configCost = calculateConfigCost(looterConfig);
-                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(looterConfig, 'looter_' + spawn.room.name + Game.time, {
                             memory: {
                                 priority: 'looter',
@@ -239,8 +239,8 @@ var spawn_BuildInstruction = {
                         trumpConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
                     let configCost = calculateConfigCost(trumpConfig);
-                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(trumpConfig, 'trump_' + spawn.room.name + Game.time, {
                             memory: {
                                 priority: 'trump',
@@ -268,8 +268,8 @@ var spawn_BuildInstruction = {
                         //Claimer with defined path
                         var creepPath = params2.split(";");
                         if (creepPath.length) {
-                            if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                                Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                                 spawn.spawnCreep(attackerConfig, 'attacker_' + spawn.room.name + Game.time, {
                                     memory: {
                                         priority: 'assattacker',
@@ -284,8 +284,8 @@ var spawn_BuildInstruction = {
                             }
                         }
                     } else {
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(attackerConfig, 'attacker_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'assattacker',
@@ -312,8 +312,8 @@ var spawn_BuildInstruction = {
                     var attackerID = '';
                     if (healerlessAttackers.length) {
                         attackerID = healerlessAttackers[0].id
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex) && attackerID != '') {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex] && attackerID != '') {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(healerConfig, 'healer_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'asshealer',
@@ -334,8 +334,8 @@ var spawn_BuildInstruction = {
                 if (distractors.length < 1) {
                     var distractConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK];
                     let configCost = calculateConfigCost(distractConfig);
-                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(distractConfig, 'attacker_' + spawn.room.name + Game.time, {
                             memory: {
                                 priority: 'distractor',
@@ -355,8 +355,8 @@ var spawn_BuildInstruction = {
                 if (powerAttackers.length < 1) {
                     var powerAttackConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK];
                     let configCost = calculateConfigCost(powerAttackConfig);
-                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(powerAttackConfig, 'powerA_' + spawn.room.name + Game.time, {
                             memory: {
                                 priority: 'powerAttack',
@@ -374,8 +374,8 @@ var spawn_BuildInstruction = {
                     let configCost = calculateConfigCost(healerConfig);
                     if (powerAttackers[0]) {
                         attackerID = powerAttackers[0].id
-                        if (configCost <= Memory.CurrentRoomEnergy(energyIndex) && attackerID != '') {
-                            Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex] && attackerID != '') {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                             spawn.spawnCreep(healerConfig, 'powerH_' + spawn.room.name + Game.time, {
                                 memory: {
                                     priority: 'powerHeal',
@@ -396,8 +396,8 @@ var spawn_BuildInstruction = {
                 if (powerCollectors.length < params2) {
                     var powerCollectConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(powerCollectConfig);
-                    if (configCost <= Memory.CurrentRoomEnergy(energyIndex)) {
-                        Memory.CurrentRoomEnergy(energyIndex) = Memory.CurrentRoomEnergy(energyIndex) - configCost;
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(powerCollectConfig, 'powerC_' + spawn.room.name + Game.time, {
                             memory: {
                                 priority: 'powerCollector',
