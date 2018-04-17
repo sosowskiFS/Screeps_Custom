@@ -1,5 +1,5 @@
 var spawn_BuildCreeps = {
-	run: function(spawn, bestWorker, thisRoom, RoomCreeps) {
+	run: function(spawn, bestWorker, thisRoom, RoomCreeps, energyIndex) {
 
 		let harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
 		let builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
