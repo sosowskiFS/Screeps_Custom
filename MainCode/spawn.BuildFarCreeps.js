@@ -1,16 +1,16 @@
 var spawn_BuildFarCreeps = {
-    run: function(spawn, thisRoom) {
+    run: function(spawn, thisRoom, energyIndex) {
         if (!spawn.spawning && Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1) {
-            var controlledCreeps = Game.creeps;
+            let controlledCreeps = Game.creeps;
 
-            var eFarGuards = [];
+            let eFarGuards = [];
             if (Memory.warMode) {
                 eFarGuards = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "eFarGuard");
             }
 
-            var farMules = [];
-            var farClaimers = [];
-            var farMiners = [];
+            let farMules = [];
+            let farClaimers = [];
+            let farMiners = [];
 
             if (Game.flags[thisRoom.name + "FarMining"]) {
                 farMules = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining");
@@ -18,143 +18,143 @@ var spawn_BuildFarCreeps = {
                 farMiners = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining");
             }
 
-            var farGuards = [];
+            let farGuards = [];
             if (Game.flags[thisRoom.name + "FarGuard"] || Game.flags[thisRoom.name + "FarGuardTEMP"]) {
                 farGuards = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard");
             }
 
-            var farMules2 = [];
-            var farClaimers2 = [];
-            var farMiners2 = [];
+            let farMules2 = [];
+            let farClaimers2 = [];
+            let farMiners2 = [];
             if (Game.flags[thisRoom.name + "FarMining2"]) {
                 farMules2 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining2");
                 farClaimers2 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining2"].pos.roomName);
                 farMiners2 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining2");
             }
 
-            var farGuards2 = [];
+            let farGuards2 = [];
             if (Game.flags[thisRoom.name + "FarGuard2"] || Game.flags[thisRoom.name + "FarGuard2TEMP"]) {
                 farGuards2 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard2");
             }
 
-            var farMules3 = [];
-            var farClaimers3 = [];
-            var farMiners3 = [];
+            let farMules3 = [];
+            let farClaimers3 = [];
+            let farMiners3 = [];
             if (Game.flags[thisRoom.name + "FarMining3"]) {
                 farMules3 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining3");
                 farClaimers3 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining3"].pos.roomName);
                 farMiners3 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining3");
             }
 
-            var farGuards3 = [];
+            let farGuards3 = [];
             if (Game.flags[thisRoom.name + "FarGuard3"] || Game.flags[thisRoom.name + "FarGuard3TEMP"]) {
                 farGuards3 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard3");
             }
 
-            var farMules4 = [];
-            var farClaimers4 = [];
-            var farMiners4 = [];
+            let farMules4 = [];
+            let farClaimers4 = [];
+            let farMiners4 = [];
             if (Game.flags[thisRoom.name + "FarMining4"]) {
                 farMules4 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining4");
                 farClaimers4 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining4"].pos.roomName);
                 farMiners4 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining4");
             }
 
-            var farGuards4 = [];
+            let farGuards4 = [];
             if (Game.flags[thisRoom.name + "FarGuard4"] || Game.flags[thisRoom.name + "FarGuard4TEMP"]) {
                 farGuards4 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard4");
             }
 
-            var farMules5 = [];
-            var farClaimers5 = [];
-            var farMiners5 = [];
+            let farMules5 = [];
+            let farClaimers5 = [];
+            let farMiners5 = [];
             if (Game.flags[thisRoom.name + "FarMining5"]) {
                 farMules5 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining5");
                 farClaimers5 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining5"].pos.roomName);
                 farMiners5 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining5");
             }
 
-            var farGuards5 = [];
+            let farGuards5 = [];
             if (Game.flags[thisRoom.name + "FarGuard5"] || Game.flags[thisRoom.name + "FarGuard5TEMP"]) {
                 farGuards5 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard5");
             }
 
-            var farMules6 = [];
-            var farClaimers6 = [];
-            var farMiners6 = [];
+            let farMules6 = [];
+            let farClaimers6 = [];
+            let farMiners6 = [];
             if (Game.flags[thisRoom.name + "FarMining6"]) {
                 farMules6 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining6");
                 farClaimers6 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining6"].pos.roomName);
                 farMiners6 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining6");
             }
 
-            var farGuards6 = [];
+            let farGuards6 = [];
             if (Game.flags[thisRoom.name + "FarGuard6"] || Game.flags[thisRoom.name + "FarGuard6TEMP"]) {
                 farGuards6 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard6");
             }
 
-            var farMules7 = [];
-            var farClaimers7 = [];
-            var farMiners7 = [];
+            let farMules7 = [];
+            let farClaimers7 = [];
+            let farMiners7 = [];
             if (Game.flags[thisRoom.name + "FarMining7"]) {
                 farMules7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining7");
                 farClaimers7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining7"].pos.roomName);
                 farMiners7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining7");
             }
 
-            var farGuards7 = [];
+            let farGuards7 = [];
             if (Game.flags[thisRoom.name + "FarGuard7"] || Game.flags[thisRoom.name + "FarGuard7TEMP"]) {
                 farGuards7 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard7");
             }
 
-            var farMules8 = [];
-            var farClaimers8 = [];
-            var farMiners8 = [];
+            let farMules8 = [];
+            let farClaimers8 = [];
+            let farMiners8 = [];
             if (Game.flags[thisRoom.name + "FarMining8"]) {
                 farMules8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining8");
                 farClaimers8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining8"].pos.roomName);
                 farMiners8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining8");
             }
 
-            var farGuards8 = [];
+            let farGuards8 = [];
             if (Game.flags[thisRoom.name + "FarGuard8"] || Game.flags[thisRoom.name + "FarGuard8TEMP"]) {
                 farGuards8 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard8");
             }
 
-            var farMules9 = [];
-            var farClaimers9 = [];
-            var farMiners9 = [];
+            let farMules9 = [];
+            let farClaimers9 = [];
+            let farMiners9 = [];
             if (Game.flags[thisRoom.name + "FarMining9"]) {
                 farMules9 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMule' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining9");
                 farClaimers9 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farClaimer' && creep.memory.homeRoom == thisRoom.name && creep.memory.destination == Game.flags[thisRoom.name + "FarMining9"].pos.roomName);
                 farMiners9 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMining9");
             }
 
-            var farGuards9 = [];
+            let farGuards9 = [];
             if (Game.flags[thisRoom.name + "FarGuard9"] || Game.flags[thisRoom.name + "FarGuard9TEMP"]) {
                 farGuards9 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarGuard9");
             }
 
 
-            var farMineralMiners = [];
+            let farMineralMiners = [];
             if (Game.flags[thisRoom.name + "FarMineral"]) {
                 farMineralMiners = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral");
             }
 
-            var farMineralMiners2 = [];
+            let farMineralMiners2 = [];
             if (Game.flags[thisRoom.name + "FarMineral2"]) {
                 farMineralMiners2 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral2");
             }
 
-            var farMineralMiners3 = [];
+            let farMineralMiners3 = [];
             if (Game.flags[thisRoom.name + "FarMineral3"]) {
                 farMineralMiners3 = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farMineralMiner' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "FarMineral3");
             }
 
-            var farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
+            let farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE];
 
             //760 Points (Level 3)
-            var farGuardConfig = [TOUGH, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
+            let farGuardConfig = [TOUGH, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
 
             if (Memory.warMode) {
                 if (Memory.guardType) {
@@ -542,110 +542,96 @@ var spawn_BuildFarCreeps = {
             if (prioritizedRole != '') {
                 if (prioritizedRole == 'farClaimer') {
                     var farClaimerConfig = getClaimerBuild(thisRoom.energyCapacityAvailable);
-                    if (spawn.canCreateCreep(farClaimerConfig) == OK) {
-                        spawn.createCreep(farClaimerConfig, undefined, {
-                            priority: prioritizedRole,
-                            destination: roomTarget,
-                            fromSpawn: spawn.id,
-                            homeRoom: thisRoom.name,
-                            deathWarn: _.size(farClaimerConfig) * 5,
-                            targetFlag: flagName
+                    let configCost = calculateConfigCost(farClaimerConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(farClaimerConfig, 'reserver_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                destination: roomTarget,
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name,
+                                deathWarn: _.size(farClaimerConfig) * 5,
+                                targetFlag: flagName
+                            }
                         });
                         Memory.FarClaimerNeeded[Game.flags[flagName].pos.roomName] = false;
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMiner') {
-                    if (spawn.canCreateCreep(farMinerConfig) == OK) {
-                        spawn.createCreep(farMinerConfig, undefined, {
-                            priority: prioritizedRole,
-                            destination: roomTarget,
-                            fromSpawn: spawn.id,
-                            homeRoom: thisRoom.name,
-                            deathWarn: _.size(farMinerConfig) * 8,
-                            targetFlag: flagName,
-                            jobSpecific: jobSpecific
+                    let configCost = calculateConfigCost(farMinerConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(farMinerConfig, 'farMiner_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                destination: roomTarget,
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name,
+                                deathWarn: _.size(farMinerConfig) * 8,
+                                targetFlag: flagName,
+                                jobSpecific: jobSpecific
+                            }
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMule') {
                     var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable, thisRoom);
-                    if (spawn.canCreateCreep(farMuleConfig) == OK) {
-                        spawn.createCreep(farMuleConfig, undefined, {
-                            priority: prioritizedRole,
-                            destination: roomTarget,
-                            homeRoom: thisRoom.name,
-                            storageSource: storageID,
-                            fromSpawn: spawn.id,
-                            deathWarn: _.size(farMuleConfig) * 6,
-                            targetFlag: flagName
+                    let configCost = calculateConfigCost(farMuleConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(farMuleConfig, 'farMule_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                destination: roomTarget,
+                                homeRoom: thisRoom.name,
+                                storageSource: storageID,
+                                fromSpawn: spawn.id,
+                                deathWarn: _.size(farMuleConfig) * 6,
+                                targetFlag: flagName
+                            }
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farGuard') {
-                    if (spawn.canCreateCreep(farGuardConfig) == OK) {
+                    let configCost = calculateConfigCost(farGuardConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         var warnMulti = 5;
                         if (Memory.warMode) {
                             warnMulti = 6;
                         }
-                        spawn.createCreep(farGuardConfig, undefined, {
-                            priority: prioritizedRole,
-                            destination: roomTarget,
-                            homeRoom: thisRoom.name,
-                            fromSpawn: spawn.id,
-                            deathWarn: _.size(farGuardConfig) * warnMulti,
-                            targetFlag: flagName
+                        spawn.spawnCreep(farGuardConfig, 'guard_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                destination: roomTarget,
+                                homeRoom: thisRoom.name,
+                                fromSpawn: spawn.id,
+                                deathWarn: _.size(farGuardConfig) * warnMulti,
+                                targetFlag: flagName
+                            }
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                     Memory.guardType = false;
                 } else if (prioritizedRole == 'farMineralMiner') {
-                    if (spawn.canCreateCreep(farMinerConfig) == OK) {
-                        spawn.createCreep(farMinerConfig, undefined, {
-                            priority: prioritizedRole,
-                            destination: roomTarget,
-                            homeRoom: thisRoom.name,
-                            fromSpawn: spawn.id,
-                            storageSource: storageID,
-                            deathWarn: _.size(farMinerConfig) * 5,
-                            targetFlag: flagName
+                    let configCost = calculateConfigCost(farMinerConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(farMinerConfig, 'mineralMiner_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                destination: roomTarget,
+                                homeRoom: thisRoom.name,
+                                fromSpawn: spawn.id,
+                                storageSource: storageID,
+                                deathWarn: _.size(farMinerConfig) * 5,
+                                targetFlag: flagName
+                            }
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 }
-                /*else if (prioritizedRole == 'SKAttackGuard') {
-                	if (spawn.canCreateCreep(SKGuardAttackerConfig) == OK) {
-                		var warnMulti = 5;
-                		if (Memory.warMode) {
-                			warnMulti = 6;
-                		}
-                		spawn.createCreep(SKGuardAttackerConfig, undefined, {
-                			priority: prioritizedRole,
-                			destination: roomTarget,
-                			homeRoom: thisRoom.name,
-                			fromSpawn: spawn.id,
-                			deathWarn: _.size(SKGuardAttackerConfig) * warnMulti,
-                			targetFlag: flagName
-                		});
-                		Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
-                	}
-                } else if (prioritizedRole == 'SKHealGuard') {
-                	if (spawn.canCreateCreep(SKGuardHealerConfig) == OK) {
-                		var warnMulti = 5;
-                		if (Memory.warMode) {
-                			warnMulti = 6;
-                		}
-                		spawn.createCreep(SKGuardHealerConfig, undefined, {
-                			priority: prioritizedRole,
-                			destination: roomTarget,
-                			homeRoom: thisRoom.name,
-                			fromSpawn: spawn.id,
-                			targetFlag: flagName,
-                			deathWarn: _.size(SKGuardHealerConfig) * warnMulti,
-                			parentAttacker: healTarget
-                		});
-                		Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
-                	}
-                }*/
             }
 
         }
@@ -657,7 +643,6 @@ function getClaimerBuild(energyCap) {
 
     var ConfigCost = BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]
 
-    //CLAIM, CLAIM, CLAIM, CLAIM, MOVE, MOVE, MOVE, MOVE
     while ((energyCap / ConfigCost) >= 1) {
         thisConfig.push(CLAIM);
         thisConfig.push(MOVE);
@@ -675,9 +660,6 @@ function getMuleBuild(energyCap, thisRoom) {
     var ConfigCost = (BODYPART_COST[CARRY] * 2) + BODYPART_COST[MOVE];
     energyCap = energyCap - (BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]);
     var partCap = 50;
-    /*if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
-    	partCap = 30;
-    }*/
     //initial : 1 move, 1 work, 1 carry
     //Add to each loop : 2 carry, 1 move
 
@@ -699,6 +681,14 @@ function getMuleBuild(energyCap, thisRoom) {
 
     thisConfig.sort();
     return thisConfig;
+}
+
+function calculateConfigCost(bodyConfig) {
+    var totalCost = 0;
+    for (let thisPart of bodyConfig) {
+        totalCost = totalCost + BODYPART_COST[thisPart];
+    }
+    return totalCost;
 }
 
 module.exports = spawn_BuildFarCreeps;
