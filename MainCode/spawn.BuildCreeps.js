@@ -1,29 +1,28 @@
 var spawn_BuildCreeps = {
 	run: function(spawn, bestWorker, thisRoom, RoomCreeps) {
-		//var RoomCreeps = thisRoom.find(FIND_MY_CREEPS);
 
-		var harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
-		var builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
-		var upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
-		var repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
-		var suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
-		var distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
+		let harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
+		let builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
+		let upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
+		let repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
+		let suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
+		let distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
 
-		var defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
+		let defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
 
-		var harvesterMax = 3;
-		var builderMax = 2;
-		var upgraderMax = 2;
-		var repairMax = 1;
-		var supplierMax = 0;
-		var distributorMax = 0;
+		let harvesterMax = 3;
+		let builderMax = 2;
+		let upgraderMax = 2;
+		let repairMax = 1;
+		let supplierMax = 0;
+		let distributorMax = 0;
 		//How many creeps can mine at once
-		var mineSpots = [4, 5];
+		let mineSpots = [4, 5];
 		//Add sources from N to S
-		var strSources = Memory.sourceList[thisRoom.name];
-		var assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+		let strSources = Memory.sourceList[thisRoom.name];
+		let assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
 
-		var bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
+		let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
 		if (strSources.length == 1) {
 			harvesterMax = 1;
@@ -45,7 +44,7 @@ var spawn_BuildCreeps = {
 			}
 		}
 
-		var defenderEnergyLim = 780;
+		let defenderEnergyLim = 780;
 		if (thisRoom.controller.level == 4) {
 			defenderEnergyLim = 1170;
 		}
@@ -53,19 +52,27 @@ var spawn_BuildCreeps = {
 		if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
 			//In case of complete destruction, make a minimum viable worker
 			if (strSources.length > 1) {
-				if (spawn.canCreateCreep(bareMinConfig) == OK) {
-					spawn.createCreep(bareMinConfig, undefined, {
-						priority: 'harvester',
-						sourceLocation: strSources[1],
-						homeRoom: thisRoom.name
+				let configCost = calculateConfigCost(bareMinConfig);
+				if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+					Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+					spawn.spawnCreep(bareMinConfig, 'harvester_' + spawn.name + '_' + Game.time, {
+						memory: {
+							priority: 'harvester',
+							sourceLocation: strSources[1],
+							homeRoom: thisRoom.name
+						}
 					});
 				}
 			} else {
-				if (spawn.canCreateCreep(bareMinConfig) == OK) {
-					spawn.createCreep(bareMinConfig, undefined, {
-						priority: 'harvester',
-						sourceLocation: strSources[0],
-						homeRoom: thisRoom.name
+				let configCost = calculateConfigCost(bareMinConfig);
+				if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+					Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+					spawn.createCreep(bareMinConfig, 'harvester_' + spawn.name + '_' + Game.time, {
+						memory: {
+							priority: 'harvester',
+							sourceLocation: strSources[0],
+							homeRoom: thisRoom.name
+						}
 					});
 				}
 			}
@@ -74,20 +81,6 @@ var spawn_BuildCreeps = {
 		} else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= defenderEnergyLim && defenders.length < 2 && harvesters.length >= harvesterMax) {
 			//Try to produce millitary units
 
-			//Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
-			//Ranged unit set: MOVE, MOVE, RANGED_ATTACK - 250
-
-			//Damaged modules do not work, put padding first.
-
-			//var defenderUnits = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
-
-			//var ChosenPriority = '';
-			//if (meleeUnits <= rangedUnits) {
-			//ChosenPriority = 'melee';
-			//} else {
-			//ChosenPriority = 'ranged';
-			//}
-
 			var ToughCount = 0;
 			var MoveCount = 0;
 			var AttackCount = 0;
@@ -95,7 +88,7 @@ var spawn_BuildCreeps = {
 			var HealCount = 0;
 			var totalParts = 0;
 
-			var remainingEnergy = thisRoom.energyAvailable;
+			var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
 			while ((remainingEnergy / 390) >= 1) {
 				//switch (ChosenPriority) {
 				//case 'melee':
@@ -146,10 +139,14 @@ var spawn_BuildCreeps = {
 				}
 			}
 
-			spawn.createCreep(ChosenCreepSet, undefined, {
-				priority: 'defender',
-				fromSpawn: spawn.id,
-				homeRoom: thisRoom.name
+			Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
+
+			spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
+				memory: {
+					priority: 'defender',
+					fromSpawn: spawn.id,
+					homeRoom: thisRoom.name
+				}
 			});
 			Memory.isSpawning = true;
 
@@ -183,17 +180,29 @@ var spawn_BuildCreeps = {
 				//Assign spot 1
 				creepSourceID = strSources[0];
 			}
-			if (spawn.canCreateCreep(bestWorker) == OK) {
-				spawn.createCreep(bestWorker, undefined, {
-					priority: prioritizedRole,
-					fromSpawn: spawn.id,
-					sourceLocation: creepSourceID,
-					homeRoom: thisRoom.name
+			let configCost = calculateConfigCost(bestWorker);
+			if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+				Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+				spawn.spawnCreep(bestWorker, prioritizedRole + '_' + spawn.name + '_' + Game.time, {
+					memory: {
+						priority: prioritizedRole,
+						fromSpawn: spawn.id,
+						sourceLocation: creepSourceID,
+						homeRoom: thisRoom.name
+					}
 				});
 			}
 			Memory.isSpawning = true;
 		}
 	}
 };
+
+function calculateConfigCost(bodyConfig) {
+	var totalCost = 0;
+	for (let thisPart of bodyConfig) {
+		totalCost = totalCost + BODYPART_COST[thisPart];
+	}
+	return totalCost;
+}
 
 module.exports = spawn_BuildCreeps;
