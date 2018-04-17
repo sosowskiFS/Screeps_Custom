@@ -49,8 +49,8 @@ var spawn_BuildCreeps5 = {
             //SHARD 0 COUNTS
             //1: UH/LO/ZH - 1 (E87N85)        
             //2: OH/G/GH/GH2O/XGH2O - 4 (E88N83, E86N83, E85N89, E88N75)           
-            //3: UH2O/ZHO2/LHO2/ZH2O - 1 (E89N83)          
-            //4: ZK/ZO - 2 (E89N86, E88N87)          
+            //3: UH2O/ZHO2/LHO2 - 1 (E89N83)          
+            //4: ZK/ZO/ZH2O - 2 (E89N86, E88N87)          
             //5: LH/UL/XLHO2 - 2 (E84N77, E81N79)        
             //6: GHO2/LH2O/XLH2O/GO - 2 (E88N88, E77N83)          
             //7: XUH2O/XZH2O/XZHO2 - 1 (E86N68)            
@@ -58,8 +58,8 @@ var spawn_BuildCreeps5 = {
             //SHARD 1 COUNTS
             //1: UH/LO/ZH - 1
             //2: OH/G/GH/GH2O/XGH2O - 1
-            //3: UH2O/ZHO2/LHO2/ZH2O - 1
-            //4: ZK/ZO - 1
+            //3: UH2O/ZHO2/LHO2 - 1
+            //4: ZK/ZO/ZH2O - 1
             //5: LH/UL/XLHO2 - 1
             //6: GHO2/LH2O/XLH2O/GO - 1
             //7: XUH2O/XZH2O/XZHO2 - 1
@@ -102,13 +102,13 @@ var spawn_BuildCreeps5 = {
                     min5 = RESOURCE_HYDROXIDE;
                     min6 = RESOURCE_LEMERGIUM_ALKALIDE;
                     primaryFlag = thisRoom.name + "LHO2Producer";
-                    backupFlag = thisRoom.name + "ZH2OProducer";
+                    backupFlag = thisRoom.name + "UH2OProducer";
                 } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
                     min4 = RESOURCE_ZYNTHIUM_HYDRIDE;
                     min5 = RESOURCE_HYDROXIDE;
                     min6 = RESOURCE_ZYNTHIUM_ACID;
                     primaryFlag = thisRoom.name + "ZH2OProducer";
-                    backupFlag = thisRoom.name + "UH2OProducer";
+                    backupFlag = thisRoom.name + "ZKProducer";
                 } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
                     min4 = RESOURCE_ZYNTHIUM;
                     min5 = RESOURCE_KEANIUM;
@@ -120,7 +120,7 @@ var spawn_BuildCreeps5 = {
                     min5 = RESOURCE_OXYGEN;
                     min6 = RESOURCE_ZYNTHIUM_OXIDE;
                     primaryFlag = thisRoom.name + "ZOProducer";
-                    backupFlag = thisRoom.name + "ZKProducer";
+                    backupFlag = thisRoom.name + "ZH2OProducer";
                 } else if (Game.flags[thisRoom.name + "LHProducer"]) {
                     min4 = RESOURCE_LEMERGIUM;
                     min5 = RESOURCE_HYDROGEN;
