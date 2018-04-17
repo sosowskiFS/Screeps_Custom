@@ -862,7 +862,7 @@ var creep_work5 = {
                         }
                     }
 
-                    if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != creep.room.storage.store[RESOURCE_ENERGY]) {
+                    if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != (creep.room.storage.store[RESOURCE_ENERGY] + creep.room.storage.store[RESOURCE_POWER])) {
                         if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
                             var withdrawResult = "N/A"
                             for (var i = 0, len = Object.keys(creep.room.storage.store).length; i < len; i++) {

@@ -221,7 +221,7 @@ var creep_farMule = {
                                 //If room energy not full, check adjacent extentions and transfer into them
                                 if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
                                     let structList = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
-                                        filter: (thisStruct) => ((thisStruct.structureType == STRUCTURE_EXTENSION || thisStruct.structureType == STRUCTURE_SPAWN) && thisStruct.energy < thisStruct.energyCapacity)
+                                        filter: (thisStruct) => ((thisStruct.structureType == STRUCTURE_EXTENSION || thisStruct.structureType == STRUCTURE_SPAWN || thisStruct.structureType == STRUCTURE_POWER_SPAWN) && thisStruct.energy < thisStruct.energyCapacity)
                                     });
                                     if (structList.length) {
                                         creep.transfer(structList[0], RESOURCE_ENERGY);
