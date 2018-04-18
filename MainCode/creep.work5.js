@@ -168,7 +168,7 @@ var creep_work5 = {
                                 //Store in terminal
                                 var terminalTarget = Game.getObjectById(creep.memory.terminalID)
                                 if (terminalTarget) {
-                                    if (terminalTarget.store[RESOURCE_ENERGY] < 30000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
+                                    if (terminalTarget.store[RESOURCE_ENERGY] < 30000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 50000 && (terminalTarget.storeCapacity - 5000) > _.sum(terminalTarget.store)) {
                                         creep.memory.structureTarget = terminalTarget.id;
                                         if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                             creep.travelTo(terminalTarget);
