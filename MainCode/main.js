@@ -7,6 +7,7 @@ var creep_upSupplier = require('creep.upsupplier');
 var creep_miner = require('creep.miner');
 var creep_upgrader = require('creep.upgrader');
 var creep_repair = require('creep.repair');
+var creep_labWorker = require('creep.labWorker');
 
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
@@ -698,28 +699,45 @@ module.exports.loop = function() {
 
                 //Handle Labs
                 if (Game.time % 5 == 0 && Memory.labList[thisRoom.name].length >= 6) {
-                    var lab6 = Game.getObjectById(Memory.labList[thisRoom.name][5]);
-                    if (lab6 && lab6.cooldown <= 0 && lab6.mineralAmount <= lab6.mineralCapacity - 5) {
-                        var lab4 = Game.getObjectById(Memory.labList[thisRoom.name][3]);
-                        var lab5 = Game.getObjectById(Memory.labList[thisRoom.name][4]);
-                        if (lab4 && lab5 && lab4.mineralAmount >= 5 && lab5.mineralAmount >= 5) {
-                            var response = lab6.runReaction(lab4, lab5);
+                    //Loop through labs, run
+                    //Reagent Labs
+                    let lab4 = Game.getObjectById(Memory.labList[thisRoom.name][3]);
+                    let lab5 = Game.getObjectById(Memory.labList[thisRoom.name][4]);
+
+                    if (lab4 && lab5) {
+                        let lab6 = Game.getObjectById(Memory.labList[thisRoom.name][5]);
+                        if (lab6 && lab6.cooldown <= 0 && lab6.mineralAmount <= lab6.mineralCapacity - 5) {
+                            let response = lab6.runReaction(lab4, lab5);
                             if (response == -9) {
-                                Game.notify('Lab not in range! ' + thisRoom.name + "-" + Memory.labList[thisRoom.name][3] + "|" + Memory.labList[thisRoom.name][4] + "|" + Memory.labList[thisRoom.name][5]);
+                                Game.notify('Lab not in range! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5]);
                             }
                         }
-                    }
-
-                    if (Memory.labList[thisRoom.name].length >= 9) {
-                        var lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
+                        let lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
+                        if (lab7 && lab7.cooldown <= 0 && lab7.mineralAmount <= lab7.mineralCapacity - 5) {
+                            let response = lab7.runReaction(lab4, lab5);
+                            if (response == -9) {
+                                Game.notify('Lab not in range! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6]);
+                            }
+                        }
+                        let lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
+                        if (lab8 && lab8.cooldown <= 0 && lab8.mineralAmount <= lab8.mineralCapacity - 5) {
+                            let response = lab8.runReaction(lab4, lab5);
+                            if (response == -9) {
+                                Game.notify('Lab not in range! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7]);
+                            }
+                        }
+                        let lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
                         if (lab9 && lab9.cooldown <= 0 && lab9.mineralAmount <= lab9.mineralCapacity - 5) {
-                            var lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
-                            var lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
-                            if (lab7 && lab8 && lab7.mineralAmount >= 5 && lab8.mineralAmount >= 5) {
-                                var response = lab9.runReaction(lab7, lab8);
-                                if (response == -9) {
-                                    Game.notify('Lab not in range! ' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6] + "|" + Memory.labList[thisRoom.name][7] + "|" + Memory.labList[thisRoom.name][8]);
-                                }
+                            let response = lab9.runReaction(lab4, lab5);
+                            if (response == -9) {
+                                Game.notify('Lab not in range! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8]);
+                            }
+                        }
+                        let lab10 = Game.getObjectById(Memory.labList[thisRoom.name][9]);
+                        if (lab10 && lab10.cooldown <= 0 && lab10.mineralAmount <= lab10.mineralCapacity - 5) {
+                            let response = lab10.runReaction(lab4, lab5);
+                            if (response == -9) {
+                                Game.notify('Lab not in range! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9]);
                             }
                         }
                     }
@@ -1027,6 +1045,10 @@ module.exports.loop = function() {
                 case 'upSupplier':
                 case 'upSupplierNearDeath':
                     creep_upSupplier.run(creep);
+                    break;
+                case 'labWorker':
+                case 'labWorkerNearDeath':
+                    creep_labWorker.run(creep);
                     break;
                 case 'claimer':
                     creep_claimer.run(creep);

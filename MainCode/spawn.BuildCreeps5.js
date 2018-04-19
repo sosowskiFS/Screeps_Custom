@@ -727,7 +727,7 @@ var spawn_BuildCreeps5 = {
                     let configCost = calculateConfigCost(labWorkerConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                        if (Memory.labList[thisRoom.name].length >= 9) {
+                        if (Memory.labList[thisRoom.name].length >= 10) {
                             spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
                                 memory: {
                                     priority: prioritizedRole,
@@ -744,9 +744,45 @@ var spawn_BuildCreeps5 = {
                                     lab5: Memory.labList[thisRoom.name][4],
                                     mineral6: min6,
                                     lab6: Memory.labList[thisRoom.name][5],
-                                    mineral7: min4,
+                                    mineral7: min6,
                                     lab7: Memory.labList[thisRoom.name][6],
-                                    mineral8: min5,
+                                    mineral8: min6,
+                                    lab8: Memory.labList[thisRoom.name][7],
+                                    mineral9: min6,
+                                    lab9: Memory.labList[thisRoom.name][8],
+                                    mineral10: min6,
+                                    lab10: Memory.labList[thisRoom.name][9],
+                                    primaryFlag: primaryFlag,
+                                    backupFlag: backupFlag,
+                                    isMoving: false,
+                                    movingOtherMineral: false,
+                                    movingOtherMineral2: false,
+                                    resourceChecks: 0,
+                                    deathWarn: _.size(labWorkerConfig) * 4,
+                                    fromSpawn: spawn.id,
+                                    homeRoom: thisRoom.name
+                                }
+                            });
+                        } else if (Memory.labList[thisRoom.name].length >= 9) {
+                            spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
+                                memory: {
+                                    priority: prioritizedRole,
+                                    terminalID: storageID,
+                                    mineral1: min1,
+                                    lab1: Memory.labList[thisRoom.name][0],
+                                    mineral2: min2,
+                                    lab2: Memory.labList[thisRoom.name][1],
+                                    mineral3: min3,
+                                    lab3: Memory.labList[thisRoom.name][2],
+                                    mineral4: min4,
+                                    lab4: Memory.labList[thisRoom.name][3],
+                                    mineral5: min5,
+                                    lab5: Memory.labList[thisRoom.name][4],
+                                    mineral6: min6,
+                                    lab6: Memory.labList[thisRoom.name][5],
+                                    mineral7: min6,
+                                    lab7: Memory.labList[thisRoom.name][6],
+                                    mineral8: min6,
                                     lab8: Memory.labList[thisRoom.name][7],
                                     mineral9: min6,
                                     lab9: Memory.labList[thisRoom.name][8],
