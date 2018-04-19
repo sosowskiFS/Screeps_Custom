@@ -199,7 +199,7 @@ var creep_labWorker = {
             } else if (_.sum(creep.carry) == 0) {
                 //Check all labs to see if there's a mineral that shouldn't be there, withdraw if needed
                 for (var i in labArray) {
-                    if (labArray[i].mineralAmount > 0 && labArray[i].mineralType != mineralArray[i]) {
+                    if (labArray[i] && labArray[i].mineralAmount > 0 && labArray[i].mineralType != mineralArray[i]) {
                         foundWork = true;
                         creep.memory.movingOtherMineral = true;
                         var withdrawResult = creep.withdraw(labArray[i], labArray[i].mineralType)
