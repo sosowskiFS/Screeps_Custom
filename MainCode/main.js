@@ -698,7 +698,7 @@ module.exports.loop = function() {
                 }
 
                 //Handle Labs
-                if (Game.time % 5 == 0 && Memory.labList[thisRoom.name].length >= 6) {
+                if (Memory.labList[thisRoom.name].length >= 6) {
                     //Loop through labs, run
                     //Reagent Labs
                     let lab4 = Game.getObjectById(Memory.labList[thisRoom.name][3]);
