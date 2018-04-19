@@ -607,7 +607,7 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'upSupplier') {
                     Memory.isSpawning = true;
-                    let upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    let upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 
                     let configCost = calculateConfigCost(upSupplierConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
