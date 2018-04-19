@@ -78,12 +78,20 @@ var tower_Operate = {
 				}
 			}
 		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % checkDelay == 0)) {
-			var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5, {
-				filter: (structure) => (((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax) || (structure.structureType == STRUCTURE_ROAD && structure.hits < (structure.hitsMax / 2)))
+			var criticalRoads = tower.room.find(FIND_MY_STRUCTURES, {
+				filter: (structure) => (structure.structureType == STRUCTURE_ROAD && structure.hits < (structure.hitsMax / 2))
 			});
-			if (decayingRampart.length) {
-				decayingRampart.sort(repairCompare);
-				tower.repair(decayingRampart[0]);
+			if (criticalRoads.length) {
+				criticalRoads.sort(repairCompare);
+				tower.repair(criticalRoads[0]);
+			} else {
+				var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5, {
+					filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
+				});
+				if (decayingRampart.length) {
+					decayingRampart.sort(repairCompare);
+					tower.repair(decayingRampart[0]);
+				}
 			}
 		}
 
