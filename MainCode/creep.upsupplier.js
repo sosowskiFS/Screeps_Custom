@@ -65,7 +65,6 @@ var creep_upSupplier = {
                     var transferResult = creep.transfer(upLink, RESOURCE_ENERGY);
                     if (transferResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(upLink, {
-                            stuckValue: 1,
                             maxRooms: 1
                         });
                     } else if (transferResult == OK){
@@ -90,7 +89,6 @@ function locateSupplierTarget(targetType, creep) {
         var upLink = Game.getObjectById(creep.memory.linkTarget);
         if (upLink) {
             creep.travelTo(upLink, {
-                stuckValue: 1,
                 maxRooms: 1
             });
         }
