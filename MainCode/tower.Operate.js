@@ -78,7 +78,7 @@ var tower_Operate = {
 				}
 			}
 		} else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % checkDelay == 0)) {
-			var criticalRoads = tower.room.find(FIND_MY_STRUCTURES, {
+			var criticalRoads = tower.room.find(FIND_STRUCTURES, {
 				filter: (structure) => (structure.structureType == STRUCTURE_ROAD && structure.hits < (structure.hitsMax / 2))
 			});
 			if (criticalRoads.length) {
