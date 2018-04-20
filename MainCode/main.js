@@ -704,7 +704,7 @@ module.exports.loop = function() {
                     let lab4 = Game.getObjectById(Memory.labList[thisRoom.name][3]);
                     let lab5 = Game.getObjectById(Memory.labList[thisRoom.name][4]);
 
-                    if (lab4 && lab5) {
+                    if (lab4 && lab5 && lab4.mineralAmount >= 5 && lab5.mineralAmount >= 5) {
                         let lab6 = Game.getObjectById(Memory.labList[thisRoom.name][5]);
                         if (lab6 && lab6.cooldown <= 0 && lab6.mineralAmount <= lab6.mineralCapacity - 5) {
                             let response = lab6.runReaction(lab4, lab5);
