@@ -18,7 +18,10 @@ var creep_constructor = {
                     if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
                         creep.memory.path.splice(0, 1);
                     }
-                    creep.travelTo(Game.flags["TakePortal"]);
+                    creep.travelTo(Game.flags["TakePortal"], {
+                        ignoreRoads: true,
+                        offRoad: true
+                    });
                 } else if (creep.memory.path && creep.memory.path.length) {
                     if (creep.memory.path[0] == creep.room.name) {
                         creep.memory.path.splice(0, 1);
