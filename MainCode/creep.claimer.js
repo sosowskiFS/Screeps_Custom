@@ -20,7 +20,7 @@ var creep_claimer = {
                     creep.memory.path.splice(0, 1);
                 }
 
-                creep.travelTo(thisPortal[0], {
+                creep.travelTo(Game.flags["TakePortal"], {
                     ignoreRoads: true,
                     offRoad: true
                 });
