@@ -15,7 +15,7 @@ var creep_claimer = {
             if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                 var thisPortal = Game.flags["TakePortal"].pos.look(LOOK_STRUCTURES);
             }
-            if (thisPortal.length) {
+            if (thisPortal && thisPortal.length) {
                 if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
