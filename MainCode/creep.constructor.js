@@ -12,15 +12,13 @@ var creep_constructor = {
             if (creep.room.name != creep.memory.destination) {
                 var thisPortal = undefined;
                 if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
-                    var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
-                    });
+                    var thisPortal = Game.flags["TakePortal"].pos.look(LOOK_STRUCTURES);
                 }
-                if (thisPortal) {
+                if (thisPortal.length) {
                     if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
                         creep.memory.path.splice(0, 1);
                     }
-                    creep.moveTo(thisPortal)
+                    creep.travelTo(thisPortal[0])
                 } else if (creep.memory.path && creep.memory.path.length) {
                     if (creep.memory.path[0] == creep.room.name) {
                         creep.memory.path.splice(0, 1);
@@ -33,7 +31,7 @@ var creep_constructor = {
                 var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
                 if (sources) {
                     if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(sources, {
+                        creep.travelTo(sources, {
                             reusePath: 25
                         });
                     }
@@ -41,7 +39,7 @@ var creep_constructor = {
                     sources = creep.pos.findClosestByRange(FIND_SOURCES_ACTIVE);
                     if (sources) {
                         if (creep.harvest(sources) == ERR_NOT_IN_RANGE) {
-                            creep.moveTo(sources);
+                            creep.travelTo(sources);
                         }
                     }
                 }
@@ -50,10 +48,10 @@ var creep_constructor = {
             if ((creep.carry.energy <= 20 && creep.hits < 2500 && creep.room.controller.level < 2)) {
                 //Upgrade the controller
                 if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(creep.room.controller);
+                    creep.travelTo(creep.room.controller);
                 }
             } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(Game.getObjectById(creep.memory.siteID));
+                creep.travelTo(Game.getObjectById(creep.memory.siteID));
             } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_INVALID_TARGET) {
                 if (Game.flags["BuildThis"]) {
                     Game.flags["BuildThis"].remove();

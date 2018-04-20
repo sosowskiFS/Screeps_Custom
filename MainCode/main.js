@@ -822,9 +822,9 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', energyIndex, '', '');
                 }
 
-                if (Game.flags["ClaimThis"] && thisRoom.name == 'E38N44') {
+                if (Game.flags["ClaimThis"] && thisRoom.name == 'E44N41') {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex, '', 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex, '', 'E44N40;E40N40');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex);
                     }
@@ -1098,13 +1098,12 @@ module.exports.loop = function() {
                     creep_powerCollect.run(creep);
                     break;
                 default:
-                    /*if (!creep.memory.priority) {
-                        creep.memory.priority = 'constructor';
-                        var creepPath = 'E38N40;E38N39'.split(";");
+                    if (!creep.memory.priority) {
+                        creep.memory.priority = 'claimer';
+                        var creepPath = 'E39N40;E39N39'.split(";");
                         creep.memory.path = creepPath;
-                        creep.memory.homeRoom = 'E38N40';
-                        creep.memory.destination = 'E38N39';
-                    }*/
+                        creep.memory.destination = 'E39N39';
+                    }
                     if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                         var pre = Game.cpu.getUsed();
                         if (Game.cpu.bucket >= 500 || Memory.warMode) {

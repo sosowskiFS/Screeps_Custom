@@ -13,16 +13,14 @@ var creep_claimer = {
         if (creep.room.name != creep.memory.destination) {
             var thisPortal = undefined;
             if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
-                var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
-                });
+                var thisPortal = Game.flags["TakePortal"].pos.look(LOOK_STRUCTURES);
             }
-            if (thisPortal) {
+            if (thisPortal.length) {
                 if (creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
                     creep.memory.path.splice(0, 1);
                 }
 
-                creep.travelTo(thisPortal, {
+                creep.travelTo(thisPortal[0], {
                     ignoreRoads: true,
                     offRoad: true
                 });
