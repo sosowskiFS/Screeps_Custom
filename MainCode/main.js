@@ -830,15 +830,15 @@ module.exports.loop = function() {
                     }
                 }
 
-                if (Game.flags["BuildThis"] && thisRoom.name == 'E38N44') {
+                if (Game.flags["BuildThis"] && thisRoom.name == 'E44N41') {
                     var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E38N43;E38N42;E39N42;E40N42;E40N41;E40N40;E41N40;E42N40;E43N40;E44N40;E44N41');
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E33N44;E33N46;E32N46');
+                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
                         } else {
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName);
+                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName);
                         }
                     }
                 }
