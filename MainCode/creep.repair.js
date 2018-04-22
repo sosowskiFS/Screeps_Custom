@@ -89,27 +89,21 @@ function findNewTarget(creep, creepEnergy) {
                 } else {
                     //If using last bit of energy this tick, find new target
                     var repairResult = creep.repair(thisStructure);
-                    if (repairResult == ERR_NOT_IN_RANGE && Memory.warMode) {
+                    if (repairResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(thisStructure, {
                             maxRooms: 1
                         });
-                    } else if (!Memory.warMode) {
-                        if (creep.travelTo(thisStructure, {
-                                maxRooms: 1,
-                                range: 1
-                            }) == OK) {
-                            //Listen for creeps
-                            let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
-                            })
-                            if (talkingCreeps.length) {
-                                let coords = talkingCreeps[0].saying.split(";");
-                                if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-                                    //Standing in the way of a creep
-                                    let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-                                    creep.move(thisDirection);
-                                    creep.say("\uD83D\uDCA6", true);
-                                }
+                        //Listen for creeps
+                        let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                            filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+                        })
+                        if (talkingCreeps.length) {
+                            let coords = talkingCreeps[0].saying.split(";");
+                            if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                                //Standing in the way of a creep
+                                let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                                creep.move(thisDirection);
+                                creep.say("\uD83D\uDCA6", true);
                             }
                         }
                     }
