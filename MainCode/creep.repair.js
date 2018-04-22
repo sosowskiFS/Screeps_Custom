@@ -93,6 +93,7 @@ function findNewTarget(creep, creepEnergy) {
                         creep.travelTo(thisStructure, {
                             maxRooms: 1
                         });
+                    } else if (repairResult == OK) {
                         //Listen for creeps
                         let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                             filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
