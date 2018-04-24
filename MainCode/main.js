@@ -1099,10 +1099,12 @@ module.exports.loop = function() {
                     break;
                 default:
                     if (!creep.memory.priority) {
-                        creep.memory.priority = 'claimer';
+                        creep.memory.priority = 'constructor';
                         var creepPath = 'E39N40;E37N40;E37N39'.split(";");
                         creep.memory.path = creepPath;
+                        siteID: '5adf30bbeede472391ebd119';
                         creep.memory.destination = 'E37N39';
+                        creep.memory.homeRoom = 'E1N1';
                     }
                     if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                         var pre = Game.cpu.getUsed();
