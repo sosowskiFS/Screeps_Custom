@@ -59,7 +59,7 @@ global.lastMemoryTick = undefined;
 
 //profiler.enable();
 module.exports.loop = function() {
-    tryInitSameMemory();
+    //tryInitSameMemory();
     //profiler.wrap(function() {
     for (var name in Memory.creeps) {
         if (!Game.creeps[name]) {
