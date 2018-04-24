@@ -1104,7 +1104,7 @@ module.exports.loop = function() {
                         creep.memory.path = creepPath;
                         siteID: '5adf30bbeede472391ebd119';
                         creep.memory.destination = 'E37N39';
-                        creep.memory.homeRoom = 'E1N1';
+                        creep.memory.homeRoom = 'E37N39';
                     }
                     if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                         var pre = Game.cpu.getUsed();
