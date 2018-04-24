@@ -835,10 +835,10 @@ module.exports.loop = function() {
                     //if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
                             //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
                         } else {
                             //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName);
+                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName);
                         }
                     //}
                 }
