@@ -831,8 +831,8 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags["BuildThis"] && thisRoom.name == 'E44N41') {
-                    var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
-                    if (sitesOnTile.length) {
+                    //var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                    //if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
                             //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
                             spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
@@ -840,7 +840,7 @@ module.exports.loop = function() {
                             //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
                             spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', Game.flags["BuildThis"].pos.roomName);
                         }
-                    }
+                    //}
                 }
 
                 if (Game.flags[thisRoom.name + "RunningAssault"]) {
