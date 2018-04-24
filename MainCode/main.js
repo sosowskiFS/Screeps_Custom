@@ -1102,7 +1102,7 @@ module.exports.loop = function() {
                         creep.memory.priority = 'constructor';
                         var creepPath = 'E39N40;E37N40;E37N39'.split(";");
                         creep.memory.path = creepPath;
-                        creep.memory.siteID: '5adf30bbeede472391ebd119';
+                        creep.memory.siteID = '5adf30bbeede472391ebd119';
                         creep.memory.destination = 'E37N39';
                         creep.memory.homeRoom = 'E37N39';
                     }
