@@ -570,7 +570,8 @@ var spawn_BuildFarCreeps = {
                                 homeRoom: thisRoom.name,
                                 deathWarn: _.size(farMinerConfig) * 8,
                                 targetFlag: flagName,
-                                jobSpecific: jobSpecific
+                                jobSpecific: jobSpecific,
+                                nextReservationCheck: 0
                             }
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
