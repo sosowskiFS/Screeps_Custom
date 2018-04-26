@@ -532,7 +532,9 @@ var spawn_BuildCreeps5 = {
                                     jobSpecific: jobSpecificPri,
                                     deathWarn: _.size(minerConfig) * 6,
                                     fromSpawn: spawn.id,
-                                    homeRoom: thisRoom.name
+                                    homeRoom: thisRoom.name,
+                                    ignoreTravel: false,
+                                    atSpot: false
                                 }
                             });
                         } else {
@@ -544,7 +546,9 @@ var spawn_BuildCreeps5 = {
                                     jobSpecific: jobSpecificPri,
                                     deathWarn: _.size(minerConfig) * 5,
                                     fromSpawn: spawn.id,
-                                    homeRoom: thisRoom.name
+                                    homeRoom: thisRoom.name,
+                                    ignoreTravel: false,
+                                    atSpot: false
                                 }
                             });
                         }
