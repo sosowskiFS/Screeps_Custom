@@ -6,9 +6,10 @@ var creep_supplier = {
             creep.memory.priority = 'supplierNearDeath';
         }
 
-        if (Game.flags[creep.room.name + "Supply"] && (creep.pos.x != Game.flags[creep.room.name + "Supply"].pos.x || creep.pos.y != Game.flags[creep.room.name + "Supply"].pos.y)) {
+        if (!creep.memory.atSpot && Game.flags[creep.room.name + "Supply"] && (creep.pos.x != Game.flags[creep.room.name + "Supply"].pos.x || creep.pos.y != Game.flags[creep.room.name + "Supply"].pos.y)) {
             creep.travelTo(Game.flags[creep.room.name + "Supply"]);
         } else if (_.sum(creep.carry) == 0) {
+            creep.memory.atSpot = true;
             //Get from storage
             var storageTarget = creep.room.storage;
             if (storageTarget) {

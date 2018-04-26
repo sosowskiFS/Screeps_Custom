@@ -662,7 +662,8 @@ var spawn_BuildCreeps5 = {
                                 priority: prioritizedRole,
                                 deathWarn: _.size(supplierConfig) * 4,
                                 fromSpawn: spawn.id,
-                                homeRoom: thisRoom.name
+                                homeRoom: thisRoom.name,
+                                atSpot: false
                             }
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
