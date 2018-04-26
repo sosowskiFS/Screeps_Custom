@@ -34,14 +34,17 @@ var creep_farMiner = {
                 if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
                     if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
                         Memory.FarClaimerNeeded[creep.room.name] = true;
+                        creep.memory.nextReservationCheck = Game.time + 50;
                     } else if (Memory.FarClaimerNeeded[creep.room.name]) {
                         Memory.FarClaimerNeeded[creep.room.name] = false;
                         creep.memory.nextReservationCheck = Game.time + creep.room.controller.reservation.ticksToEnd - 1000;
                     }
                 } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
                     Memory.FarClaimerNeeded[creep.room.name] = true;
+                    creep.memory.nextReservationCheck = Game.time + 50;
                 } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
                     Memory.FarClaimerNeeded[creep.room.name] = false;
+                    creep.memory.nextReservationCheck = Game.time + 1500;
                 }
             }
 
