@@ -1315,6 +1315,7 @@ function memCheck() {
     Memory.powerCheckList["E88N88"] = ["E89N90", "E90N90", "E90N89"];
     Memory.powerCheckList["E38N46"] = ["E40N47", "E40N46", "E40N45"];
     Memory.powerCheckList["E21N58"] = ["E20N59", "E20N58", "E20N57"];
+    Memory.powerCheckList["E44N41"] = ["E43N40", "E44N40", "E45N40"];
     if (!Memory.observerList) {
         Memory.observerList = new Object();
     }
