@@ -136,10 +136,7 @@ var market_buyers = {
             if (!Memory.mineralNeed[neededMinerals[i]]) {
                 Memory.mineralNeed[neededMinerals[i]] = [];
             }
-            var mineralCap = 10000;
-            if ((neededMinerals[i] == RESOURCE_GHODIUM && ForNuker) || _.includes(neededMinerals[i], "X")) {
-                mineralCap = 5000;
-            }
+            var mineralCap = 5000;
             if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < mineralCap) {
                 if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) == -1) {
                     if ((neededMinerals[i] == RESOURCE_CATALYZED_GHODIUM_ACID && GH2OPriority == 0) || (neededMinerals[i] == RESOURCE_HYDROXIDE && HydroxidePriority == 0)) {
