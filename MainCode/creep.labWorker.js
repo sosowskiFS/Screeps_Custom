@@ -437,9 +437,9 @@ var creep_labWorker = {
                 }
             }
 
-            if (!foundWork && creep.room.storage && _.sum(creep.room.storage.store) != (creep.room.storage.store[RESOURCE_ENERGY] + creep.room.storage.store[RESOURCE_POWER])) {
+            if (!foundWork && creep.room.storage) {
                 //Take minerals out of storage and put them in the terminal
-                if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY) {
+                if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY && Object.keys(creep.room.storage.store)[1] != RESOURCE_POWER) {
                     var withdrawResult = "N/A"
                     for (var i = 0, len = Object.keys(creep.room.storage.store).length; i < len; i++) {
                         if (Object.keys(creep.room.storage.store)[i] == RESOURCE_POWER || Object.keys(creep.room.storage.store)[i] == RESOURCE_ENERGY) {
@@ -448,20 +448,25 @@ var creep_labWorker = {
                             withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[i]);
                         }
                     }
-                    if (withdrawResult == ERR_NOT_IN_RANGE) {
+					if (withdrawResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage, {
                             maxRooms: 1,
                             ignoreRoads: true
                         });
+                        foundWork = true;
                     } else if (withdrawResult != ERR_NOT_IN_RANGE && withdrawResult != "N/A") {
                         creep.travelTo(creep.room.terminal, {
                             maxRooms: 1,
                             ignoreRoads: true
                         });
                         creep.memory.movingOtherMineral = true;
+                        foundWork = true;
                     }
+                } else {
+                	foundWork = false;
                 }
-            } else if (!foundWork && creep.room.controller.level == 8 && Memory.nukerList[creep.room.name].length) {
+            }
+            if (!foundWork && creep.room.controller.level == 8 && Memory.nukerList[creep.room.name].length) {
                 //Fill the nuker
                 var thisNuker = Game.getObjectById(Memory.nukerList[creep.room.name][0])
                 if (thisNuker && thisNuker.ghodiumCapacity > thisNuker.ghodium && !creep.carry[RESOURCE_GHODIUM] && creep.room.terminal.store[RESOURCE_GHODIUM]) {
