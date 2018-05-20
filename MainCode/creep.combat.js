@@ -74,7 +74,11 @@ var creep_combat = {
                     var found = false;
                     for (var y = 0; y < lookResult.length; y++) {
                         if (lookResult[y].structureType == STRUCTURE_RAMPART) {
-                            creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
+                        	if (creep.pos.inRangeTo(closeFoe, 3)) {
+                        		creep.memory.waitingTimer = 0;
+                        	} else {
+                        		creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
+                        	}  
                             found = true;
                             break;
                         }
