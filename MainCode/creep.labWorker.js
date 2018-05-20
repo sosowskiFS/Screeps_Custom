@@ -439,7 +439,7 @@ var creep_labWorker = {
 
             if (!foundWork && creep.room.storage) {
                 //Take minerals out of storage and put them in the terminal
-                if (Object.keys(creep.room.storage.store).length > 1 && Object.keys(creep.room.storage.store)[1] != RESOURCE_ENERGY && Object.keys(creep.room.storage.store)[1] != RESOURCE_POWER) {
+                if (Object.keys(creep.room.storage.store).length > 1) {
                     var withdrawResult = "N/A"
                     for (var i = 0, len = Object.keys(creep.room.storage.store).length; i < len; i++) {
                         if (Object.keys(creep.room.storage.store)[i] == RESOURCE_POWER || Object.keys(creep.room.storage.store)[i] == RESOURCE_ENERGY) {
