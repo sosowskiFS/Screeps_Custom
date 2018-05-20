@@ -358,7 +358,7 @@ var spawn_BuildCreeps5 = {
                 var totalParts = 0;
 
                 var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
-                while ((remainingEnergy / 340) >= 1) {
+                while ((remainingEnergy / 410) >= 1) {
                     //switch (ChosenPriority) {
                     //case 'melee':
                     //ToughCount = ToughCount + 1;
