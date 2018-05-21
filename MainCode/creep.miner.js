@@ -13,21 +13,19 @@ var creep_miner = {
                 creep.travelTo(Game.flags[creep.room.name + creep.memory.jobSpecific]);
             } else {
                 creep.memory.atSpot = true;
-            }          
+            }
         }
         //Creep will immediately harvest and store mined materials
-        var mineTarget = Game.getObjectById(creep.memory.mineSource);
+        let mineTarget = Game.getObjectById(creep.memory.mineSource);
         if (mineTarget) {
-            if (mineTarget.energy > 0) {
-                if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !creep.memory.ignoreTravel) {
-                    creep.travelTo(mineTarget);
-                }
+            if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !creep.memory.ignoreTravel) {
+                creep.travelTo(mineTarget);
             }
 
             if (creep.carry.energy >= 40) {
-                var storageTarget = Game.getObjectById(creep.memory.linkSource);
+                let storageTarget = Game.getObjectById(creep.memory.linkSource);
                 if (creep.memory.jobSpecific == 'upgradeMiner') {
-                    var storageTarget2 = undefined;
+                    let storageTarget2 = undefined;
                     if (creep.memory.linkSource2) {
                         storageTarget2 = Game.getObjectById(creep.memory.linkSource2);
                     }
