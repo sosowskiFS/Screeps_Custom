@@ -20,7 +20,7 @@ var creep_work5 = {
                 if (_.sum(creep.carry) == 0) {
                     creep.memory.structureTarget = undefined;
                     let storageTarget = creep.room.storage;
-                    if (storageTarget) {                   
+                    if (storageTarget) {
                         if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                             //Pull from terminal if given resources
                             if (creep.withdraw(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -175,10 +175,10 @@ var creep_work5 = {
                                 if (terminalTarget) {
                                     let targetEnergy = 0;
                                     if (creep.room.storage) {
-                                        if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
-                                            targetEnergy = 30000;
-                                        } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 350000) {
+                                        if (creep.room.storage.store[RESOURCE_ENERGY] >= 350000) {
                                             targetEnergy = 60000;
+                                        } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
+                                            targetEnergy = 30000;
                                         }
                                     }
                                     if (terminalTarget.store[RESOURCE_ENERGY] < targetEnergy && (terminalTarget.storeCapacity - 5000) > _.sum(terminalTarget.store)) {
