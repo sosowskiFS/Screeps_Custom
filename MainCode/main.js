@@ -337,60 +337,6 @@ module.exports.loop = function() {
                     }
                 }
 
-                //Execute special instruction written into console
-                //DEPRECIATED - ADD INSTRUCTION TO SPAWN BLOCK
-                /*if (Game.flags["DrainTurret"]) {
-                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["DrainTurret"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                        roomDist = theDistance;
-                        roomName = thisRoom.name;
-                        roomEnergy = thisRoom.energyCapacityAvailable;
-                        instructionSpawn = Game.spawns[i];
-                    }
-                }
-
-                if (Game.flags["Loot"] && !Memory.lootSpawn) {
-                    if (thisRoom.storage) {
-                        var thisRoute = Game.map.findRoute(Game.flags["Loot"].pos.roomName, thisRoom.name, {
-                            routeCallback(roomName, fromRoomName) {
-                                if (Memory.blockedRooms.indexOf(roomName) > -1) { // avoid this room
-                                    return Infinity;
-                                }
-                                return 1;
-                            }
-                        });
-                        if (thisRoute != -2) {
-                            var theDistance = _.size(thisRoute);
-                            if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                                roomDist = theDistance;
-                                roomName = thisRoom.name;
-                                roomEnergy = thisRoom.energyCapacityAvailable;
-                                instructionSpawn = Game.spawns[i];
-                            }
-                        }
-                    }
-                }
-
-                if (Game.flags["SignThis"]) {
-                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["SignThis"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                        roomDist = theDistance;
-                        roomName = thisRoom.name;
-                        roomEnergy = thisRoom.energyCapacityAvailable;
-                        instructionSpawn = Game.spawns[i];
-                    }
-                }
-
-                if (Game.flags["WallThis"]) {
-                    var theDistance = Game.map.getRoomLinearDistance(Game.flags["WallThis"].pos.roomName, thisRoom.name);
-                    if (theDistance < roomDist || (theDistance == roomDist && thisRoom.energyCapacityAvailable > roomEnergy)) {
-                        roomDist = theDistance;
-                        roomName = thisRoom.name;
-                        roomEnergy = thisRoom.energyCapacityAvailable;
-                        instructionSpawn = Game.spawns[i];
-                    }
-                }*/
-
                 //Get non-suppliers off the supplier spot
                 if (Game.flags[thisRoom.name + "Supply"]) {
                     var creepCheck = Game.flags[thisRoom.name + "Supply"].pos.lookFor(LOOK_CREEPS);
@@ -663,6 +609,16 @@ module.exports.loop = function() {
                     }
                 }
 
+                if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage) {
+                    if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < 300000) {
+                        Memory.energyNeedRooms.push(thisRoom.name);
+                    } else if (Memory.energyNeedRooms.indexOf(thisRoom.name) != -1 && thisRoom.storage.store[RESOURCE_ENERGY] >= 310000) {
+                        let tempIndex = Memory.energyNeedRooms.indexOf(thisRoom.name);
+                        Memory.energyNeedRooms.splice(tempIndex, 1);
+                    }
+                }
+
+
                 //Review market data and sell to buy orders
                 if (Game.time % 50 == 0 && thisRoom.terminal) {
                     market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
@@ -833,13 +789,13 @@ module.exports.loop = function() {
                 if (Game.flags["BuildThis"] && thisRoom.name == 'E37N39') {
                     //var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     //if (sitesOnTile.length) {
-                        if (Game.flags["UseDefinedRoute"]) {
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName, 'E37N40;E32N40;E32N39');
-                        } else {
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName);
-                        }
+                    if (Game.flags["UseDefinedRoute"]) {
+                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E44N40;E40N40');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName, 'E37N40;E32N40;E32N39');
+                    } else {
+                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
+                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName);
+                    }
                     //}
                 }
 
@@ -1236,6 +1192,9 @@ function memCheck() {
     }
     if (!Memory.blockedRooms) {
         Memory.blockedRooms = ['E84N87', 'E83N88', 'E82N87', 'E83N86', 'E81N84', 'E82N83', 'E81N81', 'E84N82', 'E86N81', 'E88N81'];
+    }
+    if (!Memory.energyNeedRooms) {
+        Memory.energyNeedRooms = [];
     }
     //Boolean
     if (Memory.warMode == null) {

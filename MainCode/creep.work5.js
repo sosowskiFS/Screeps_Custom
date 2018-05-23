@@ -19,9 +19,14 @@ var creep_work5 = {
                 }
                 if (_.sum(creep.carry) == 0) {
                     creep.memory.structureTarget = undefined;
-                    var storageTarget = creep.room.storage;
-                    if (storageTarget) {
-                        if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
+                    let storageTarget = creep.room.storage;
+                    if (storageTarget) {                   
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                            //Pull from terminal if given resources
+                            if (creep.withdraw(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(creep.room.terminal);
+                            }
+                        } else if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
                             //Get from container
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(storageTarget);
@@ -168,7 +173,15 @@ var creep_work5 = {
                                 //Store in terminal
                                 var terminalTarget = Game.getObjectById(creep.memory.terminalID)
                                 if (terminalTarget) {
-                                    if (terminalTarget.store[RESOURCE_ENERGY] < 30000 && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 50000 && (terminalTarget.storeCapacity - 5000) > _.sum(terminalTarget.store)) {
+                                    let targetEnergy = 0;
+                                    if (creep.room.storage) {
+                                        if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
+                                            targetEnergy = 30000;
+                                        } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 350000) {
+                                            targetEnergy = 60000;
+                                        }
+                                    }
+                                    if (terminalTarget.store[RESOURCE_ENERGY] < targetEnergy && (terminalTarget.storeCapacity - 5000) > _.sum(terminalTarget.store)) {
                                         creep.memory.structureTarget = terminalTarget.id;
                                         if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                             creep.travelTo(terminalTarget);

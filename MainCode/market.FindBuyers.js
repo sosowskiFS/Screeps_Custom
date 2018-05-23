@@ -182,6 +182,29 @@ var market_buyers = {
                         }
                     }
                 }
+
+                if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length) {
+                    //Send energy to requesting room
+                    let targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal
+                    let amountAvailable = TerminalEnergy - 30000;
+                    let targetStoreCap = 60000;
+                    if (targetTerminal) {
+                        let amountToSend = 30000;
+                        if (targetTerminal.store[RESOURCE_ENERGY]) {
+                            amountToSend = targetStoreCap - targetTerminal.store[RESOURCE_ENERGY];
+                        }
+                        if (amountToSend > amountAvailable) {
+                            amountToSend = amountAvailable
+                        }
+                        if (thisTerminal.send(RESOURCE_ENERGY, amountToSend, Memory.energyNeedRooms[0], thisTerminal.room.name + " has gotchu, fam.") == OK) {
+                            Memory.energyNeedRooms.splice(0, 1);
+                            hasSent = true;
+                        }
+                    } else {
+                        //No terminal, remove this room from the list
+                        Memory.energyNeedRooms.splice(0, 1);
+                    }
+                }
             }
 
             var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST];
@@ -190,11 +213,11 @@ var market_buyers = {
             var keepAmount = 20000;
             var MaxSaleAmount = 30000;
             if ((thisTerminal.storeCapacity - 5000) <= _.sum(thisTerminal.store)) {
-            	sellEnergyCap = 10000;
+                sellEnergyCap = 10000;
                 keepAmount = 3000;
                 MaxSaleAmount = TerminalEnergy + 5000;
             }
-            if (!hasSent && TerminalEnergy >= sellEnergyCap && Game.time % 1000 == 0) {        
+            if (!hasSent && TerminalEnergy >= sellEnergyCap && Game.time % 1000 == 0) {
                 for (var y in sellMinerals) {
                     var mineralInTerminal = thisTerminal.store[sellMinerals[y]] - keepAmount;
                     if (sellMinerals[y] == RESOURCE_CATALYST) {
@@ -244,19 +267,16 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
     if (thisTerminal.store[thisMineral] && Game.rooms[targetRoom]) {
         var targetTerminal = Game.rooms[targetRoom].terminal
         var amountAvailable = thisTerminal.store[thisMineral];
-        var targetStoreCap = 15000;
-        if (nukerLimit || _.includes(thisMineral, "X")) {
-            targetStoreCap = 5000;
-        }
+        var targetStoreCap = 5000;
         if (saveFlag) {
             if (thisMineral == RESOURCE_GHODIUM || _.includes(thisMineral, "X")) {
                 amountAvailable = thisTerminal.store[thisMineral] - 5000;
             } else {
-                amountAvailable = thisTerminal.store[thisMineral] - 20000;
+                amountAvailable = thisTerminal.store[thisMineral] - 5000;
             }
         }
-        if (amountAvailable > 20000) {
-            amountAvailable = 20000;
+        if (amountAvailable > 5000) {
+            amountAvailable = 5000;
         }
         if (amountAvailable >= 100) {
             if (targetTerminal && !targetTerminal.store[thisMineral]) {
