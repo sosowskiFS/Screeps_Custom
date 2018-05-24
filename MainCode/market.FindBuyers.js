@@ -183,7 +183,7 @@ var market_buyers = {
                     }
                 }
 
-                if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length) {
+                if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length && Memory.energyNeedRooms[0] != thisRoom.name) {
                     //Send energy to requesting room
                     let targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal
                     let amountAvailable = TerminalEnergy - 30000;
