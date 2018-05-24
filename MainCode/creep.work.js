@@ -412,7 +412,9 @@ var creep_work = {
                 }
                 if (!targets && creep.memory.priority != 'supplier' && creep.memory.priority != 'distributor') {
                     //Mine it yourself
-                    var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                    var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+                        filter: (thisResource) => (thisResource.resourceType == RESOURCE_ENERGY)
+                    });
                     if (Memory.warMode) {
                         sources = undefined;
                     }
