@@ -70,7 +70,7 @@ var creep_combat = {
                     creep.memory.waitingTimer = 0
                 }
                 var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
-                if (lookResult.length && creep.memory.waitingTimer < 10) {
+                if (lookResult.length && creep.memory.waitingTimer < 50) {
                     var found = false;
                     for (var y = 0; y < lookResult.length; y++) {
                         if (lookResult[y].structureType == STRUCTURE_RAMPART) {
