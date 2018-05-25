@@ -1,6 +1,6 @@
 var spawn_BuildFarCreeps = {
     run: function(spawn, thisRoom, energyIndex) {
-        if (!spawn.spawning && Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1) {
+        if (!spawn.spawning && thisRoom.storage && Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1) {
             let controlledCreeps = Game.creeps;
 
             let eFarGuards = [];

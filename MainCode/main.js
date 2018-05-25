@@ -189,7 +189,7 @@ module.exports.loop = function() {
                         Memory.roomsUnderAttack.push(towers[y].room.name);
                         RampartDirection = "Closed";
                         if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
-                            //Memory.roomsPrepSalvager.push(towers[y].room.name);
+                            Memory.roomsPrepSalvager.push(towers[y].room.name);
                         } else if (Memory.RoomsAt5.indexOf(towers[y].room.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
                             //No good combat code! SAFE MODE!
                             if (!towers[y].room.controller.safeMode && (hostiles[0].getActiveBodyparts(ATTACK) > 0 || hostiles[0].getActiveBodyparts(RANGED_ATTACK) > 0 || hostiles[0].getActiveBodyparts(WORK) > 0)) {
@@ -198,14 +198,14 @@ module.exports.loop = function() {
                         }
                     } else if (hostiles.length == 0) {
                         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(towers[y].room.name);
-                        //var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
+                        var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
                         if (UnderAttackPos >= 0) {
                             Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
                             RampartDirection = "Open"
                         }
-                        //if (salvagerPos >= 0) {
-                            //Memory.roomsPrepSalvager.splice(salvagerPos, 1);
-                        //}
+                        if (salvagerPos >= 0) {
+                            Memory.roomsPrepSalvager.splice(salvagerPos, 1);
+                        }
                     }
 
                     if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) > -1 && !towers[y].room.controller.safeMode) {
