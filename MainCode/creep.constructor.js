@@ -30,6 +30,19 @@ var creep_constructor = {
                 } else {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
                 }
+
+                if (creep.room.controller && !creep.room.controller.my) {
+                	if (creep.room.controller.reservation && creep.room.controller.reservation.username == "Montblanc"){
+                		//Soak
+                	} else {
+                		var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                        });
+                        if (somethingNearby) {
+                            creep.dismantle(somethingNearby);
+                        }
+                	}
+                }
             } else {
                 var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
                 if (sources) {

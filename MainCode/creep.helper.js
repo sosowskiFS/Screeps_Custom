@@ -21,6 +21,19 @@ var creep_Helper = {
             } else {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }
+
+                            if (creep.room.controller && !creep.room.controller.my) {
+                    if (creep.room.controller.reservation && creep.room.controller.reservation.username == "Montblanc"){
+                        //Soak
+                    } else {
+                        var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                        });
+                        if (somethingNearby) {
+                            creep.dismantle(somethingNearby);
+                        }
+                    }
+                }
         } else {
             creep.memory.priority = 'harvester';
             creep.travelTo(creep.room.controller);
