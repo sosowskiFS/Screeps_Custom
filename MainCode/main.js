@@ -778,19 +778,19 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', energyIndex, '', '');
                 }
 
-                if (Game.flags["ClaimThis"] && thisRoom.name == 'E32N39') {
+                if (Game.flags["ClaimThis"] && thisRoom.name == 'E27N43') {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex, '', 'E30N39;E30N40;E28N40;E28N43;E27N43');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex, '', 'E28N43;E28N40;E22N40;E22N42');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex);
                     }
                 }
 
-                if (Game.flags["BuildThis"] && thisRoom.name == 'E32N39') {
+                if (Game.flags["BuildThis"] && thisRoom.name == 'E27N43') {
                     var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     if (sitesOnTile.length) {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E30N39;E30N40;E28N40;E28N43;E27N43');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName, 'E28N43;E28N40;E22N40;E22N42');
                         //spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName, 'E30N39;E30N40;E28N40;E28N43;E27N43');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags["BuildThis"].pos.roomName);
@@ -819,7 +819,7 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E30N39;E30N40;E28N40;E28N43;E27N43');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E28N43;E28N40;E22N40;E22N42');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex);
                     }
