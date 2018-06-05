@@ -151,9 +151,8 @@ var creep_farMule = {
                                 filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                             });
                             if (containers.length > 1) {
-                                containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
-                                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                                });
+                                //Sort, choose container with more energy in it
+                                containers.sort(storageCompare);
                             }
                             if (containers.length) {
                                 creep.memory.containerTarget = containers[0].id;
@@ -422,6 +421,14 @@ function repairCompare(a, b) {
         return -1;
     if (a.hits > b.hits)
         return 1;
+    return 0;
+}
+
+function storageCompare(a, b) {
+    if (_.sum(a.store) < _.sum(b.store))
+        return 1;
+    if (_.sum(a.store) > _.sum(b.store))
+        return -1;
     return 0;
 }
 
