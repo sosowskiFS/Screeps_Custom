@@ -148,10 +148,10 @@ var creep_farMule = {
                         if (creep.pos.inRangeTo(thisSource, 2)) {
                             //Check for a miner that's working with the same source
                             var myMiner = creep.room.find(FIND_MY_CREEPS, {
-                                filter: (thisCreep) => thisCreep.memory.mineSource == creep.memory.mineSource
+                                filter: (thisCreep) => thisCreep.memory.mineSource == creep.memory.mineSource && thisCreep.memory.storageUnit != null
                             })
                             if (myMiner.length) {
-                                creep.memory.containerTarget = myMiner.memory.storageUnit
+                                creep.memory.containerTarget = myMiner.memory.storageUnit;
                                 creep.travelTo(myMiner);
                             } else {
                                 creep.travelTo(thisSource, {
