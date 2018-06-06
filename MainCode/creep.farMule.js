@@ -152,7 +152,7 @@ var creep_farMule = {
                             })
                             if (myMiner.length) {
                                 creep.memory.containerTarget = myMiner[0].memory.storageUnit;
-                                creep.travelTo(myMiner);
+                                creep.travelTo(myMiner[0]);
                             } else {
                                 creep.travelTo(thisSource, {
                                     ignoreRoads: roadIgnore
