@@ -146,26 +146,35 @@ var creep_farMule = {
                     if (thisSource) {
                         //doReservationCheck(creep);
                         if (creep.pos.inRangeTo(thisSource, 2)) {
-                            //Search for container
-                            var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
-                                filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                            });
-                            if (containers.length > 1) {
-                                //Sort, choose container with more energy in it
-                                containers.sort(storageCompare);
-                            }
-                            if (containers.length) {
-                                creep.memory.containerTarget = containers[0].id;
-                                if (Object.keys(containers[0].store).length > 1) {
-                                    if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
+                            //Check for a miner that's working with the same source
+                            var myMiner = creep.room.find(FIND_MY_CREEPS, {
+                                filter: (thisCreep) => thisCreep.memory.mineSource == creep.memory.mineSource
+                            })
+                            if (myMiner.length) {
+                                creep.memory.containerTarget = myMiner.memory.storageUnit
+                                creep.travelTo(myMiner);
+                            } else {
+                                //Search for container
+                                var containers = creep.pos.findInRange(FIND_STRUCTURES, 5, {
+                                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                                });
+                                if (containers.length > 1) {
+                                    //Sort, choose container with more energy in it
+                                    containers.sort(storageCompare);
+                                }
+                                if (containers.length) {
+                                    creep.memory.containerTarget = containers[0].id;
+                                    if (Object.keys(containers[0].store).length > 1) {
+                                        if (creep.withdraw(containers[0], Object.keys(containers[0].store)[1]) == ERR_NOT_IN_RANGE) {
+                                            creep.travelTo(containers[0], {
+                                                ignoreRoads: roadIgnore
+                                            });
+                                        }
+                                    } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
                                         creep.travelTo(containers[0], {
                                             ignoreRoads: roadIgnore
                                         });
                                     }
-                                } else if (Object.keys(containers[0].store).length && creep.withdraw(containers[0], Object.keys(containers[0].store)[0]) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(containers[0], {
-                                        ignoreRoads: roadIgnore
-                                    });
                                 }
                             }
                         } else {
