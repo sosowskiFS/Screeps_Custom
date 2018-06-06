@@ -147,12 +147,17 @@ var creep_farMule = {
                         //doReservationCheck(creep);
                         if (creep.pos.inRangeTo(thisSource, 2)) {
                             //Check for a miner that's working with the same source
-                            var myMiner = creep.room.find(FIND_MY_CREEPS, {
+                            let myMiner = creep.room.find(FIND_MY_CREEPS, {
                                 filter: (thisCreep) => thisCreep.memory.mineSource == creep.memory.mineSource && thisCreep.memory.storageUnit != null
                             })
                             if (myMiner.length) {
                                 creep.memory.containerTarget = myMiner[0].memory.storageUnit;
-                                creep.travelTo(myMiner[0]);
+                                let thisUnit = Game.getObjectById(creep.memory.containerTarget);
+                                if (thisUnit) {
+                                    creep.travelTo(thisUnit);
+                                } else {
+                                    creep.travelTo(myMiner[0]);
+                                }                        
                             } else {
                                 creep.travelTo(thisSource, {
                                     ignoreRoads: roadIgnore
