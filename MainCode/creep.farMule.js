@@ -151,7 +151,7 @@ var creep_farMule = {
                                 filter: (thisCreep) => thisCreep.memory.mineSource == creep.memory.mineSource && thisCreep.memory.storageUnit != null
                             })
                             if (myMiner.length) {
-                                creep.memory.containerTarget = myMiner.memory.storageUnit;
+                                creep.memory.containerTarget = myMiner[0].memory.storageUnit;
                                 creep.travelTo(myMiner);
                             } else {
                                 creep.travelTo(thisSource, {
