@@ -78,7 +78,7 @@ var spawn_BuildInstruction = {
                                     priority: 'constructor',
                                     siteID: params,
                                     destination: thisRoom,
-                                    homeRoom: spawn.room.name,
+                                    homeRoom: thisRoom,
                                     path: creepPath
                                 }
                             });
@@ -92,7 +92,7 @@ var spawn_BuildInstruction = {
                                 memory: {
                                     priority: 'constructor',
                                     destination: thisRoom,
-                                    homeRoom: spawn.room.name,
+                                    homeRoom: thisRoom,
                                     siteID: params
                                 }
                             });
