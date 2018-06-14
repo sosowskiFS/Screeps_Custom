@@ -76,6 +76,7 @@ var creep_constructor = {
                 //creep.memory.priority = 'helper';
                 if (creep.memory.homeRoom && !Game.flags[creep.memory.homeRoom + "SendHelper"]) {
                     creep.pos.createFlag(creep.memory.homeRoom + "SendHelper");
+                    creep.memory.homeRoom = creep.room.name;
                 }
             }
         }
