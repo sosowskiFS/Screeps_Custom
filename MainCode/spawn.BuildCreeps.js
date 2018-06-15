@@ -89,21 +89,14 @@ var spawn_BuildCreeps = {
             var totalParts = 0;
 
             var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
-            var thisBuildAmount = 410;
+            var thisBuildAmount = 500;
             while ((remainingEnergy / thisBuildAmount) >= 1) {
                 //switch (ChosenPriority) {
                 //case 'melee':
                 //ToughCount = ToughCount + 1;
                 MoveCount = MoveCount + 2;
-                if (RangedCount == 0) {
-                    RangedCount = 1;
-                    AttackCount = AttackCount + 2;
-                    remainingEnergy = remainingEnergy - 410;
-                    thisBuildAmount = 340;
-                } else {
-                    AttackCount = AttackCount + 3;
-                    remainingEnergy = remainingEnergy - 340;
-                }
+                RangedCount = RangedCount + 3;
+                remainingEnergy = remainingEnergy - 500;
                 //RangedCount = RangedCount + 1;
                 totalParts = totalParts + 5;
                 //break;

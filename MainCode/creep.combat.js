@@ -32,7 +32,7 @@ var creep_combat = {
                 }
                 if (boostFlag && creep.room.controller.level >= 6) {
                     var attackLab = creep.room.find(FIND_MY_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
+                        filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                     });
                     var mineralCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_MINERAL;
                     var energyCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_ENERGY;
@@ -57,7 +57,7 @@ var creep_combat = {
 
             if (creep.memory.needBoosts && unboostedAttack > 0) {
                 var thisLab = creep.room.find(FIND_MY_STRUCTURES, {
-                    filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
+                    filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                 });
                 if (thisLab.length) {
                     creep.travelTo(thisLab[0]);
@@ -98,9 +98,7 @@ var creep_combat = {
 
             if (closeFoe) {
                 if (creep.pos.inRangeTo(closeFoe, 3)) {
-                    creep.rangedMassAttack();
-                }
-                if (creep.attack(closeFoe) == OK) {
+                    creep.rangedAttack(closeFoe);
                     creep.memory.waitingTimer = 0;
                 }
             }

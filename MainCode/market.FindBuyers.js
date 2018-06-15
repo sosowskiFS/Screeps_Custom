@@ -9,13 +9,10 @@ var market_buyers = {
         var ForNuker = true;
         //Always requested minerals for boosts
         if (thisRoom.controller.level >= 6) {
-            neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID); //Attack boost, defenders
+            neededMinerals.push(RESOURCE_CATALYZED_KEANIUM_ALKALIDE); //Ranged boost, defenders
             //if (thisRoom.controller.level != 8) {
             neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID); //Upgrade boost
             GH2OPriority = 0;
-            //} else {
-            //neededMinerals.push(RESOURCE_CATALYZED_KEANIUM_ALKALIDE); //Ranged boost
-            //}
             neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ACID); //Repair boost
         }
         if (thisRoom.controller.level == 8) {
