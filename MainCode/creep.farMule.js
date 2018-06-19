@@ -96,7 +96,8 @@ var creep_farMule = {
                         }
                         if (_.sum(thisContainer.store) < (creep.carryCapacity - 300) - _.sum(creep.carry)) {
                             creep.travelTo(thisContainer, {
-                                ignoreRoads: roadIgnore
+                                ignoreRoads: roadIgnore,
+                                range: 1
                             });
                         } else if (Object.keys(thisContainer.store).length > 1) {
                             if (creep.withdraw(thisContainer, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
