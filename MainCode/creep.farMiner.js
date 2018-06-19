@@ -86,6 +86,9 @@ var creep_farMiner = {
                 if (thisUnit.hits < thisUnit.hitsMax) {
                     creep.repair(thisUnit);
                 }
+                if (creep.pos != thisUnit.pos) {
+                    creep.travelTo(thisUnit);
+                }
             } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
                 let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 1, {
                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
