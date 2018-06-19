@@ -19,7 +19,7 @@ var creep_powerCollect = {
                 if (Game.flags[creep.memory.homeRoom + "PowerGather"]) {
                     //Bank still active, hold.
                     creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"], {
-                        range: 5
+                        range: 3
                     });
                 } else {
                     //Pick up
@@ -30,8 +30,16 @@ var creep_powerCollect = {
                     if (_.sum(creep.carry) < creep.carryCapacity) {
                         var something = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 30);
                         if (something.length) {
-                            if (creep.pickup(something[0]) == ERR_NOT_IN_RANGE) {
+                            let pickupResult = creep.pickup(something[0]);
+                            if (pickupResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(something[0]);
+                            } else if (pickupResult == OK && something[0].amount >= (creep.carryCapacity - _.sum(creep.carry))) {
+                                creep.memory.mode = 1;
+                                if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
+                                    creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
+                                } else {
+                                    creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
+                                }
                             }
                         } else {
                             returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
