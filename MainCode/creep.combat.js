@@ -17,10 +17,12 @@ var creep_combat = {
             });
 
             var closeFoe = Game.getObjectById(Memory.towerPickedTarget[creep.room.name]);
+            var massAttackFlag = false;
             if (!closeFoe) {
                 closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
                     filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
+                massAttackFlag = true;
             }
 
             if (Foe.length) {
@@ -100,7 +102,11 @@ var creep_combat = {
             }
 
             if (closeFoe && creep.pos.inRangeTo(closeFoe, 3)) {
-                creep.rangedAttack(closeFoe);
+                if (massAttackFlag) {
+                    creep.rangedMassAttack(closeFoe);
+                } else {
+                    creep.rangedAttack(closeFoe);
+                }
                 creep.memory.waitingTimer = 0;
             }
         }
