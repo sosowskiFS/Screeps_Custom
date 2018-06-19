@@ -31,7 +31,7 @@ var creep_powerAttack = {
                             //Game.notify('Power flag deleted - Cannot find bank. Initial look |' + creep.room.name);
                         }
                     } catch (e) {
-                        creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"])
+                    	creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"])
                     }
 
                 } else if (creep.hits >= 2500) {
