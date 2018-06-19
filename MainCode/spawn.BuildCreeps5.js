@@ -869,13 +869,13 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'salvager') {
                     Memory.isSpawning = true;
-                    let configCost = calculateConfigCost([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]);
+                    let configCost = calculateConfigCost([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], 'salvager_' + spawn.name + '_' + Game.time, {
                             memory: {
                                 priority: prioritizedRole,
-                                deathWarn: _.size([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY]) * 6,
+                                deathWarn: _.size([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]) * 6,
                                 storageTarget: thisRoom.storage.id,
                                 homeRoom: thisRoom.name
                             }

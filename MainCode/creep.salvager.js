@@ -6,6 +6,11 @@ var creep_salvager = {
             creep.memory.priority = 'labWorkerNearDeath';
         }
 
+        if (creep.hits <= 300){
+            //Carry = 0
+            creep.suicide();
+        }
+
         var newTarget = false;
         var foundObject = findTarget(creep, 0);
         if (!foundObject) {

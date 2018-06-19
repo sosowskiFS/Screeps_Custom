@@ -16,9 +16,12 @@ var creep_combat = {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
             });
 
-            var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-            });
+            var closeFoe = Game.getObjectById(Memory.towerPickedTarget[creep.room.name]);
+            if (!closeFoe) {
+                closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                });
+            }
 
             if (Foe.length) {
                 Foe.sort(targetOther);
@@ -34,8 +37,8 @@ var creep_combat = {
                     var attackLab = creep.room.find(FIND_MY_STRUCTURES, {
                         filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                     });
-                    var mineralCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_MINERAL;
-                    var energyCost = creep.getActiveBodyparts(ATTACK) * LAB_BOOST_ENERGY;
+                    var mineralCost = creep.getActiveBodyparts(RANGED_ATTACK) * LAB_BOOST_MINERAL;
+                    var energyCost = creep.getActiveBodyparts(RANGED_ATTACK) * LAB_BOOST_ENERGY;
                     if (attackLab.length && attackLab[0].mineralAmount >= mineralCost && attackLab[0].energy >= energyCost) {
                         creep.memory.needBoosts = true;
                     } else {
@@ -49,7 +52,7 @@ var creep_combat = {
             var unboostedAttack = 0;
             if (creep.memory.needBoosts && creep.room.controller.level >= 6) {
                 creep.body.forEach(function(thisPart) {
-                    if (thisPart.type == ATTACK && !thisPart.boost) {
+                    if (thisPart.type == RANGED_ATTACK && !thisPart.boost) {
                         unboostedAttack = unboostedAttack + 1;
                     }
                 });
@@ -74,11 +77,11 @@ var creep_combat = {
                     var found = false;
                     for (var y = 0; y < lookResult.length; y++) {
                         if (lookResult[y].structureType == STRUCTURE_RAMPART) {
-                        	if (creep.pos.inRangeTo(closeFoe, 3)) {
-                        		creep.memory.waitingTimer = 0;
-                        	} else {
-                        		creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
-                        	}  
+                            if (creep.pos.inRangeTo(closeFoe, 3)) {
+                                creep.memory.waitingTimer = 0;
+                            } else {
+                                creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
+                            }
                             found = true;
                             break;
                         }
@@ -96,11 +99,9 @@ var creep_combat = {
                 }
             }
 
-            if (closeFoe) {
-                if (creep.pos.inRangeTo(closeFoe, 3)) {
-                    creep.rangedAttack(closeFoe);
-                    creep.memory.waitingTimer = 0;
-                }
+            if (closeFoe && creep.pos.inRangeTo(closeFoe, 3)) {
+                creep.rangedAttack(closeFoe);
+                creep.memory.waitingTimer = 0;
             }
         }
     }
