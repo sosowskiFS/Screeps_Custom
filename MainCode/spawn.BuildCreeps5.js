@@ -446,7 +446,7 @@ var spawn_BuildCreeps5 = {
                 storageID = thisRoom.storage.id;
                 connectedLink = strLinks[1];
                 creepSource = strTerminal;
-                if (thisRoom.energyAvailable < 1600) {
+                if (thisRoom.energyAvailable < 1200) {
                     //Spawn a panicMule
                     panicMule = true;
                 }
