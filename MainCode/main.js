@@ -295,7 +295,7 @@ module.exports.loop = function() {
                 drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 6, 0.5);
 
                 //CPUAverage
-                drawPie(vis, Memory.CPUAverages.TotalCPU.CPU, Game.cpu.limit, 'Average', getColourByPercentage(Math.min(1, Memory.CPUAverages.TotalCPU.CPU / Game.cpu.limit), true), 9, 0.5);
+                drawPie(vis, Math.round(Memory.CPUAverages.TotalCPU.CPU * 100) / 100, Game.cpu.limit, 'Average', getColourByPercentage(Math.min(1, Memory.CPUAverages.TotalCPU.CPU / Game.cpu.limit), true), 9, 0.5);
 
                 //Controller Progress + Storage Amount
                 if (thisRoom.controller.level < 8) {
