@@ -305,7 +305,7 @@ var creep_work5 = {
                             getNewStructure = true;
                             creep.memory.structureTarget = undefined;
                         }
-                    } else if (savedTarget) {
+                    } else if (!savedTarget) {
                         getNewStructure = true;
                         creep.memory.structureTarget = undefined;
                     }
