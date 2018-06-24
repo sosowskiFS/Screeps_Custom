@@ -326,6 +326,24 @@ var creep_work5 = {
                                 }
                             });
                         }
+                        if (!target) {
+                            //Find closest by path will not return anything if path is blocked
+                            if (getNewStructure) {
+                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                filter: (structure) => {
+                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                }
+                                });
+                            } else {
+                                target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+                                    }
+                                });
+                            }
+                        }
 
                         if (target) {
                             if (getNewStructure) {
