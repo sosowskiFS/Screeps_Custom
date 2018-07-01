@@ -313,31 +313,15 @@ var spawn_BuildCreeps5 = {
                 Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                 //In case of complete destruction, make a minimum viable worker
                 //Make sure 5+ work code has harvester backup path
-                if (thisRoom.storage.store[RESOURCE_ENERGY] >= 1100) {
-                    //There's enough in storage for a minimum and a miner. Spawn a crappy mule
-                    spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'mule_' + spawn.name + '_' + Game.time, {
-                        memory: {
-                            priority: 'mule',
-                            linkSource: strLinks[1],
-                            storageSource: thisRoom.storage.id,
-                            terminalID: strTerminal,
-                            deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 6,
-                            fromSpawn: spawn.id,
-                            homeRoom: thisRoom.name
-                        }
-                    });
-                    Memory.isSpawning = true;
-                } else {
-                    spawn.spawnCreep(bareMinConfig, 'mule_' + spawn.name + '_' + Game.time, {
-                        memory: {
-                            priority: 'harvester',
-                            deathWarn: _.size(bareMinConfig) * 6,
-                            sourceLocation: strSources[1],
-                            homeRoom: thisRoom.name
-                        }
-                    });
-                    Memory.isSpawning = true;
-                }
+                spawn.spawnCreep(bareMinConfig, 'mule_' + spawn.name + '_' + Game.time, {
+                    memory: {
+                        priority: 'harvester',
+                        deathWarn: _.size(bareMinConfig) * 6,
+                        sourceLocation: strSources[1],
+                        homeRoom: thisRoom.name
+                    }
+                });
+                Memory.isSpawning = true;
             }
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && defenders.length < 3) {
             let Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
