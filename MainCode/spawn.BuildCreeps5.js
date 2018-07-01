@@ -664,6 +664,11 @@ var spawn_BuildCreeps5 = {
                         distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
                     let configCost = calculateConfigCost(distributorConfig);
+                    if (configCost > thisRoom.energyCapacityAvailable) {
+                    	//Took severe damage, assume cap of 300
+                    	distributorConfig = [MOVE,MOVE,CARRY,CARRY,CARRY,CARRY];
+                    	configCost = 300
+                    }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         if (connectedLink != '') {
