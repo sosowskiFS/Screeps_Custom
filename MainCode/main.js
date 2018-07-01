@@ -180,6 +180,8 @@ module.exports.loop = function() {
                 }
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
+                    //Populate the room creeps memory.
+                    Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
                         //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
@@ -305,9 +307,6 @@ module.exports.loop = function() {
                     drawPie(vis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 1.5);
                     drawPie(vis, Math.round(Memory.CPUAverages.TotalCPU.CPU * 100) / 100, Game.cpu.limit, 'Average', getColourByPercentage(Math.min(1, Memory.CPUAverages.TotalCPU.CPU / Game.cpu.limit), true), 2, 2.5);
                 }
-
-                //Populate the room creeps memory.
-                Memory.roomCreeps[thisRoom.name] = thisRoom.find(FIND_MY_CREEPS);
 
                 //Ensure all storage units have a rampart
                 if (thisRoom.storage && Game.time % 1000 == 0) {
