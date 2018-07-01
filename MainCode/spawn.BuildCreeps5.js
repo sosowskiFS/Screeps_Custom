@@ -264,11 +264,11 @@ var spawn_BuildCreeps5 = {
 
 
         if (thisRoom.storage) {
+        	if (thisRoom.controller.level != 8 && thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
+        		upgraderMax++;
+        	}
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
                 //Add another mule for resource management
-                if (thisRoom.controller.level != 8) {
-                    upgraderMax++;
-                }
                 muleMax++;
             }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 375000) {
