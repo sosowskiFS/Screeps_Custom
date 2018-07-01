@@ -181,7 +181,7 @@ module.exports.loop = function() {
 
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     //Populate the room creeps memory.
-                    Memory.roomCreeps[towers[y].room.name] = towers[y].room.name.find(FIND_MY_CREEPS);
+                    Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
                         //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
