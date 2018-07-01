@@ -415,7 +415,6 @@ var spawn_BuildCreeps5 = {
             let blockedSubRole = '';
             let roomTarget = '';
             let farSource = '';
-            let panicMule = false;
 
             var queLength = Memory.creepInQue.length;
             for (var i = 0; i < queLength; i++) {
@@ -430,10 +429,6 @@ var spawn_BuildCreeps5 = {
                 storageID = thisRoom.storage.id;
                 connectedLink = strLinks[1];
                 creepSource = strTerminal;
-                if (thisRoom.energyAvailable < 1200) {
-                    //Spawn a panicMule
-                    panicMule = true;
-                }
             } else if (miners.length < minerMax) {
                 switch (storageMiners.length) {
                     case 0:
@@ -499,6 +494,11 @@ var spawn_BuildCreeps5 = {
                     Memory.isSpawning = true;
                     let minerConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(minerConfig);
+                    if (configCost > thisRoom.energyCapacityAvailable) {
+                    	//Took severe damage, assume cap of 300
+                    	minerConfig = [CARRY,WORK,WORK,MOVE];
+                    	configCost = 300
+                    }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         if (jobSpecificPri == 'upgradeMiner' && strLinks.length >= 4) {
@@ -536,15 +536,18 @@ var spawn_BuildCreeps5 = {
                 } else if (prioritizedRole == 'mule') {
                     Memory.isSpawning = true;
                     let muleConfig = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-                    if (panicMule) {
-                        muleConfig = [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
-                    } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
+					if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
                         muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 150000 && thisRoom.energyCapacityAvailable >= 1600) {
                         muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
 
                     let configCost = calculateConfigCost(muleConfig);
+                    if (configCost > thisRoom.energyCapacityAvailable) {
+                    	//Took severe damage, assume cap of 300
+                    	muleConfig = [MOVE,WORK,CARRY,CARRY,CARRY];
+                    	configCost = 300
+                    }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(muleConfig, 'mule_' + spawn.name + '_' + Game.time, {
@@ -574,6 +577,11 @@ var spawn_BuildCreeps5 = {
                     }
 
                     let configCost = calculateConfigCost(upgraderConfig);
+                    if (configCost > thisRoom.energyCapacityAvailable) {
+                    	//Took severe damage, assume cap of 300
+                    	upgraderConfig = [MOVE,WORK,WORK,CARRY];
+                    	configCost = 300
+                    }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         spawn.spawnCreep(upgraderConfig, 'upgrader_' + spawn.name + '_' + Game.time, {
