@@ -359,7 +359,7 @@ var creep_farMining = {
                 var Foe = [];
                 var closeFoe = [];
                 if (Game.flags[creep.room.name + "SKRoom"]) {
-                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
+                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 40, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
                     });
                     closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
@@ -367,7 +367,7 @@ var creep_farMining = {
                     });
 
                 } else {
-                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 30, {
+                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 40, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
                     closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
