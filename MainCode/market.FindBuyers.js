@@ -194,7 +194,7 @@ var market_buyers = {
                             amountToSend = amountAvailable
                         }
                         if (amountToSend >= 5000 && thisTerminal.send(RESOURCE_ENERGY, amountToSend, Memory.energyNeedRooms[0], thisTerminal.room.name + " has gotchu, fam.") == OK) {
-                            Game.notify('SUPPLY: ' + thisRoom.name + ' -> ' + Memory.energyNeedRooms[0] + '|' + amountToSend + 'u');
+                            //Game.notify('SUPPLY: ' + thisRoom.name + ' -> ' + Memory.energyNeedRooms[0] + '|' + amountToSend + 'u');
                             Memory.energyNeedRooms.splice(0, 1);
                             hasSent = true;
                         }

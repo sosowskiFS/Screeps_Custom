@@ -61,7 +61,12 @@ var tower_Operate = {
 					if (shootRandom) {
 						var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
 						if (randomTarget.length) {
-							tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)])
+							if (randomTarget.length = 1 && !determineThreat(randomTarget[0])) {
+								//Only a healer, don't waste energy
+								Memory.towerPickedTarget[thisRoom.name] = '';
+							} else {
+								tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
+							}			
 						}
 					} else {
 						tower.attack(closestHostile);
@@ -113,6 +118,18 @@ function repairCompare(a, b) {
 	if (a.hits > b.hits)
 		return 1;
 	return 0;
+}
+
+function determineThreat(thisCreep) {
+	if (thisCreep.getActiveBodyparts(ATTACK) > 0){
+		return true;
+	} else if (thisCreep.getActiveBodyparts(RANGED_ATTACK) > 2){
+		return true;
+	} else if (thisCreep.getActiveBodyparts(WORK) > 0){
+		return true;
+	} else {
+		return false;
+	}
 }
 
 module.exports = tower_Operate;
