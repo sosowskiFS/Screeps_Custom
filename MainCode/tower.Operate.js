@@ -121,16 +121,17 @@ function repairCompare(a, b) {
 }
 
 function determineThreat(thisCreep) {
+	let returnValue = false;
 	thisCreep.body.forEach(function(thisPart) {
 		if (thisPart.type == ATTACK) {
-			return true;
+			returnValue = true;
 		} else if (thisPart.type == RANGED_ATTACK) {
-			return true;
+			returnValue = true;
 		} else if (thisPart.type == WORK) {
-			return true;
+			returnValue = true;
 		}
 	});
-	return false;
+	return returnValue
 }
 
 module.exports = tower_Operate;
