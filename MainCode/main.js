@@ -219,7 +219,9 @@ module.exports.loop = function() {
                             }
                         }
                     } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
-                        Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
+                        if (Game.map.getRoomLinearDistance(towers[y].room.name, Memory.roomsUnderAttack[0].name) <= 5) {
+                            Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
+                        }
                     } else if (Memory.roomsUnderAttack.length == 0) {
                         Memory.attackDuration = 0;
                         if (Game.flags[towers[y].room.name + "eFarGuard"]) {
