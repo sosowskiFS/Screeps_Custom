@@ -30,7 +30,7 @@ var tower_Operate = {
 			//Memory.roomCreeps[thisRoom.name];
 			//Only if no salvager flag
 			var didHeal = false
-			//var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+				//var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
 			if (Memory.roomCreeps[thisRoom.name]) {
 				var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 				if (defenders.length) {
@@ -66,7 +66,7 @@ var tower_Operate = {
 								Memory.towerPickedTarget[thisRoom.name] = '';
 							} else {
 								tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
-							}			
+							}
 						}
 					} else {
 						tower.attack(closestHostile);
@@ -121,15 +121,16 @@ function repairCompare(a, b) {
 }
 
 function determineThreat(thisCreep) {
-	if (thisCreep.getActiveBodyparts(ATTACK) > 0){
-		return true;
-	} else if (thisCreep.getActiveBodyparts(RANGED_ATTACK) > 2){
-		return true;
-	} else if (thisCreep.getActiveBodyparts(WORK) > 0){
-		return true;
-	} else {
-		return false;
-	}
+	thisCreep.body.forEach(function(thisPart) {
+		if (thisPart.type == ATTACK) {
+			return true;
+		} else if (thisPart.type == RANGED_ATTACK) {
+			return true;
+		} else if (thisPart.type == WORK) {
+			return true;
+		}
+	});
+	return false;
 }
 
 module.exports = tower_Operate;
