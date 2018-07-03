@@ -46,7 +46,7 @@ var creep_upgrader = {
                     }
 
                     let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                        filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+                        filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying && thisCreep.saying != "\u261D\uD83D\uDE3C" && thisCreep.saying != "\uD83D\uDC4C\uD83D\uDE39")
                     })
                     if (talkingCreeps.length) {
                         let coords = talkingCreeps[0].saying.split(";");
