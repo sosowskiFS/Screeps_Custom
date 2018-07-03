@@ -20,7 +20,8 @@ var spawn_BuildCreeps = {
         let mineSpots = [4, 5];
         //Add sources from N to S
         let strSources = Memory.sourceList[thisRoom.name];
-        let assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+        let assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
+        let assignedSlot2 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
@@ -150,11 +151,18 @@ var spawn_BuildCreeps = {
 
         } else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
             var prioritizedRole = 'harvester';
-            if (distributors.length < distributorMax) {
-                prioritizedRole = 'distributor';
-                bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
-            } else if (harvesters.length < harvesterMax) {
+            var creepSourceID = '';
+            if (harvesters.length < harvesterMax) {
                 prioritizedRole = 'harvester';
+                if (assignedSlot1.length) {
+                    //Assign slot 2
+                    creepSourceID = strSources[1];
+                } else {
+                    //Assign slot 1
+                    creepSourceID = strSources[0];
+                }
+
+                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable);
             } else if (suppliers.length < supplierMax) {
                 prioritizedRole = 'supplier';
                 bestWorker = [MOVE, CARRY, CARRY];
@@ -164,20 +172,11 @@ var spawn_BuildCreeps = {
                 prioritizedRole = 'builder';
             } else if (repairers.length < repairMax) {
                 prioritizedRole = 'repair';
+            } else if (distributors.length < distributorMax) {
+                prioritizedRole = 'distributor';
+                bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
             }
 
-            var creepSourceID = '';
-            if ((assignedSlot1.length) >= Math.ceil(mineSpots[0] * 1.2)) {
-                //Assign spot 2
-                if (strSources.length > 1) {
-                    creepSourceID = strSources[1];
-                } else {
-                    creepSourceID = strSources[0];
-                }
-            } else {
-                //Assign spot 1
-                creepSourceID = strSources[0];
-            }
             let configCost = calculateConfigCost(bestWorker);
             if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                 Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -186,7 +185,8 @@ var spawn_BuildCreeps = {
                         priority: prioritizedRole,
                         fromSpawn: spawn.id,
                         sourceLocation: creepSourceID,
-                        homeRoom: thisRoom.name
+                        homeRoom: thisRoom.name,
+                        deathWarn: _.size(bestWorker) * 6
                     }
                 });
             }
@@ -201,6 +201,16 @@ function calculateConfigCost(bodyConfig) {
         totalCost = totalCost + BODYPART_COST[thisPart];
     }
     return totalCost;
+}
+
+function getMinerConfig(energyCap) {
+    if (energyCap <= 300) {
+        return [MOVE, CARRY, WORK, WORK];
+    } else if (energyCap <= 550) {
+        return [MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK];
+    } else {
+        return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY];
+    }
 }
 
 module.exports = spawn_BuildCreeps;
