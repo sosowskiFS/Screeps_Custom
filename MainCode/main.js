@@ -76,6 +76,25 @@ module.exports.loop = function() {
         }
     }
 
+    if (Game.flags["AttackFlags"]){
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(Game.flags["AttackFlags"].pos, Game.flags["AttackFlags"].room.name + "RallyHere");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 10 , Game.flags["AttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 12 , Game.flags["AttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 14 , Game.flags["AttackFlags"].room.name + "MeleeStyle");
+        if (Game.flags["AttackFlags"]) {
+            Game.flags["AttackFlags"].remove();
+        }
+    }
+    if (Game.flags["RAttackFlags"]){
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(Game.flags["RAttackFlags"].pos, Game.flags["RAttackFlags"].room.name + "RallyHere");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 10 , Game.flags["RAttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 12 , Game.flags["RAttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 14 , Game.flags["RAttackFlags"].room.name + "RangedStyle");
+        if (Game.flags["RAttackFlags"]) {
+            Game.flags["RAttackFlags"].remove();
+        }
+    }
+
     //Reset average CPU usage records on request
     if (Game.flags["ResetAverages"] || Memory.CPUAverages.TotalCPU.ticks >= 50000) {
         Memory.CPUAverages = new Object();

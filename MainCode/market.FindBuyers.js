@@ -20,7 +20,15 @@ var market_buyers = {
         }
         var HydroxidePriority = -1;
         //Check for production flags and request accordingly
-        if (Game.flags[thisRoom.name + "UHProducer"]) {
+        //Flag room to transfer War Boosts
+        if (Game.flags[thisRoom.name + "WarBoosts"]) {
+            neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID);
+            neededMinerals.push(RESOURCE_CATALYZED_KEANIUM_ALKALIDE);
+            neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE);
+            neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ACID);
+            neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE);
+            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ALKALIDE);
+        } else if (Game.flags[thisRoom.name + "UHProducer"]) {
             neededMinerals.push(RESOURCE_UTRIUM);
             neededMinerals.push(RESOURCE_HYDROGEN);
         } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
@@ -117,16 +125,6 @@ var market_buyers = {
         } else if (Game.flags[thisRoom.name + "LOProducer"]) {
             neededMinerals.push(RESOURCE_LEMERGIUM);
             neededMinerals.push(RESOURCE_OXYGEN);
-        }
-
-        //Flag room to transfer War Boosts
-        if (Game.flags[thisRoom.name + "WarBoosts"]) {
-            neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYZED_KEANIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ALKALIDE);
         }
 
         for (var i in neededMinerals) {
