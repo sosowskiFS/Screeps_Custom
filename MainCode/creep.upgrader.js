@@ -44,19 +44,6 @@ var creep_upgrader = {
                     } else {
                         creep.say("\uD83D\uDC4C\uD83D\uDE39", true);
                     }
-
-                    let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                        filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying && thisCreep.saying != "\u261D\uD83D\uDE3C" && thisCreep.saying != "\uD83D\uDC4C\uD83D\uDE39")
-                    })
-                    if (talkingCreeps.length) {
-                        let coords = talkingCreeps[0].saying.split(";");
-                        if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-                            //Standing in the way of a creep
-                            let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-                            creep.move(thisDirection);
-                            creep.say("\uD83D\uDCA6", true);
-                        }
-                    }
                 }
             }
 
@@ -66,6 +53,19 @@ var creep_upgrader = {
                     creep.travelTo(linkTarget, {
                         maxRooms: 1
                     });
+                }
+            }
+
+            let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying && thisCreep.saying != "\u261D\uD83D\uDE3C" && thisCreep.saying != "\uD83D\uDC4C\uD83D\uDE39")
+            })
+            if (talkingCreeps.length) {
+                let coords = talkingCreeps[0].saying.split(";");
+                if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                    //Standing in the way of a creep
+                    let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                    creep.move(thisDirection);
+                    creep.say("\uD83D\uDCA6", true);
                 }
             }
         }
