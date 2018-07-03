@@ -244,7 +244,7 @@ var creep_labWorker = {
             if (!foundWork) {
                 //Need to find target for work
                 for (var i in labArray) {
-                    if (Game.flags[creep.room.name + "WarBoosts"]) {
+                    if (Game.flags[creep.room.name + "WarBoosts"] && labArray[i]) {
                         //Blocks all other checks
                         switch (labArray[i].id) {
                             case creep.memory.lab4:
