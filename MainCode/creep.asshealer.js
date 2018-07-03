@@ -101,7 +101,7 @@ var creep_asshealer = {
                     //}
                 }
 
-                if (creep.hits < creep.hitsMax - 700) {
+                if (creep.hits < creep.hitsMax - 400) {
                     creep.heal(creep);
                 } else {
                     var hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
