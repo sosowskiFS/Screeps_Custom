@@ -305,27 +305,23 @@ var creep_assattacker = {
                                 creep.memory.path.splice(0, 1);
                             }
                             creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]), {
-                                ignoreRoads: true,
                                 stuckValue: 2,
                                 allowSK: true
                             });
                         } else if (targetFlag.pos) {
                             if (wallFlag && wallFlag.pos && wallFlag.pos.roomName == targetFlag.pos.roomName) {
                                 creep.travelTo(wallFlag, {
-                                    ignoreRoads: true,
                                     stuckValue: 2,
                                     allowSK: true
                                 });
                             } else {
                                 creep.travelTo(targetFlag, {
-                                    ignoreRoads: true,
                                     stuckValue: 2,
                                     allowSK: true
                                 });
                             }
                         } else {
                             creep.travelTo(new RoomPosition(25, 25, targetFlag.pos.roomName), {
-                                ignoreRoads: true,
                                 stuckValue: 2,
                                 allowSK: true
                             });
