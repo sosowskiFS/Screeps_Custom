@@ -331,6 +331,7 @@ var creep_workV2 = {
 
 function findNewRepairTarget(creep, creepEnergy) {
     if (creepEnergy <= 0) {
+
         creep.memory.structureTarget = undefined;
         //Get from storage
         if (creep.memory.storageTarget) {
@@ -460,11 +461,11 @@ function repairCompare(a, b) {
 }
 
 function findContainerWithEnergy(thisCreep) {
-    let storageContainers = thisCreep.pos.findClosestByRange(FIND_STRUCTURES, {
+    let storageContainer = thisCreep.pos.findClosestByRange(FIND_STRUCTURES, {
         filter: (structure) => (structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) >= thisCreep.carryCapacity
     });
-    if (storageContainers.length) {
-        return storageContainers[0];
+    if (storageContainer) {
+        return storageContainer;
     } else {
         return undefined;
     }
