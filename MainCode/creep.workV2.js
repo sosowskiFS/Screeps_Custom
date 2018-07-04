@@ -1,4 +1,4 @@
-var creep_work = {
+var creep_workV2 = {
 
     /** @param {Creep} creep **/
     run: function(creep, moveRecalc) {
@@ -123,20 +123,20 @@ var creep_work = {
                             creep.travelTo(thisTarget);
                         }
                     } else {
-                        creep.memory.storageTarget = findContainerWithEnergy(creep);
-                        if (creep.memory.storageTarget) {
-                            let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                            if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(thisTarget);
+                        let newContainer = findContainerWithEnergy(creep);
+                        if (newContainer) {
+                            creep.memory.storageTarget = newContainer.id;
+                            if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(newContainer);
                             }
                         }
                     }
                 } else {
-                    creep.memory.storageTarget = findContainerWithEnergy(creep);
-                    if (creep.memory.storageTarget) {
-                        let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                        if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisTarget);
+                    let newContainer = findContainerWithEnergy(creep);
+                    if (newContainer) {
+                        creep.memory.storageTarget = newContainer.id;
+                        if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(newContainer);
                         }
                     }
                 }
@@ -186,27 +186,141 @@ var creep_work = {
                     creep.memory.structureTarget = undefined;
 
                     let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                    if (_.sum(thisTarget.store) > 0) {
+                    if (thisTarget && _.sum(thisTarget.store) > 0) {
                         if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisTarget);
                         }
                     } else {
-                        creep.memory.storageTarget = findContainerWithEnergy(creep);
-                        if (creep.memory.storageTarget) {
-                            let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                            if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(thisTarget);
+                        let newContainer = findContainerWithEnergy(creep);
+                        if (newContainer) {
+                            creep.memory.storageTarget = newContainer.id;
+                            if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(newContainer);
                             }
                         }
                     }
                 } else {
                     creep.memory.structureTarget = undefined;
 
-                    creep.memory.storageTarget = findContainerWithEnergy(creep);
+                    let newContainer = findContainerWithEnergy(creep);
+                    if (newContainer) {
+                        creep.memory.storageTarget = newContainer.id;
+                        if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(newContainer);
+                        }
+                    }
+                }
+                break;
+            case 'repair':
+            case 'repairNearDeath':
+                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'repairNearDeath') {
+                    creep.memory.priority = 'repairNearDeath';
+                }
+
+                if (!creep.memory.hasBoosted) {
+                    creep.memory.hasBoosted = true;
+                }
+
+                if (creep.carryCapacity > 0) {
+                    findNewRepairTarget(creep, _.sum(creep.carry));
+                } else {
+                    creep.suicide();
+                }
+                break;
+            case 'distributor':
+            case 'distributorNearDeath':
+                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
+                    creep.memory.priority = 'distributorNearDeath';
+                }
+
+                if (_.sum(creep.carry) == 0) {
+                    //Get from storage
                     if (creep.memory.storageTarget) {
+                        creep.memory.structureTarget = undefined;
+
                         let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                        if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisTarget);
+                        if (thisTarget && _.sum(thisTarget.store) > 0) {
+                            if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(thisTarget);
+                            }
+                        } else {
+                            let newContainer = findContainerWithEnergy(creep);
+                            if (newContainer) {
+                                creep.memory.storageTarget = newContainer.id;
+                                if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(newContainer);
+                                }
+                            }
+                        }
+                    } else {
+                        creep.memory.structureTarget = undefined;
+
+                        let newContainer = findContainerWithEnergy(creep);
+                        if (newContainer) {
+                            creep.memory.storageTarget = newContainer.id;
+                            if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(newContainer);
+                            }
+                        }
+                    }
+                } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+                    var savedTarget = Game.getObjectById(creep.memory.structureTarget);
+                    var getNewStructure = false;
+                    if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
+                        if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(savedTarget);
+                        } else {
+                            getNewStructure = true;
+                            creep.memory.structureTarget = undefined;
+                        }
+                    } else if (savedTarget) {
+                        getNewStructure = true;
+                        creep.memory.structureTarget = undefined;
+                    }
+                    if (!creep.memory.structureTarget) {
+                        var target = undefined;
+                        if (getNewStructure) {
+                            target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                filter: (structure) => {
+                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                }
+                            });
+                        } else {
+                            target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                filter: (structure) => {
+                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+                                }
+                            });
+                        }
+                        if (!target) {
+                            //Find closest by path will not return anything if path is blocked
+                            if (getNewStructure) {
+                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                filter: (structure) => {
+                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                }
+                                });
+                            } else {
+                                target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+                                    }
+                                });
+                            }
+                        }
+
+                        if (target) {
+                            if (getNewStructure) {
+                                creep.travelTo(target);
+                                creep.memory.structureTarget = target.id;
+                            } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(target);
+                                creep.memory.structureTarget = target.id;
+                            }
                         }
                     }
                 }
@@ -214,6 +328,128 @@ var creep_work = {
         }
     }
 };
+
+function findNewRepairTarget(creep, creepEnergy) {
+    if (creepEnergy <= 0) {
+        creep.memory.structureTarget = undefined;
+        //Get from storage
+        if (creep.memory.storageTarget) {
+            let thisTarget = Game.getObjectById(creep.memory.storageTarget);
+            if (thisTarget && _.sum(thisTarget.store) > 0) {
+                let withdrawResult = creep.withdraw(thisTarget, RESOURCE_ENERGY);
+                if (withdrawResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(thisTarget);
+                } else if (withdrawResult == OK) {
+                    moveToNewTarget(creep);
+                }
+            } else {
+                let newContainer = findContainerWithEnergy(creep);
+                if (newContainer) {
+                    creep.memory.storageTarget = newContainer.id;
+                    let withdrawResult = creep.withdraw(newContainer, RESOURCE_ENERGY);
+                    if (withdrawResult == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(newContainer);
+                    } else if (withdrawResult == OK) {
+                        moveToNewTarget(creep);
+                    }
+                }
+            }
+        } else {
+            let newContainer = findContainerWithEnergy(creep);
+            if (newContainer) {
+                creep.memory.storageTarget = newContainer.id;
+                let withdrawResult = creep.withdraw(newContainer, RESOURCE_ENERGY);
+                if (withdrawResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(newContainer);
+                } else if (withdrawResult == OK) {
+                    moveToNewTarget(creep);
+                }
+            }
+        }      
+    } else if (creep.memory.structureTarget) {
+        var thisStructure = Game.getObjectById(creep.memory.structureTarget);
+        if (thisStructure) {
+            if (thisStructure.hits == thisStructure.hitsMax) {
+                creep.memory.structureTarget = undefined;
+                findNewRepairTarget(creep, _.sum(creep.carry));
+            } else {
+                //If using last bit of energy this tick, find new target
+                var repairResult = creep.repair(thisStructure);
+                if (repairResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(thisStructure, {
+                        maxRooms: 1
+                    });
+                } else if (repairResult == OK) {
+                    //Listen for creeps
+                    let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                        filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+                    })
+                    if (talkingCreeps.length) {
+                        let coords = talkingCreeps[0].saying.split(";");
+                        if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                            //Standing in the way of a creep
+                            let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                            creep.move(thisDirection);
+                            creep.say("\uD83D\uDCA6", true);
+                        }
+                    }
+                }
+
+                if (repairResult == OK && creepEnergy <= creep.getActiveBodyparts(WORK)) {
+                    //Used all energy, travel to storage
+                    findNewRepairTarget(creep, 0);
+                }
+            }
+        } else {
+            creep.memory.structureTarget = undefined;
+            findNewRepairTarget(creep, _.sum(creep.carry));
+        }
+    } else {
+        var closestDamagedStructure = [];
+        closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+            filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+        });
+
+        if (closestDamagedStructure.length > 0) {
+            closestDamagedStructure.sort(repairCompare);
+            creep.memory.structureTarget = closestDamagedStructure[0].id;
+            if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
+                if (!Memory.warMode) {
+                    creep.travelTo(closestDamagedStructure[0], {
+                        maxRooms: 1,
+                        range: 1
+                    });
+                } else {
+                    creep.travelTo(closestDamagedStructure[0], {
+                        maxRooms: 1
+                    });
+                }
+            }
+        }
+    }
+}
+
+function moveToNewTarget(creep) {
+    var closestDamagedStructure = [];
+    closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+    });
+
+    if (closestDamagedStructure.length > 0) {
+        closestDamagedStructure.sort(repairCompare);
+        creep.memory.structureTarget = closestDamagedStructure[0].id;
+        if (!Memory.warMode) {
+            creep.travelTo(closestDamagedStructure[0], {
+                maxRooms: 1,
+                range: 1
+            });
+        } else {
+            creep.travelTo(closestDamagedStructure[0], {
+                maxRooms: 1
+            });
+        }
+    }
+}
 
 function repairCompare(a, b) {
     if (a.hits < b.hits)
@@ -228,10 +464,10 @@ function findContainerWithEnergy(thisCreep) {
         filter: (structure) => (structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) >= thisCreep.carryCapacity
     });
     if (storageContainers.length) {
-        return storageContainers[0].id;
+        return storageContainers[0];
     } else {
         return undefined;
     }
 }
 
-module.exports = creep_work;
+module.exports = creep_workV2;

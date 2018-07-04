@@ -147,7 +147,7 @@ var spawn_BuildCreeps = {
                     creepSourceID = strSources[0];
                 }
 
-                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable);
+                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length);
             } else if (suppliers.length < supplierMax) {
                 prioritizedRole = 'supplier';
                 bestWorker = [MOVE, CARRY, CARRY];
@@ -186,13 +186,13 @@ function calculateConfigCost(bodyConfig) {
     return totalCost;
 }
 
-function getMinerConfig(energyCap) {
-    if (energyCap <= 300) {
-        return [MOVE, CARRY, WORK, WORK];
+function getMinerConfig(energyCap, numRoomCreeps) {
+    if (energyCap <= 300 || numRoomCreeps <= 1) {
+        return [MOVE, WORK, WORK, CARRY];
     } else if (energyCap <= 550) {
-        return [MOVE, MOVE, CARRY, WORK, WORK, WORK, WORK];
+        return [MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY];
     } else {
-        return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY];
+        return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
     }
 }
 
