@@ -136,7 +136,7 @@ var spawn_BuildCreeps = {
             
             if (distributors.length < distributorMax) {
                 prioritizedRole = 'distributor';
-                bestWorker = getDistributorConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length);
+                bestWorker = getDistributorConfig(thisRoom.energyAvailable, RoomCreeps.length);
             } else if (harvesters.length < harvesterMax) {
                 prioritizedRole = 'harvester';
                 if (assignedSlot1.length) {
