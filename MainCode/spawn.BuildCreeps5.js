@@ -330,7 +330,19 @@ var spawn_BuildCreeps5 = {
             let Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
-            if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 500 && (Foe.length || defenders.length < 1)) {
+            let AdjacentFoe = spawn.pos.findInRange(FIND_HOSTILE_CREEPS, 1, {
+            	filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+            });
+
+            if (AdjacentFoe.length) {
+            	//Attempt to spawnkill it
+            	let enemyDirection = spawn.pos.getDirectionTo(AdjacentFoe);
+            	Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
+                spawn.spawnCreep([MOVE], 'FuckYou_' + spawn.name + '_' + Game.time, {
+                    directions: [enemyDirection]
+                });
+                Memory.isSpawning = true;
+            } else if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 500 && (Foe.length || defenders.length < 1)) {
                 //Try to produce millitary units
 
                 //Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250

@@ -63,73 +63,86 @@ var spawn_BuildCreeps = {
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= defenderEnergyLim && defenders.length < 2 && harvesters.length >= harvesterMax) {
             //Try to produce millitary units
 
-            var ToughCount = 0;
-            var MoveCount = 0;
-            var AttackCount = 0;
-            var RangedCount = 0;
-            var HealCount = 0;
-            var totalParts = 0;
-
-            var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
-            var thisBuildAmount = 500;
-            while ((remainingEnergy / thisBuildAmount) >= 1) {
-                //switch (ChosenPriority) {
-                //case 'melee':
-                //ToughCount = ToughCount + 1;
-                MoveCount = MoveCount + 2;
-                RangedCount = RangedCount + 3;
-                remainingEnergy = remainingEnergy - 500;
-                //RangedCount = RangedCount + 1;
-                totalParts = totalParts + 5;
-                //break;
-                //case 'ranged':
-                //MoveCount = MoveCount + 2;
-                //RangedCount = RangedCount + 2;
-                //totalParts = totalParts + 4;
-                //remainingEnergy = remainingEnergy - 400;
-                //break;
-                //}
-
-                if (totalParts >= 50) {
-                    break;
-                }
-            }
-
-            var ChosenCreepSet = [];
-            while (ToughCount > 0) {
-                ChosenCreepSet.push(TOUGH);
-                ToughCount--;
-            }
-            while (AttackCount > 0) {
-                ChosenCreepSet.push(ATTACK);
-                AttackCount--;
-            }
-            while (RangedCount > 0) {
-                ChosenCreepSet.push(RANGED_ATTACK);
-                RangedCount--;
-            }
-            while (MoveCount > 0) {
-                ChosenCreepSet.push(MOVE);
-                MoveCount--;
-            }
-
-            if (ChosenCreepSet.length > 50) {
-                while (ChosenCreepSet.length > 50) {
-                    ChosenCreepSet.splice(0, 1)
-                }
-            }
-
-            Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
-
-            spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
-                memory: {
-                    priority: 'defender',
-                    fromSpawn: spawn.id,
-                    homeRoom: thisRoom.name
-                }
+            let AdjacentFoe = spawn.pos.findInRange(FIND_HOSTILE_CREEPS, 1, {
+                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
             });
-            Memory.isSpawning = true;
 
+            if (AdjacentFoe.length) {
+                //Attempt to spawnkill it
+                let enemyDirection = spawn.pos.getDirectionTo(AdjacentFoe);
+                Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
+                spawn.spawnCreep([MOVE], 'FuckYou_' + spawn.name + '_' + Game.time, {
+                    directions: [enemyDirection]
+                });
+                Memory.isSpawning = true;
+            } else {
+                 var ToughCount = 0;
+                var MoveCount = 0;
+                var AttackCount = 0;
+                var RangedCount = 0;
+                var HealCount = 0;
+                var totalParts = 0;
+
+                var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
+                var thisBuildAmount = 500;
+                while ((remainingEnergy / thisBuildAmount) >= 1) {
+                    //switch (ChosenPriority) {
+                    //case 'melee':
+                    //ToughCount = ToughCount + 1;
+                    MoveCount = MoveCount + 2;
+                    RangedCount = RangedCount + 3;
+                    remainingEnergy = remainingEnergy - 500;
+                    //RangedCount = RangedCount + 1;
+                    totalParts = totalParts + 5;
+                    //break;
+                    //case 'ranged':
+                    //MoveCount = MoveCount + 2;
+                    //RangedCount = RangedCount + 2;
+                    //totalParts = totalParts + 4;
+                    //remainingEnergy = remainingEnergy - 400;
+                    //break;
+                    //}
+
+                    if (totalParts >= 50) {
+                        break;
+                    }
+                }
+
+                var ChosenCreepSet = [];
+                while (ToughCount > 0) {
+                    ChosenCreepSet.push(TOUGH);
+                    ToughCount--;
+                }
+                while (AttackCount > 0) {
+                    ChosenCreepSet.push(ATTACK);
+                    AttackCount--;
+                }
+                while (RangedCount > 0) {
+                    ChosenCreepSet.push(RANGED_ATTACK);
+                    RangedCount--;
+                }
+                while (MoveCount > 0) {
+                    ChosenCreepSet.push(MOVE);
+                    MoveCount--;
+                }
+
+                if (ChosenCreepSet.length > 50) {
+                    while (ChosenCreepSet.length > 50) {
+                        ChosenCreepSet.splice(0, 1)
+                    }
+                }
+
+                Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
+
+                spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
+                    memory: {
+                        priority: 'defender',
+                        fromSpawn: spawn.id,
+                        homeRoom: thisRoom.name
+                    }
+                });
+                Memory.isSpawning = true;
+            }
         } else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
             var prioritizedRole = 'harvester';
             var creepSourceID = '';
