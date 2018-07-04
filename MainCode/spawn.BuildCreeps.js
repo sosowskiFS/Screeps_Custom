@@ -62,20 +62,6 @@ var spawn_BuildCreeps = {
             Memory.isSpawning = true;
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= defenderEnergyLim && defenders.length < 2 && harvesters.length >= harvesterMax) {
             //Try to produce millitary units
-
-            let AdjacentFoe = spawn.pos.findInRange(FIND_HOSTILE_CREEPS, 1, {
-                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-            });
-
-            if (AdjacentFoe.length) {
-                //Attempt to spawnkill it
-                let enemyDirection = spawn.pos.getDirectionTo(AdjacentFoe);
-                Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
-                spawn.spawnCreep([MOVE], 'FuckYou_' + spawn.name + '_' + Game.time, {
-                    directions: [enemyDirection]
-                });
-                Memory.isSpawning = true;
-            } else {
                  var ToughCount = 0;
                 var MoveCount = 0;
                 var AttackCount = 0;
@@ -142,7 +128,6 @@ var spawn_BuildCreeps = {
                     }
                 });
                 Memory.isSpawning = true;
-            }
         } else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
             var prioritizedRole = 'harvester';
             var creepSourceID = '';
