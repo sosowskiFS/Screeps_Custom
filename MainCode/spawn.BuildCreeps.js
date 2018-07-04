@@ -10,17 +10,16 @@ var spawn_BuildCreeps = {
 
         let defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
 
-        let harvesterMax = 3;
-        let builderMax = 2;
+        let harvesterMax = 2;
+        let builderMax = 1;
         let upgraderMax = 2;
         let repairMax = 1;
         let supplierMax = 0;
-        let distributorMax = 0;
-        //How many creeps can mine at once
-        let mineSpots = [4, 5];
-        //Add sources from N to S
+        let distributorMax = 1;
+
         let strSources = Memory.sourceList[thisRoom.name];
-        let assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0]);
+        let assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
+        let assignedSlot2 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
@@ -33,9 +32,6 @@ var spawn_BuildCreeps = {
         //For Level 4
         if (thisRoom.storage) {
             supplierMax++;
-            if (thisRoom.storage.store[RESOURCE_ENERGY] >= 1000) {
-                distributorMax++;
-            }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 10000) {
                 upgraderMax++;
             }
@@ -51,30 +47,16 @@ var spawn_BuildCreeps = {
 
         if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
             //In case of complete destruction, make a minimum viable worker
-            if (strSources.length > 1) {
-                let configCost = calculateConfigCost(bareMinConfig);
-                if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
-                    Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                    spawn.spawnCreep(bareMinConfig, 'harvester_' + spawn.name + '_' + Game.time, {
-                        memory: {
-                            priority: 'harvester',
-                            sourceLocation: strSources[1],
-                            homeRoom: thisRoom.name
-                        }
-                    });
-                }
-            } else {
-                let configCost = calculateConfigCost(bareMinConfig);
-                if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
-                    Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                    spawn.createCreep(bareMinConfig, 'harvester_' + spawn.name + '_' + Game.time, {
-                        memory: {
-                            priority: 'harvester',
-                            sourceLocation: strSources[0],
-                            homeRoom: thisRoom.name
-                        }
-                    });
-                }
+            let configCost = calculateConfigCost(bareMinConfig);
+            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                spawn.spawnCreep(bareMinConfig, 'harvester_' + spawn.name + '_' + Game.time, {
+                    memory: {
+                        priority: 'harvester',
+                        sourceLocation: strSources[0],
+                        homeRoom: thisRoom.name
+                    }
+                });
             }
 
             Memory.isSpawning = true;
@@ -150,11 +132,22 @@ var spawn_BuildCreeps = {
 
         } else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
             var prioritizedRole = 'harvester';
+            var creepSourceID = '';
+            
             if (distributors.length < distributorMax) {
                 prioritizedRole = 'distributor';
-                bestWorker = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+                bestWorker = getDistributorConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length);
             } else if (harvesters.length < harvesterMax) {
                 prioritizedRole = 'harvester';
+                if (assignedSlot1.length) {
+                    //Assign slot 2
+                    creepSourceID = strSources[1];
+                } else {
+                    //Assign slot 1
+                    creepSourceID = strSources[0];
+                }
+
+                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length);
             } else if (suppliers.length < supplierMax) {
                 prioritizedRole = 'supplier';
                 bestWorker = [MOVE, CARRY, CARRY];
@@ -166,18 +159,6 @@ var spawn_BuildCreeps = {
                 prioritizedRole = 'repair';
             }
 
-            var creepSourceID = '';
-            if ((assignedSlot1.length) >= Math.ceil(mineSpots[0] * 1.2)) {
-                //Assign spot 2
-                if (strSources.length > 1) {
-                    creepSourceID = strSources[1];
-                } else {
-                    creepSourceID = strSources[0];
-                }
-            } else {
-                //Assign spot 1
-                creepSourceID = strSources[0];
-            }
             let configCost = calculateConfigCost(bestWorker);
             if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                 Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -186,7 +167,9 @@ var spawn_BuildCreeps = {
                         priority: prioritizedRole,
                         fromSpawn: spawn.id,
                         sourceLocation: creepSourceID,
-                        homeRoom: thisRoom.name
+                        homeRoom: thisRoom.name,
+                        deathWarn: _.size(bestWorker) * 6,
+                        structureTarget: undefined;
                     }
                 });
             }
@@ -201,6 +184,26 @@ function calculateConfigCost(bodyConfig) {
         totalCost = totalCost + BODYPART_COST[thisPart];
     }
     return totalCost;
+}
+
+function getMinerConfig(energyCap, numRoomCreeps) {
+    if (energyCap <= 300 || numRoomCreeps <= 1) {
+        return [MOVE, WORK, WORK, CARRY];
+    } else if (energyCap <= 550) {
+        return [MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY];
+    } else {
+        return [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+    }
+}
+
+function getDistributorConfig(energyCap, numRoomCreeps) {
+    if (energyCap <= 300 || numRoomCreeps <= 1) {
+        return [MOVE, MOVE, MOVE, CARRY, CARRY, CARRY];
+    } else if (energyCap <= 550) {
+        return [MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY];
+    } else {
+        return [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
+    }
 }
 
 module.exports = spawn_BuildCreeps;
