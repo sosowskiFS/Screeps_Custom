@@ -169,7 +169,7 @@ var spawn_BuildCreeps = {
                         sourceLocation: creepSourceID,
                         homeRoom: thisRoom.name,
                         deathWarn: _.size(bestWorker) * 6,
-                        structureTarget: undefined;
+                        structureTarget: undefined
                     }
                 });
             }

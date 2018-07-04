@@ -1,5 +1,6 @@
 //Creeps
 var creep_work = require('creep.work');
+var creep_workV2 = require('creep.workV2');
 var creep_work5 = require('creep.work5');
 var creep_salvager = require('creep.salvager');
 var creep_supplier = require('creep.supplier');
@@ -992,7 +993,7 @@ module.exports.loop = function() {
                     if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
                         creep_miner.run(creep);
                     } else {
-                        creep_work.run(creep, 25);
+                        creep_workV2.run(creep, 25);
                     }
                     break;
                 case 'upgrader':
@@ -1000,7 +1001,7 @@ module.exports.loop = function() {
                     if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
                         creep_upgrader.run(creep);
                     } else {
-                        creep_work.run(creep, 25);
+                        creep_workV2.run(creep, 25);
                     }
                     break;
                 case 'repair':
@@ -1008,7 +1009,7 @@ module.exports.loop = function() {
                     if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
                         creep_repair.run(creep);
                     } else {
-                        creep_work.run(creep, 25);
+                        creep_workV2.run(creep, 25);
                     }
                     break;
                 case 'scraper':
@@ -1090,7 +1091,7 @@ module.exports.loop = function() {
                     if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                         var pre = Game.cpu.getUsed();
                         if (Game.cpu.bucket >= 500 || Memory.warMode) {
-                            creep_work.run(creep, 25);
+                            creep_workV2.run(creep, 25);
                             pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
                         } else {
                             creep.say("\u2716\uFE0F", false);
@@ -1098,7 +1099,7 @@ module.exports.loop = function() {
                     } else {
                         if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
                             //In case of emergency
-                            creep_work.run(creep, 25);
+                            creep_workV2.run(creep, 25);
                         } else {
                             var pre = Game.cpu.getUsed();
                             if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
