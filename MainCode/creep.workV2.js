@@ -19,7 +19,7 @@ var creep_workV2 = {
                         }
                     }
                 }
-                if (creep.memory.storageUnit && Game.time % 4 == 0) {
+                if (creep.memory.storageUnit && (Game.time % 4 == 0 || !creep.memory.onContainer)) {
                     thisUnit = Game.getObjectById(creep.memory.storageUnit);
                 }
 
@@ -30,10 +30,15 @@ var creep_workV2 = {
                         }
                         if (creep.pos != thisUnit.pos) {
                             creep.travelTo(thisUnit);
+                        } else {
+                        	creep.memory.onContainer = true;
                         }
                     } else {
                         //This is a storage Unit
                         creep.transfer(thisUnit, RESOURCE_ENERGY);
+                        if (!creep.memory.onContainer) {
+                        	creep.memory.onContainer = true;
+                        }
                     }
                 } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
                     let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 2, {
