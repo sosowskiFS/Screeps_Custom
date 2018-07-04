@@ -118,7 +118,7 @@ var creep_workV2 = {
                     }
                 } else if (creep.memory.storageTarget) {
                     let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                    if (_.sum(thisTarget.store) > 0) {
+                    if (_.sum(thisTarget.store) > creep.carryCapacity ) {
                         if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisTarget);
                         }
@@ -186,7 +186,7 @@ var creep_workV2 = {
                     creep.memory.structureTarget = undefined;
 
                     let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                    if (thisTarget && _.sum(thisTarget.store) > 0) {
+                    if (thisTarget && _.sum(thisTarget.store) > creep.carryCapacity) {
                         if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisTarget);
                         }
@@ -239,7 +239,7 @@ var creep_workV2 = {
                         creep.memory.structureTarget = undefined;
 
                         let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                        if (thisTarget && _.sum(thisTarget.store) > 0) {
+                        if (thisTarget && _.sum(thisTarget.store) > creep.carryCapacity) {
                             if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(thisTarget);
                             }
@@ -335,7 +335,7 @@ function findNewRepairTarget(creep, creepEnergy) {
         //Get from storage
         if (creep.memory.storageTarget) {
             let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-            if (thisTarget && _.sum(thisTarget.store) > 0) {
+            if (thisTarget && _.sum(thisTarget.store) > creep.carryCapacity) {
                 let withdrawResult = creep.withdraw(thisTarget, RESOURCE_ENERGY);
                 if (withdrawResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(thisTarget);
