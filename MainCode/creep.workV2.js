@@ -128,7 +128,7 @@ var creep_workV2 = {
                             creep.travelTo(thisTarget);
                         }
                     } else {
-                        let newContainer = findContainerWithEnergy(creep);
+                        let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
                         if (newContainer) {
                             creep.memory.storageTarget = newContainer.id;
                             if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -137,7 +137,7 @@ var creep_workV2 = {
                         }
                     }
                 } else {
-                    let newContainer = findContainerWithEnergy(creep);
+                    let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
                     if (newContainer) {
                         creep.memory.storageTarget = newContainer.id;
                         if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -196,7 +196,7 @@ var creep_workV2 = {
                             creep.travelTo(thisTarget);
                         }
                     } else {
-                        let newContainer = findContainerWithEnergy(creep);
+                        let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
                         if (newContainer) {
                             creep.memory.storageTarget = newContainer.id;
                             if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -207,7 +207,7 @@ var creep_workV2 = {
                 } else {
                     creep.memory.structureTarget = undefined;
 
-                    let newContainer = findContainerWithEnergy(creep);
+                    let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
                     if (newContainer) {
                         creep.memory.storageTarget = newContainer.id;
                         if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -244,12 +244,12 @@ var creep_workV2 = {
                         creep.memory.structureTarget = undefined;
 
                         let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                        if (thisTarget && _.sum(thisTarget.store) > creep.carryCapacity) {
+                        if (thisTarget && _.sum(thisTarget.store) > 100) {
                             if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(thisTarget);
                             }
                         } else {
-                            let newContainer = findContainerWithEnergy(creep);
+                            let newContainer = findContainerWithEnergy(creep, 100);
                             if (newContainer) {
                                 creep.memory.storageTarget = newContainer.id;
                                 if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -260,7 +260,7 @@ var creep_workV2 = {
                     } else {
                         creep.memory.structureTarget = undefined;
 
-                        let newContainer = findContainerWithEnergy(creep);
+                        let newContainer = findContainerWithEnergy(creep, 100);
                         if (newContainer) {
                             creep.memory.storageTarget = newContainer.id;
                             if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -349,7 +349,7 @@ function findNewRepairTarget(creep, creepEnergy) {
                     moveToNewTarget(creep);
                 }
             } else {
-                let newContainer = findContainerWithEnergy(creep);
+                let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
                 if (newContainer) {
                     creep.memory.storageTarget = newContainer.id;
                     let withdrawResult = creep.withdraw(newContainer, RESOURCE_ENERGY);
@@ -361,7 +361,7 @@ function findNewRepairTarget(creep, creepEnergy) {
                 }
             }
         } else {
-            let newContainer = findContainerWithEnergy(creep);
+            let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
             if (newContainer) {
                 creep.memory.storageTarget = newContainer.id;
                 let withdrawResult = creep.withdraw(newContainer, RESOURCE_ENERGY);
@@ -465,9 +465,9 @@ function repairCompare(a, b) {
     return 0;
 }
 
-function findContainerWithEnergy(thisCreep) {
+function findContainerWithEnergy(thisCreep, energyMin) {
     let storageContainer = thisCreep.pos.findClosestByRange(FIND_STRUCTURES, {
-        filter: (structure) => (structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) >= thisCreep.carryCapacity
+        filter: (structure) => (structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) >= energyMin
     });
     if (storageContainer) {
         return storageContainer;
