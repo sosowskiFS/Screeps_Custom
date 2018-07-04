@@ -40,7 +40,7 @@ var creep_workV2 = {
                         filter: (structure) => structure.structureType == STRUCTURE_STORAGE
                     });
                     if (!containers.length) {
-                        let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 2, {
+                        containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 2, {
                             filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                         });
                     }
@@ -460,7 +460,7 @@ function repairCompare(a, b) {
 }
 
 function findContainerWithEnergy(thisCreep) {
-    let storageContainers = thisCreep.room.find(FIND_STRUCTURES, {
+    let storageContainers = thisCreep.pos.findClosestByRange(FIND_STRUCTURES, {
         filter: (structure) => (structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) >= thisCreep.carryCapacity
     });
     if (storageContainers.length) {
