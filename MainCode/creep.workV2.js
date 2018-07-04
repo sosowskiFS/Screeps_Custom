@@ -15,7 +15,7 @@ var creep_workV2 = {
                     mineTarget = Game.getObjectById(creep.memory.sourceLocation);
                     if (mineTarget) {
                         if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                            creep.travelTo(mineTarget);
                         }
                     }
                 }
