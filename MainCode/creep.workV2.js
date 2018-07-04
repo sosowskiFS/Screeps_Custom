@@ -153,8 +153,8 @@ var creep_workV2 = {
                         let thisStructure = Game.getObjectById(creep.memory.structureTarget);
                         if (thisStructure) {
                             needSearch = false;
-                            if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(targets2);
+                            if (creep.build(thisStructure) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(thisStructure);
                             }
                         } else {
                             creep.memory.structureTarget = undefined;
