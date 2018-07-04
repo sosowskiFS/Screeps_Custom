@@ -28,7 +28,7 @@ var creep_workV2 = {
                         if (thisUnit.hits < thisUnit.hitsMax) {
                             creep.repair(thisUnit);
                         }
-                        if (creep.pos.x != thisUnit.pos.x && creep.pos.y != thisUnit.pos.y) {
+                        if (creep.pos.x != thisUnit.pos.x || creep.pos.y != thisUnit.pos.y) {
                             creep.travelTo(thisUnit);
                         } else {
                         	creep.memory.onContainer = true;
