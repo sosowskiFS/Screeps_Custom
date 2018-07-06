@@ -662,7 +662,7 @@ var spawn_BuildCreeps5 = {
                 } else if (prioritizedRole == 'distributor') {
                     Memory.isSpawning = true;
                     let distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
-                    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 225000 && thisRoom.energyCapacityAvailable >= 1200) {
+                    if (thisRoom.storage && thisRoom.energyCapacityAvailable >= 1200) {
                         distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     } else if (thisRoom.controller.level > 7) {
                         distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
