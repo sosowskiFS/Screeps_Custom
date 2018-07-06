@@ -1213,9 +1213,7 @@ function memCheck() {
     if (!Memory.ordersFilled) {
         Memory.ordersFilled = [];
     }
-    if (!Memory.whiteList) {
-        Memory.whiteList = ['DomNomNom', 'Kotarou', 'ICED_COFFEE', 'demawi', 'o4kapuk', 'ben2', 'Jibol', 'szumi', 'Xist', 'Xolym', 'SirFrump', 'ART999', 'ThyReaper', 'Aundine', 'Fritee', 'Jumpp', 'mute', 'shadow_bird', 'szumi', 'TiffanyTrump'];
-    }
+    Memory.whiteList = ['DomNomNom', 'Kotarou', 'ICED_COFFEE', 'demawi', 'o4kapuk', 'ben2', 'Jibol', 'szumi', 'Xist', 'Xolym', 'SirFrump', 'ART999', 'ThyReaper', 'Aundine', 'Fritee', 'Jumpp', 'mute', 'shadow_bird', 'szumi', 'TiffanyTrump'];
     if (!Memory.blockedRooms) {
         Memory.blockedRooms = ['E84N87', 'E83N88', 'E82N87', 'E83N86', 'E81N84', 'E82N83', 'E81N81', 'E84N82', 'E86N81', 'E88N81'];
     }
