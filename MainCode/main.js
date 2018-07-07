@@ -810,7 +810,7 @@ module.exports.loop = function() {
                     }
                 }
 
-                if (Game.flags[thisroom.name + "BuildThis"]) {
+                if (Game.flags[thisRoom.name + "BuildThis"]) {
                     var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
