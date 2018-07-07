@@ -411,6 +411,26 @@ var spawn_BuildInstruction = {
                     }
                 }
                 break;
+            case 'supplyEnergy':
+                var energySuppliers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'distantSupplier' && creep.memory.homeRoom == spawn.room.name));
+                if (energySuppliers.length < params2) {
+                    let energySupplierConfig = [CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE];
+                    let configCost = calculateConfigCost(energySupplierConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(powerCollectConfig, 'distSup_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: 'distantSupplier',
+                                destination: params,
+                                homeRoom: spawn.room.name,
+                                deathWarn: _.size(energySupplierConfig) * 4
+                            }
+                        });
+                        Memory.isSpawning = true;
+                        console.log('Distant Supplier, ' + spawn.room.name);
+                    }
+                }
+                break;
         }
     }
 };

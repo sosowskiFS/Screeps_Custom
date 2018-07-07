@@ -30,6 +30,7 @@ var creep_powerAttack = require('creep.powerAttack');
 var creep_powerHeal = require('creep.powerHeal');
 var creep_powerCollect = require('creep.powerCollect');
 var creep_scraper = require('creep.scraper');
+var creep_distantSupplier = require('creep.distantSupplier');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -801,7 +802,7 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', energyIndex, '', '');
                 }
 
-                if (Game.flags["ClaimThis"] && thisRoom.name == 'E36N43') {
+                if (Game.flags[thisRoom.name + "ClaimThis"]) {
                     if (Game.flags["UseDefinedRoute"]) {
                         spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags["ClaimThis"].pos.roomName, energyIndex, '', 'E35N45;W26S32');
                     } else {
@@ -809,7 +810,7 @@ module.exports.loop = function() {
                     }
                 }
 
-                if (Game.flags["BuildThis"] && thisRoom.name == 'E36N43') {
+                if (Game.flags[thisroom.name + "BuildThis"]) {
                     var sitesOnTile = Game.flags["BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     if (sitesOnTile.length) {
                         if (Game.flags["UseDefinedRoute"]) {
@@ -876,6 +877,10 @@ module.exports.loop = function() {
                             }
                         }
                     }
+                }
+
+                if (Game.flags[thisRoom.name + "supplyEnergy"]) {
+                	spawn_BuildInstruction.run(Game.spawns[i], 'supplyEnergy', Game.flags[thisRoom.name + "supplyEnergy"].pos.roomName, energyIndex, '', 2);
                 }
 
                 if (!Memory.isSpawning) {
@@ -1079,6 +1084,9 @@ module.exports.loop = function() {
                 case 'powerCollector':
                     creep_powerCollect.run(creep);
                     break;
+                case 'distantSupplier':
+                	creep_distantSupplier.run(creep);
+                	break;
                 default:
                     if (!creep.memory.priority) {
                         creep.memory.priority = 'constructor';
