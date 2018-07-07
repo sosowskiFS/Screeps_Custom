@@ -6,8 +6,15 @@ var creep_distantSupplier = {
             //YER DED TO ME
             creep.suicide();
         }
+        
+        if (creep.memory.previousRoom != creep.room.name) {
+            creep.memory.previousRoom = creep.room.name;
+            creep.memory._trav = undefined;
+        }
+
         if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) <= 0) {
             //Empty, go back to home and refill
+
             if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                 creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
             } else {
