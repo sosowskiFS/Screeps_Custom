@@ -212,7 +212,7 @@ module.exports.loop = function() {
                         RampartDirection = "Closed";
                         if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
                             Memory.roomsPrepSalvager.push(towers[y].room.name);
-                        } else if (Memory.RoomsAt5.indexOf(towers[y].room.name) == -1 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
+                        } else if (towers[y].room.controller.level < 7 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
                             //No good combat code! SAFE MODE!
                             if (!towers[y].room.controller.safeMode && (hostiles[0].getActiveBodyparts(ATTACK) > 0 || hostiles[0].getActiveBodyparts(RANGED_ATTACK) > 0 || hostiles[0].getActiveBodyparts(WORK) > 0)) {
                                 towers[y].room.controller.activateSafeMode();
