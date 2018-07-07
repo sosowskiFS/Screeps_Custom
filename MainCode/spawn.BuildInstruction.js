@@ -418,7 +418,7 @@ var spawn_BuildInstruction = {
                     let configCost = calculateConfigCost(energySupplierConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                        spawn.spawnCreep(powerCollectConfig, 'distSup_' + spawn.name + '_' + Game.time, {
+                        spawn.spawnCreep(energySupplierConfig, 'distSup_' + spawn.name + '_' + Game.time, {
                             memory: {
                                 priority: 'distantSupplier',
                                 destination: params,
