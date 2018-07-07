@@ -18,7 +18,7 @@ var creep_distantSupplier = {
             if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].storage) {
                 creep.travelTo(Game.rooms[creep.memory.destination].storage);
                 if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
-                    creep.memory.travelDistance = creep.memory._trav.path.length();
+                    creep.memory.travelDistance = creep.memory._trav.path.length;
                 }
             } else {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
