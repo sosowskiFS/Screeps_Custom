@@ -23,6 +23,11 @@ var creep_assattacker = {
                 }
             });
 
+            if (creep.memory.previousRoom != creep.room.name) {
+                creep.memory.previousRoom = creep.room.name;
+                creep.memory._trav = undefined;
+            }
+
             var targetFlag = Game.flags[creep.memory.homeRoom + "Assault"];
             if (!targetFlag) {
                 for (i = 2; i < 6; i++) {
