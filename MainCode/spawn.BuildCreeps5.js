@@ -13,7 +13,7 @@ var spawn_BuildCreeps5 = {
         let upSuppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upSupplier');
         let scrapers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'scraper');
 
-        let labWorkers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'labWorker');
+        let labWorkers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'labWorker' || creep.memory.previousPriority == 'labWorker');
 
         let salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
 

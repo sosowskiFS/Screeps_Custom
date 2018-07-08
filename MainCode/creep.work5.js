@@ -17,6 +17,7 @@ var creep_work5 = {
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
                     creep.memory.priority = 'muleNearDeath';
                 }
+
                 if (_.sum(creep.carry) <= 50) {
                     creep.memory.structureTarget = undefined;
                     let storageTarget = creep.room.storage;
@@ -38,7 +39,7 @@ var creep_work5 = {
                             }
                         }
                     }
-                } else if (_.sum(creep.carry) > 0) {
+                } else {
                     if (creep.carry[RESOURCE_ENERGY] == 0) {
                         if (creep.room.terminal) {
                             var currentlyCarrying = _.findKey(creep.carry);
@@ -270,7 +271,11 @@ var creep_work5 = {
                     creep.memory.priority = 'distributorNearDeath';
                 }
 
-                if (_.sum(creep.carry) <= 50) {
+                if (_.sum(creep.carry) <= 0) {
+                    if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed){
+                        creep.memory.priority = 'labWorker';
+                        break;
+                    }
                     //Get from storage
                     //Check 4th link first just in case
                     var linkTarget = undefined;
@@ -297,6 +302,9 @@ var creep_work5 = {
                         }
                     }
                 } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                        creep.memory.hasDistributed = true;
+                    }
                     var savedTarget = Game.getObjectById(creep.memory.structureTarget);
                     var getNewStructure = false;
                     if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
@@ -358,10 +366,16 @@ var creep_work5 = {
                     }
                 } else if (creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 550000 && creep.room.terminal.store[RESOURCE_ENERGY] > 65000) {
                     //Being supplied, drop in storage
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                        creep.memory.hasDistributed = true;
+                    }
                     if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage);
                     }
                 } else if (creep.room.controller.level != 8 && Memory.linkList[creep.room.name].length > 1) {
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                        creep.memory.hasDistributed = true;
+                    }
                     var upLink = Game.getObjectById(Memory.linkList[creep.room.name][1])
                     if (upLink) {
                         if (creep.transfer(upLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -369,6 +383,9 @@ var creep_work5 = {
                         }
                     }
                 } else if (_.sum(creep.carry) < creep.carryCapacity) {
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                        creep.memory.hasDistributed = true;
+                    }
                     //Get from storage
                     //Check 4th link first just in case
                     var linkTarget = undefined;
@@ -391,6 +408,9 @@ var creep_work5 = {
                         }
                     }
                 } else {
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                        creep.memory.hasDistributed = true;
+                    }
                     var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
                     if (homeSpawn) {
                         if (!creep.pos.isNearTo(homeSpawn)) {
