@@ -31,6 +31,7 @@ var spawn_BuildCreeps5 = {
         let scraperMax = 0;
         if (thisRoom.controller.level < 7) {
             scraperMax = 1;
+            repairMax = 0;
         }
         let supplierMax = 1;
         let distributorMax = 1;
