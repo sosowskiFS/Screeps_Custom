@@ -33,12 +33,14 @@ var creep_upgrader = {
                     if (Game.flags[creep.room.name + "Controller"]) {
                     	attemptedTravel = true;
                         creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                            maxRooms: 1
+                            maxRooms: 1,
+                            stuckValue: 2
                         });
                     } else {
                     	attemptedTravel = true;
                         creep.travelTo(creep.room.controller, {
-                            maxRooms: 1
+                            maxRooms: 1,
+                            stuckValue: 2
                         });
                     }
                 } else {
@@ -54,7 +56,8 @@ var creep_upgrader = {
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
                 if (linkTarget && creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.travelTo(linkTarget, {
-                        maxRooms: 1
+                        maxRooms: 1,
+                        stuckValue: 2
                     });
                 }
             }
