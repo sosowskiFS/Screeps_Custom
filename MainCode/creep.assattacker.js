@@ -132,6 +132,12 @@ var creep_assattacker = {
                 if (targetFlag.pos.roomName == creep.pos.roomName) {
                     //In target room
 
+                    if (Game.time % 2 == 0) {
+                        creep.say("(=\uFF40\u03C9\u00B4=)", true);
+                    } else {
+                        creep.say("(=\u00B4\u2207\uFF40=)", true);
+                    }
+                    
                     //Cancel this flag if room is in safe mode
                     if (creep.room.controller.safeMode){
                         targetFlag.remove();

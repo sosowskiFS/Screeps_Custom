@@ -54,7 +54,7 @@ var market_buyers = require('market.FindBuyers');
 //Constants : http://support.screeps.com/hc/en-us/articles/203084991-API-Reference
 //Creep calculator : http://codepen.io/findoff/full/RPmqOd/
 //Profiler commands : https://github.com/gdborton/screeps-profiler
-//Emoji Unicode converter : https://r12a.github.io/apps/conversion/
+//Emoji Unicode converter : https://r12a.github.io/app-conversion/
 //Traveler API : https://github.com/bonzaiferroni/Traveler/wiki/Traveler-API
 
 global.lastMemoryTick = undefined;

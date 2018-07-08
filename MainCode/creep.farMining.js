@@ -388,6 +388,7 @@ var creep_farMining = {
                         creep.heal(creep);
                     }
                 } else if (Foe.length) {
+                    creep.say("\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
                     var closeRangeResult = "";
                     var attackResult = creep.attack(closeFoe);
                     if (Foe.length >= 2) {
@@ -600,6 +601,11 @@ var creep_farMining = {
                         creep.heal(creep);
                     }
                 } else if (Game.flags[creep.memory.targetFlag]) {
+                    if (Game.time % 2 == 0) {
+                        creep.say("(=\uFF40\uFECC\u00B4=)", true);
+                    } else {
+                        creep.say("(=\u00B4\uFECC\uFF40=)", true);
+                    }
                     var closeRangeResult = "";
                     if (closeFoe) {
                         closeRangeResult = creep.rangedAttack(closeFoe);

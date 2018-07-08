@@ -103,9 +103,17 @@ var creep_asshealer = {
 
                 if (creep.hits < creep.hitsMax - 400) {
                     creep.heal(creep);
+                    creep.say("(=\u2716\u11BD\u2716=)", true);
                 } else {
+
+                    if (Game.time % 2 == 0) {
+                        creep.say("(=\u25D5\u11BD\u25D5\u0E3A=)", true);
+                    } else {
+                        creep.say("(=\u229D\u11BD\u229D=)", true);
+                    }
+
                     var hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 1000 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 600 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
                     });
                     var healedAlly = false
                     if (hurtAlly.length > 0) {
