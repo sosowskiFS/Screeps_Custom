@@ -285,6 +285,9 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                            storageTarget = creep.room.terminal;
+                        }
                         if (storageTarget) {
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(storageTarget, {
@@ -353,6 +356,11 @@ var creep_work5 = {
                             }
                         }
                     }
+                } else if (creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 550000 && creep.room.terminal.store[RESOURCE_ENERGY] > 65000) {
+                    //Being supplied, drop in storage
+                    if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(creep.room.storage);
+                    }
                 } else if (creep.room.controller.level != 8 && Memory.linkList[creep.room.name].length > 1) {
                     var upLink = Game.getObjectById(Memory.linkList[creep.room.name][1])
                     if (upLink) {
@@ -373,6 +381,9 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                            storageTarget = creep.room.terminal;
+                        }
                         if (storageTarget) {
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(storageTarget);
