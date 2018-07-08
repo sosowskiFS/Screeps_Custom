@@ -21,7 +21,7 @@ var creep_work5 = {
                 if (_.sum(creep.carry) <= 50) {
                     creep.memory.structureTarget = undefined;
                     let storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 550000 && creep.room.terminal.store[RESOURCE_ENERGY] > 65000) {
                         storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
@@ -290,7 +290,7 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 550000 && creep.room.terminal.store[RESOURCE_ENERGY] > 65000) {
                             storageTarget = creep.room.terminal;
                         }
                         if (storageTarget) {
@@ -398,7 +398,7 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 550000 && creep.room.terminal.store[RESOURCE_ENERGY] > 65000) {
                             storageTarget = creep.room.terminal;
                         }
                         if (storageTarget) {
