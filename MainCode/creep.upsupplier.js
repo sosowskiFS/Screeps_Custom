@@ -44,6 +44,7 @@ var creep_upSupplier = {
                             locateSupplierTarget("ENERGY", creep);
                         }
                     } else {
+                        var withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY);
                         if (withdrawResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(storageTarget, {
                                 ignoreRoads: true,
