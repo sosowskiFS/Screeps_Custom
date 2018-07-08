@@ -34,25 +34,16 @@ var creep_upSupplier = {
                     }
                 } else {
                     if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
-                        var withdrawResult = creep.withdraw(creep.room.terminal, RESOURCE_ENERGY);
-                        if (withdrawResult == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(creep.room.terminal, {
-                                ignoreRoads: true,
-                                maxRooms: 1
-                            });
-                        } else if (withdrawResult == OK) {
-                            locateSupplierTarget("ENERGY", creep);
-                        }
-                    } else {
-                        var withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY);
-                        if (withdrawResult == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(storageTarget, {
-                                ignoreRoads: true,
-                                maxRooms: 1
-                            });
-                        } else if (withdrawResult == OK) {
-                            locateSupplierTarget("ENERGY", creep);
-                        }
+                        storageTarget = creep.room.terminal
+                    }
+                    var withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY);
+                    if (withdrawResult == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(storageTarget, {
+                            ignoreRoads: true,
+                            maxRooms: 1
+                        });
+                    } else if (withdrawResult == OK) {
+                        locateSupplierTarget("ENERGY", creep);
                     }
                 }
             }

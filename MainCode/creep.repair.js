@@ -44,6 +44,9 @@ function findNewTarget(creep, creepEnergy) {
         } else {
             //Get from storage
             var storageTarget = creep.room.storage;
+            if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                storageTarget = creep.room.terminal;
+            }
             if (storageTarget) {
                 if (storageTarget.store[RESOURCE_ENERGY] >= 200) {
                     var withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY);
