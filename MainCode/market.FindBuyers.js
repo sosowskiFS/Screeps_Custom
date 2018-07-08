@@ -158,6 +158,10 @@ var market_buyers = {
             var hasSent = false;
             if (Game.time % 1000 != 0) {
                 for (var y in Memory.mineralNeed) {
+                	if (y == RESOURCE_CATALYZED_GHODIUM_ACID && thisRoom.controller.level < 8){
+                		//No
+                		continue;
+                	}
                     //sendMineral(thisMineral, thisTerminal, targetRoom);
                     if (hasSent) {
                         break;
