@@ -31,7 +31,6 @@ var spawn_BuildCreeps5 = {
         let scraperMax = 0;
         if (thisRoom.controller.level < 7) {
             scraperMax = 1;
-            repairMax = 0;
         }
         let supplierMax = 1;
         let distributorMax = 1;
@@ -266,8 +265,8 @@ var spawn_BuildCreeps5 = {
 
         if (thisRoom.storage) {
         	if (thisRoom.controller.level != 8 && thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
-        		//upgraderMax++;
-        		muleMax++;
+        		upgraderMax++;
+        		//muleMax++;
         	}
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
                 //Add another mule for resource management
