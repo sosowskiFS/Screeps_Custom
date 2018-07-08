@@ -17,7 +17,7 @@ var creep_work5 = {
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
                     creep.memory.priority = 'muleNearDeath';
                 }
-                if (_.sum(creep.carry) == 0) {
+                if (_.sum(creep.carry) <= 50) {
                     creep.memory.structureTarget = undefined;
                     let storageTarget = creep.room.storage;
                     if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
@@ -270,7 +270,7 @@ var creep_work5 = {
                     creep.memory.priority = 'distributorNearDeath';
                 }
 
-                if (_.sum(creep.carry) == 0) {
+                if (_.sum(creep.carry) <= 50) {
                     //Get from storage
                     //Check 4th link first just in case
                     var linkTarget = undefined;
