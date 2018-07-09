@@ -265,7 +265,7 @@ module.exports.loop = function() {
                         //Set ramparts to public, re-seal every tick
                         //controlRamparts("Open", towers[y]); 
                         for (let q = 0; q < hostiles.length; q++) {
-                            let nearbyRamparts = hostiles[q].pos.findInRange(FIND_MY_STRUCTURES, 5, {
+                            let nearbyRamparts = hostiles[q].pos.findInRange(FIND_MY_STRUCTURES, 4, {
                                 filter: {
                                     structureType: STRUCTURE_RAMPART
                                 }
