@@ -271,8 +271,8 @@ module.exports.loop = function() {
                                 }
                             })
                             for (let p = 0; p < nearbyRamparts.length; p++) {
-                                if (roomRamparts[p].isPublic) {
-                                    roomRamparts[p].setPublic(false);
+                                if (nearbyRamparts[p].isPublic) {
+                                    nearbyRamparts[p].setPublic(false);
                                 }
                             }
                         }
