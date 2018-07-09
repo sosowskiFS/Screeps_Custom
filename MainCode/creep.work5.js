@@ -21,7 +21,7 @@ var creep_work5 = {
                 if (_.sum(creep.carry) <= 50) {
                     creep.memory.structureTarget = undefined;
                     let storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 700000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 350000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                         storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
