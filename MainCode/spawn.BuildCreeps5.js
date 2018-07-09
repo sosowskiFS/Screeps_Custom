@@ -264,14 +264,14 @@ var spawn_BuildCreeps5 = {
 
 
         if (thisRoom.storage) {
-        	if (thisRoom.controller.level != 8 && thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
-        		upgraderMax++;
-        		//muleMax++;
-        	}
+            if (thisRoom.controller.level != 8 && thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
+                upgraderMax++;
+                //muleMax++;
+            }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
                 //Add another mule for resource management
                 if (thisRoom.controller.level != 8) {
-                	upgraderMax++;
+                    upgraderMax++;
                 }
                 muleMax++;
             }
@@ -281,8 +281,12 @@ var spawn_BuildCreeps5 = {
             }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 525000) {
                 //HOW MUCH MUST I CRANK IT UP?
-                repairMax++;
-                muleMax++;
+                if (thisRoom.controller.level != 8) {
+                    upgraderMax = upgraderMax + 2;
+                } else {
+                    repairMax++;
+                    muleMax++;
+                }
             }
 
             if (storageMiners.length == 0 && upgradeMiners.length > 0 && thisRoom.storage.store[RESOURCE_ENERGY] <= 3000) {
@@ -332,7 +336,7 @@ var spawn_BuildCreeps5 = {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
-			if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 500 && (Foe.length || defenders.length < 1)) {
+            if (Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 500 && (Foe.length || defenders.length < 1)) {
                 //Try to produce millitary units
 
                 //Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -500,9 +504,9 @@ var spawn_BuildCreeps5 = {
                     let minerConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(minerConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
-                    	//Took severe damage, assume cap of 300
-                    	minerConfig = [CARRY,WORK,WORK,MOVE];
-                    	configCost = 300
+                        //Took severe damage, assume cap of 300
+                        minerConfig = [CARRY, WORK, WORK, MOVE];
+                        configCost = 300
                     }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -541,7 +545,7 @@ var spawn_BuildCreeps5 = {
                 } else if (prioritizedRole == 'mule') {
                     Memory.isSpawning = true;
                     let muleConfig = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-					if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
+                    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
                         muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 150000 && thisRoom.energyCapacityAvailable >= 1600) {
                         muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -549,9 +553,9 @@ var spawn_BuildCreeps5 = {
 
                     let configCost = calculateConfigCost(muleConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
-                    	//Took severe damage, assume cap of 300
-                    	muleConfig = [MOVE,WORK,CARRY,CARRY,CARRY];
-                    	configCost = 300
+                        //Took severe damage, assume cap of 300
+                        muleConfig = [MOVE, WORK, CARRY, CARRY, CARRY];
+                        configCost = 300
                     }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -583,9 +587,9 @@ var spawn_BuildCreeps5 = {
 
                     let configCost = calculateConfigCost(upgraderConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
-                    	//Took severe damage, assume cap of 300
-                    	upgraderConfig = [MOVE,WORK,WORK,CARRY];
-                    	configCost = 300
+                        //Took severe damage, assume cap of 300
+                        upgraderConfig = [MOVE, WORK, WORK, CARRY];
+                        configCost = 300
                     }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -670,9 +674,9 @@ var spawn_BuildCreeps5 = {
                     }
                     let configCost = calculateConfigCost(distributorConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
-                    	//Took severe damage, assume cap of 300
-                    	distributorConfig = [MOVE,MOVE,CARRY,CARRY,CARRY,CARRY];
-                    	configCost = 300
+                        //Took severe damage, assume cap of 300
+                        distributorConfig = [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
+                        configCost = 300
                     }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
