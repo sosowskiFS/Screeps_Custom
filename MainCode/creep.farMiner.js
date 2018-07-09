@@ -9,7 +9,7 @@ var creep_farMiner = {
         if (creep.hits < 400 && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
             //Determine if attacker is player, if so, delete flag.
             var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0 && !Memory.whiteList.includes(eCreep.owner.username)) || (creep.hits <= 500)
+                filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0 && !Memory.whiteList.includes(creep.owner.username)) || (creep.hits <= 500)
             });
             if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
                 Game.notify(creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);

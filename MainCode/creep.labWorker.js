@@ -14,7 +14,7 @@ var creep_labWorker = {
             if (creep.memory.resourceChecks < 15) {
                 var lab4 = Game.getObjectById(creep.memory.lab4);
                 var lab5 = Game.getObjectById(creep.memory.lab5);
-                if (creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
+                if (creep.room.terminal && creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
                     //Immediately swap flags
                     creep.memory.resourceChecks = 15;
                     if (creep.memory.mineral5 == RESOURCE_CATALYST && creep.memory.mineral6 != RESOURCE_CATALYZED_GHODIUM_ACID) {
