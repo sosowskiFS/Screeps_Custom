@@ -210,7 +210,7 @@ module.exports.loop = function() {
                     });
                     if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
                         Memory.roomsUnderAttack.push(towers[y].room.name);
-                        RampartDirection = "Closed";
+                        //RampartDirection = "Closed";
                         if (hostiles[0].owner.username == 'Invader' || (hostiles[0].hitsMax <= 100 && hostiles.length == 1)) {
                             Memory.roomsPrepSalvager.push(towers[y].room.name);
                         } else if (towers[y].room.controller.level < 7 && (hostiles[0].hits > 100 || hostiles.length > 1)) {
@@ -219,12 +219,15 @@ module.exports.loop = function() {
                                 towers[y].room.controller.activateSafeMode();
                             }
                         }
-                    } else if (hostiles.length == 0) {
+                    } else if (hostiles.length == 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) != -1) {
                         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(towers[y].room.name);
                         var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
+                        var nukes = towers[y].room.find(FIND_NUKES);
                         if (UnderAttackPos >= 0) {
                             Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
-                            RampartDirection = "Open"
+                            if (!nukes.length) {
+                                RampartDirection = "Open"
+                            }                     
                         }
                         if (salvagerPos >= 0) {
                             Memory.roomsPrepSalvager.splice(salvagerPos, 1);
@@ -257,32 +260,26 @@ module.exports.loop = function() {
                         }
                     }
 
-                    if (RampartDirection == "Closed") {
-                        var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
-                            filter: {
-                                structureType: STRUCTURE_RAMPART
-                            }
-                        });
-                        for (var n = 0; n < roomRamparts.length; n++) {
-                            if (roomRamparts[n].isPublic) {
-                                roomRamparts[n].setPublic(false);
-                            }
-                        }
-                    } else if (RampartDirection == "Open") {
-                        var nukes = towers[y].room.find(FIND_NUKES);
-                        if (!nukes.length) {
-                            var roomRamparts = towers[y].room.find(FIND_MY_STRUCTURES, {
+                    if (hostiles.length > 0) {
+                        //Loop through hostiles, close ramparts within 5 radius
+                        //Set ramparts to public, re-seal every tick
+                        controlRamparts("Open", towers[y]); 
+                        for (let q = 0; q < hostiles.length; q++) {
+                            let nearbyRamparts = hostiles[n].pos.findInRange(FIND_MY_STRUCTURES, 5, {
                                 filter: {
                                     structureType: STRUCTURE_RAMPART
                                 }
-                            });
-                            for (var n = 0; n < roomRamparts.length; n++) {
-                                if (!roomRamparts[n].isPublic) {
-                                    roomRamparts[n].setPublic(true);
+                            })
+                            for (let p = 0; p < nearbyRamparts.length; p++) {
+                                if (roomRamparts[n].isPublic) {
+                                    roomRamparts[n].setPublic(false);
                                 }
                             }
                         }
                     }
+
+                    controlRamparts(RampartDirection, towers[y]);
+
                     alreadySearched.push(towers[y].room.name);
                 }
                 tower_Operate.run(towers[y], Memory.attackDuration, y);
@@ -1471,4 +1468,33 @@ function tryInitSameMemory() {
         global.LastMemory = RawMemory._parsed
     }
     lastMemoryTick = Game.time
+}
+
+function controlRamparts(RampartDirection, thisTower) {
+    if (RampartDirection == "Closed") {
+        var roomRamparts = thisTower.room.find(FIND_MY_STRUCTURES, {
+            filter: {
+                structureType: STRUCTURE_RAMPART
+            }
+        });
+        for (var n = 0; n < roomRamparts.length; n++) {
+            if (roomRamparts[n].isPublic) {
+                roomRamparts[n].setPublic(false);
+            }
+        }
+    } else if (RampartDirection == "Open") {
+        var nukes = thisTower.room.find(FIND_NUKES);
+        if (!nukes.length) {
+            var roomRamparts = thisTower.room.find(FIND_MY_STRUCTURES, {
+                filter: {
+                    structureType: STRUCTURE_RAMPART
+                }
+            });
+            for (var n = 0; n < roomRamparts.length; n++) {
+                if (!roomRamparts[n].isPublic) {
+                    roomRamparts[n].setPublic(true);
+                }
+            }
+        }
+    }
 }
