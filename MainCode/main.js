@@ -263,7 +263,7 @@ module.exports.loop = function() {
                     if (hostiles.length > 0) {
                         //Loop through hostiles, close ramparts within 5 radius
                         //Set ramparts to public, re-seal every tick
-                        controlRamparts("Open", towers[y]); 
+                        //controlRamparts("Open", towers[y]); 
                         for (let q = 0; q < hostiles.length; q++) {
                             let nearbyRamparts = hostiles[q].pos.findInRange(FIND_MY_STRUCTURES, 5, {
                                 filter: {
