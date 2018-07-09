@@ -44,7 +44,7 @@ function findNewTarget(creep, creepEnergy) {
         } else {
             //Get from storage
             var storageTarget = creep.room.storage;
-            if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 550000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+            if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 700000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                 storageTarget = creep.room.terminal;
             }
             if (storageTarget) {
