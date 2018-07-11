@@ -20,8 +20,8 @@ var spawn_BuildInstruction = {
                                 });
                                 Memory.isSpawning = true;
                                 console.log('Claim executed from ' + spawn.room.name);
-                                if (Game.flags["ClaimThis"]) {
-                                    Game.flags["ClaimThis"].remove();
+                                if (Game.flags[spawn.room.name + "ClaimThis"]) {
+                                    Game.flags[spawn.room.name + "ClaimThis"].remove();
                                 }
                             }
                         }
@@ -37,8 +37,8 @@ var spawn_BuildInstruction = {
                             });
                             Memory.isSpawning = true;
                             console.log('Claim executed from ' + spawn.room.name);
-                            if (Game.flags["ClaimThis"]) {
-                                Game.flags["ClaimThis"].remove();
+                            if (Game.flags[spawn.room.name + "ClaimThis"]) {
+                                Game.flags[spawn.room.name + "ClaimThis"].remove();
                             }
                         }
                     }
