@@ -62,10 +62,10 @@ var creep_Helper = {
                     });
                     if (roomSources.length) {
                         let targetIndex = 0;
-                        if (creep.memory.waitingTimer >= 30 && roomSources.length > 1){
+                        if (creep.memory.waitingTimer >= 30 && roomSources.length > 1) {
                             creep.memory.targetSource = roomSources[1].id;
                             targetIndex = 1;
-                        else {
+                        } else {
                             creep.memory.targetSource = roomSources[0].id;
                         }
                         creep.memory.waitingTimer = 0;             
