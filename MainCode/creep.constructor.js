@@ -69,8 +69,8 @@ var creep_constructor = {
             } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_NOT_IN_RANGE) {
                 creep.travelTo(Game.getObjectById(creep.memory.siteID));
             } else if (creep.build(Game.getObjectById(creep.memory.siteID)) == ERR_INVALID_TARGET) {
-                if (Game.flags["BuildThis"]) {
-                    Game.flags["BuildThis"].remove();
+                if (Game.flags[creep.memory.homeRoom + "BuildThis"]) {
+                    Game.flags[creep.memory.homeRoom + "BuildThis"].remove();
                 }
                 //creep.memory.priority = 'harvester';
                 creep.memory.priority = 'helper';          
