@@ -38,6 +38,9 @@ var creep_Helper = {
             if (!creep.memory.currentState) {
                 creep.memory.currentState = 1;
             }
+            if (!creep.memory.waitingTimer) {
+                creep.memory.waitingTimer = 0;
+            }
 
             if (creep.memory.currentState == 1) {
                 if (creep.memory.targetSource) {
@@ -45,8 +48,11 @@ var creep_Helper = {
                     if (thisSource) {
                         if (creep.harvest(thisSource) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisSource);
+                            creep.memory.waitingTimer++;
+                        } else {
+                            creep.memory.waitingTimer = 0;
                         }
-                        if (thisSource.energy <= 25) {
+                        if (thisSource.energy <= 25 || creep.memory.waitingTimer >= 30) {
                             creep.memory.targetSource = undefined;
                         }
                     }
@@ -55,9 +61,16 @@ var creep_Helper = {
                         filter: (tSource) => (tSource.energy >= creep.carryCapacity)
                     });
                     if (roomSources.length) {
-                        creep.memory.targetSource = roomSources[0].id;
-                        if (creep.harvest(roomSources[0]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(roomSources[0]);
+                        let targetIndex = 0;
+                        if (creep.memory.waitingTimer >= 30 && roomSources.length > 1){
+                            creep.memory.targetSource = roomSources[1].id;
+                            targetIndex = 1;
+                        else {
+                            creep.memory.targetSource = roomSources[0].id;
+                        }
+                        creep.memory.waitingTimer = 0;             
+                        if (creep.harvest(roomSources[targetIndex]) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(roomSources[targetIndex]);
                         }
                     }
                 }
