@@ -22,21 +22,61 @@ var creep_Helper = {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }
 
-                            if (creep.room.controller && !creep.room.controller.my) {
-                    if (creep.room.controller.reservation && creep.room.controller.reservation.username == "Montblanc"){
-                        //Soak
-                    } else {
-                        var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
-                        });
-                        if (somethingNearby) {
-                            creep.dismantle(somethingNearby);
+            if (creep.room.controller && !creep.room.controller.my) {
+                if (creep.room.controller.reservation && creep.room.controller.reservation.username == "Montblanc") {
+                    //Soak
+                } else {
+                    var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                    });
+                    if (somethingNearby) {
+                        creep.dismantle(somethingNearby);
+                    }
+                }
+            }
+        } else {
+            if (!creep.memory.currentState) {
+                creep.memory.currentState = 1;
+            }
+
+            if (creep.memory.currentState == 1) {
+                if (creep.memory.targetSource) {
+                    let thisSource = Game.getObjectById(creep.memory.targetSource);
+                    if (thisSource) {
+                        if (creep.harvest(thisSource) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(thisSource);
+                        }
+                        if (thisSource.energy <= 25) {
+                            creep.memory.targetSource = undefined;
+                        }
+                    }
+                } else {
+                    let roomSources = thisRoom.find(FIND_SOURCES, {
+                        filter: (tSource) => (tSource.energy >= creep.carryCapacity)
+                    });
+                    if (roomSources.length) {
+                        creep.memory.targetSource = roomSources[0].id;
+                        if (creep.harvest(roomSources[0]) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(roomSources[0]);
                         }
                     }
                 }
-        } else {
-            creep.memory.priority = 'harvester';
-            creep.travelTo(creep.room.controller);
+
+                if (_.sum(creep.carry) + (creep.getActiveBodyparts(WORK) * 2) >= creep.carryCapacity) {
+                    creep.memory.currentState = 2;
+                }
+            } else {
+                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(creep.room.controller, {
+                        maxRooms: 1,
+                        stuckValue: 2
+                    });
+                }
+
+                if (_.sum(creep.carry) <= 0) {
+                    creep.memory.currentState = 1;
+                }
+            }
         }
     }
 };

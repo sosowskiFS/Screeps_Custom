@@ -72,8 +72,8 @@ var creep_constructor = {
                 if (Game.flags["BuildThis"]) {
                     Game.flags["BuildThis"].remove();
                 }
-                creep.memory.priority = 'harvester';
-                //creep.memory.priority = 'helper';          
+                //creep.memory.priority = 'harvester';
+                creep.memory.priority = 'helper';          
                 if (creep.memory.homeRoom && creep.room.name == creep.memory.destination && !Game.flags[creep.memory.homeRoom + "SendHelper"]) {
                     creep.pos.createFlag(creep.memory.homeRoom + "SendHelper");
                 }
