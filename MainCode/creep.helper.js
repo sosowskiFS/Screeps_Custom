@@ -51,7 +51,7 @@ var creep_Helper = {
                         }
                     }
                 } else {
-                    let roomSources = thisRoom.find(FIND_SOURCES, {
+                    let roomSources = creep.room.find(FIND_SOURCES, {
                         filter: (tSource) => (tSource.energy >= creep.carryCapacity)
                     });
                     if (roomSources.length) {
