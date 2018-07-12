@@ -306,7 +306,7 @@ var creep_workV2 = {
                         		target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
 	                                filter: (structure) => {
 	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-	                                        structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+	                                        structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
 	                                }
 	                            });	
                         	} else {
