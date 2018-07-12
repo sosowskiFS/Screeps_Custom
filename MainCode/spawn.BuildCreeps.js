@@ -194,7 +194,7 @@ function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
     }
 }
 
-function getDistributorConfig(energyCap, numRoomCreeps) {
+function getDistributorConfig(energyCap, numRoomCreeps, numHarvesters) {
     if (energyCap < 550 || numRoomCreeps <= 1 || numHarvesters <= 0) {
         return [MOVE,MOVE,CARRY,CARRY,CARRY,CARRY];
     } else {
