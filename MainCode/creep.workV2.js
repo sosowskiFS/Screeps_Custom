@@ -285,19 +285,39 @@ var creep_workV2 = {
                     if (!creep.memory.structureTarget) {
                         var target = undefined;
                         if (getNewStructure) {
-                            target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                                }
-                            });
+                        	if (!creep.room.storage) {
+                        		target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+	                                filter: (structure) => {
+	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+	                                        structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+	                                }
+	                            });	
+                        	} else {
+	                        	target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+	                                filter: (structure) => {
+	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+	                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+	                                }
+	                            });	
+                        	}
+                            
                         } else {
-                            target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-                                }
-                            });
+                        	if (!creep.room.storage) {
+                        		target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+	                                filter: (structure) => {
+	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+	                                        structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+	                                }
+	                            });	
+                        	} else {
+	                        	target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+	                                filter: (structure) => {
+	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+	                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+	                                }
+	                            });	
+                        	}
+                            
                         }
                         if (!target) {
                             //Find closest by path will not return anything if path is blocked
