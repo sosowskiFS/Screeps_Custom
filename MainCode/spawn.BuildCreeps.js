@@ -134,7 +134,7 @@ var spawn_BuildCreeps = {
             
             if (distributors.length < distributorMax) {
                 prioritizedRole = 'distributor';
-                bestWorker = getDistributorConfig(thisRoom.energyAvailable, RoomCreeps.length);
+                bestWorker = getDistributorConfig(thisRoom.energyAvailable, RoomCreeps.length, harvesters.length);
             } else if (harvesters.length < harvesterMax) {
                 prioritizedRole = 'harvester';
                 if (assignedSlot1.length) {
@@ -145,7 +145,7 @@ var spawn_BuildCreeps = {
                     creepSourceID = strSources[0];
                 }
 
-                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length);
+                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesters.length);
             } else if (suppliers.length < supplierMax) {
                 prioritizedRole = 'supplier';
                 bestWorker = [MOVE, CARRY, CARRY];
@@ -184,8 +184,8 @@ function calculateConfigCost(bodyConfig) {
     return totalCost;
 }
 
-function getMinerConfig(energyCap, numRoomCreeps) {
-    if (energyCap < 550 || numRoomCreeps <= 1) {
+function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
+    if (energyCap < 550 || numRoomCreeps <= 1 || numHarvesters <= 0) {
         return [MOVE, WORK, WORK, CARRY];
     } else if (energyCap < 800) {
         return [MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY];
@@ -195,7 +195,7 @@ function getMinerConfig(energyCap, numRoomCreeps) {
 }
 
 function getDistributorConfig(energyCap, numRoomCreeps) {
-    if (energyCap < 550 || numRoomCreeps <= 1) {
+    if (energyCap < 550 || numRoomCreeps <= 1 || numHarvesters <= 0) {
         return [MOVE,MOVE,CARRY,CARRY,CARRY,CARRY];
     } else {
         return [MOVE, MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
