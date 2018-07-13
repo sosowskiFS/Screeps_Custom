@@ -324,7 +324,7 @@ var spawn_BuildCreeps5 = {
                 spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'dist_' + spawn.name + '_' + Game.time, {
                     memory: {
                         priority: 'distributor',
-                        deathWarn: _.size(distributorConfig) * 4,
+                        deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
                         fromSpawn: spawn.id,
                         homeRoom: thisRoom.name
                     }
