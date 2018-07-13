@@ -79,11 +79,39 @@ var creep_Helper = {
                     creep.memory.currentState = 2;
                 }
             } else {
-                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(creep.room.controller, {
-                        maxRooms: 1,
-                        stuckValue: 2
-                    });
+        	    let needSearch = true;
+                if (creep.memory.structureTarget) {
+                    let thisStructure = Game.getObjectById(creep.memory.structureTarget);
+                    if (thisStructure) {
+                        needSearch = false;
+                        if (creep.build(thisStructure) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(thisStructure);
+                        }
+                    } else {
+                        creep.memory.structureTarget = undefined;
+                    }
+                }
+
+                if (needSearch) {
+                    target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                    if (target) {
+                        creep.memory.structureTarget = target.id;
+                        if (creep.build(target) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(target);
+                        } else if (creep.build(target) == ERR_NO_BODYPART) {
+                            creep.suicide();
+                        }
+                    } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                        if (Game.flags[creep.room.name + "Controller"]) {
+                            creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                                maxRooms: 1
+                            });
+                        } else {
+                            creep.travelTo(creep.room.controller, {
+                                maxRooms: 1
+                            });
+                        }
+                    }
                 }
 
                 if (_.sum(creep.carry) <= 0) {
