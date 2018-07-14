@@ -135,7 +135,7 @@ var creep_workV2 = {
                     }
                 } else if (creep.memory.storageTarget) {
                     let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                    if (_.sum(thisTarget.store) > creep.carryCapacity ) {
+                    if (thisTarget && _.sum(thisTarget.store) > creep.carryCapacity) {
                         if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisTarget);
                         }
