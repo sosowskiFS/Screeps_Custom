@@ -40,7 +40,7 @@ var creep_distantSupplier = {
                 }
             } else {
                 //In home room, get energy
-                if (creep.room.storage) {
+                if (creep.room.controller && creep.room.controller.owner.username == "Montblanc" && creep.room.storage) {
                     if (creep.memory.travelDistance && creep.memory.travelDistance > creep.ticksToLive) {
                         //Will not be able to make the journey, suicide
                         creep.suicide();
@@ -48,6 +48,8 @@ var creep_distantSupplier = {
                     if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage);
                     }
+                } else {
+                    creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
                 }
             }
         }
