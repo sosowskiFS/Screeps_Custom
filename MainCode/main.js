@@ -1284,7 +1284,7 @@ function memCheck() {
         Memory.SKMineralTimers = new Object();
     }
     if (!Memory.ClosedRampartList) {
-        Memory.ClosedrampartList = new Object();
+        Memory.ClosedRampartList = new Object();
     }
     /*if (!Memory.TerminalCollection) {
         Memory.TerminalCollection = new Object();
