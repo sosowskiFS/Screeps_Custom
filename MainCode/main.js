@@ -292,7 +292,7 @@ module.exports.loop = function() {
                                 let thisRampart = Game.getObjectById(Memory.ClosedRampartList[towers[y].room.name][z]);
                                 if (thisRampart){
                                     thisRampart.setPublic(true);
-                                    let tempIndex = Memory.ClosedRampartList.indexOf(thisRampart.id);
+                                    let tempIndex = Memory.ClosedRampartList[towers[y].room.name].indexOf(thisRampart.id);
                                     Memory.ClosedRampartList.splice(tempIndex, 1);
                                 }
                             }
