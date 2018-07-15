@@ -293,7 +293,7 @@ module.exports.loop = function() {
                                 if (thisRampart){
                                     thisRampart.setPublic(true);
                                     let tempIndex = Memory.ClosedRampartList[towers[y].room.name].indexOf(thisRampart.id);
-                                    Memory.ClosedRampartList.splice(tempIndex, 1);
+                                    Memory.ClosedRampartList[towers[y].room.name].splice(tempIndex, 1);
                                 }
                             }
                         }
