@@ -352,7 +352,23 @@ var creep_assattacker = {
             }
 
             if (closeFoe) {
-                creep.rangedMassAttack();
+                var lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
+                let inRampart = false;
+                if (lookResult.length) {
+                    for (let d = 0; d < lookResult.length; d++) {
+                        if (lookResult[d].structureType == STRUCTURE_RAMPART) {
+                            inRampart = true;
+                            break;
+                        }
+                    }
+                    if (inRampart) {
+                        creep.rangedMassAttack();
+                    } else {
+                        creep.rangedAttack(closeFoe);
+                    }
+                } else {
+                    creep.rangedAttack(closeFoe)
+                }
                 creep.attack(closeFoe);
                 //prioritize foebashing
                 /*var found = closeFoe.pos.lookFor(LOOK_STRUCTURES);

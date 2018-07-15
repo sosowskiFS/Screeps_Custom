@@ -77,7 +77,7 @@ var creep_combat = {
                 var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
                 if (lookResult.length && creep.memory.waitingTimer < 300) {
                     var found = false;
-                    for (var y = 0; y < lookResult.length; y++) {
+                    for (let y = 0; y < lookResult.length; y++) {
                         if (lookResult[y].structureType == STRUCTURE_RAMPART && lookResult[y].isPublic == false) {
                             if (creep.pos.inRangeTo(closeFoe, 3)) {
                                 creep.memory.waitingTimer = 0;
