@@ -281,7 +281,7 @@ module.exports.loop = function() {
                                     nearbyRamparts[p].setPublic(false);                                                            
                                 }
                                 if (Memory.ClosedRampartList[towers[y].room.name].indexOf(nearbyRamparts[p].id) == -1){
-                                    Memory.ClosedRampartList.push(nearbyRamparts[p].id); 
+                                    Memory.ClosedRampartList[towers[y].room.name].push(nearbyRamparts[p].id); 
                                 }
                                 LockedThisTick.push(nearbyRamparts[p].id);
                             }
