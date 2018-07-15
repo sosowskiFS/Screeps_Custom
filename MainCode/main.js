@@ -287,7 +287,7 @@ module.exports.loop = function() {
                             }
                         }
                         //Compare ramparts locked this tick with previously locked ramparts
-                        for (let z = 0; z < Memory.ClosedRampartList[towers[y].room.name]; z++) {
+                        for (let z = 0; z < Memory.ClosedRampartList[towers[y].room.name].length; z++) {
                             if (LockedThisTick.indexOf(Memory.ClosedRampartList[towers[y].room.name][z]) == -1) {
                                 let thisRampart = Game.getObjectById(Memory.ClosedRampartList[towers[y].room.name][z]);
                                 if (thisRampart){
