@@ -264,6 +264,12 @@ module.exports.loop = function() {
                         //Loop through hostiles, close ramparts within 5 radius
                         //Set ramparts to public, re-seal every tick
                         //controlRamparts("Open", towers[y]); 
+                        if (!Memory.ClosedRampartList[towers[y].room.name]) {
+                            Memory.ClosedRampartList[towers[y].room.name] = [];
+                        }
+
+                        let LockedThisTick = [];
+                        //Assemble list of ramparts that need to be locked
                         for (let q = 0; q < hostiles.length; q++) {
                             let nearbyRamparts = hostiles[q].pos.findInRange(FIND_MY_STRUCTURES, 4, {
                                 filter: {
@@ -272,7 +278,22 @@ module.exports.loop = function() {
                             })
                             for (let p = 0; p < nearbyRamparts.length; p++) {
                                 if (nearbyRamparts[p].isPublic) {
-                                    nearbyRamparts[p].setPublic(false);
+                                    nearbyRamparts[p].setPublic(false);                                                            
+                                }
+                                if (Memory.ClosedRampartList[towers[y].room.name].indexOf(nearbyRamparts[p].id) == -1){
+                                    Memory.ClosedRampartList.push(nearbyRamparts[p].id); 
+                                }
+                                LockedThisTick.push(nearbyRamparts[p].id);
+                            }
+                        }
+                        //Compare ramparts locked this tick with previously locked ramparts
+                        for (let z = 0; z < Memory.ClosedRampartList[towers[y].room.name]; z++) {
+                            if (LockedThisTick.indexOf(Memory.ClosedRampartList[towers[y].room.name][z]) == -1) {
+                                let thisRampart = Game.getObjectById(Memory.ClosedRampartList[towers[y].room.name][z]);
+                                if (thisRampart){
+                                    thisRampart.setPublic(true);
+                                    let tempIndex = Memory.ClosedRampartList.indexOf(thisRampart.id);
+                                    Memory.ClosedRampartList.splice(tempIndex, 1);
                                 }
                             }
                         }
@@ -1262,6 +1283,9 @@ function memCheck() {
     if (!Memory.SKMineralTimers) {
         Memory.SKMineralTimers = new Object();
     }
+    if (!Memory.ClosedRampartList) {
+        Memory.ClosedrampartList = new Object();
+    }
     /*if (!Memory.TerminalCollection) {
         Memory.TerminalCollection = new Object();
     }*/
@@ -1482,6 +1506,7 @@ function controlRamparts(RampartDirection, thisTower) {
                 roomRamparts[n].setPublic(false);
             }
         }
+        Memory.ClosedRampartList[thisTower.room.name] = [];
     } else if (RampartDirection == "Open") {
         var nukes = thisTower.room.find(FIND_NUKES);
         if (!nukes.length) {
@@ -1496,5 +1521,6 @@ function controlRamparts(RampartDirection, thisTower) {
                 }
             }
         }
+        Memory.ClosedRampartList[thisTower.room.name] = [];
     }
 }
