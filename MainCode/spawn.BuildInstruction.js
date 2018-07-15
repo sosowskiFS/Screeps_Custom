@@ -256,7 +256,7 @@ var spawn_BuildInstruction = {
                 var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == spawn.room.name);
                 var healerlessAttackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.healerID == undefined && creep.memory.homeRoom == spawn.room.name && creep.ticksToLive >= 750 && !creep.memory.isReserved);
                 var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == spawn.room.name);
-                if (attackers.length < 3 && (attackers.length < healers.length || attackers.length == healers.length)) {
+                if (attackers.length < 1 && (attackers.length < healers.length || attackers.length == healers.length)) {
                     var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
                     if (Game.flags[spawn.room.name + "DoBoost"]) {
                         //This expects tough/attack/move boost
@@ -297,7 +297,7 @@ var spawn_BuildInstruction = {
                             console.log('FUCK. SHIT. UP. ' + spawn.room.name);
                         }
                     }
-                } else if (healers.length < 3 && healers.length < attackers.length && healerlessAttackers.length) {
+                } else if (healers.length < 1 && healers.length < attackers.length && healerlessAttackers.length) {
                     var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     //Testing movement config
                     //var healerConfig = [TOUGH, MOVE];

@@ -67,12 +67,12 @@ var spawn_BuildCreeps5 = {
             //DO NOT CARE LIST : UO/KH
             if (Memory.labList[thisRoom.name].length >= 6) {
                 if (Game.flags[thisRoom.name + "WarBoosts"]) {
-                    min1 = RESOURCE_CATALYZED_UTRIUM_ACID;
-                    min2 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+                    min1 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
+                    min2 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
                     min3 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
                     min4 = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
-                    min5 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
-                    min6 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
+                    min5 = RESOURCE_CATALYZED_UTRIUM_ACID;
+                    min6 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
                 } else if (Game.flags[thisRoom.name + "UHProducer"]) {
                     min4 = RESOURCE_UTRIUM;
                     min5 = RESOURCE_HYDROGEN;

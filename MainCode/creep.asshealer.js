@@ -20,33 +20,38 @@ var creep_asshealer = {
             }
         });
 
-        //console.log("unboosted heal : " + unboostedHeal + "| unboosted Tough : " + unboostedTough);
-        if (Game.flags[creep.memory.homeRoom + "DoBoost"] && unboostedMove > 0 && Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
-            var MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
+        if (Game.flags[creep.memory.homeRoom + "DoBoost"] && Game.flags[creep.memory.homeRoom + "RunningAssault"] && (unboostedMove > 0 || unboostedTough > 0 || unboostedHeal > 0)) {
+            let MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
             });
-            if (MoveLab.length && MoveLab[0].mineralAmount > 0) {
-                creep.travelTo(MoveLab[0]);
-                MoveLab[0].boostCreep(creep);
-            }
-        } else if (Game.flags[creep.memory.homeRoom + "DoBoost"] && unboostedTough > 0 && Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
-            var ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
+            let ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
-            if (ToughLab.length && ToughLab[0].mineralAmount > 0) {
-                creep.travelTo(ToughLab[0], {
-                    ignoreRoads: true
-                });
-                ToughLab[0].boostCreep(creep);
-            }
-        } else if (Game.flags[creep.memory.homeRoom + "DoBoost"] && unboostedHeal > 0 && Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
             var HealLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
-            if (HealLab.length && HealLab[0].mineralAmount > 0) {
-                creep.travelTo(HealLab[0], {
-                    ignoreRoads: true
-                });
+            let hasTraveled = false;
+            if (MoveLab.length && unboostedMove > 0) {
+                MoveLab[0].boostCreep(creep);
+                creep.travelTo(MoveLab[0]);
+                hasTraveled = true;
+            }
+            if (ToughLab.length && unboostedTough > 0) {
+                if (!hasTraveled) {
+                    creep.travelTo(ToughLab[0], {
+                        ignoreRoads: true
+                    });
+                    hasTraveled = true;
+                }           
+                ToughLab[0].boostCreep(creep);
+            }
+            if (HealLab.length && unboostedHeal > 0) {
+                if (!hasTraveled) {
+                    creep.travelTo(HealLab[0], {
+                        ignoreRoads: true
+                    });
+                    hasTraveled = true;
+                }           
                 HealLab[0].boostCreep(creep);
             }
         } else {
