@@ -6,7 +6,7 @@ var creep_farMiner = {
             creep.memory.priority = 'farMinerNearDeath';
         }
 
-        if (creep.hits < 400 && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
+        if (creep.hits < 400 && Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
             //Determine if attacker is player, if so, delete flag.
             var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
                 filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0 && !Memory.whiteList.includes(creep.owner.username)) || (creep.hits <= 500)
