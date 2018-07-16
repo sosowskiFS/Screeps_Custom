@@ -50,6 +50,7 @@ var creep_farMiner = {
 
             let mineTarget = undefined;
             let thisUnit = undefined;
+            let triedToMove = false;
 
             //Goal : Only need to get storage unit as a target every 10 ticks
             //Need to keep storageUnit under creep to not do deposits
@@ -63,6 +64,7 @@ var creep_farMiner = {
                 if (mineTarget) {
                     if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                        triedToMove = true;
                     }
                 }
             } else {
@@ -78,6 +80,7 @@ var creep_farMiner = {
                 if (mineTarget) {
                     if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                        triedToMove = true;
                     }
                 }
             }
@@ -86,7 +89,7 @@ var creep_farMiner = {
                 if (thisUnit.hits < thisUnit.hitsMax) {
                     creep.repair(thisUnit);
                 }
-                if (creep.pos.x != thisUnit.pos.x || creep.pos.y != thisUnit.pos.y) {
+                if ((creep.pos.x != thisUnit.pos.x || creep.pos.y != thisUnit.pos.y) && !triedToMove) {
                     creep.travelTo(thisUnit);
                 } else {
                     creep.memory.onContainer = true;
@@ -96,7 +99,7 @@ var creep_farMiner = {
                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                 });
                 if (containers.length) {
-                    if (creep.pos != containers[0].pos) {
+                    if (creep.pos != containers[0].pos && !triedToMove) {
                         creep.travelTo(containers[0]);
                     }
                     creep.memory.storageUnit = containers[0].id;
