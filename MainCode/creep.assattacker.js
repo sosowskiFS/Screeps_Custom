@@ -2,7 +2,17 @@ var creep_assattacker = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+        let activeFlag = Game.flags[thisRoom.name + "Assault"];
+        if (!activeFlag) {
+            for (j = 2; j < 6; j++) {
+                activeFlag = Game.flags[thisRoom.name + "Assault" + j]
+                if (activeFlag) {
+                    break;
+                }
+            }
+        }
+
+        if (activeFlag) {
             var unboostedTough = 0;
             var unboostedAttack = 0;
             var unboostedMove = 0;
