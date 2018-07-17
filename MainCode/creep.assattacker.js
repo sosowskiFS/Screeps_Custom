@@ -2,17 +2,17 @@ var creep_assattacker = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        let activeFlag = Game.flags[creep.memory.homeRoom + "Assault"];
-        if (!activeFlag) {
+        let targetFlag = Game.flags[creep.memory.homeRoom + "Assault"];
+        if (!targetFlag) {
             for (j = 2; j < 6; j++) {
-                activeFlag = Game.flags[creep.memory.homeRoom + "Assault" + j]
-                if (activeFlag) {
+                targetFlag = Game.flags[creep.memory.homeRoom + "Assault" + j]
+                if (targetFlag) {
                     break;
                 }
             }
         }
 
-        if (activeFlag) {
+        if (targetFlag) {
             var unboostedTough = 0;
             var unboostedAttack = 0;
             var unboostedMove = 0;
@@ -36,21 +36,6 @@ var creep_assattacker = {
             if (creep.memory.previousRoom != creep.room.name) {
                 creep.memory.previousRoom = creep.room.name;
                 creep.memory._trav = undefined;
-            }
-
-            var targetFlag = Game.flags[creep.memory.homeRoom + "Assault"];
-            if (!targetFlag) {
-                for (i = 2; i < 6; i++) {
-                    targetFlag = Game.flags[creep.memory.homeRoom + "Assault" + i]
-                    if (targetFlag) {
-                        break;
-                    }
-                }
-                if (!targetFlag) {
-                    //Abort Assault
-                    Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
-                    console.log(creep.memory.homeRoom + " unable to find any more marks.");
-                }
             }
 
             var wallFlag = Game.flags[creep.memory.homeRoom + "WallFlag"];
@@ -405,7 +390,12 @@ var creep_assattacker = {
                 } else {
                     creep.rangedAttack(closeFoe);
                     creep.attack(closeFoe);
-                }       
+                }
+            }
+        } else {
+            if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                console.log(creep.memory.homeRoom + " unable to find any more marks.");
             }
         }
 
