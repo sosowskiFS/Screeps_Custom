@@ -129,7 +129,7 @@ var creep_assattacker = {
                     }           
                     AttackLab[0].boostCreep(creep);
                 }
-                if (WorkLab.length && unboostedAttack > 0) {
+                if (WorkLab.length && unboostedWork > 0) {
                     if (!hasTraveled) {
                         creep.travelTo(WorkLab[0], {
                             ignoreRoads: true
