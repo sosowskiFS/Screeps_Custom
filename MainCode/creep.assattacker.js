@@ -390,23 +390,12 @@ var creep_assattacker = {
                         creep.rangedMassAttack();
                     } else {
                         creep.rangedAttack(closeFoe);
+                        creep.attack(closeFoe);
                     }
                 } else {
-                    creep.rangedAttack(closeFoe)
-                }
-                creep.attack(closeFoe);
-                //prioritize foebashing
-                /*var found = closeFoe.pos.lookFor(LOOK_STRUCTURES);
-                var hasRampart = false;
-                for (var building in found) {
-                    if (found[building].structureType == STRUCTURE_RAMPART) {
-                        hasRampart = true;
-                        break;
-                    }
-                }
-                if (!hasRampart) {
+                    creep.rangedAttack(closeFoe);
                     creep.attack(closeFoe);
-                }*/
+                }       
             }
         }
 
