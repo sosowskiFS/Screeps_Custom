@@ -931,7 +931,7 @@ module.exports.loop = function() {
                         //Run farMining spawn
                         if (Game.flags[thisRoom.name + "RunningAssault"]) {
                             var attackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && creep.memory.homeRoom == thisRoom.name);
-                            var healerlessAttackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && creep.memory.healerID == undefined && creep.memory.homeRoom == thisRoom.name && creep.ticksToLive >= 750 && !creep.memory.isReserved);
+                            var healerlessAttackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && !creep.memory.healerID && creep.memory.homeRoom == thisRoom.name && !creep.memory.isReserved);
                             if (attackers.length >= 1 && !healerlessAttackers.length) {
                                 spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom, energyIndex);
                             }
