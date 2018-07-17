@@ -96,6 +96,15 @@ module.exports.loop = function() {
             Game.flags["RAttackFlags"].remove();
         }
     }
+    if (Game.flags["DAttackFlags"]){
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(Game.flags["DAttackFlags"].pos, Game.flags["DAttackFlags"].room.name + "RallyHere");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 10 , Game.flags["DAttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 12 , Game.flags["DAttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 14 , Game.flags["DAttackFlags"].room.name + "DisassembleStyle");
+        if (Game.flags["DAttackFlags"]) {
+            Game.flags["DAttackFlags"].remove();
+        }
+    }
 
     //Reset average CPU usage records on request
     if (Game.flags["ResetAverages"] || Memory.CPUAverages.TotalCPU.ticks >= 50000) {
@@ -921,9 +930,9 @@ module.exports.loop = function() {
                     if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
                         //Run farMining spawn
                         if (Game.flags[thisRoom.name + "RunningAssault"]) {
-                            var attackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.homeRoom == thisRoom.name);
-                            var healerlessAttackers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'assattacker' && creep.memory.healerID == undefined && creep.memory.homeRoom == thisRoom.name && creep.ticksToLive >= 750 && !creep.memory.isReserved);
-                            if (attackers.length >= 3 && !healerlessAttackers.length) {
+                            var attackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && creep.memory.homeRoom == thisRoom.name);
+                            var healerlessAttackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && creep.memory.healerID == undefined && creep.memory.homeRoom == thisRoom.name && creep.ticksToLive >= 750 && !creep.memory.isReserved);
+                            if (attackers.length >= 1 && !healerlessAttackers.length) {
                                 spawn_BuildFarCreeps.run(Game.spawns[i], thisRoom, energyIndex);
                             }
                         } else {
