@@ -108,7 +108,7 @@ var creep_assattacker = {
                             ignoreRoads: true
                         });
                         hasTraveled = true;
-                    }           
+                    }
                     ToughLab[0].boostCreep(creep);
                 }
                 if (RangedLab.length && unboostedRanged > 0) {
@@ -117,7 +117,7 @@ var creep_assattacker = {
                             ignoreRoads: true
                         });
                         hasTraveled = true;
-                    }           
+                    }
                     RangedLab[0].boostCreep(creep);
                 }
                 if (AttackLab.length && unboostedAttack > 0) {
@@ -126,7 +126,7 @@ var creep_assattacker = {
                             ignoreRoads: true
                         });
                         hasTraveled = true;
-                    }           
+                    }
                     AttackLab[0].boostCreep(creep);
                 }
                 if (WorkLab.length && unboostedWork > 0) {
@@ -135,7 +135,7 @@ var creep_assattacker = {
                             ignoreRoads: true
                         });
                         hasTraveled = true;
-                    }           
+                    }
                     WorkLab[0].boostCreep(creep);
                 }
             } else {
@@ -147,9 +147,9 @@ var creep_assattacker = {
                     } else {
                         creep.say("(=\u00B4\u2207\uFF40=)", true);
                     }
-                    
+
                     //Cancel this flag if room is in safe mode
-                    if (creep.room.controller.safeMode){
+                    if (creep.room.controller.safeMode) {
                         targetFlag.remove();
                         return;
                     }
@@ -308,15 +308,21 @@ var creep_assattacker = {
                             filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
                         });
                     }
+                    let healerIsGood = false;
+                    if (thisHealer && thisHealer.fatigue <= 0) {
+                        healerIsGood = true;
+                    }
                     if (thisPortal) {
                         creep.memory.destination = undefined;
                         creep.memory.usedPortal = true;
                         if (creep.memory.path && creep.memory.path.length && creep.memory.path[0] == creep.room.name) {
                             creep.memory.path.splice(0, 1);
                         }
-                        creep.travelTo(thisPortal, {
-                            ignoreRoads: true
-                        });
+                        if (healerIsGood) {
+                            creep.travelTo(thisPortal, {
+                                ignoreRoads: true
+                            });
+                        }
                     } else if (targetFlag.pos.roomName != creep.pos.roomName) {
                         /*if (creep.memory.destination && !creep.memory.usedPortal) {
                             creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
@@ -325,27 +331,35 @@ var creep_assattacker = {
                             if (creep.memory.path[0] == creep.room.name) {
                                 creep.memory.path.splice(0, 1);
                             }
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]), {
-                                stuckValue: 2,
-                                allowSK: true
-                            });
-                        } else if (targetFlag.pos) {
-                            if (wallFlag && wallFlag.pos && wallFlag.pos.roomName == targetFlag.pos.roomName) {
-                                creep.travelTo(wallFlag, {
-                                    stuckValue: 2,
-                                    allowSK: true
-                                });
-                            } else {
-                                creep.travelTo(targetFlag, {
+                            if (healerIsGood) {
+                                creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]), {
                                     stuckValue: 2,
                                     allowSK: true
                                 });
                             }
+                        } else if (targetFlag.pos) {
+                            if (wallFlag && wallFlag.pos && wallFlag.pos.roomName == targetFlag.pos.roomName) {
+                                if (healerIsGood) {
+                                    creep.travelTo(wallFlag, {
+                                        stuckValue: 2,
+                                        allowSK: true
+                                    });
+                                }
+                            } else {
+                                if (healerIsGood) {
+                                    creep.travelTo(targetFlag, {
+                                        stuckValue: 2,
+                                        allowSK: true
+                                    });
+                                }
+                            }
                         } else {
-                            creep.travelTo(new RoomPosition(25, 25, targetFlag.pos.roomName), {
-                                stuckValue: 2,
-                                allowSK: true
-                            });
+                            if (healerIsGood) {
+                                creep.travelTo(new RoomPosition(25, 25, targetFlag.pos.roomName), {
+                                    stuckValue: 2,
+                                    allowSK: true
+                                });
+                            }
                         }
                     }
                 }
