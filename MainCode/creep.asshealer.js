@@ -20,6 +20,10 @@ var creep_asshealer = {
             }
         });
 
+        if (!creep.memory.UnassignDelay) {
+            creep.memory.UnassignDelay = 0;
+        }
+
         if (Game.flags[creep.memory.homeRoom + "DoBoost"] && Game.flags[creep.memory.homeRoom + "RunningAssault"] && (unboostedMove > 0 || unboostedTough > 0 || unboostedHeal > 0)) {
             let MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
@@ -143,7 +147,10 @@ var creep_asshealer = {
                     }
                 }
             } else {
-                creep.memory.priority = 'targetlessHealer';
+                creep.memory.UnassignDelay++;
+                if (creep.memory.UnassignDelay > 10) {
+                    creep.memory.priority = 'targetlessHealer';
+                }
                 creep.heal(creep);
                 if (Game.flags[creep.memory.homeRoom + "RallyHere"] && Game.flags[creep.memory.homeRoom + "RallyHere"].pos) {
                     creep.travelTo(Game.flags[creep.memory.homeRoom + "RallyHere"], {
