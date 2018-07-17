@@ -1089,6 +1089,7 @@ module.exports.loop = function() {
                     creep_assattacker.run(creep);
                     break;
                 case 'asshealer':
+                case 'targetlessHealer':
                     creep_asshealer.run(creep);
                     break;
                 case 'distractor':

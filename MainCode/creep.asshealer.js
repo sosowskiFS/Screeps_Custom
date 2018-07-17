@@ -143,6 +143,7 @@ var creep_asshealer = {
                     }
                 }
             } else {
+                creep.memory.priority = 'targetlessHealer';
                 creep.heal(creep);
                 if (Game.flags[creep.memory.homeRoom + "RallyHere"] && Game.flags[creep.memory.homeRoom + "RallyHere"].pos) {
                     creep.travelTo(Game.flags[creep.memory.homeRoom + "RallyHere"], {
