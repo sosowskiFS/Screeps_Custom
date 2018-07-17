@@ -72,8 +72,12 @@ var creep_assattacker = {
                 filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.attackerID != creep.id)
             });
             var healerIsNear = false;
+            let healerIsGood = false;
             if (thisHealer) {
                 healerIsNear = creep.pos.isNearTo(thisHealer);
+                if (thisHealer.fatigue <= 0) {
+                    healerIsGood = true;
+                }
             } else if (thisHealer && otherHealers.length) {
                 healerIsNear = true;
             } else if (!thisHealer) {
@@ -206,11 +210,13 @@ var creep_assattacker = {
                         if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
                             let thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
                             if (thisWall.length) {
-                                creep.travelTo(thisWall[0], {
-                                    maxRooms: 1,
-                                    stuckValue: 2,
-                                    allowSK: true
-                                });
+                                if (healerIsGood) {
+                                    creep.travelTo(thisWall[0], {
+                                        maxRooms: 1,
+                                        stuckValue: 2,
+                                        allowSK: true
+                                    });
+                                }
                                 creep.dismantle(thisWall[0]);
                                 creep.attack(thisWall[0]);
                             } else {
@@ -221,12 +227,14 @@ var creep_assattacker = {
                                 filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
                             });
                             if (eSpawns) {
-                                creep.travelTo(eSpawns, {
-                                    ignoreRoads: true,
-                                    maxRooms: 1,
-                                    stuckValue: 2,
-                                    allowSK: true
-                                });
+                                if (healerIsGood) {
+                                    creep.travelTo(eSpawns, {
+                                        ignoreRoads: true,
+                                        maxRooms: 1,
+                                        stuckValue: 2,
+                                        allowSK: true
+                                    });
+                                }
                                 creep.dismantle(eSpawns);
                                 creep.attack(eSpawns);
                             } else {
@@ -234,12 +242,14 @@ var creep_assattacker = {
                                     filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                                 });
                                 if (eStructures) {
-                                    creep.travelTo(eStructures, {
-                                        ignoreRoads: true,
-                                        maxRooms: 1,
-                                        stuckValue: 2,
-                                        allowSK: true
-                                    });
+                                    if (healerIsGood) {
+                                        creep.travelTo(eStructures, {
+                                            ignoreRoads: true,
+                                            maxRooms: 1,
+                                            stuckValue: 2,
+                                            allowSK: true
+                                        });
+                                    }
                                     creep.dismantle(eStructures);
                                     creep.attack(eStructures);
                                 } else if (closeFoe) {
@@ -307,10 +317,6 @@ var creep_assattacker = {
                         var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
                         });
-                    }
-                    let healerIsGood = false;
-                    if (thisHealer && thisHealer.fatigue <= 0) {
-                        healerIsGood = true;
                     }
                     if (thisPortal) {
                         creep.memory.destination = undefined;
