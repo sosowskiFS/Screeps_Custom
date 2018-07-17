@@ -69,7 +69,14 @@ var tower_Operate = {
 							}
 						}
 					} else {
-						tower.attack(closestHostile);
+						if (tower.room.controller.level < 7){
+							let range = tower.pos.getRangeTo(closestHostile);
+							if (range <= 15) {
+								tower.attack(closestHostile);
+							}
+						} else {
+							tower.attack(closestHostile);
+						}				
 					}
 					//Keep target for defenders to lock on
 				} else if (tower.energy > (tower.energyCapacity * 0.5)) {
