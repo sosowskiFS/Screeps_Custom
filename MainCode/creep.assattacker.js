@@ -2,10 +2,10 @@ var creep_assattacker = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        let activeFlag = Game.flags[thisRoom.name + "Assault"];
+        let activeFlag = Game.flags[creep.memory.homeRoom + "Assault"];
         if (!activeFlag) {
             for (j = 2; j < 6; j++) {
-                activeFlag = Game.flags[thisRoom.name + "Assault" + j]
+                activeFlag = Game.flags[creep.memory.homeRoom + "Assault" + j]
                 if (activeFlag) {
                     break;
                 }
