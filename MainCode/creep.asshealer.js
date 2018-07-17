@@ -99,12 +99,12 @@ var creep_asshealer = {
                         creep.travelTo(targetAttacker, {
                             maxRooms: 1,
                             ignoreRoads: true,
-                            stuckValue: 2
+                            stuckValue: 1
                         });
                     } else {
                         creep.travelTo(targetAttacker, {
                             ignoreRoads: true,
-                            stuckValue: 2
+                            stuckValue: 1
                         });
                     }
                     //}
