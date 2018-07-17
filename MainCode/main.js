@@ -796,6 +796,9 @@ module.exports.loop = function() {
             if (thisRoom.controller.level == 8) {
                 delay = 15;
             }
+            if (Game.flags[thisRoom.name + "RunningAssault"]) {
+                delay = 3;
+            }
 
             if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
                 //build routines that perform on the same tick assume the same energy level even after the first spawn used the energy
