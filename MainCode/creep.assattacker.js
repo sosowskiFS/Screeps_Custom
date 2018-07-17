@@ -164,6 +164,7 @@ var creep_assattacker = {
                         if (thisWall.length && creep.pos.isNearTo(thisWall[0])) {
                             creep.dismantle(thisWall[0]);
                             creep.attack(thisWall[0]);
+                            creep.rangedAttack(thisWall[0]);
                             didDismantle = true;
                         }
                     }
@@ -174,7 +175,8 @@ var creep_assattacker = {
                         });
                         if (somethingNearby) {
                             creep.dismantle(somethingNearby);
-                            creep.attack(somethingNearby)
+                            creep.attack(somethingNearby);
+                            creep.rangedAttack(somethingNearby);
                         }
                     }
 
@@ -219,6 +221,7 @@ var creep_assattacker = {
                                 }
                                 creep.dismantle(thisWall[0]);
                                 creep.attack(thisWall[0]);
+                                creep.rangedAttack(thisWall[0]);
                             } else {
                                 wallFlag.remove();
                             }
@@ -237,6 +240,7 @@ var creep_assattacker = {
                                 }
                                 creep.dismantle(eSpawns);
                                 creep.attack(eSpawns);
+                                creep.rangedAttack(eSpawns);
                             } else {
                                 let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                                     filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
@@ -252,6 +256,7 @@ var creep_assattacker = {
                                     }
                                     creep.dismantle(eStructures);
                                     creep.attack(eStructures);
+                                    creep.rangedAttack(eStructures);
                                 } else if (closeFoe) {
                                     creep.moveTo(closeFoe, {
                                         ignoreRoads: true,
