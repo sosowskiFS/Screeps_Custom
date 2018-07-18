@@ -20,14 +20,14 @@ var creep_ranger = {
             }
 
             //Cancel this flag if room is in safe mode
-            if (creep.room.controller.safeMode && creep.room.controller.owner != "Montblanc") {
+            if (creep.room.controller.safeMode && creep.room.controller.owner.username != "Montblanc") {
                 if (Game.flags[creep.memory.homeRoom + "Ranger"]) {
                     Game.flags[creep.memory.homeRoom + "Ranger"].remove();
                 }
                 return;
             }
 
-            if (creep.room.controller && creep.room.controller.owner != "Montblanc") {
+            if (creep.room.controller && creep.room.controller.owner.username != "Montblanc") {
                 let somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
                 });
