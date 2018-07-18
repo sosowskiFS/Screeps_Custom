@@ -23,6 +23,9 @@ var creep_supplier = {
                 if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.travelTo(target);
                 }
+            } else {
+                //Destroyed, remove from list
+                Memory.towerNeedEnergy[creep.room.name].splice(0, 1);
             }
         }
     }
