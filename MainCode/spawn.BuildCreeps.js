@@ -40,6 +40,12 @@ var spawn_BuildCreeps = {
             }
         }
 
+        if (Game.flags[thisRoom.name + "upFocus"]) {
+            //Laser focus on upgrading
+            upgraderMax = upgraderMax + repairMax;
+            repairMax = 0;
+        }
+
         let defenderEnergyLim = 780;
         if (thisRoom.controller.level == 4) {
             defenderEnergyLim = 1170;

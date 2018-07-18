@@ -305,7 +305,8 @@ var spawn_BuildCreeps5 = {
         if (Game.flags[thisRoom.name + "upFocus"]) {
             //Laser focus on upgrading
             upgraderMax = upgraderMax + repairMax;
-            repairMax = 0;  
+            repairMax = 0;
+            upSupplierMax = 1;
         }
 
         if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
