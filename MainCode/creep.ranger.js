@@ -114,7 +114,7 @@ var creep_ranger = {
             }
         }
 
-        creep.heal();
+        creep.heal(creep);
     }
 
 };
