@@ -412,25 +412,13 @@ var creep_labWorker = {
                                     }
                                 } else {
                                     var carryAmount = mineralArray[i] in creep.carry;
-                                    if (carryAmount > 0 && labArray[i].mineralAmount <= 2500) {
+                                    if (carryAmount > 0) {
                                         creep.memory.structureTarget = labArray[i].id;
                                         creep.memory.direction = 'Transfer';
                                         creep.memory.mineralToMove = mineralArray[i];
                                         var transferResult = creep.transfer(labArray[i], mineralArray[i]);
                                         if (transferResult == ERR_NOT_IN_RANGE) {
                                             creep.travelTo(labArray[i], {
-                                                maxRooms: 1,
-                                                ignoreRoads: true
-                                            });
-                                        }
-                                        foundWork = true;
-                                    } else {
-                                        creep.memory.structureTarget = creep.room.terminal.id;
-                                        creep.memory.direction = 'Transfer';
-                                        creep.memory.mineralToMove = mineralArray[i];
-                                        var transferResult = creep.transfer(creep.room.terminal, mineralArray[i]);
-                                        if (transferResult == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(creep.room.terminal, {
                                                 maxRooms: 1,
                                                 ignoreRoads: true
                                             });
