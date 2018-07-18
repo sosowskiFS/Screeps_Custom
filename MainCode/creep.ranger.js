@@ -119,9 +119,11 @@ var creep_ranger = {
                 creep.rangedAttack(closeFoe);
                 creep.attack(closeFoe);
             }
+        } else {
+        	creep.heal(creep);
         }
 
-        creep.heal(creep);
+        
     }
 
 };
