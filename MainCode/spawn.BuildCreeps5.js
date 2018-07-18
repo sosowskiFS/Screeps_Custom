@@ -302,6 +302,11 @@ var spawn_BuildCreeps5 = {
 
         let roomMineral = Game.getObjectById(strMineral[0]);
 
+        if (Game.flags[thisRoom.name + "upFocus"]) {
+            //Laser focus on upgrading
+            repairMax = 0;    
+        }
+
         if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
             //Custom limits for beseiged rooms
             minerMax = 1;
