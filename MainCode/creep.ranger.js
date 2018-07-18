@@ -40,7 +40,9 @@ var creep_ranger = {
             let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
             });
-            let eSites = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+            let eSites = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, {
+            	filter: (site) => (site.progress > 0)
+            });
             if (eSpawns) {
                 creep.travelTo(eSpawns, {
                     ignoreRoads: true,
