@@ -873,7 +873,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "Ranger"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', 'W40S28;W40S24;W41S24')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', 'W40S28;W40S26;W41S26;W41S25')
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
