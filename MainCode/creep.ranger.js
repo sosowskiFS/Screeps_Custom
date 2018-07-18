@@ -40,6 +40,7 @@ var creep_ranger = {
             let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
             });
+            let eSites = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
             if (eSpawns) {
                 creep.travelTo(eSpawns, {
                     ignoreRoads: true,
@@ -49,6 +50,12 @@ var creep_ranger = {
                 });
                 creep.attack(eSpawns);
                 creep.rangedAttack(eSpawns);
+            } else if (eSites && creep.room.controller.owner.username != "Montblanc") {
+            	creep.travelTo(eSites, {
+            		ignoreRoads: true,
+            		maxRooms: 1,
+            		stuckValue: 2
+            	})
             } else if (closeFoe) {
                 creep.moveTo(closeFoe, {
                     ignoreRoads: true,
