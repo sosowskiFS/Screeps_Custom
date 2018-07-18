@@ -302,13 +302,6 @@ var spawn_BuildCreeps5 = {
 
         let roomMineral = Game.getObjectById(strMineral[0]);
 
-        if (Game.flags[thisRoom.name + "upFocus"]) {
-            //Laser focus on upgrading
-            upgraderMax = upgraderMax + repairMax;
-            repairMax = 0;
-            upSupplierMax = 1;
-        }
-
         if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
             //Custom limits for beseiged rooms
             minerMax = 1;
@@ -318,6 +311,13 @@ var spawn_BuildCreeps5 = {
             upSupplierMax = 0;
             supplierMax = 1;
             distributorMax = 1;
+        }
+
+        if (Game.flags[thisRoom.name + "upFocus"]) {
+            //Laser focus on upgrading
+            upgraderMax = upgraderMax + repairMax;
+            repairMax = 0;
+            upSupplierMax = 1;
         }
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
