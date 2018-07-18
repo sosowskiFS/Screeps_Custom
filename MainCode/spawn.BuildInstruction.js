@@ -337,6 +337,53 @@ var spawn_BuildInstruction = {
                     }
                 }
                 break;
+            case 'ranger':
+                var rangers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'ranger' && creep.memory.homeRoom == spawn.room.name);
+                if (rangers.length < 1) {
+                    let priorityName = 'ranger';
+                    //5
+                    let rangerConfig = [TOUGH, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL, HEAL];
+                    if (spawn.room.controller.level >= 6) {
+                        rangerConfig = [RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL, HEAL];
+                    }
+                    if (spawn.room.controller.level >= 7) {
+                        rangerConfig = [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL];
+                    }
+                    let configCost = calculateConfigCost(rangerConfig);
+                    if (params2 != '') {
+                        //ranger with defined path
+                        var creepPath = params2.split(";");
+                        if (creepPath.length) {
+                            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                                spawn.spawnCreep(rangerConfig, 'ranger_' + spawn.name + '_' + Game.time, {
+                                    memory: {
+                                        priority: priorityName,
+                                        destination: params,
+                                        path: creepPath,
+                                        homeRoom: spawn.room.name
+                                    }
+                                });
+                                Memory.isSpawning = true;
+                                console.log('Ranger ' + spawn.room.name);
+                            }
+                        }
+                    } else {
+                        if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                            Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                            spawn.spawnCreep(rangerConfig, 'ranger_' + spawn.name + '_' + Game.time, {
+                                memory: {
+                                    priority: priorityName,
+                                    destination: params,
+                                    homeRoom: spawn.room.name
+                                }
+                            });
+                            Memory.isSpawning = true;
+                            console.log('Ranger ' + spawn.room.name);
+                        }
+                    }
+                }
+                break;
             case 'distract':
                 var distractors = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'distractor' && creep.memory.homeRoom == spawn.room.name));
                 if (distractors.length < 1) {

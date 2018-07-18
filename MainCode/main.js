@@ -31,6 +31,7 @@ var creep_powerHeal = require('creep.powerHeal');
 var creep_powerCollect = require('creep.powerCollect');
 var creep_scraper = require('creep.scraper');
 var creep_distantSupplier = require('creep.distantSupplier');
+var creep_ranger = require('creep.ranger');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -871,6 +872,10 @@ module.exports.loop = function() {
                     }
                 }
 
+                if (Game.flags[thisRoom.name + "Ranger"]) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', 'W40S28;W40S24;W41S24')
+                }
+
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'W40S28;W40S24;W41S24');
@@ -1118,6 +1123,9 @@ module.exports.loop = function() {
                 case 'distantSupplier':
                 	creep_distantSupplier.run(creep);
                 	break;
+                case 'ranger':
+                    creep_ranger.run(creep);
+                    break;
                 default:
                     if (!creep.memory.priority) {
                         creep.memory.priority = 'constructor';
