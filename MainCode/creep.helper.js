@@ -87,9 +87,9 @@ var creep_Helper = {
                         let buildResult = creep.build(thisStructure);
                         if (buildResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisStructure);
-                        } else if (buildResult == ERR_INVALID_TARGET && target.energy < target.energyCapacity) {
-                            if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(target);
+                        } else if (buildResult == ERR_INVALID_TARGET && thisStructure.energy < thisStructure.energyCapacity) {
+                            if (creep.transfer(thisStructure, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(thisStructure);
                             } else {
                                 creep.memory.structureTarget = undefined;
                             }
