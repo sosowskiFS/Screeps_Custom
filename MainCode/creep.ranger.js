@@ -102,25 +102,29 @@ var creep_ranger = {
         }
 
         if (closeFoe) {
-            var lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
-            let inRampart = false;
-            if (lookResult.length) {
-                for (let d = 0; d < lookResult.length; d++) {
-                    if (lookResult[d].structureType == STRUCTURE_RAMPART) {
-                        inRampart = true;
-                        break;
-                    }
-                }
-                if (inRampart) {
-                    creep.rangedMassAttack();
-                } else {
-                    creep.rangedAttack(closeFoe);
-                    creep.attack(closeFoe);
-                }
-            } else {
-                creep.rangedAttack(closeFoe);
-                creep.attack(closeFoe);
-            }
+        	if (creep.pos.getRangeTo(closeFoe) <= 1) {
+        		var lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
+	            let inRampart = false;
+	            if (lookResult.length) {
+	                for (let d = 0; d < lookResult.length; d++) {
+	                    if (lookResult[d].structureType == STRUCTURE_RAMPART) {
+	                        inRampart = true;
+	                        break;
+	                    }
+	                }
+	                if (inRampart) {
+	                    creep.rangedMassAttack();
+	                } else {
+	                    creep.rangedAttack(closeFoe);
+	                    creep.attack(closeFoe);
+	                }
+	            } else {
+	                creep.rangedAttack(closeFoe);
+	                creep.attack(closeFoe);
+	            }
+	    	} else {
+	    		creep.heal(creep);
+	    	}   
         } else if (creep.hits < creep.hitsMax) {
         	creep.heal(creep);
         }
