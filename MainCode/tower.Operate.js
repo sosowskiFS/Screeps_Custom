@@ -65,13 +65,15 @@ var tower_Operate = {
 								//Only a healer, don't waste energy
 								Memory.towerPickedTarget[thisRoom.name] = '';
 							} else {
-								tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
+								if (tower.room.controller.level >= 7){
+									tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
+								}			
 							}
 						}
 					} else {
 						if (tower.room.controller.level < 7){
 							let range = tower.pos.getRangeTo(closestHostile);
-							if (range <= 15) {
+							if (range <= 10) {
 								tower.attack(closestHostile);
 							}
 							if (range <= 5) {
