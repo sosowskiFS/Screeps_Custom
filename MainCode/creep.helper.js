@@ -105,6 +105,7 @@ var creep_Helper = {
                     target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                     if (target) {
                         creep.memory.structureTarget = target.id;
+                        let buildResult = creep.build(target);
                         if (buildResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(target);
                         } else if (buildResult == ERR_NO_BODYPART) {
