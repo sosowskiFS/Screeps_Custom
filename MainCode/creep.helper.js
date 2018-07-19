@@ -90,6 +90,8 @@ var creep_Helper = {
                         } else if (buildResult == ERR_INVALID_TARGET && target.energy < target.energyCapacity) {
                             if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(target);
+                            } else {
+                                creep.memory.structureTarget = undefined;
                             }
                         } else {
                             creep.memory.structureTarget = undefined;
