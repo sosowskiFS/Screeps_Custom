@@ -68,7 +68,7 @@ var creep_Helper = {
                         } else {
                             creep.memory.targetSource = roomSources[0].id;
                         }
-                        creep.memory.waitingTimer = 0;             
+                        creep.memory.waitingTimer = 0;
                         if (creep.harvest(roomSources[targetIndex]) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(roomSources[targetIndex]);
                         }
@@ -79,13 +79,20 @@ var creep_Helper = {
                     creep.memory.currentState = 2;
                 }
             } else {
-        	    let needSearch = true;
+                let needSearch = true;
                 if (creep.memory.structureTarget) {
                     let thisStructure = Game.getObjectById(creep.memory.structureTarget);
                     if (thisStructure) {
                         needSearch = false;
-                        if (creep.build(thisStructure) == ERR_NOT_IN_RANGE) {
+                        let buildResult = creep.build(thisStructure);
+                        if (buildResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisStructure);
+                        } else if (buildResult == ERR_INVALID_TARGET && target.energy < target.energyCapacity) {
+                            if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(target);
+                            }
+                        } else {
+                            creep.memory.structureTarget = undefined;
                         }
                     } else {
                         creep.memory.structureTarget = undefined;
@@ -96,20 +103,32 @@ var creep_Helper = {
                     target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                     if (target) {
                         creep.memory.structureTarget = target.id;
-                        if (creep.build(target) == ERR_NOT_IN_RANGE) {
+                        if (buildResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(target);
-                        } else if (creep.build(target) == ERR_NO_BODYPART) {
+                        } else if (buildResult == ERR_NO_BODYPART) {
                             creep.suicide();
                         }
-                    } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                        if (Game.flags[creep.room.name + "Controller"]) {
-                            creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                                maxRooms: 1
-                            });
-                        } else {
-                            creep.travelTo(creep.room.controller, {
-                                maxRooms: 1
-                            });
+                    } else {
+                        target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return structure.structureType == STRUCTURE_TOWER && structure.energy < structure.energyCapacity;
+                            }
+                        });
+                        if (target) {
+                            creep.memory.structureTarget = target.id;
+                            if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(target);
+                            }
+                        } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                            if (Game.flags[creep.room.name + "Controller"]) {
+                                creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                                    maxRooms: 1
+                                });
+                            } else {
+                                creep.travelTo(creep.room.controller, {
+                                    maxRooms: 1
+                                });
+                            }
                         }
                     }
                 }
