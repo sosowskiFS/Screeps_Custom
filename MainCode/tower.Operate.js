@@ -74,6 +74,10 @@ var tower_Operate = {
 							if (range <= 15) {
 								tower.attack(closestHostile);
 							}
+							if (range <= 5) {
+								//Too close for comfort
+								tower.room.controller.activateSafeMode();
+							}
 						} else {
 							tower.attack(closestHostile);
 						}				
