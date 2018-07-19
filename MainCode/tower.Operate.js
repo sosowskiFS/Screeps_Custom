@@ -69,7 +69,7 @@ var tower_Operate = {
 									tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
 								} else {
 									let range = tower.pos.getRangeTo(closestHostile);
-									if (range <= 10) {
+									if (range <= 15) {
 										tower.attack(closestHostile);
 									}
 								}
@@ -78,7 +78,7 @@ var tower_Operate = {
 					} else {
 						if (tower.room.controller.level < 7) {
 							let range = tower.pos.getRangeTo(closestHostile);
-							if (range <= 10) {
+							if (range <= 15) {
 								tower.attack(closestHostile);
 							}
 							if (range <= 5) {
