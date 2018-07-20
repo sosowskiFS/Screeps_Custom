@@ -103,7 +103,7 @@ var creep_ranger = {
 
         if (closeFoe) {
             let closeRange = creep.pos.getRangeTo(closeFoe);
-            if (creep.pos.getRangeTo(closeFoe) <= 3) {
+            if (closeRange <= 3) {
                 var lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
                 let inRampart = false;
                 if (lookResult.length) {
