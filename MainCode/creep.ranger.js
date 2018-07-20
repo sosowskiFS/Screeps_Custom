@@ -200,6 +200,8 @@ var creep_ranger = {
             creep.heal(creep);
         }
 
+        //Only works with no attack parts
+        creep.heal(creep);
 
     }
 
