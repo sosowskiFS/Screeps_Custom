@@ -41,7 +41,7 @@ var creep_ranger = {
                 filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
             });
             let eSites = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, {
-            	filter: (site) => (site.progress > 0)
+                filter: (site) => (site.progress > 0)
             });
             if (eSpawns) {
                 creep.travelTo(eSpawns, {
@@ -53,11 +53,11 @@ var creep_ranger = {
                 creep.attack(eSpawns);
                 creep.rangedAttack(eSpawns);
             } else if (eSites && creep.room.controller.owner.username != "Montblanc") {
-            	creep.travelTo(eSites, {
-            		ignoreRoads: true,
-            		maxRooms: 1,
-            		stuckValue: 2
-            	})
+                creep.travelTo(eSites, {
+                    ignoreRoads: true,
+                    maxRooms: 1,
+                    stuckValue: 2
+                })
             } else if (closeFoe) {
                 creep.moveTo(closeFoe, {
                     ignoreRoads: true,
@@ -102,34 +102,105 @@ var creep_ranger = {
         }
 
         if (closeFoe) {
-        	if (creep.pos.getRangeTo(closeFoe) <= 1) {
-        		var lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
-	            let inRampart = false;
-	            if (lookResult.length) {
-	                for (let d = 0; d < lookResult.length; d++) {
-	                    if (lookResult[d].structureType == STRUCTURE_RAMPART) {
-	                        inRampart = true;
-	                        break;
-	                    }
-	                }
-	                if (inRampart) {
-	                    creep.rangedMassAttack();
-	                } else {
-	                    creep.rangedAttack(closeFoe);
-	                    creep.attack(closeFoe);
-	                }
-	            } else {
-	                creep.rangedAttack(closeFoe);
-	                creep.attack(closeFoe);
-	            }
-	    	} else {
-	    		creep.heal(creep);
-	    	}   
+            let closeRange = creep.pos.getRangeTo(closeFoe);
+            if (creep.pos.getRangeTo(closeFoe) <= 3) {
+                var lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
+                let inRampart = false;
+                if (lookResult.length) {
+                    for (let d = 0; d < lookResult.length; d++) {
+                        if (lookResult[d].structureType == STRUCTURE_RAMPART) {
+                            inRampart = true;
+                            break;
+                        }
+                    }
+                    if (inRampart) {
+                        creep.rangedMassAttack();
+                    } else {
+                        creep.rangedAttack(closeFoe);
+                        creep.attack(closeFoe);
+                    }
+                } else {
+                    creep.rangedAttack(closeFoe);
+                    creep.attack(closeFoe);
+                }
+                //Dodge away from foe
+                let foeDirection = creep.pos.getDirectionTo(closeFoe);
+                let y = 0;
+                let x = 0;
+                switch (foeDirection) {
+                    case TOP:
+                        y = 5;
+                        break;
+                    case TOP_RIGHT:
+                        y = 5;
+                        x = -5;
+                        break;
+                    case RIGHT:
+                        x = -5;
+                        break;
+                    case BOTTOM_RIGHT:
+                        y = -5;
+                        x = -5;
+                        break;
+                    case BOTTOM:
+                        y = -5;
+                        break;
+                    case BOTTOM_LEFT:
+                        y = -5;
+                        x = 5;
+                        break;
+                    case LEFT:
+                        x = 5;
+                        break;
+                    case TOP_LEFT:
+                        y = 5;
+                        x = 5;
+                        break;
+                }
+                x = creep.pos.x + x;
+                y = creep.pos.y + y;
+                if (x < 0) {
+                    x = 0;
+                    if (y < 25 && y > 0) {
+                        y = y - 1;
+                    } else if (y < 49) {
+                        y = y + 1;
+                    }
+                } else if (x > 49) {
+                    x = 49;
+                    if (y < 25 && y > 0) {
+                        y = y - 1;
+                    } else if (y < 49) {
+                        y = y + 1;
+                    }
+                }
+                if (y < 0) {
+                    y = 0;
+                    if (x < 25 && x > 0) {
+                        x = x - 1;
+                    } else if (x < 49) {
+                        x = x + 1;
+                    }
+                } else if (y > 49) {
+                    y = 49;
+                    if (x < 25 && x > 0) {
+                        x = x - 1;
+                    } else if (x < 49) {
+                        x = x + 1;
+                    }
+                }
+
+                creep.moveTo(x, y, {
+                    ignoreRoads: true
+                });
+            } else {
+                creep.heal(creep);
+            }
         } else if (creep.hits < creep.hitsMax) {
-        	creep.heal(creep);
+            creep.heal(creep);
         }
 
-        
+
     }
 
 };
