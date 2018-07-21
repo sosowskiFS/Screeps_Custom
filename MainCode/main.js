@@ -1420,62 +1420,65 @@ function orderPriceCompareBuying(a, b) {
 
 function drawPie(vis, val, max, title, colour, centerx, centery, inner) {
     //const vis = new RoomVisual(from.roomName);
-    if (!inner) inner = val;
+    if (vis.getSize() < 512000) {
+        if (!inner) inner = val;
 
-    let p = 1;
-    if (max !== 0) p = val / max;
-    const r = 1; // radius
-    var center = {
-        x: centerx,
-        y: centery * r * 4.5
-    };
-    vis.circle(center, {
-        radius: r + 0.1,
-        fill: '#000000',
-        stroke: 'rgba(255, 255, 255, 0.8)',
-    });
-    var pfix = p;
-    if (p >= 1) {
-        pfix = pfix + 0.01;
-    }
-    const poly = [center];
-    const tau = 2 * Math.PI;
-    const surf = tau * (pfix);
-    const offs = -Math.PI / 2;
-    const step = tau / 32;
-    for (let i = 0; i <= surf; i += step) {
-        poly.push({
-            x: center.x + Math.cos(i + offs),
-            y: center.y - Math.cos(i),
+        let p = 1;
+        if (max !== 0) p = val / max;
+        const r = 1; // radius
+        var center = {
+            x: centerx,
+            y: centery * r * 4.5
+        };
+        vis.circle(center, {
+            radius: r + 0.1,
+            fill: '#000000',
+            stroke: 'rgba(255, 255, 255, 0.8)',
+        });
+        var pfix = p;
+        if (p >= 1) {
+            pfix = pfix + 0.01;
+        }
+        const poly = [center];
+        const tau = 2 * Math.PI;
+        const surf = tau * (pfix);
+        const offs = -Math.PI / 2;
+        const step = tau / 32;
+        for (let i = 0; i <= surf; i += step) {
+            poly.push({
+                x: center.x + Math.cos(i + offs),
+                y: center.y - Math.cos(i),
+            });
+        }
+        poly.push(center);
+        vis.poly(poly, {
+            fill: colour,
+            opacity: 1,
+            stroke: colour,
+            strokeWidth: 0.05,
+        });
+        vis.text(Number.isFinite(inner) ? formatNumber(inner) : inner, center.x, center.y + 0.33, {
+            color: '#FFFFFF',
+            font: '1 monospace',
+            align: 'center',
+            stroke: 'rgba(0, 0, 0, 0.8)',
+            strokeWidth: 0.08,
+        });
+        let yoff = 0.7;
+        if (0.35 < p && p < 0.65) yoff += 0.3;
+        vis.text(title, center.x, center.y + r + yoff, {
+            color: '#FFFFFF',
+            font: '0.6 monospace',
+            align: 'center',
+        });
+        const lastpol = poly[poly.length - 2];
+        vis.text('' + Math.floor(p * 100) + '%', lastpol.x + (lastpol.x - center.x) * 0.7, lastpol.y + (lastpol.y - center.y) * 0.4 + 0.1, {
+            color: '#FFFFFF',
+            font: '0.4 monospace',
+            align: 'center',
         });
     }
-    poly.push(center);
-    vis.poly(poly, {
-        fill: colour,
-        opacity: 1,
-        stroke: colour,
-        strokeWidth: 0.05,
-    });
-    vis.text(Number.isFinite(inner) ? formatNumber(inner) : inner, center.x, center.y + 0.33, {
-        color: '#FFFFFF',
-        font: '1 monospace',
-        align: 'center',
-        stroke: 'rgba(0, 0, 0, 0.8)',
-        strokeWidth: 0.08,
-    });
-    let yoff = 0.7;
-    if (0.35 < p && p < 0.65) yoff += 0.3;
-    vis.text(title, center.x, center.y + r + yoff, {
-        color: '#FFFFFF',
-        font: '0.6 monospace',
-        align: 'center',
-    });
-    const lastpol = poly[poly.length - 2];
-    vis.text('' + Math.floor(p * 100) + '%', lastpol.x + (lastpol.x - center.x) * 0.7, lastpol.y + (lastpol.y - center.y) * 0.4 + 0.1, {
-        color: '#FFFFFF',
-        font: '0.4 monospace',
-        align: 'center',
-    });
+    
 }
 
 const getColourByPercentage = (percentage, reverse) => {
