@@ -339,7 +339,7 @@ var spawn_BuildCreeps5 = {
 	                });
 	                Memory.isSpawning = true;
 	            }
-        	} else {
+        	} else if (thisRoom.storage) {
         		let configCost = calculateConfigCost([MOVE,MOVE,WORK,CARRY,CARRY]);
 	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
 	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
