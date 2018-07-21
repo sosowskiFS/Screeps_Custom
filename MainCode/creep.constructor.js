@@ -44,7 +44,8 @@ var creep_constructor = {
                 	}
                 }
             } else {
-                var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                //var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                let sources = undefined;
                 if (sources) {
                     if (creep.pickup(sources) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(sources, {
