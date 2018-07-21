@@ -317,7 +317,7 @@ var spawn_BuildCreeps5 = {
             //Laser focus on upgrading
             upgraderMax = upgraderMax + repairMax;
             repairMax = 0;
-            upSupplierMax = 1;
+            upSupplierMax = 2;
         }
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
