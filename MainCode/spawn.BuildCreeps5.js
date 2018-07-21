@@ -295,6 +295,8 @@ var spawn_BuildCreeps5 = {
                 upgradeMiners[0].memory.jobSpecific = 'storageMiner';
                 upgradeMiners[0].memory.linkSource = thisRoom.storage.id
                 upgradeMiners[0].memory.mineSource = strSources[0];
+                upgradeMiners[0].memory.ignoreTravel = false;
+                upgradeMiners[0].memory.atSpot = false;
                 upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
                 storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
             }
