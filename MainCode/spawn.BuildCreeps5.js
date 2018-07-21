@@ -340,12 +340,12 @@ var spawn_BuildCreeps5 = {
 	                Memory.isSpawning = true;
 	            }
         	} else if (thisRoom.storage) {
-        		let configCost = calculateConfigCost([MOVE,MOVE,WORK,CARRY,CARRY]);
+        		let configCost = calculateConfigCost([MOVE,WORK,WORK,CARRY]);
 	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
 	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
 	                //In case of complete destruction, make a minimum viable worker
 	                //Make sure 5+ work code has harvester backup path
-	                spawn.spawnCreep([MOVE,MOVE,WORK,CARRY,CARRY], 'miner_' + spawn.name + '_' + Game.time, {
+	                spawn.spawnCreep([MOVE,WORK,WORK,CARRY], 'miner_' + spawn.name + '_' + Game.time, {
 	                    memory: {
 	                        priority: 'miner',
 	                        mineSource: strSources[0],
@@ -353,7 +353,7 @@ var spawn_BuildCreeps5 = {
 	                        jobSpecific: 'storageMiner',
 	                        ignoreTravel: false,
 	                        atSpot: false,
-	                        deathWarn: _.size([MOVE,MOVE,WORK,CARRY,CARRY]) * 4,
+	                        deathWarn: _.size([MOVE,WORK,WORK,CARRY]) * 4,
 	                        fromSpawn: spawn.id,
 	                        homeRoom: thisRoom.name
 	                    }
