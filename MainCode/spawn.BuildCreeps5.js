@@ -322,7 +322,7 @@ var spawn_BuildCreeps5 = {
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
-        if (RoomCreeps.length == 0) {
+        if (RoomCreeps.length <= 2) {
         	if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
         		let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
 	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -360,8 +360,7 @@ var spawn_BuildCreeps5 = {
 	                });
 	                Memory.isSpawning = true;
 	            }
-        	}
-            
+        	}            
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && defenders.length < 3) {
             let Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
