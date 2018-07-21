@@ -443,24 +443,23 @@ var creep_work5 = {
                     //Nothing left to do
                     creep.suicide();
                 } else {
-                    //Creep will immediately harvest and store mined materials
-                    var storageTarget = creep.room.terminal;
-                    if (!creep.pos.isNearTo(thisMineral)) {
-                        creep.travelTo(thisMineral);
-                    } else if (storageTarget && Game.time >= creep.memory.nextMine) {
-                        if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
+                	let triedTravel = false;
+                	let storageTarget = creep.room.terminal;
+                	if (storageTarget && _.sum(creep.carry) > (creep.carryCapacity - creep.getActiveBodyparts(WORK))) {
+                        if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(storageTarget);
+                            triedTravel = true;
+                        }
+                    } 
+
+                    if (Game.time >= creep.memory.nextMine) {
+                    	let harvestResult = creep.harvest(thisMineral);
+						if (harvestResult == ERR_NOT_IN_RANGE && !triedTravel) {
                             creep.travelTo(thisMineral);
-                        } else {
+                        } else if (harvestResult == OK) {
                             creep.memory.nextMine = Game.time + 6;
                         }
-
-                    }
-                    if (_.sum(creep.carry) > 0) {
-                        if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
-                            //This should never actually fire, if ideal.
-                            creep.travelTo(storageTarget);
-                        }
-                    }
+                    }                          
                 }
                 break;
         }
