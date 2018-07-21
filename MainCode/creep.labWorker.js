@@ -412,7 +412,7 @@ var creep_labWorker = {
                                     }
                                 } else {
                                     var carryAmount = mineralArray[i] in creep.carry;
-                                    if (carryAmount > 0) {
+                                    if (carryAmount > 0 && labArray[i].mineralAmount <= 2500) {
                                         creep.memory.structureTarget = labArray[i].id;
                                         creep.memory.direction = 'Transfer';
                                         creep.memory.mineralToMove = mineralArray[i];
