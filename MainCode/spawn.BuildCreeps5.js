@@ -323,21 +323,45 @@ var spawn_BuildCreeps5 = {
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
         if (RoomCreeps.length == 0) {
-            let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
-            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
-                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                //In case of complete destruction, make a minimum viable worker
-                //Make sure 5+ work code has harvester backup path
-                spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'dist_' + spawn.name + '_' + Game.time, {
-                    memory: {
-                        priority: 'distributor',
-                        deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
-                        fromSpawn: spawn.id,
-                        homeRoom: thisRoom.name
-                    }
-                });
-                Memory.isSpawning = true;
-            }
+        	if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
+        		let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
+	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+	                //In case of complete destruction, make a minimum viable worker
+	                //Make sure 5+ work code has harvester backup path
+	                spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'dist_' + spawn.name + '_' + Game.time, {
+	                    memory: {
+	                        priority: 'distributor',
+	                        deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
+	                        fromSpawn: spawn.id,
+	                        homeRoom: thisRoom.name
+	                    }
+	                });
+	                Memory.isSpawning = true;
+	            }
+        	} else {
+        		let configCost = calculateConfigCost([MOVE,MOVE,WORK,CARRY,CARRY]);
+	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+	                //In case of complete destruction, make a minimum viable worker
+	                //Make sure 5+ work code has harvester backup path
+	                spawn.spawnCreep([MOVE,MOVE,WORK,CARRY,CARRY], 'miner_' + spawn.name + '_' + Game.time, {
+	                    memory: {
+	                        priority: 'miner',
+	                        mineSource: strSources[0],
+	                        linkSource: thisRoom.storage.id,
+	                        jobSpecific: 'storageMiner',
+	                        ignoreTravel: false,
+	                        atSpot: false,
+	                        deathWarn: _.size([MOVE,MOVE,WORK,CARRY,CARRY]) * 4,
+	                        fromSpawn: spawn.id,
+	                        homeRoom: thisRoom.name
+	                    }
+	                });
+	                Memory.isSpawning = true;
+	            }
+        	}
+            
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && defenders.length < 3) {
             let Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
