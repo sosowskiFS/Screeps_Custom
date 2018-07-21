@@ -340,7 +340,7 @@ module.exports.loop = function() {
 
             if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
                 //Gimme some pie graphs
-                const vis = new RoomVisual(thisRoom.name);
+                let vis = new RoomVisual(thisRoom.name);
                 //GCL
                 drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5);
 
