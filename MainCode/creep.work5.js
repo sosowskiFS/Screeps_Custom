@@ -276,6 +276,7 @@ var creep_work5 = {
                         creep.memory.priority = 'labWorker';
                         break;
                     }
+                    creep.memory.structureTarget = undefined;
                     //Get from storage
                     //Check 4th link first just in case
                     var linkTarget = undefined;
