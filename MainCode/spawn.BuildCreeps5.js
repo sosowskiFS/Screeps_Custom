@@ -329,12 +329,17 @@ var spawn_BuildCreeps5 = {
 	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
 	                //In case of complete destruction, make a minimum viable worker
 	                //Make sure 5+ work code has harvester backup path
+	                let connectedLink = undefined;
+	                if (strLinks.length >= 4) {
+                    	connectedLink = strLinks[3];
+                	}
 	                spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'dist_' + spawn.name + '_' + Game.time, {
 	                    memory: {
 	                        priority: 'distributor',
 	                        deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
 	                        fromSpawn: spawn.id,
-	                        homeRoom: thisRoom.name
+	                        homeRoom: thisRoom.name,
+	                        linkSource: connectedLink
 	                    }
 	                });
 	                Memory.isSpawning = true;
