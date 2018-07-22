@@ -1,5 +1,10 @@
 var creep_Helper = {
     run: function(creep) {
+
+        let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Nemah")
+        });
+
         if (creep.room.name != creep.memory.destination) {
             var thisPortal = undefined;
             if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
@@ -151,6 +156,82 @@ var creep_Helper = {
                 if (_.sum(creep.carry) <= 0) {
                     creep.memory.currentState = 1;
                 }
+            }
+        }
+
+        if (closeFoe) {
+            let closeRange = creep.pos.getRangeTo(closeFoe);
+            if (closeRange <= 5) {
+                //Dodge away from foe
+                let foeDirection = creep.pos.getDirectionTo(closeFoe);
+                let y = 0;
+                let x = 0;
+                switch (foeDirection) {
+                    case TOP:
+                        y = 5;
+                        break;
+                    case TOP_RIGHT:
+                        y = 5;
+                        x = -5;
+                        break;
+                    case RIGHT:
+                        x = -5;
+                        break;
+                    case BOTTOM_RIGHT:
+                        y = -5;
+                        x = -5;
+                        break;
+                    case BOTTOM:
+                        y = -5;
+                        break;
+                    case BOTTOM_LEFT:
+                        y = -5;
+                        x = 5;
+                        break;
+                    case LEFT:
+                        x = 5;
+                        break;
+                    case TOP_LEFT:
+                        y = 5;
+                        x = 5;
+                        break;
+                }
+                x = creep.pos.x + x;
+                y = creep.pos.y + y;
+                if (x < 0) {
+                    x = 0;
+                    if (y < 25 && y > 0) {
+                        y = y - 1;
+                    } else if (y < 49) {
+                        y = y + 1;
+                    }
+                } else if (x > 49) {
+                    x = 49;
+                    if (y < 25 && y > 0) {
+                        y = y - 1;
+                    } else if (y < 49) {
+                        y = y + 1;
+                    }
+                }
+                if (y < 0) {
+                    y = 0;
+                    if (x < 25 && x > 0) {
+                        x = x - 1;
+                    } else if (x < 49) {
+                        x = x + 1;
+                    }
+                } else if (y > 49) {
+                    y = 49;
+                    if (x < 25 && x > 0) {
+                        x = x - 1;
+                    } else if (x < 49) {
+                        x = x + 1;
+                    }
+                }
+
+                creep.moveTo(x, y, {
+                    ignoreRoads: true
+                });
             }
         }
     }
