@@ -132,6 +132,18 @@ var creep_Helper = {
                                     maxRooms: 1
                                 });
                             }
+                        } else {
+                            if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
+                                creep.travelTo(creep.room.controller, {
+                                    maxRooms: 1
+                                });
+                                creep.signController(creep.room.controller, '\u3044\u3044\u3048\u3001\u79C1\u306F\u3053\u3053\u304C\u597D\u304D\u3067\u3059');
+                            } else if (!creep.room.controller.sign) {
+                                creep.travelTo(creep.room.controller, {
+                                    maxRooms: 1
+                                });
+                                creep.signController(creep.room.controller, '\u3044\u3044\u3048\u3001\u79C1\u306F\u3053\u3053\u304C\u597D\u304D\u3067\u3059');
+                            }
                         }
                     }
                 }
