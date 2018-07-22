@@ -161,7 +161,7 @@ var creep_Helper = {
 
         if (closeFoe) {
             let closeRange = creep.pos.getRangeTo(closeFoe);
-            if (closeRange <= 5) {
+            if (closeRange <= 7) {
                 //Dodge away from foe
                 let foeDirection = creep.pos.getDirectionTo(closeFoe);
                 let y = 0;
