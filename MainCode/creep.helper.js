@@ -1,9 +1,9 @@
 var creep_Helper = {
     run: function(creep) {
 
-        let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+        /*let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Nemah")
-        });
+        });*/
 
         if (creep.room.name != creep.memory.destination) {
             var thisPortal = undefined;
@@ -159,7 +159,7 @@ var creep_Helper = {
             }
         }
 
-        if (closeFoe) {
+        /*if (closeFoe) {
             let closeRange = creep.pos.getRangeTo(closeFoe);
             if (closeRange <= 7) {
                 //Dodge away from foe
@@ -233,7 +233,7 @@ var creep_Helper = {
                     ignoreRoads: true
                 });
             }
-        }
+        }*/
     }
 };
 
