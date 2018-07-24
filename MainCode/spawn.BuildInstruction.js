@@ -2,7 +2,7 @@ var spawn_BuildInstruction = {
     run: function(spawn, instruction, params, energyIndex, thisRoom = '', params2 = '') {
         switch (instruction) {
             case 'claim':
-                var claimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'claimer');
+                var claimers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'claimer' && creep.memory.homeRoom == spawn.room.name);
                 if (claimers.length < 1) {
                     if (params2 != '') {
                         //Claimer with defined path
@@ -15,6 +15,7 @@ var spawn_BuildInstruction = {
                                     memory: {
                                         priority: 'claimer',
                                         destination: params,
+                                        homeRoom: spawn.room.name,
                                         path: creepPath
                                     }
                                 });
@@ -32,6 +33,7 @@ var spawn_BuildInstruction = {
                             spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], 'claimer_' + spawn.name + '_' + Game.time, {
                                 memory: {
                                     priority: 'claimer',
+                                    homeRoom: spawn.room.name,
                                     destination: params
                                 }
                             });
@@ -62,7 +64,7 @@ var spawn_BuildInstruction = {
                 }
                 break;
             case 'construct':
-                var constructors = _.filter(Game.creeps, (creep) => creep.memory.priority == 'constructor');
+                var constructors = _.filter(Game.creeps, (creep) => creep.memory.priority == 'constructor' && creep.memory.homeRoom == spawn.room.name);
                 if (constructors.length < 3) {
                     var constructorConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY];
                     if (spawn.room.energyCapacityAvailable >= 2000) {
@@ -170,7 +172,7 @@ var spawn_BuildInstruction = {
                 }
                 break;
             case 'helper':
-                var helpers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'helper');
+                var helpers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'helper' && creep.memory.homeRoom == spawn.room.name);
                 if (helpers.length < 6) {
                     var helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY];
                     if (spawn.room.energyCapacityAvailable >= 2000) {
@@ -185,7 +187,9 @@ var spawn_BuildInstruction = {
                                 memory: {
                                     priority: 'helper',
                                     destination: params,
-                                    path: creepPath
+                                    path: creepPath,
+                                    homeRoom: spawn.room.name,
+                                    previousPriority: 'helper'
                                 }
                             });
                             Memory.isSpawning = true;
@@ -198,6 +202,7 @@ var spawn_BuildInstruction = {
                                 memory: {
                                     priority: 'helper',
                                     destination: params,
+                                    homeRoom: spawn.room.name,
                                     previousPriority: 'helper'
                                 }
                             });
