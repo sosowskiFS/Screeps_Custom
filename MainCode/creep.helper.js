@@ -48,7 +48,11 @@ var creep_Helper = {
             }
 
             if (creep.memory.currentState == 1) {
-                if (creep.memory.targetSource) {
+                if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 400) {
+                    if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(creep.room.storage);
+                    }
+                } else if (creep.memory.targetSource) {
                     let thisSource = Game.getObjectById(creep.memory.targetSource);
                     if (thisSource) {
                         if (creep.harvest(thisSource) == ERR_NOT_IN_RANGE) {
