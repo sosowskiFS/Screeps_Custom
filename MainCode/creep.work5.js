@@ -125,8 +125,7 @@ var creep_work5 = {
                                         filter: (structure) => {
                                             return (structure.structureType == STRUCTURE_EXTENSION ||
                                                 structure.structureType == STRUCTURE_SPAWN ||
-                                                structure.structureType == STRUCTURE_LAB ||
-                                                structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                                structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
                                         }
                                     });
                                 } else {
@@ -134,8 +133,7 @@ var creep_work5 = {
                                         filter: (structure) => {
                                             return (structure.structureType == STRUCTURE_EXTENSION ||
                                                 structure.structureType == STRUCTURE_SPAWN ||
-                                                structure.structureType == STRUCTURE_LAB ||
-                                                structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+                                                structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
                                         }
                                     });
                                 }
