@@ -162,7 +162,7 @@ var creep_asshealer = {
                     }
                 }
                 if (targetFlag) {
-                    creep.travelTo(Game.flags[creep.memory.homeRoom + "targetFlag"], {
+                    creep.travelTo(targetFlag, {
                         ignoreRoads: true
                     });
                 }
