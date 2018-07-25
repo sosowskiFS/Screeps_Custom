@@ -46,7 +46,7 @@ var creep_asshealer = {
                         ignoreRoads: true
                     });
                     hasTraveled = true;
-                }           
+                }
                 ToughLab[0].boostCreep(creep);
             }
             if (HealLab.length && unboostedHeal > 0) {
@@ -55,7 +55,7 @@ var creep_asshealer = {
                         ignoreRoads: true
                     });
                     hasTraveled = true;
-                }           
+                }
                 HealLab[0].boostCreep(creep);
             }
         } else {
@@ -152,8 +152,17 @@ var creep_asshealer = {
                     creep.memory.priority = 'targetlessHealer';
                 }
                 creep.heal(creep);
-                if (Game.flags[creep.memory.homeRoom + "RallyHere"] && Game.flags[creep.memory.homeRoom + "RallyHere"].pos) {
-                    creep.travelTo(Game.flags[creep.memory.homeRoom + "RallyHere"], {
+                let targetFlag = Game.flags[creep.memory.homeRoom + "Assault"];
+                if (!targetFlag) {
+                    for (j = 2; j < 6; j++) {
+                        targetFlag = Game.flags[creep.memory.homeRoom + "Assault" + j]
+                        if (targetFlag) {
+                            break;
+                        }
+                    }
+                }
+                if (targetFlag) {
+                    creep.travelTo(Game.flags[creep.memory.homeRoom + "targetFlag"], {
                         ignoreRoads: true
                     });
                 }
