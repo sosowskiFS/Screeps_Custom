@@ -333,7 +333,21 @@ var creep_assattacker = {
                         /*if (creep.memory.destination && !creep.memory.usedPortal) {
                             creep.travelTo(new RoomPosition(25, 25, creep.memory.destination))
                         } else*/
-                        if (creep.memory.path && creep.memory.path.length) {
+                        if (Game.flags[creep.memory.homeRoom + "GroupHere"] && Game.flags[creep.memory.homeRoom + "GroupHere"].pos.roomName == creep.pos.roomName && !creep.memory.isGrouped) {
+                            if (healerIsGood) {
+                                creep.travelTo(Game.flags[creep.memory.homeRoom + "GroupHere"], {
+                                    stuckValue: 2,
+                                    allowSK: true
+                                });
+                            }
+
+                            let nearbyAlly = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
+                                filter: (mCreep) => (mCreep.memory.priority == "assattacker" || creep.memory.priority == 'assranger')
+                            });
+                            if (nearbyAlly.length) {
+                                creep.memory.isGrouped = true;
+                            }
+                        } else if (creep.memory.path && creep.memory.path.length) {
                             if (creep.memory.path[0] == creep.room.name) {
                                 creep.memory.path.splice(0, 1);
                             }

@@ -261,7 +261,7 @@ var spawn_BuildInstruction = {
                 var attackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && creep.memory.homeRoom == spawn.room.name);
                 var healerlessAttackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && !creep.memory.healerID && creep.memory.homeRoom == spawn.room.name && !creep.memory.isReserved);
                 var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == spawn.room.name);
-                if (attackers.length < 1 && (attackers.length < healers.length || attackers.length == healers.length)) {
+                if (attackers.length < 2 && (attackers.length < healers.length || attackers.length == healers.length)) {
                     let priorityName = 'assattacker';
                     var attackerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE];
                     if (Game.flags[spawn.room.name + "DoBoost"]) {
@@ -289,7 +289,8 @@ var spawn_BuildInstruction = {
                                         destination: params,
                                         path: creepPath,
                                         homeRoom: spawn.room.name,
-                                        isReserved: false
+                                        isReserved: false,
+                                        isGrouped: false
                                     }
                                 });
                                 Memory.isSpawning = true;
@@ -304,14 +305,15 @@ var spawn_BuildInstruction = {
                                     priority: priorityName,
                                     destination: params,
                                     homeRoom: spawn.room.name,
-                                    isReserved: false
+                                    isReserved: false,
+                                    isGrouped: false
                                 }
                             });
                             Memory.isSpawning = true;
                             console.log('FUCK. SHIT. UP. ' + spawn.room.name);
                         }
                     }
-                } else if (healers.length < 1 && healers.length < attackers.length && healerlessAttackers.length) {
+                } else if (healers.length < 2 && healers.length < attackers.length && healerlessAttackers.length) {
                     var healerConfig = [TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
                     //Testing movement config
                     //var healerConfig = [TOUGH, MOVE];

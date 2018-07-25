@@ -122,7 +122,7 @@ var creep_asshealer = {
                     }
 
                     var hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 600 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 500 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
                     });
                     var healedAlly = false
                     if (hurtAlly.length > 0) {
@@ -158,7 +158,7 @@ var creep_asshealer = {
                     });
                 }
                 var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
-                    filter: (mCreep) => (mCreep.memory.priority == "assattacker")
+                    filter: (mCreep) => (mCreep.memory.priority == "assattacker" || creep.memory.priority == "assranger")
                 });
                 if (newTarget.length) {
                     creep.memory.attackerID = newTarget[0].id;
