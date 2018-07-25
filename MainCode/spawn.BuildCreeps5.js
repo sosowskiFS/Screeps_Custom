@@ -325,7 +325,7 @@ var spawn_BuildCreeps5 = {
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
         if (RoomCreeps.length <= 1) {
-        	if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
+        	if (thisRoom.storage && RoomCreeps.length == 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
         		let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
 	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
 	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
