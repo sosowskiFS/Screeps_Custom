@@ -258,6 +258,8 @@ var spawn_BuildInstruction = {
                 }
                 break;
             case 'assault':
+                //Bump up TOUGH parts to 12 for RCL8 rooms
+                //Develop ranged attacker
                 var attackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && creep.memory.homeRoom == spawn.room.name);
                 var healerlessAttackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && !creep.memory.healerID && creep.memory.homeRoom == spawn.room.name && !creep.memory.isReserved);
                 var healers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'asshealer' && creep.memory.homeRoom == spawn.room.name);
