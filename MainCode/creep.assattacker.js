@@ -342,7 +342,7 @@ var creep_assattacker = {
                             }
 
                             let nearbyAlly = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
-                                filter: (mCreep) => (mCreep.memory.priority == 'assattacker' || mCreep.memory.priority == 'assranger')
+                                filter: (mCreep) => ((mCreep.memory.priority == 'assattacker' || mCreep.memory.priority == 'assranger') && mCreep.id != creep.id)
                             });
                             if (nearbyAlly.length) {
                                 creep.memory.isGrouped = true;
