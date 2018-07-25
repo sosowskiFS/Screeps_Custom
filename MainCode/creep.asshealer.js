@@ -163,7 +163,8 @@ var creep_asshealer = {
                 }
                 if (targetFlag) {
                     creep.travelTo(targetFlag, {
-                        ignoreRoads: true
+                        ignoreRoads: true,
+                        stuckValue: 1
                     });
                 }
                 var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
