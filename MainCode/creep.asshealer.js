@@ -168,7 +168,7 @@ var creep_asshealer = {
                     });
                 }
                 var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
-                    filter: (mCreep) => (mCreep.memory.priority == "assattacker" || creep.memory.priority == "assranger")
+                    filter: (mCreep) => (mCreep.memory.priority == "assattacker" || mCreep.memory.priority == "assranger")
                 });
                 if (newTarget.length) {
                     creep.memory.attackerID = newTarget[0].id;
