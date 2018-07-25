@@ -109,6 +109,7 @@ var creep_combat = {
                 }
                 creep.say("\uFF08\u0E07\u03A6 \u0414 \u03A6\uFF09\u0E07", true);
                 creep.memory.waitingTimer = 0;
+                creep.travelTo(creep);
             }
         }
     }
