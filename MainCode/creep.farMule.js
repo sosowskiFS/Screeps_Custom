@@ -162,7 +162,7 @@ var creep_farMule = {
                                     creep.travelTo(thisUnit);
                                 } else {
                                     creep.travelTo(myMiner[0], {
-                                        range: 3
+                                        range: 2
                                     });
                                 }
                             } else {
