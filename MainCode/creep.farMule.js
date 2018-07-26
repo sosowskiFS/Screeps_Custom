@@ -162,19 +162,19 @@ var creep_farMule = {
                                     creep.travelTo(thisUnit);
                                 } else {
                                     creep.travelTo(myMiner[0], {
-                                        range: 2
+                                        range: 3
                                     });
                                 }
                             } else {
                                 creep.travelTo(thisSource, {
                                     ignoreRoads: roadIgnore,
-                                    range: 2
+                                    range: 3
                                 })
                             }
                         } else {
                             creep.travelTo(thisSource, {
                                 ignoreRoads: roadIgnore,
-                                range: 2
+                                range: 3
                             })
                         }
                     } else {
