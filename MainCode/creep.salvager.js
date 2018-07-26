@@ -37,7 +37,13 @@ var creep_salvager = {
             return;
         } else if (foundObject) {
             if (creep.memory.targetType == 0) {
-                if (Object.keys(foundObject.store).length > 1) {
+            	if (_.sum(creep.carry) >= creep.carryCapacity) {
+            		creep.memory.lastTargetId = creep.memory.targetId;
+                    creep.memory.targetId = undefined;
+                    creep.memory.targetType = undefined;
+                    foundObject = findTarget(creep, _.sum(foundObject.store));
+                    newTarget = true;
+            	} else if (Object.keys(foundObject.store).length > 1) {
                     if (creep.withdraw(foundObject, Object.keys(foundObject.store)[1]) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(foundObject, {
                             maxRooms: 1
