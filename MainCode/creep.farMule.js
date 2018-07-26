@@ -168,13 +168,13 @@ var creep_farMule = {
                             } else {
                                 creep.travelTo(thisSource, {
                                     ignoreRoads: roadIgnore,
-                                    range: 3
+                                    range: 2
                                 })
                             }
                         } else {
                             creep.travelTo(thisSource, {
                                 ignoreRoads: roadIgnore,
-                                range: 3
+                                range: 2
                             })
                         }
                     } else {
