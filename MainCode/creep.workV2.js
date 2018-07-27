@@ -31,13 +31,13 @@ var creep_workV2 = {
                         if (creep.pos.x != thisUnit.pos.x || creep.pos.y != thisUnit.pos.y) {
                             creep.travelTo(thisUnit);
                         } else {
-                        	creep.memory.onContainer = true;
+                            creep.memory.onContainer = true;
                         }
                     } else {
                         //This is a storage Unit
                         creep.transfer(thisUnit, RESOURCE_ENERGY);
                         if (!creep.memory.onContainer) {
-                        	creep.memory.onContainer = true;
+                            creep.memory.onContainer = true;
                         }
                     }
                 } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
@@ -170,7 +170,7 @@ var creep_workV2 = {
                         let thisStructure = Game.getObjectById(creep.memory.structureTarget);
                         if (thisStructure) {
                             needSearch = false;
-                            if (creep.build(thisStructure) == ERR_NOT_IN_RANGE) {
+                            if (creep.build(thisStructure) == ERR_NOT_IN_RANGE || creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(thisStructure);
                             }
                         } else {
@@ -179,23 +179,36 @@ var creep_workV2 = {
                     }
 
                     if (needSearch) {
-                        target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                        let target = creep.room.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => structure.structureType == STRUCTURE_RAMPART && structure.hits <= 500
+                        });
                         if (target) {
                             creep.memory.structureTarget = target.id;
-                            if (creep.build(target) == ERR_NOT_IN_RANGE) {
+                            let repairResult = creep.repair(target)
+                            if (repairResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(target);
-                            } else if (creep.build(target) == ERR_NO_BODYPART) {
+                            } else if (repairResult == ERR_NO_BODYPART) {
                                 creep.suicide();
                             }
-                        } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                            if (Game.flags[creep.room.name + "Controller"]) {
-                                creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                                    maxRooms: 1
-                                });
-                            } else {
-                                creep.travelTo(creep.room.controller, {
-                                    maxRooms: 1
-                                });
+                        } else {
+                            target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                            if (target) {
+                                creep.memory.structureTarget = target.id;
+                                if (creep.build(target) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(target);
+                                } else if (creep.build(target) == ERR_NO_BODYPART) {
+                                    creep.suicide();
+                                }
+                            } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                                if (Game.flags[creep.room.name + "Controller"]) {
+                                    creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                                        maxRooms: 1
+                                    });
+                                } else {
+                                    creep.travelTo(creep.room.controller, {
+                                        maxRooms: 1
+                                    });
+                                }
                             }
                         }
                     }
@@ -297,48 +310,48 @@ var creep_workV2 = {
                     if (!creep.memory.structureTarget) {
                         var target = undefined;
                         if (getNewStructure) {
-                        	if (!creep.room.storage) {
-                        		target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-	                                filter: (structure) => {
-	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-	                                        structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-	                                }
-	                            });	
-                        	} else {
-	                        	target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-	                                filter: (structure) => {
-	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-	                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-	                                }
-	                            });	
-                        	}
-                            
+                            if (!creep.room.storage) {
+                                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                    }
+                                });
+                            } else {
+                                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                    }
+                                });
+                            }
+
                         } else {
-                        	if (!creep.room.storage) {
-                        		target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-	                                filter: (structure) => {
-	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-	                                        structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
-	                                }
-	                            });	
-                        	} else {
-	                        	target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-	                                filter: (structure) => {
-	                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-	                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-	                                }
-	                            });	
-                        	}
-                            
+                            if (!creep.room.storage) {
+                                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
+                                    }
+                                });
+                            } else {
+                                target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+                                    }
+                                });
+                            }
+
                         }
                         if (!target) {
                             //Find closest by path will not return anything if path is blocked
                             if (getNewStructure) {
-                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                                }
+                                target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                    }
                                 });
                             } else {
                                 target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -403,7 +416,7 @@ function findNewRepairTarget(creep, creepEnergy) {
                     moveToNewTarget(creep);
                 }
             }
-        }      
+        }
     } else if (creep.memory.structureTarget) {
         var thisStructure = Game.getObjectById(creep.memory.structureTarget);
         if (thisStructure) {
