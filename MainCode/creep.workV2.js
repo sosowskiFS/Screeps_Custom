@@ -179,7 +179,7 @@ var creep_workV2 = {
                     }
 
                     if (needSearch) {
-                        let target = creep.room.findClosestByRange(FIND_STRUCTURES, {
+                        let target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => structure.structureType == STRUCTURE_RAMPART && structure.hits <= 500
                         });
                         if (target) {
