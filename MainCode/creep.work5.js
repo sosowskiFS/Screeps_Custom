@@ -546,7 +546,7 @@ function DoResourceCheck(creep) {
                 }
             }
             //Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
-        } else if (lab4 && lab5 && (lab4.mineralAmount < creep.carryCapacity || lab5.mineralAmount < creep.carryCapacity) && _.sum(creep.carry) == 0) {
+        } else if (lab4 && lab5 && (lab4.mineralAmount < creep.carryCapacity || lab5.mineralAmount < creep.carryCapacity)) {
             //tick up, but don't swap yet
             creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
             if (creep.memory.resourceChecks >= 15) {
