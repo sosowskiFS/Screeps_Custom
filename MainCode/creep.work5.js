@@ -269,8 +269,12 @@ var creep_work5 = {
                     creep.memory.priority = 'distributorNearDeath';
                 }
 
+                if (creep.memory.previousPriority == 'labWorker' && Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
+                    DoResourceCheck(creep);
+                }
+
                 if (_.sum(creep.carry) <= 0) {
-                    if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed){
+                    if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed) {
                         creep.memory.priority = 'labWorker';
                         break;
                     }
@@ -301,7 +305,7 @@ var creep_work5 = {
                         }
                     }
                 } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
-                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                         creep.memory.hasDistributed = true;
                     }
                     var savedTarget = Game.getObjectById(creep.memory.structureTarget);
@@ -337,11 +341,11 @@ var creep_work5 = {
                         if (!target) {
                             //Find closest by path will not return anything if path is blocked
                             if (getNewStructure) {
-                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                                }
+                                target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                    filter: (structure) => {
+                                        return (structure.structureType == STRUCTURE_EXTENSION ||
+                                            structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                    }
                                 });
                             } else {
                                 target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
@@ -365,14 +369,14 @@ var creep_work5 = {
                     }
                 } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                     //Being supplied, drop in storage
-                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                         creep.memory.hasDistributed = true;
                     }
                     if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage);
                     }
                 } else if (creep.room.controller.level != 8 && Memory.linkList[creep.room.name].length > 1) {
-                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                         creep.memory.hasDistributed = true;
                     }
                     var upLink = Game.getObjectById(Memory.linkList[creep.room.name][1])
@@ -382,7 +386,7 @@ var creep_work5 = {
                         }
                     }
                 } else if (_.sum(creep.carry) < creep.carryCapacity) {
-                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                         creep.memory.hasDistributed = true;
                     }
                     //Get from storage
@@ -407,7 +411,7 @@ var creep_work5 = {
                         }
                     }
                 } else {
-                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed){
+                    if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                         creep.memory.hasDistributed = true;
                     }
                     var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
@@ -442,23 +446,23 @@ var creep_work5 = {
                     //Nothing left to do
                     creep.suicide();
                 } else {
-                	let triedTravel = false;
-                	let storageTarget = creep.room.terminal;
-                	if (storageTarget && _.sum(creep.carry) > (creep.carryCapacity - creep.getActiveBodyparts(WORK))) {
+                    let triedTravel = false;
+                    let storageTarget = creep.room.terminal;
+                    if (storageTarget && _.sum(creep.carry) > (creep.carryCapacity - creep.getActiveBodyparts(WORK))) {
                         if (creep.transfer(storageTarget, thisMineral.mineralType) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(storageTarget);
                             triedTravel = true;
                         }
-                    } 
+                    }
 
                     if (Game.time >= creep.memory.nextMine) {
-                    	let harvestResult = creep.harvest(thisMineral);
-						if (harvestResult == ERR_NOT_IN_RANGE && !triedTravel) {
+                        let harvestResult = creep.harvest(thisMineral);
+                        if (harvestResult == ERR_NOT_IN_RANGE && !triedTravel) {
                             creep.travelTo(thisMineral);
                         } else if (harvestResult == OK) {
                             creep.memory.nextMine = Game.time + 6;
                         }
-                    }                          
+                    }
                 }
                 break;
         }
@@ -481,4 +485,82 @@ function orderPriceCompareBuying(a, b) {
     if (a.price > b.price)
         return 1;
     return 0;
+}
+
+function DoResourceCheck(creep) {
+    creep.memory.nextResourceCheck = Game.time + 50;
+    if (creep.memory.resourceChecks < 15) {
+        var lab4 = Game.getObjectById(creep.memory.lab4);
+        var lab5 = Game.getObjectById(creep.memory.lab5);
+        if (creep.room.terminal && creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
+            //Immediately swap flags
+            creep.memory.resourceChecks = 15;
+            if (creep.memory.mineral5 == RESOURCE_CATALYST && creep.memory.mineral6 != RESOURCE_CATALYZED_GHODIUM_ACID) {
+                //If producing something with catalyst, make an order.
+                var foundOrder = _.findKey(Game.market.orders, {
+                    'roomName': creep.room.name,
+                    'resourceType': creep.memory.mineral6
+                });
+                if (foundOrder) {
+                    //Update quantity if less than 40000
+                    var thisOrder = Game.market.orders[foundOrder];
+                    if (thisOrder.remainingAmount < 40000) {
+                        var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
+                        if (comparableOrders.length > 0) {
+                            comparableOrders.sort(orderPriceCompareBuying);
+                            var targetPrice = comparableOrders[0].price;
+                            if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
+                                //Not competing with self, undercut!
+                                targetPrice = targetPrice - 0.001
+                            }
+                            Game.market.changeOrderPrice(foundOrder, targetPrice);
+                            Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+                        } else {
+                            Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+                        }
+                    } else {
+                        //Keep prices up to date
+                        var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
+                        if (comparableOrders.length > 0) {
+                            comparableOrders.sort(orderPriceCompareBuying);
+                            var targetPrice = comparableOrders[0].price;
+                            if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
+                                //Not competing with self, undercut!
+                                targetPrice = targetPrice - 0.001
+                            }
+                            Game.market.changeOrderPrice(foundOrder, targetPrice);
+                        }
+                    }
+                } else {
+                    //Create new order, 0.001 less than lowest comperable order
+                    var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
+                    if (comparableOrders.length > 0) {
+                        comparableOrders.sort(orderPriceCompareBuying);
+                        var targetPrice = comparableOrders[0].price;
+                        if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
+                            //Not competing with self, undercut!
+                            targetPrice = targetPrice - 0.001
+                        }
+                        Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
+                    }
+                }
+            }
+            //Game.notify('PRODUCTION MAXED: ' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
+        } else if (lab4 && lab5 && (lab4.mineralAmount < creep.carryCapacity || lab5.mineralAmount < creep.carryCapacity) && _.sum(creep.carry) == 0) {
+            //tick up, but don't swap yet
+            creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
+            if (creep.memory.resourceChecks >= 15) {
+                //Game.notify('NO MATERIALS:' + creep.room.name + ' has swapped off ' + creep.memory.primaryFlag + ' New Target : ' + creep.memory.backupFlag);
+            }
+        }
+    } else {
+        //Still can't find resources, switch flags
+        if (!Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
+            creep.room.createFlag(Game.flags[creep.memory.primaryFlag].pos, creep.memory.backupFlag, COLOR_CYAN);
+            Game.flags[creep.memory.primaryFlag].remove();
+        } else if (Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
+            //Just in case
+            Game.flags[creep.memory.primaryFlag].remove();
+        }
+    }
 }
