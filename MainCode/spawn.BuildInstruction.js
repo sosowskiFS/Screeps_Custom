@@ -214,7 +214,7 @@ var spawn_BuildInstruction = {
                 }
                 break;
             case 'loot':
-                var looters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'looter');
+                var looters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'looter' && creep.memory.homeRoom == spawn.room.name);
                 if (looters.length < 3) {
                     var looterConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     if (spawn.room.energyCapacityAvailable >= 2500) {
@@ -227,7 +227,7 @@ var spawn_BuildInstruction = {
                             memory: {
                                 priority: 'looter',
                                 destination: params,
-                                homeRoom: params2
+                                homeRoom: spawn.room.name
                             }
                         });
                         Memory.isSpawning = true;
