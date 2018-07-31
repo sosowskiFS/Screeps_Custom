@@ -214,12 +214,9 @@ var spawn_BuildInstruction = {
                 }
                 break;
             case 'loot':
-                var looters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'looter' && creep.memory.homeRoom == spawn.room.name);
+                let looters = _.filter(Game.creeps, (creep) => creep.memory.priority == 'looter' && creep.memory.homeRoom == spawn.room.name);
                 if (looters.length < 3) {
-                    var looterConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-                    if (spawn.room.energyCapacityAvailable >= 2500) {
-                        looterConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-                    }
+                    let looterConfig = getLooterBuild(spawn.room.energyCapacityAvailable);
                     let configCost = calculateConfigCost(looterConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -505,6 +502,23 @@ function calculateConfigCost(bodyConfig) {
         totalCost = totalCost + BODYPART_COST[thisPart];
     }
     return totalCost;
+}
+
+function getLooterBuild(energyCap) {
+    var thisConfig = [];
+
+    var ConfigCost = BODYPART_COST[CARRY] + BODYPART_COST[MOVE]
+
+    while ((energyCap / ConfigCost) >= 1) {
+        thisConfig.push(CARRY);
+        thisConfig.push(MOVE);
+        energyCap = energyCap - ConfigCost;
+        if (thisConfig.length >= 50) {
+            break;
+        }
+    }
+    //thisConfig.sort();
+    return thisConfig;
 }
 
 module.exports = spawn_BuildInstruction;
