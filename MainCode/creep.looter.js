@@ -2,7 +2,7 @@ var creep_looter = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (creep.carryCapacity == 0){
+        if (creep.carryCapacity == 0) {
             //YER DED TO ME
             creep.suicide();
         }
@@ -32,16 +32,30 @@ var creep_looter = {
                         }
                         creep.suicide();
                     } else {
-                        if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        let withdrawResult = creep.withdraw(creep.room.storage, RESOURCE_ENERGY);
+                        if (withdrawResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(creep.room.storage);
+                        } else if (withdrawResult == OK) {
+                            if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
+                                creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
+                            } else {
+                                creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
+                            }
                         }
                     }
                 }
             } else {
                 //In home room, drop off energy
                 if (creep.room.storage) {
-                    if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    let transferResult = creep.transfer(creep.room.storage, RESOURCE_ENERGY);
+                    if (transferResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage);
+                    } else if (transferResult == OK) {
+                        if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].storage) {
+                            creep.travelTo(Game.rooms[creep.memory.destination].storage);
+                        } else {
+                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
+                        }
                     }
                 }
             }
