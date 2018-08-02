@@ -111,6 +111,20 @@ var creep_combat = {
                 creep.memory.waitingTimer = 0;
                 creep.travelTo(creep);
             }
+        } else {
+            //Move out of the way
+            let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+            })
+            if (talkingCreeps.length) {
+                let coords = talkingCreeps[0].saying.split(";");
+                if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                    //Standing in the way of a creep
+                    let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                    creep.move(thisDirection);
+                    creep.say("\uD83D\uDCA6", true);
+                }
+            }
         }
     }
 };
