@@ -367,6 +367,7 @@ var spawn_BuildInstruction = {
                                         priority: priorityName,
                                         destination: params,
                                         path: creepPath,
+                                        deathWarn: _.size(rangerConfig) * 6,
                                         homeRoom: spawn.room.name
                                     }
                                 });
@@ -381,6 +382,7 @@ var spawn_BuildInstruction = {
                                 memory: {
                                     priority: priorityName,
                                     destination: params,
+                                    deathWarn: _.size(rangerConfig) * 6,
                                     homeRoom: spawn.room.name
                                 }
                             });

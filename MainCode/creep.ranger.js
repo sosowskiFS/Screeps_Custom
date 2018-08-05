@@ -7,6 +7,10 @@ var creep_ranger = {
             creep.memory._trav = undefined;
         }
 
+        if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'rangerNearDeath') {
+            creep.memory.priority = 'rangerNearDeath';
+        }
+
         var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Nemah")
         });

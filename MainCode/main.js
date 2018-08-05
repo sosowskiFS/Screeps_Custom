@@ -873,7 +873,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "Ranger"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', 'W40S28;W40S24;W41S24')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', '')
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
@@ -1124,6 +1124,7 @@ module.exports.loop = function() {
                 	creep_distantSupplier.run(creep);
                 	break;
                 case 'ranger':
+                case 'rangerNearDeath':
                     creep_ranger.run(creep);
                     break;
                 default:
