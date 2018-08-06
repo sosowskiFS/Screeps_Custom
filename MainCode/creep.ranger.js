@@ -7,6 +7,11 @@ var creep_ranger = {
             creep.memory._trav = undefined;
         }
 
+        let flagName = 'Ranger';
+        if (creep.memory.flagName == 'ranger2') {
+            flagName = 'Ranger2';
+        }
+
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'rangerNearDeath') {
             creep.memory.priority = 'rangerNearDeath';
         }
@@ -25,8 +30,8 @@ var creep_ranger = {
 
             //Cancel this flag if room is in safe mode
             if (creep.room.controller.safeMode && creep.room.controller.owner.username != "Montblanc") {
-                if (Game.flags[creep.memory.homeRoom + "Ranger"]) {
-                    Game.flags[creep.memory.homeRoom + "Ranger"].remove();
+                if (Game.flags[creep.memory.homeRoom + flagName]) {
+                    Game.flags[creep.memory.homeRoom + flagName].remove();
                 }
                 return;
             }
@@ -81,8 +86,8 @@ var creep_ranger = {
                     });
                     creep.attack(eStructures);
                     creep.rangedAttack(eStructures);
-                } else if (Game.flags[creep.memory.homeRoom + "Ranger"]) {
-                    creep.travelTo(Game.flags[creep.memory.homeRoom + "Ranger"]);
+                } else if (Game.flags[creep.memory.homeRoom + flagName]) {
+                    creep.travelTo(Game.flags[creep.memory.homeRoom + flagName]);
                 }
             }
         } else {

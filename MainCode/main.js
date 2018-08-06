@@ -876,6 +876,10 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', '')
                 }
 
+                if (Game.flags[thisRoom.name + "Ranger2"]) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', '')
+                }
+
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'W40S28;W40S24;W41S24');
@@ -1124,6 +1128,7 @@ module.exports.loop = function() {
                 	creep_distantSupplier.run(creep);
                 	break;
                 case 'ranger':
+                case 'ranger2':
                 case 'rangerNearDeath':
                     creep_ranger.run(creep);
                     break;

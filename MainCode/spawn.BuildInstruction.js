@@ -344,9 +344,10 @@ var spawn_BuildInstruction = {
                 }
                 break;
             case 'ranger':
-                var rangers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'ranger' && creep.memory.homeRoom == spawn.room.name);
+            case 'ranger2':
+                var rangers = _.filter(Game.creeps, (creep) => creep.memory.priority == instruction && creep.memory.homeRoom == spawn.room.name);
                 if (rangers.length < 1) {
-                    let priorityName = 'ranger';
+                    let priorityName = instruction;
                     //5
                     let rangerConfig = [TOUGH, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
                     if (spawn.room.energyCapacityAvailable >= 2300) {
@@ -368,6 +369,7 @@ var spawn_BuildInstruction = {
                                         destination: params,
                                         path: creepPath,
                                         deathWarn: _.size(rangerConfig) * 6,
+                                        flagName: instruction,
                                         homeRoom: spawn.room.name
                                     }
                                 });
@@ -383,6 +385,7 @@ var spawn_BuildInstruction = {
                                     priority: priorityName,
                                     destination: params,
                                     deathWarn: _.size(rangerConfig) * 6,
+                                    flagName: instruction,
                                     homeRoom: spawn.room.name
                                 }
                             });
