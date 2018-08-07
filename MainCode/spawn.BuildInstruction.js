@@ -289,7 +289,7 @@ var spawn_BuildInstruction = {
                                         path: creepPath,
                                         homeRoom: spawn.room.name,
                                         isReserved: false,
-                                        deathWarn: _.size(rangerConfig) * 6,
+                                        deathWarn: _.size(attackerConfig) * 6,
                                         isGrouped: false
                                     }
                                 });
@@ -306,7 +306,7 @@ var spawn_BuildInstruction = {
                                     destination: params,
                                     homeRoom: spawn.room.name,
                                     isReserved: false,
-                                    deathWarn: _.size(rangerConfig) * 6,
+                                    deathWarn: _.size(attackerConfig) * 6,
                                     isGrouped: false
                                 }
                             });
@@ -335,7 +335,7 @@ var spawn_BuildInstruction = {
                                     priority: 'asshealer',
                                     destination: params,
                                     homeRoom: spawn.room.name,
-                                    deathWarn: _.size(rangerConfig) * 6,
+                                    deathWarn: _.size(healerConfig) * 6,
                                     attackerID: attackerID
                                 }
                             });
