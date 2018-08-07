@@ -2,6 +2,10 @@ var creep_asshealer = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'asshealerNearDeath') {
+            creep.memory.priority = 'asshealerNearDeath';
+        }
+
         var unboostedTough = 0;
         var unboostedHeal = 0;
         var unboostedMove = 0;

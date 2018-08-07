@@ -2,6 +2,10 @@ var creep_assattacker = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'assattackerNearDeath') {
+            creep.memory.priority = 'assattackerNearDeath';
+        }
+
         let targetFlag = Game.flags[creep.memory.homeRoom + "Assault"];
         if (!targetFlag) {
             for (j = 2; j < 6; j++) {

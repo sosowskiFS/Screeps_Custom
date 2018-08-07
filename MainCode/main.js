@@ -1104,9 +1104,11 @@ module.exports.loop = function() {
                     creep_trump.run(creep);
                     break;
                 case 'assattacker':
+                case 'assattackerNearDeath':
                     creep_assattacker.run(creep);
                     break;
                 case 'asshealer':
+                case 'asshealerNearDeath':
                 case 'targetlessHealer':
                     creep_asshealer.run(creep);
                     break;
