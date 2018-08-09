@@ -59,39 +59,14 @@ var creep_farMiner = {
                 thisUnit = Game.getObjectById(creep.memory.storageUnit);
             }
 
-            if (creep.memory.mineSource) {
-                mineTarget = Game.getObjectById(creep.memory.mineSource);
-                if (mineTarget) {
-                    if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(Game.flags[creep.memory.targetFlag]);
-                        triedToMove = true;
-                    }
-                }
-            } else {
-                //Get the source ID while in the room
-                let markedSources = [];
-                if (Game.flags[creep.memory.targetFlag]) {
-                    markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
-                }
-                if (markedSources.length) {
-                    creep.memory.mineSource = markedSources[0].id;
-                }
-                mineTarget = Game.getObjectById(creep.memory.mineSource);
-                if (mineTarget) {
-                    if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(Game.flags[creep.memory.targetFlag]);
-                        triedToMove = true;
-                    }
-                }
-            }
-
             if (thisUnit) {
                 if (thisUnit.hits < thisUnit.hitsMax) {
                     creep.repair(thisUnit);
                 }
-                if ((creep.pos.x != thisUnit.pos.x || creep.pos.y != thisUnit.pos.y) && !triedToMove) {
+                if (creep.pos.x != thisUnit.pos.x || creep.pos.y != thisUnit.pos.y) {
+                    triedToMove = true;
                     creep.travelTo(thisUnit);
-                } else if (!triedToMove) {
+                } else {
                     creep.memory.onContainer = true;
                 }
             } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
@@ -119,6 +94,30 @@ var creep_farMiner = {
                                 creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
                             }
                         }
+                    }
+                }
+            }
+
+            if (creep.memory.mineSource) {
+                mineTarget = Game.getObjectById(creep.memory.mineSource);
+                if (mineTarget) {
+                    if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
+                        creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                    }
+                }
+            } else {
+                //Get the source ID while in the room
+                let markedSources = [];
+                if (Game.flags[creep.memory.targetFlag]) {
+                    markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
+                }
+                if (markedSources.length) {
+                    creep.memory.mineSource = markedSources[0].id;
+                }
+                mineTarget = Game.getObjectById(creep.memory.mineSource);
+                if (mineTarget) {
+                    if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
+                        creep.travelTo(Game.flags[creep.memory.targetFlag]);
                     }
                 }
             }
