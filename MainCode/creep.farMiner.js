@@ -91,7 +91,7 @@ var creep_farMiner = {
                 }
                 if ((creep.pos.x != thisUnit.pos.x || creep.pos.y != thisUnit.pos.y) && !triedToMove) {
                     creep.travelTo(thisUnit);
-                } else {
+                } else if (!triedToMove) {
                     creep.memory.onContainer = true;
                 }
             } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
