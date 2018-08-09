@@ -55,6 +55,10 @@ var creep_farMiner = {
             //Goal : Only need to get storage unit as a target every 10 ticks
             //Need to keep storageUnit under creep to not do deposits
 
+            if (creep.memory.mineSource) {
+                mineTarget = Game.getObjectById(creep.memory.mineSource);
+            }
+
             if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
                 let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 1, {
                     filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
@@ -100,12 +104,10 @@ var creep_farMiner = {
                 }
             }
 
-            if (creep.memory.mineSource) {
-                mineTarget = Game.getObjectById(creep.memory.mineSource);
-                if (mineTarget) {
-                    if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
-                        creep.travelTo(Game.flags[creep.memory.targetFlag]);
-                    }
+
+            if (mineTarget) {
+                if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
+                    creep.travelTo(Game.flags[creep.memory.targetFlag]);
                 }
             } else {
                 //Get the source ID while in the room
