@@ -81,7 +81,7 @@ var tower_Operate = {
 							if (range <= 10) {
 								tower.attack(closestHostile);
 							}
-							if (range <= 5) {
+							if (range <= 5 && closestHostile.owner.username != 'Invader' ) {
 								//Too close for comfort
 								tower.room.controller.activateSafeMode();
 							}
