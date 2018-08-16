@@ -24,7 +24,7 @@ var spawn_BuildCreeps5 = {
         let upgraderMax = 2;
         let repairMax = 1;
         let upSupplierMax = 1;
-        if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
+        if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] < 50000) {
             upSupplierMax = 0;
             repairMax = 0;
         }
