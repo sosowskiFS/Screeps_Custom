@@ -80,7 +80,7 @@ var tower_Operate = {
 					} else {
 						if (tower.room.controller.level < 7) {
 							let range = tower.pos.getRangeTo(closestHostile);
-							if (range <= 10) {
+							if (range <= 10 || ignoreRangeFlag) {
 								tower.attack(closestHostile);
 							}
 							if (range <= 5 && closestHostile.owner.username != 'Invader' ) {
