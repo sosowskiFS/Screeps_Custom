@@ -30,6 +30,7 @@ var tower_Operate = {
 			//Memory.roomCreeps[thisRoom.name];
 			//Only if no salvager flag
 			var didHeal = false
+			let ignoreRangeFlag = false;
 				//var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
 			if (Memory.roomCreeps[thisRoom.name]) {
 				var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
@@ -41,6 +42,7 @@ var tower_Operate = {
 							break;
 						}
 					}
+					ignoreRangeFlag = true;
 				}
 			}
 
@@ -69,7 +71,7 @@ var tower_Operate = {
 									tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
 								} else {
 									let range = tower.pos.getRangeTo(closestHostile);
-									if (range <= 10) {
+									if (range <= 10 || ignoreRangeFlag) {
 										tower.attack(closestHostile);
 									}
 								}
