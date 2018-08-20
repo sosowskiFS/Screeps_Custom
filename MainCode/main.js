@@ -180,7 +180,7 @@ module.exports.loop = function() {
     //Check for timed out far mining flags
     if (Game.time % 250 == 0) {
         for (let thisFlag in Game.flags) {
-            if (thisFlag.name.includes(';')) {
+            if (thisFlag && thisFlag.name.includes(';')) {
                 let splitList = thisFlag.name.split(';');
                 if (splitList.length > 1) {
                     let timeToCheck = splitList[1];
