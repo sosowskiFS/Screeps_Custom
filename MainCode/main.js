@@ -81,27 +81,27 @@ module.exports.loop = function() {
 
     if (Game.flags["AttackFlags"]){
         Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(Game.flags["AttackFlags"].pos, Game.flags["AttackFlags"].room.name + "RallyHere");
-        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 10 , Game.flags["AttackFlags"].room.name + "DoBoost");
-        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 12 , Game.flags["AttackFlags"].room.name + "WarBoosts");
-        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 14 , Game.flags["AttackFlags"].room.name + "MeleeStyle");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 10, Game.flags["AttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 12, Game.flags["AttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 14, Game.flags["AttackFlags"].room.name + "MeleeStyle");
         if (Game.flags["AttackFlags"]) {
             Game.flags["AttackFlags"].remove();
         }
     }
-    if (Game.flags["RAttackFlags"]){
+    if (Game.flags["RAttackFlags"]) {
         Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(Game.flags["RAttackFlags"].pos, Game.flags["RAttackFlags"].room.name + "RallyHere");
-        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 10 , Game.flags["RAttackFlags"].room.name + "DoBoost");
-        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 12 , Game.flags["RAttackFlags"].room.name + "WarBoosts");
-        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 14 , Game.flags["RAttackFlags"].room.name + "RangedStyle");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 10, Game.flags["RAttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 12, Game.flags["RAttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 14, Game.flags["RAttackFlags"].room.name + "RangedStyle");
         if (Game.flags["RAttackFlags"]) {
             Game.flags["RAttackFlags"].remove();
         }
     }
-    if (Game.flags["DAttackFlags"]){
+    if (Game.flags["DAttackFlags"]) {
         Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(Game.flags["DAttackFlags"].pos, Game.flags["DAttackFlags"].room.name + "RallyHere");
-        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 10 , Game.flags["DAttackFlags"].room.name + "DoBoost");
-        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 12 , Game.flags["DAttackFlags"].room.name + "WarBoosts");
-        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 14 , Game.flags["DAttackFlags"].room.name + "DisassembleStyle");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 10, Game.flags["DAttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 12, Game.flags["DAttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 14, Game.flags["DAttackFlags"].room.name + "DisassembleStyle");
         if (Game.flags["DAttackFlags"]) {
             Game.flags["DAttackFlags"].remove();
         }
@@ -177,6 +177,22 @@ module.exports.loop = function() {
         }
     }*/
 
+    //Check for timed out far mining flags
+    if (Game.time % 250 == 0) {
+        for (let thisFlag in Game.flags) {
+            if (thisFlag.name.includes(';')) {
+                let splitList = thisFlag.name.split(';');
+                if (splitList.length > 1) {
+                    let timeToCheck = splitList[1];
+                    if (Game.time >= parseInt(timeToCheck)) {
+                        creep.room.createFlag(thisFlag.pos, splitList[0]);
+                        thisFlag.remove();
+                    }
+                }
+            }
+        }
+    }
+
     var roomDist = 999;
     var roomEnergy = 0;
     var roomName = '';
@@ -237,7 +253,7 @@ module.exports.loop = function() {
                             Memory.roomsUnderAttack.splice(UnderAttackPos, 1);
                             if (!nukes.length) {
                                 RampartDirection = "Open"
-                            }                     
+                            }
                         }
                         if (salvagerPos >= 0) {
                             Memory.roomsPrepSalvager.splice(salvagerPos, 1);
@@ -254,7 +270,7 @@ module.exports.loop = function() {
                         }
                     } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
                         //if (Game.map.getRoomLinearDistance(towers[y].room.name, Game.rooms(Memory.roomsUnderAttack[0].name)) <= 5) {
-                            //Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
+                        //Game.rooms[Memory.roomsUnderAttack[0]].createFlag(25, 25, towers[y].room.name + "eFarGuard");
                         //}
                     } else if (Memory.roomsUnderAttack.length == 0) {
                         Memory.attackDuration = 0;
@@ -288,10 +304,10 @@ module.exports.loop = function() {
                             })
                             for (let p = 0; p < nearbyRamparts.length; p++) {
                                 if (nearbyRamparts[p].isPublic) {
-                                    nearbyRamparts[p].setPublic(false);                                                            
+                                    nearbyRamparts[p].setPublic(false);
                                 }
-                                if (Memory.ClosedRampartList[towers[y].room.name].indexOf(nearbyRamparts[p].id) == -1){
-                                    Memory.ClosedRampartList[towers[y].room.name].push(nearbyRamparts[p].id); 
+                                if (Memory.ClosedRampartList[towers[y].room.name].indexOf(nearbyRamparts[p].id) == -1) {
+                                    Memory.ClosedRampartList[towers[y].room.name].push(nearbyRamparts[p].id);
                                 }
                                 LockedThisTick.push(nearbyRamparts[p].id);
                             }
@@ -300,7 +316,7 @@ module.exports.loop = function() {
                         for (let z = 0; z < Memory.ClosedRampartList[towers[y].room.name].length; z++) {
                             if (LockedThisTick.indexOf(Memory.ClosedRampartList[towers[y].room.name][z]) == -1) {
                                 let thisRampart = Game.getObjectById(Memory.ClosedRampartList[towers[y].room.name][z]);
-                                if (thisRampart){
+                                if (thisRampart) {
                                     thisRampart.setPublic(true);
                                     let tempIndex = Memory.ClosedRampartList[towers[y].room.name].indexOf(thisRampart.id);
                                     Memory.ClosedRampartList[towers[y].room.name].splice(tempIndex, 1);
@@ -919,7 +935,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "supplyEnergy"]) {
-                	spawn_BuildInstruction.run(Game.spawns[i], 'supplyEnergy', Game.flags[thisRoom.name + "supplyEnergy"].pos.roomName, energyIndex, '', 2);
+                    spawn_BuildInstruction.run(Game.spawns[i], 'supplyEnergy', Game.flags[thisRoom.name + "supplyEnergy"].pos.roomName, energyIndex, '', 2);
                 }
 
                 if (!Memory.isSpawning) {
@@ -1127,8 +1143,8 @@ module.exports.loop = function() {
                     creep_powerCollect.run(creep);
                     break;
                 case 'distantSupplier':
-                	creep_distantSupplier.run(creep);
-                	break;
+                    creep_distantSupplier.run(creep);
+                    break;
                 case 'ranger':
                 case 'ranger2':
                 case 'rangerNearDeath':
@@ -1363,6 +1379,8 @@ function memCheck() {
     Memory.powerCheckList["E39N37"] = ["E40N38", "E40N37", "E40N36"];
     Memory.powerCheckList["E39N34"] = ["E40N35", "E40N34", "E40N33"];
     Memory.powerCheckList["E32N33"] = ["E30N33"];
+    Memory.powerCheckList["E18N26"] = ["E20N27", "E20N26", "E20N25"];
+    Memory.powerCheckList["E13N22"] = ["E12N20", "E13N20", "E14N20"];
     if (!Memory.observerList) {
         Memory.observerList = new Object();
     }
@@ -1486,7 +1504,7 @@ function drawPie(vis, val, max, title, colour, centerx, centery, inner) {
             align: 'center',
         });
     }
-    
+
 }
 
 const getColourByPercentage = (percentage, reverse) => {
