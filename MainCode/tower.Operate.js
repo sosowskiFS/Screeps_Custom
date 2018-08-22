@@ -67,7 +67,7 @@ var tower_Operate = {
 								//Only a healer, don't waste energy
 								Memory.towerPickedTarget[thisRoom.name] = '';
 							} else {
-								if (tower.room.controller.level >= 7) {
+								if (tower.room.controller.level >= 7 || thisRoom.controller.safeMode) {
 									tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
 								} else {
 									let range = tower.pos.getRangeTo(closestHostile);
@@ -78,7 +78,7 @@ var tower_Operate = {
 							}
 						}
 					} else {
-						if (tower.room.controller.level < 7) {
+						if (tower.room.controller.level < 7 || !thisRoom.controller.safeMode) {
 							let range = tower.pos.getRangeTo(closestHostile);
 							if (range <= 10 || ignoreRangeFlag) {
 								tower.attack(closestHostile);
