@@ -78,7 +78,7 @@ var tower_Operate = {
 							}
 						}
 					} else {
-						if (tower.room.controller.level < 7 || !thisRoom.controller.safeMode) {
+						if (tower.room.controller.level < 7 && !thisRoom.controller.safeMode) {
 							let range = tower.pos.getRangeTo(closestHostile);
 							if (range <= 10 || ignoreRangeFlag) {
 								tower.attack(closestHostile);
