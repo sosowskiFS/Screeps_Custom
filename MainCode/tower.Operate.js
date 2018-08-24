@@ -31,7 +31,7 @@ var tower_Operate = {
 			//Only if no salvager flag
 			var didHeal = false
 			let ignoreRangeFlag = false;
-				//var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+			//var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
 			if (Memory.roomCreeps[thisRoom.name]) {
 				var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 				if (defenders.length) {
@@ -67,7 +67,8 @@ var tower_Operate = {
 								//Only a healer, don't waste energy
 								Memory.towerPickedTarget[thisRoom.name] = '';
 							} else {
-								if (tower.room.controller.level >= 7 || thisRoom.controller.safeMode) {
+								//if (tower.room.controller.level >= 7 || thisRoom.controller.safeMode) {
+								if (tower.room.controller.level >= 7) {
 									tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
 								} else {
 									let range = tower.pos.getRangeTo(closestHostile);
@@ -78,12 +79,13 @@ var tower_Operate = {
 							}
 						}
 					} else {
-						if (tower.room.controller.level < 7 && !thisRoom.controller.safeMode) {
+						//if (tower.room.controller.level < 7 && !thisRoom.controller.safeMode) {
+						if (tower.room.controller.level < 7) {
 							let range = tower.pos.getRangeTo(closestHostile);
 							if (range <= 10 || ignoreRangeFlag) {
 								tower.attack(closestHostile);
 							}
-							if (range <= 5 && closestHostile.owner.username != 'Invader' ) {
+							if (range <= 5 && closestHostile.owner.username != 'Invader') {
 								//Too close for comfort
 								tower.room.controller.activateSafeMode();
 							}

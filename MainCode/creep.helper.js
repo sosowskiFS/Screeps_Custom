@@ -50,13 +50,17 @@ var creep_Helper = {
             if (creep.memory.currentState == 1) {
                 if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 400) {
                     if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(creep.room.storage);
+                        creep.travelTo(creep.room.storage, {
+                            ignoreRoads: true
+                        });
                     }
                 } else if (creep.memory.targetSource) {
                     let thisSource = Game.getObjectById(creep.memory.targetSource);
                     if (thisSource) {
                         if (creep.harvest(thisSource) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisSource);
+                            creep.travelTo(thisSource, {
+                                ignoreRoads: true
+                            });
                             creep.memory.waitingTimer++;
                         } else {
                             creep.memory.waitingTimer = 0;
@@ -79,7 +83,9 @@ var creep_Helper = {
                         }
                         creep.memory.waitingTimer = 0;
                         if (creep.harvest(roomSources[targetIndex]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(roomSources[targetIndex]);
+                            creep.travelTo(roomSources[targetIndex], {
+                                ignoreRoads: true
+                            });
                         }
                     }
                 }
@@ -95,10 +101,14 @@ var creep_Helper = {
                         needSearch = false;
                         let buildResult = creep.build(thisStructure);
                         if (buildResult == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisStructure);
+                            creep.travelTo(thisStructure, {
+                                ignoreRoads: true
+                            });
                         } else if (buildResult == ERR_INVALID_TARGET && thisStructure.energy < thisStructure.energyCapacity) {
                             if (creep.transfer(thisStructure, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(thisStructure);
+                                creep.travelTo(thisStructure, {
+                                    ignoreRoads: true
+                                });
                             } else {
                                 creep.memory.structureTarget = undefined;
                             }
@@ -116,7 +126,9 @@ var creep_Helper = {
                         creep.memory.structureTarget = target.id;
                         let buildResult = creep.build(target);
                         if (buildResult == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(target);
+                            creep.travelTo(target, {
+                                ignoreRoads: true
+                            });
                         } else if (buildResult == ERR_NO_BODYPART) {
                             creep.suicide();
                         }
@@ -129,29 +141,35 @@ var creep_Helper = {
                         if (target) {
                             creep.memory.structureTarget = target.id;
                             if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(target);
+                                creep.travelTo(target, {
+                                    ignoreRoads: true
+                                });
                             }
                         } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                             if (Game.flags[creep.room.name + "Controller"]) {
                                 creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreRoads: true
                                 });
                             } else {
                                 creep.travelTo(creep.room.controller, {
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreRoads: true
                                 });
                             }
                         } else {
                             if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
                                 creep.travelTo(creep.room.controller, {
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreRoads: true
                                 });
-                                creep.signController(creep.room.controller, '\u3044\u3044\u3048\u3001\u79C1\u306F\u3053\u3053\u304C\u597D\u304D\u3067\u3059');
+                                creep.signController(creep.room.controller, '\u300C\u8F1D\u304F\u732B\u300D(\uFF90\u24DB\u11BD\u24DB\uFF90)\u2727');
                             } else if (!creep.room.controller.sign) {
                                 creep.travelTo(creep.room.controller, {
-                                    maxRooms: 1
+                                    maxRooms: 1,
+                                    ignoreRoads: true
                                 });
-                                creep.signController(creep.room.controller, '\u3044\u3044\u3048\u3001\u79C1\u306F\u3053\u3053\u304C\u597D\u304D\u3067\u3059');
+                                creep.signController(creep.room.controller, '\u300C\u8F1D\u304F\u732B\u300D(\uFF90\u24DB\u11BD\u24DB\uFF90)\u2727');
                             }
                         }
                     }
