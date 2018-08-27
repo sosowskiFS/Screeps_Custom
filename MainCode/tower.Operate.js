@@ -33,19 +33,18 @@ var tower_Operate = {
 			let ignoreRangeFlag = false;
 			var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
 			if (Memory.roomCreeps[thisRoom.name]) {
-				let defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
-				if (defenders.length) {
-					ignoreRangeFlag = true;
-				}
-
+				//var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 				let allCreeps = Memory.roomCreeps[thisRoom.name];
 				if (allCreeps.length) {
 					allCreeps.sort(healCompare);
-					if (allCreeps[0].hits < allCreeps[0].hitsMax - 200) {
-						tower.heal(allCreeps[0]);
-						didHeal = true;
-						break;
-					}				
+					for (var y = 0; y < allCreeps.length; y++) {
+						if (allCreeps[y].hits < allCreeps[y].hitsMax - 200) {
+							tower.heal(allCreeps[y]);
+							didHeal = true;
+							break;
+						}
+					}
+					ignoreRangeFlag = true;
 				}
 			}
 
@@ -61,15 +60,15 @@ var tower_Operate = {
 
 				if (salvagerPos >= 0) {
 					//Verify that it's still not worth the time
-					if (closestHostile && (closestHostile.owner.username == 'Invader' || closestHostile.name.indexOf('Drainer') >= 0) || (closestHostile.hitsMax <= 100 && closestHostile.length == 1)) {
+					if (closestHostile && (closestHostile.owner.username == 'Invader' || closestHostile.name.indexOf('Drainer') >= 0) || (closestHostile.hitsMax <= 100 && closestHostile.length == 1)){
 
 					} else {
 						//BAD TIMES
 						Memory.roomsPrepSalvager.splice(salvagerPos, 1);
 					}
 				}
-
-				if (closestHostile.owner.username == 'Invader') {
+				
+				if (closestHostile.owner.username == 'Invader'){
 					ignoreRangeFlag = true;
 				}
 
