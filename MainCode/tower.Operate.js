@@ -36,8 +36,9 @@ var tower_Operate = {
 				//var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 				let allCreeps = Memory.roomCreeps[thisRoom.name];
 				if (allCreeps.length) {
+					allCreeps.sort(healCompare);
 					for (var y = 0; y < allCreeps.length; y++) {
-						if (allCreeps[y].hits < allCreeps[y].hitsMax) {
+						if (allCreeps[y].hits < allCreeps[y].hitsMax - 200) {
 							tower.heal(allCreeps[y]);
 							didHeal = true;
 							break;
@@ -154,6 +155,16 @@ function repairCompare(a, b) {
 	if (a.hits < b.hits)
 		return -1;
 	if (a.hits > b.hits)
+		return 1;
+	return 0;
+}
+
+function healCompare(a, b) {
+	let aDiff = a.hitsMax - a.hits;
+	let bDiff = b.hitsMax - b.hits;
+	if (aDiff < bDiff)
+		return -1;
+	if (aDiff > bDiff)
 		return 1;
 	return 0;
 }
