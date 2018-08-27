@@ -31,7 +31,7 @@ var tower_Operate = {
 			//Only if no salvager flag
 			var didHeal = false
 			let ignoreRangeFlag = false;
-			//var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+			var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
 			if (Memory.roomCreeps[thisRoom.name]) {
 				var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 				if (defenders.length) {
@@ -54,6 +54,16 @@ var tower_Operate = {
 						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
 					});
 					shootRandom = true;
+				}
+
+				if (salvagerPos >= 0) {
+					//Verify that it's still not worth the time
+					if (closestHostile && (closestHostile.owner.username == 'Invader' || closestHostile.name.indexOf('Drainer') >= 0) || (closestHostile.hitsMax <= 100 && closestHostile.length == 1)){
+
+					} else {
+						//BAD TIMES
+						Memory.roomsPrepSalvager.splice(salvagerPos, 1);
+					}
 				}
 				
 				if (closestHostile.owner.username == 'Invader'){
