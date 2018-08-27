@@ -164,9 +164,9 @@ function healCompare(a, b) {
 	let aDiff = a.hitsMax - a.hits;
 	let bDiff = b.hitsMax - b.hits;
 	if (aDiff < bDiff)
-		return -1;
-	if (aDiff > bDiff)
 		return 1;
+	if (aDiff > bDiff)
+		return -1;
 	return 0;
 }
 
