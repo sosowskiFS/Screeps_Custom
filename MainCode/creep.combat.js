@@ -78,13 +78,15 @@ var creep_combat = {
                 if (lookResult.length && creep.memory.waitingTimer < 300) {
                     var found = false;
                     for (let y = 0; y < lookResult.length; y++) {
-                        if (lookResult[y].structureType == STRUCTURE_RAMPART && lookResult[y].isPublic == false) {
+                        if (lookResult[y].structureType == STRUCTURE_RAMPART) {
+                            found = true;
                             if (creep.pos.inRangeTo(closeFoe, 3)) {
                                 creep.memory.waitingTimer = 0;
+                            } else if (lookResult[y].isPublic == true) {
+                                creep.memory.waitingTimer = creep.memory.waitingTimer + 25;
                             } else {
                                 creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
                             }
-                            found = true;
                             break;
                         }
                     }
