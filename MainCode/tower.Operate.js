@@ -65,6 +65,7 @@ var tower_Operate = {
 					} else {
 						//BAD TIMES
 						Memory.roomsPrepSalvager.splice(salvagerPos, 1);
+						salvagerPos = -1;
 					}
 				}
 				
@@ -80,7 +81,7 @@ var tower_Operate = {
 					if (shootRandom) {
 						var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
 						if (randomTarget.length) {
-							if (randomTarget.length == 1 && !determineThreat(randomTarget[0]) && randomTarget[0].hitsMax >= 500 && !thisRoom.controller.safeMode) {
+							if (salvagerPos == -1 && randomTarget.length == 1 && !determineThreat(randomTarget[0]) && randomTarget[0].hitsMax >= 500 && !thisRoom.controller.safeMode) {
 								//Only a healer, don't waste energy
 								Memory.towerPickedTarget[thisRoom.name] = '';
 							} else {
