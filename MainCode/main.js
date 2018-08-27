@@ -179,14 +179,14 @@ module.exports.loop = function() {
 
     //Check for timed out far mining flags
     if (Game.time % 250 == 0) {
-        for (let thisFlag in Game.flags) {
-            if (thisFlag.name && thisFlag.name.includes(';')) {
-                let splitList = thisFlag.name.split(';');
+        for (let TF in Game.flags) {
+            if (Game.flags[TF].name && Game.flags[TF].name.includes(';')) {
+                let splitList = Game.flags[TF].name.split(';');
                 if (splitList.length > 1) {
                     let timeToCheck = splitList[1];
                     if (Game.time >= parseInt(timeToCheck)) {
-                        creep.room.createFlag(thisFlag.pos, splitList[0]);
-                        thisFlag.remove();
+                        creep.room.createFlag(Game.flags[TF].pos, splitList[0]);
+                        Game.flags[TF].remove();
                     }
                 }
             }
