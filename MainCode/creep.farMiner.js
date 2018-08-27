@@ -17,7 +17,7 @@ var creep_farMiner = {
                     Memory.warMode = true;
                     Game.notify('War mode has been enabled.');
                 }
-                let targetTime = Game.time + 1500;
+                let targetTime = Game.time + 750;
                 creep.room.createFlag(Game.flags[creep.memory.targetFlag].pos, creep.memory.targetFlag + ";" + targetTime.toString());
                 Game.flags[creep.memory.targetFlag].remove();
             }
