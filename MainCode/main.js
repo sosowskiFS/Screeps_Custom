@@ -133,11 +133,6 @@ module.exports.loop = function() {
         }
     }
 
-    if (Game.flags["ToggleWar"]) {
-        Memory.warMode = !Memory.warMode;
-        Game.flags["ToggleWar"].remove();
-    }
-
     if (Game.flags["ResetAttackFlags"]) {
         Memory.roomsUnderAttack = [];
         Memory.attackDuration = 0;
@@ -193,6 +188,16 @@ module.exports.loop = function() {
         }
     }
 
+    if (Game.flags["ToggleWar"]) {
+        Memory.warMode = !Memory.warMode;
+        Game.flags["ToggleWar"].remove();
+    }
+
+    if (Game.time % 1000 == 0) {
+        Memory.ordersFilled = [];
+        Memory.warMode = false;
+    }
+
     var roomDist = 999;
     var roomEnergy = 0;
     var roomName = '';
@@ -202,10 +207,6 @@ module.exports.loop = function() {
 
     //Log average CPU for spawn processes in memory.
     var preSpawnCPU = Game.cpu.getUsed();
-
-    if (Game.time % 1000 == 0) {
-        Memory.ordersFilled = [];
-    }
 
     var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
     if (towers.length) {
