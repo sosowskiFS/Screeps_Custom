@@ -55,6 +55,11 @@ var tower_Operate = {
 					});
 					shootRandom = true;
 				}
+				
+				if (closestHostile.owner.username == 'Invader'){
+					ignoreRangeFlag = true;
+				}
+
 				if (closestHostile) {
 					if (closestHostile.owner.username != "Invader") {
 						Game.notify('ROOM DEFENCE : ' + closestHostile.owner.username + ' is tresspassing in ' + thisRoom.name);
