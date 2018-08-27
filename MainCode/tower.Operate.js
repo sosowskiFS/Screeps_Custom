@@ -33,18 +33,18 @@ var tower_Operate = {
 			let ignoreRangeFlag = false;
 			var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
 			if (Memory.roomCreeps[thisRoom.name]) {
-				//var defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
+				let defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
+				if (defenders.length) {
+					ignoreRangeFlag = true;
+				}
+
 				let allCreeps = Memory.roomCreeps[thisRoom.name];
 				if (allCreeps.length) {
 					allCreeps.sort(healCompare);
-					for (var y = 0; y < allCreeps.length; y++) {
-						if (allCreeps[y].hits < allCreeps[y].hitsMax - 200) {
-							tower.heal(allCreeps[y]);
-							didHeal = true;
-							break;
-						}
-					}
-					ignoreRangeFlag = true;
+					if (allCreeps[0].hits < allCreeps[0].hitsMax - 200) {
+						tower.heal(allCreeps[0]);
+						didHeal = true;
+					}				
 				}
 			}
 
