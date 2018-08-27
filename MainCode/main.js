@@ -184,8 +184,8 @@ module.exports.loop = function() {
                 let splitList = Game.flags[TF].name.split(';');
                 if (splitList.length > 1) {
                     let timeToCheck = splitList[1];
-                    if (Game.time >= parseInt(timeToCheck)) {
-                        creep.room.createFlag(Game.flags[TF].pos, splitList[0]);
+                    if (Game.time >= parseInt(timeToCheck) && Game.flags[TF].room) {
+                        Game.flags[TF].room.createFlag(Game.flags[TF].pos, splitList[0]);
                         Game.flags[TF].remove();
                     }
                 }
