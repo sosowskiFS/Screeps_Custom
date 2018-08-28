@@ -20,7 +20,7 @@ var creep_ranger = {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
-        var foeCount = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5 {
+        var foeCount = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
