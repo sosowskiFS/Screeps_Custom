@@ -17,7 +17,11 @@ var creep_ranger = {
         }
 
         var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Nemah")
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+        });
+
+        var foeCount = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5 {
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
         if (creep.memory.destination == creep.pos.roomName) {
@@ -132,7 +136,7 @@ var creep_ranger = {
                     creep.rangedAttack(closeFoe);
                     creep.attack(closeFoe);
                 }
-                if (closeRange <= 2){
+                if (closeRange <= 2 && (foeCount.length > 1 || determineThreat(closeFoe))){
                     //Dodge away from foe
                     let foeDirection = creep.pos.getDirectionTo(closeFoe);
                     let y = 0;
@@ -217,5 +221,16 @@ var creep_ranger = {
     }
 
 };
+
+function determineThreat(thisCreep) {
+	thisCreep.body.forEach(function(thisPart) {
+		if (thisPart.type == ATTACK) {
+			return true;
+		} else if (thisPart.type == RANGED_ATTACK) {
+			return true;
+		}
+	});
+	return false;
+}
 
 module.exports = creep_ranger;

@@ -171,17 +171,16 @@ function healCompare(a, b) {
 }
 
 function determineThreat(thisCreep) {
-	let returnValue = false;
 	thisCreep.body.forEach(function(thisPart) {
 		if (thisPart.type == ATTACK) {
-			returnValue = true;
+			return true;
 		} else if (thisPart.type == RANGED_ATTACK) {
-			returnValue = true;
+			return true;
 		} else if (thisPart.type == WORK) {
-			returnValue = true;
+			return true;
 		}
 	});
-	return returnValue
+	return false;
 }
 
 module.exports = tower_Operate;
