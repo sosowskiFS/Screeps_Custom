@@ -6,8 +6,16 @@ var tower_Operate = {
 			Memory.towerNeedEnergy[thisRoom.name] = [];
 		}
 		if (!Memory.towerPickedTarget[thisRoom.name] || Game.time % 5 == 0) {
-			//Recalc target every 5 ticks
-			Memory.towerPickedTarget[thisRoom.name] = '';
+
+			if (Memory.towerPickedTarget[thisRoom.name]) {
+				let thisHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
+				if (thisHostile && thisHostile.hits > (thisHostile.hitsMax - 500)) {
+					Memory.towerPickedTarget[thisRoom.name] = '';
+				}
+			} else {
+				Memory.towerPickedTarget[thisRoom.name] = '';
+			}
+			
 		}
 
 		var checkDelay = 10;
@@ -25,42 +33,46 @@ var tower_Operate = {
 			checkDelay = 50000;
 		}
 
-		var UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
+		let UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
 		if (UnderAttackPos >= 0 && tower.energy > 0) {
 			//Memory.roomCreeps[thisRoom.name];
 			//Only if no salvager flag
-			var didHeal = false
+			let didHeal = false
 			let ignoreRangeFlag = false;
-			var salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+			let salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+
+			let shootRandom = false;
+			let closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
+			if (!closestHostile) {
+				closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+					filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+				});
+				shootRandom = true;
+			}
+
 			if (Memory.roomCreeps[thisRoom.name]) {
 				let defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 				if (defenders.length) {
 					ignoreRangeFlag = true;
 				}
+			}
 
+			//Heal only if the target isn't taking damage
+			if (closestHostile.hits > (closestHostile.hitsMax - 500) && Memory.roomCreeps[thisRoom.name]) {
 				let allCreeps = Memory.roomCreeps[thisRoom.name];
 				if (allCreeps.length) {
 					allCreeps.sort(healCompare);
 					if (allCreeps[0].hits < allCreeps[0].hitsMax - 200) {
 						tower.heal(allCreeps[0]);
 						didHeal = true;
-					}				
+					}
 				}
 			}
 
 			if (!didHeal) {
-				var shootRandom = false;
-				var closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
-				if (!closestHostile) {
-					closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-						filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-					});
-					shootRandom = true;
-				}
-
 				if (salvagerPos >= 0) {
 					//Verify that it's still not worth the time
-					if (closestHostile && (closestHostile.owner.username == 'Invader' || closestHostile.name.indexOf('Drainer') >= 0) || (closestHostile.hitsMax <= 100 && closestHostile.length == 1)){
+					if (closestHostile && (closestHostile.owner.username == 'Invader' || closestHostile.name.indexOf('Drainer') >= 0) || (closestHostile.hitsMax <= 100 && closestHostile.length == 1)) {
 
 					} else {
 						//BAD TIMES
@@ -68,8 +80,8 @@ var tower_Operate = {
 						salvagerPos = -1;
 					}
 				}
-				
-				if (closestHostile.owner.username == 'Invader'){
+
+				if (closestHostile.owner.username == 'Invader') {
 					ignoreRangeFlag = true;
 				}
 
