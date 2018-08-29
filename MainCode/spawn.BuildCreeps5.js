@@ -304,7 +304,7 @@ var spawn_BuildCreeps5 = {
 
         let roomMineral = Game.getObjectById(strMineral[0]);
 
-        if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1) {
+        if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode) {
             //Custom limits for beseiged rooms
             minerMax = 1;
             muleMax = 1;
