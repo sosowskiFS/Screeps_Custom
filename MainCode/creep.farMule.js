@@ -188,6 +188,11 @@ var creep_farMule = {
                                 ignoreRoads: roadIgnore
                             });
                         }
+
+                        if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+                            creep.memory.travelDistance = creep.memory._trav.path.length;
+                            creep.memory.deathWarn = creep.memory.travelDistance + _.size(creep.body) * 3;
+                        }
                     }
                 }
             } else {

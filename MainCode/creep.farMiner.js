@@ -31,6 +31,10 @@ var creep_farMiner = {
             } else {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }
+            if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+                creep.memory.travelDistance = creep.memory._trav.path.length;
+                creep.memory.deathWarn = creep.memory.travelDistance + _.size(creep.body) * 3;
+            }
         } else {
             if (Game.time >= creep.memory.nextReservationCheck) {
                 if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
@@ -59,7 +63,7 @@ var creep_farMiner = {
 
             if (creep.memory.mineSource) {
                 mineTarget = Game.getObjectById(creep.memory.mineSource);
-            } 
+            }
 
             if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
                 let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 1, {
