@@ -177,6 +177,11 @@ var creep_farMule = {
                                 range: 3
                             })
                         }
+
+                        if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+                            creep.memory.travelDistance = creep.memory._trav.path.length;
+                            creep.memory.deathWarn = creep.memory.travelDistance + _.size(creep.body) * 3;
+                        }
                     } else {
                         //Can't see source, travel to room.
                         if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
