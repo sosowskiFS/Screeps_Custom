@@ -318,8 +318,8 @@ var spawn_BuildCreeps5 = {
         if (Game.flags[thisRoom.name + "upFocus"]) {
             //Laser focus on upgrading
             muleMax = muleMax + repairMax;
-            repairMax = 0;
-            upSupplierMax = upSupplierMax + repairMax;
+            upgraderMax = upgraderMax + repairMax;
+            repairMax = 0;  
         }
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
