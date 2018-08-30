@@ -180,7 +180,7 @@ var creep_farMule = {
 
                         if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
                             creep.memory.travelDistance = creep.memory._trav.path.length;
-                            creep.memory.deathWarn = creep.memory.travelDistance + _.size(creep.body) * 3;
+                            creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
                         }
                     } else {
                         //Can't see source, travel to room.
@@ -196,7 +196,7 @@ var creep_farMule = {
 
                         if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
                             creep.memory.travelDistance = creep.memory._trav.path.length;
-                            creep.memory.deathWarn = creep.memory.travelDistance + _.size(creep.body) * 3;
+                            creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
                         }
                     }
                 }

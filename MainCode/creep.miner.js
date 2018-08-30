@@ -22,6 +22,11 @@ var creep_miner = {
                 creep.travelTo(mineTarget);
             }
 
+            if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+                creep.memory.travelDistance = creep.memory._trav.path.length;
+                creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
+            }
+
             if (creep.carry.energy >= 40) {
                 let storageTarget = Game.getObjectById(creep.memory.linkSource);
                 if (creep.memory.jobSpecific == 'upgradeMiner') {
