@@ -373,7 +373,7 @@ var spawn_BuildCreeps5 = {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
-            if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 500 && (Foe.length || defenders.length < 1)) {
+            if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 550 && (Foe.length || defenders.length < 1)) {
                 //Try to produce millitary units
 
                 //Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -388,14 +388,14 @@ var spawn_BuildCreeps5 = {
                 var totalParts = 0;
 
                 var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
-                var thisBuildAmount = 500;
+                var thisBuildAmount = 550;
                 while ((remainingEnergy / thisBuildAmount) >= 1) {
                     //switch (ChosenPriority) {
                     //case 'melee':
                     //ToughCount = ToughCount + 1;
                     MoveCount = MoveCount + 2;
                     RangedCount = RangedCount + 3;
-                    remainingEnergy = remainingEnergy - 500;
+                    remainingEnergy = remainingEnergy - 550;
                     //RangedCount = RangedCount + 1;
                     totalParts = totalParts + 5;
                     //break;
