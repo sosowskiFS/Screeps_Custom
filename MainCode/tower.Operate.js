@@ -15,7 +15,7 @@ var tower_Operate = {
 			} else {
 				Memory.towerPickedTarget[thisRoom.name] = '';
 			}
-			
+
 		}
 
 		var checkDelay = 10;
@@ -73,7 +73,7 @@ var tower_Operate = {
 				if (salvagerPos >= 0) {
 					//Verify that it's still not worth the time
 					if (closestHostile && (closestHostile.owner.username == 'Invader' || closestHostile.name.indexOf('Drainer') >= 0) || (closestHostile.hitsMax <= 100 && closestHostile.length == 1)) {
-
+						ignoreRangeFlag = false;
 					} else {
 						//BAD TIMES
 						Memory.roomsPrepSalvager.splice(salvagerPos, 1);
@@ -93,18 +93,13 @@ var tower_Operate = {
 					if (shootRandom) {
 						var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
 						if (randomTarget.length) {
-							if (tower.room.controller.level < 7 && salvagerPos >= 0 && randomTarget.length == 1 && !determineThreat(randomTarget[0]) && randomTarget[0].hitsMax >= 500 && !thisRoom.controller.safeMode) {
-								//Only a healer, don't waste energy
-								Memory.towerPickedTarget[thisRoom.name] = '';
+							//if (tower.room.controller.level >= 7 || thisRoom.controller.safeMode) {
+							if (tower.room.controller.level >= 7) {
+								tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
 							} else {
-								//if (tower.room.controller.level >= 7 || thisRoom.controller.safeMode) {
-								if (tower.room.controller.level >= 7) {
-									tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
-								} else {
-									let range = tower.pos.getRangeTo(closestHostile);
-									if (range <= 10 || ignoreRangeFlag) {
-										tower.attack(closestHostile);
-									}
+								let range = tower.pos.getRangeTo(closestHostile);
+								if (range <= 10 || ignoreRangeFlag) {
+									tower.attack(closestHostile);
 								}
 							}
 						}
