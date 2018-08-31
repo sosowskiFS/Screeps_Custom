@@ -81,7 +81,7 @@ var tower_Operate = {
 					}
 				}
 
-				if (closestHostile.owner.username == 'Invader') {
+				if (closestHostile.owner.username == 'Invader' || thisRoom.controller.safeMode) {
 					ignoreRangeFlag = true;
 				}
 
