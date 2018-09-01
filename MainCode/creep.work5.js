@@ -18,7 +18,7 @@ var creep_work5 = {
                     creep.memory.priority = 'muleNearDeath';
                 }
 
-                if (_.sum(creep.carry) <= 50) {
+                if (_.sum(creep.carry) <= 15) {
                     creep.memory.structureTarget = undefined;
                     let storageTarget = creep.room.storage;
                     if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 350000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
