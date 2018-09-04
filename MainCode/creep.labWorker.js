@@ -472,8 +472,13 @@ var creep_labWorker = {
             if (nearbyContainer.length && _.sum(nearbyContainer[0].store) >= creep.carryCapacity) {
                 let withdrawResult = "N/A"
                 for (let i = 0, len = Object.keys(nearbyContainer[0].store).length; i < len; i++) {
+                    if (Object.keys(nearbyContainer[0].store)[i] == RESOURCE_ENERGY && nearbyContainer[0].store[i] > 0) {
                         withdrawResult = creep.withdraw(nearbyContainer[0], Object.keys(nearbyContainer[0].store)[i]);
                         break;
+                    } else {
+                        withdrawResult = creep.withdraw(nearbyContainer[0], Object.keys(nearbyContainer[0].store)[i]);
+                        break;
+                    }        
                 }
                 if (withdrawResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(nearbyContainer[0], {
