@@ -12,7 +12,7 @@ var creep_scraper = {
                             maxRooms: 1
                         })
                     } else {
-                       creep.memory.targetResource = undefined;
+                        creep.memory.targetResource = undefined;
                     }
                 } else {
                     creep.memory.targetResource = undefined;
@@ -33,8 +33,16 @@ var creep_scraper = {
         } else {
             //Deposit energy
             if (creep.room.storage) {
-                if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(creep.room.storage);
+                if (Object.keys(creep.carry).length > 1) {
+                    if (creep.transfer(creep.room.storage, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(creep.room.storage, {
+                            maxRooms: 1
+                        });
+                    }
+                } else {
+                    if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(creep.room.storage);
+                    }
                 }
             }
         }
