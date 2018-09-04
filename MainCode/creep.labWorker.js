@@ -92,9 +92,6 @@ var creep_labWorker = {
             creep.suicide();
         }
 
-        
-        //New plan : Lab 4/5 contain reagents. Lab 6+ is for the results. (can use all 10 labs this way)
-        //Do not forget to accomidate for war boosts
         if (creep.memory.mineral1 == creep.memory.mineral6 || creep.memory.mineral2 == creep.memory.mineral6 || creep.memory.mineral3 == creep.memory.mineral6) {
             creep.memory.storeProduced = true;
         } else {
@@ -440,15 +437,16 @@ var creep_labWorker = {
         if (!foundWork && creep.room.storage) {
             //Take minerals out of storage and put them in the terminal
             if (Object.keys(creep.room.storage.store).length > 1) {
-                var withdrawResult = "N/A"
-                for (var i = 0, len = Object.keys(creep.room.storage.store).length; i < len; i++) {
+                let withdrawResult = "N/A"
+                for (let i = 0, len = Object.keys(creep.room.storage.store).length; i < len; i++) {
                     if (Object.keys(creep.room.storage.store)[i] == RESOURCE_POWER || Object.keys(creep.room.storage.store)[i] == RESOURCE_ENERGY) {
                         continue;
                     } else {
                         withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[i]);
+                        break;
                     }
                 }
-				if (withdrawResult == ERR_NOT_IN_RANGE) {
+                if (withdrawResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(creep.room.storage, {
                         maxRooms: 1,
                         ignoreRoads: true
@@ -462,10 +460,38 @@ var creep_labWorker = {
                     creep.memory.movingOtherMineral = true;
                     foundWork = true;
                 }
-            } else {
-            	foundWork = false;
             }
         }
+
+        if (!foundWork && Memory.mineralList[creep.room.name].length) {
+            //Haul from the mineral miner's storage unit
+            let thisMineral = Game.getObjectById(Memory.mineralList[creep.room.name][0]);
+            let nearbyContainer = thisMineral.pos.findInRange(FIND_STRUCTURES, 1, {
+                filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+            });
+            if (nearbyContainer.length && _.sum(nearbyContainer[0].store) >= creep.carryCapacity) {
+                let withdrawResult = "N/A"
+                for (let i = 0, len = Object.keys(nearbyContainer[0].store).length; i < len; i++) {
+                        withdrawResult = creep.withdraw(nearbyContainer[0], Object.keys(nearbyContainer[0].store)[i]);
+                        break;
+                }
+                if (withdrawResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(nearbyContainer[0], {
+                        maxRooms: 1,
+                        ignoreRoads: true
+                    });
+                    foundWork = true;
+                } else if (withdrawResult != ERR_NOT_IN_RANGE && withdrawResult != "N/A") {
+                    creep.travelTo(creep.room.terminal, {
+                        maxRooms: 1,
+                        ignoreRoads: true
+                    });
+                    creep.memory.movingOtherMineral = true;
+                    foundWork = true;
+                }
+            }
+        }
+
         if (!foundWork && creep.room.controller.level == 8 && Memory.nukerList[creep.room.name].length) {
             //Fill the nuker
             var thisNuker = Game.getObjectById(Memory.nukerList[creep.room.name][0])

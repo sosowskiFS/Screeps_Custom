@@ -742,9 +742,9 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'mineralMiner') {
                     Memory.isSpawning = true;
-                    let mineralMinerConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY];
-                    if (thisRoom.energyCapacityAvailable >= 4100) {
-                        mineralMinerConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY];
+                    let mineralMinerConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK];
+                    if (thisRoom.energyCapacityAvailable >= 4500) {
+                        mineralMinerConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK];
                     }
                     let configCost = calculateConfigCost(mineralMinerConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -752,11 +752,11 @@ var spawn_BuildCreeps5 = {
                         spawn.spawnCreep(mineralMinerConfig, 'mineralMiner_' + spawn.name + '_' + Game.time, {
                             memory: {
                                 priority: prioritizedRole,
-                                terminalID: storageID,
                                 mineralID: creepSource,
-                                extractorID: connectedLink,
                                 fromSpawn: spawn.id,
-                                homeRoom: thisRoom.name
+                                homeRoom: thisRoom.name,
+                                nextMine: 0,
+                                onPoint: false
                             }
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);

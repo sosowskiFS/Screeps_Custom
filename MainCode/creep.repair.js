@@ -125,7 +125,7 @@ function findNewTarget(creep, creepEnergy) {
     } else {
         var closestDamagedStructure = [];
         closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
+            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)
         });
 
         if (closestDamagedStructure.length > 0) {
