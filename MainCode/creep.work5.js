@@ -449,7 +449,7 @@ var creep_work5 = {
                     } else if (harvestResult == OK) {
                         creep.memory.nextMine = Game.time + 6;
                         if (!creep.memory.storageUnit) {
-                            let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 1, {
+                            let containers = thisMineral.pos.findInRange(FIND_STRUCTURES, 1, {
                                 filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
                             });
                             if (containers.length) {
@@ -460,7 +460,7 @@ var creep_work5 = {
                                 }
                                 creep.memory.storageUnit = containers[0].id;
                             } else {
-                                let sites = mineTarget.pos.findInRange(FIND_CONSTRUCTION_SITES, 1)
+                                let sites = thisMineral.pos.findInRange(FIND_CONSTRUCTION_SITES, 1)
                                 if (!sites.length) {
                                     //Create new container
                                     creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
