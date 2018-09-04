@@ -62,7 +62,7 @@ var tower_Operate = {
 				let allCreeps = Memory.roomCreeps[thisRoom.name];
 				if (allCreeps.length) {
 					allCreeps.sort(healCompare);
-					if (allCreeps[0].hits < allCreeps[0].hitsMax - 200) {
+					if (allCreeps[0].hits < allCreeps[0].hitsMax - 199) {
 						tower.heal(allCreeps[0]);
 						didHeal = true;
 					}
