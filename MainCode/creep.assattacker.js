@@ -77,7 +77,7 @@ var creep_assattacker = {
                 if (thisHealer.fatigue <= 0) {
                     healerIsGood = true;
                 }
-            } else if (thisHealer && otherHealers.length) {
+            } else if (thisHealer || otherHealers.length) {
                 healerIsNear = true;
             } else if (!thisHealer) {
                 creep.memory.healerID = undefined;
