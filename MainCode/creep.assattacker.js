@@ -215,7 +215,8 @@ var creep_assattacker = {
                                     creep.travelTo(thisWall[0], {
                                         maxRooms: 1,
                                         stuckValue: 2,
-                                        allowSK: true
+                                        allowSK: true,
+                                        ignoreRoads: true
                                     });
                                 }
                                 creep.dismantle(thisWall[0]);
