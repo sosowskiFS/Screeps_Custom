@@ -114,7 +114,7 @@ var creep_asshealer = {
                     //}
                 }
 
-                if (creep.hits < creep.hitsMax - 400) {
+                if (creep.hits < creep.hitsMax - 300) {
                     creep.heal(creep);
                     creep.say("(=\u2716\u11BD\u2716=)", true);
                 } else {
@@ -126,7 +126,7 @@ var creep_asshealer = {
                     }
 
                     var hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 500 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+                        filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 400 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
                     });
                     var healedAlly = false
                     if (hurtAlly.length > 0) {
