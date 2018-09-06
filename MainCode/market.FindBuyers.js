@@ -184,7 +184,7 @@ var market_buyers = {
                 }
             }
 
-            if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length && Memory.energyNeedRooms[0] != thisRoom.name && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 200000) {
+            if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length && Memory.energyNeedRooms[0] != thisRoom.name && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 250000) {
                 //Send energy to requesting room
                 let targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal
                 let amountAvailable = TerminalEnergy - 30000;

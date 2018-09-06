@@ -172,7 +172,7 @@ var creep_work5 = {
                                 if (terminalTarget) {
                                     let targetEnergy = 0;
                                     if (creep.room.storage) {
-                                        if (creep.room.storage.store[RESOURCE_ENERGY] >= 350000) {
+                                        if (creep.room.storage.store[RESOURCE_ENERGY] >= 275000) {
                                             targetEnergy = 60000;
                                         } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
                                             targetEnergy = 30000;
@@ -293,7 +293,7 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                             storageTarget = creep.room.terminal;
                         }
                         if (storageTarget) {
@@ -367,7 +367,7 @@ var creep_work5 = {
                             }
                         }
                     }
-                } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                     //Being supplied, drop in storage
                     if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                         creep.memory.hasDistributed = true;
@@ -401,7 +401,7 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 300000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                             storageTarget = creep.room.terminal;
                         }
                         if (storageTarget) {
