@@ -68,7 +68,7 @@ var creep_assattacker = {
 
             var thisHealer = Game.getObjectById(creep.memory.healerID);
             var otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.attackerID != creep.id)
+                filter: (mCreep) => ((mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer") && mCreep.memory.attackerID != creep.id)
             });
             var healerIsNear = false;
             let healerIsGood = false;
@@ -77,7 +77,7 @@ var creep_assattacker = {
                 if (thisHealer.fatigue <= 0) {
                     healerIsGood = true;
                 }
-            } else if (thisHealer || otherHealers.length) {
+            } else if (thisHealer && otherHealers.length) {
                 healerIsNear = true;
             } else if (!thisHealer) {
                 creep.memory.healerID = undefined;
