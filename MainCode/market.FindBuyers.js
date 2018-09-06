@@ -3,6 +3,7 @@ var market_buyers = {
     run: function(thisRoom, thisTerminal, thisMineral) {
         var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
 
+
         var neededMinerals = [];
 
         var GH2OPriority = -1;
@@ -156,12 +157,12 @@ var market_buyers = {
             //Memory.needMin room name
             //resource
             var hasSent = false;
-            if (Game.time % 1000 != 0) {
+            if (Game.time % 1000 == 0) {
                 for (var y in Memory.mineralNeed) {
-                	if (y == RESOURCE_CATALYZED_GHODIUM_ACID && thisRoom.controller.level < 8){
-                		//No
-                		continue;
-                	}
+                    if (y == RESOURCE_CATALYZED_GHODIUM_ACID && thisRoom.controller.level < 8) {
+                        //No
+                        continue;
+                    }
                     //sendMineral(thisMineral, thisTerminal, targetRoom);
                     if (hasSent) {
                         break;
@@ -181,29 +182,29 @@ var market_buyers = {
                         }
                     }
                 }
+            }
 
-                if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length && Memory.energyNeedRooms[0] != thisRoom.name && thisRoom.storage && thisRoom.storage[RESOURCE_ENERGY] >= 300000) {
-                    //Send energy to requesting room
-                    let targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal
-                    let amountAvailable = TerminalEnergy - 30000;
-                    let targetStoreCap = 60000;
-                    if (targetTerminal) {
-                        let amountToSend = 30000;
-                        if (targetTerminal.store[RESOURCE_ENERGY]) {
-                            amountToSend = targetStoreCap - targetTerminal.store[RESOURCE_ENERGY];
-                        }
-                        if (amountToSend > amountAvailable) {
-                            amountToSend = amountAvailable
-                        }
-                        if (amountToSend >= 5000 && thisTerminal.send(RESOURCE_ENERGY, amountToSend, Memory.energyNeedRooms[0], thisTerminal.room.name + " has gotchu, fam.") == OK) {
-                            //Game.notify('SUPPLY: ' + thisRoom.name + ' -> ' + Memory.energyNeedRooms[0] + '|' + amountToSend + 'u');
-                            Memory.energyNeedRooms.splice(0, 1);
-                            hasSent = true;
-                        }
-                    } else {
-                        //No terminal, remove this room from the list
-                        Memory.energyNeedRooms.splice(0, 1);
+            if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length && Memory.energyNeedRooms[0] != thisRoom.name && thisRoom.storage && thisRoom.storage[RESOURCE_ENERGY] >= 200000) {
+                //Send energy to requesting room
+                let targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal
+                let amountAvailable = TerminalEnergy - 30000;
+                let targetStoreCap = 60000;
+                if (targetTerminal) {
+                    let amountToSend = 30000;
+                    if (targetTerminal.store[RESOURCE_ENERGY]) {
+                        amountToSend = targetStoreCap - targetTerminal.store[RESOURCE_ENERGY];
                     }
+                    if (amountToSend > amountAvailable) {
+                        amountToSend = amountAvailable
+                    }
+                    if (amountToSend >= 5000 && thisTerminal.send(RESOURCE_ENERGY, amountToSend, Memory.energyNeedRooms[0], thisTerminal.room.name + " has gotchu, fam.") == OK) {
+                        //Game.notify('SUPPLY: ' + thisRoom.name + ' -> ' + Memory.energyNeedRooms[0] + '|' + amountToSend + 'u');
+                        Memory.energyNeedRooms.splice(0, 1);
+                        hasSent = true;
+                    }
+                } else {
+                    //No terminal, remove this room from the list
+                    Memory.energyNeedRooms.splice(0, 1);
                 }
             }
 
