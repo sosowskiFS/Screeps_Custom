@@ -35,10 +35,11 @@ var creep_workV2 = {
                         }
                     } else {
                         //This is a storage Unit
-                        creep.transfer(thisUnit, RESOURCE_ENERGY);
-                        if (!creep.memory.onContainer) {
+                        if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        	creep.travelTo(thisUnit);
+                        } else if (!creep.memory.onContainer) {
                             creep.memory.onContainer = true;
-                        }
+                        }       
                     }
                 } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
                     let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 2, {
