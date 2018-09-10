@@ -319,61 +319,78 @@ var spawn_BuildCreeps5 = {
             //Laser focus on upgrading
             muleMax = muleMax + repairMax;
             upgraderMax = upgraderMax + repairMax;
-            repairMax = 0;  
+            repairMax = 0;
         }
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
 
         if (RoomCreeps.length <= 1) {
-        	if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
-        		let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
-	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
-	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-	                //In case of complete destruction, make a minimum viable worker
-	                //Make sure 5+ work code has harvester backup path
-	                let connectedLink = undefined;
-	                if (strLinks.length >= 4) {
-                    	connectedLink = strLinks[3];
-                	}
-	                spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'dist_' + spawn.name + '_' + Game.time, {
-	                    memory: {
-	                        priority: 'distributor',
-	                        deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
-	                        fromSpawn: spawn.id,
-	                        homeRoom: thisRoom.name,
-	                        linkSource: connectedLink
-	                    }
-	                });
-	                Memory.isSpawning = true;
-	            }
-        	} else if (thisRoom.storage) {
-        		let configCost = calculateConfigCost([MOVE,WORK,WORK,CARRY]);
-	            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
-	                Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-	                //In case of complete destruction, make a minimum viable worker
-	                //Make sure 5+ work code has harvester backup path
-	                spawn.spawnCreep([MOVE,WORK,WORK,CARRY], 'miner_' + spawn.name + '_' + Game.time, {
-	                    memory: {
-	                        priority: 'miner',
-	                        mineSource: strSources[0],
-	                        linkSource: thisRoom.storage.id,
-	                        jobSpecific: 'storageMiner',
-	                        ignoreTravel: false,
-	                        atSpot: false,
-	                        deathWarn: _.size([MOVE,WORK,WORK,CARRY]) * 4,
-	                        fromSpawn: spawn.id,
-	                        homeRoom: thisRoom.name
-	                    }
-	                });
-	                Memory.isSpawning = true;
-	            }
-        	}            
+            if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
+                let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
+                if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                    Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                    //In case of complete destruction, make a minimum viable worker
+                    //Make sure 5+ work code has harvester backup path
+                    let connectedLink = undefined;
+                    if (strLinks.length >= 4) {
+                        connectedLink = strLinks[3];
+                    }
+                    spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'dist_' + spawn.name + '_' + Game.time, {
+                        memory: {
+                            priority: 'distributor',
+                            deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name,
+                            linkSource: connectedLink
+                        }
+                    });
+                    Memory.isSpawning = true;
+                }
+            } else if (thisRoom.storage) {
+                let configCost = calculateConfigCost([MOVE, WORK, WORK, CARRY]);
+                if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                    Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                    //In case of complete destruction, make a minimum viable worker
+                    //Make sure 5+ work code has harvester backup path
+                    spawn.spawnCreep([MOVE, WORK, WORK, CARRY], 'miner_' + spawn.name + '_' + Game.time, {
+                        memory: {
+                            priority: 'miner',
+                            mineSource: strSources[0],
+                            linkSource: thisRoom.storage.id,
+                            jobSpecific: 'storageMiner',
+                            ignoreTravel: false,
+                            atSpot: false,
+                            deathWarn: _.size([MOVE, WORK, WORK, CARRY]) * 4,
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
+                        }
+                    });
+                    Memory.isSpawning = true;
+                }
+            }
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 4) {
             let Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
-            if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 550 && (Foe.length || defenders.length < 1)) {
+            if (suppliers.length < supplierMax && !blockedRole.includes('supplier')) {
+                Memory.isSpawning = true;
+                let supplierConfig = [MOVE, CARRY, CARRY, CARRY];
+                let configCost = calculateConfigCost(supplierConfig);
+                if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                    Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                    spawn.spawnCreep(supplierConfig, 'supplier_' + spawn.name + '_' + Game.time, {
+                        memory: {
+                            priority: 'supplier',
+                            deathWarn: _.size(supplierConfig) * 4,
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name,
+                            atSpot: false
+                        }
+                    });
+                    Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+                }
+            } else if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 550 && (Foe.length || defenders.length < 1)) {
                 //Try to produce millitary units
 
                 //Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
@@ -742,9 +759,9 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'mineralMiner') {
                     Memory.isSpawning = true;
-                    let mineralMinerConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK];
+                    let mineralMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK];
                     if (thisRoom.energyCapacityAvailable >= 4500) {
-                        mineralMinerConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK];
+                        mineralMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK];
                     }
                     let configCost = calculateConfigCost(mineralMinerConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
