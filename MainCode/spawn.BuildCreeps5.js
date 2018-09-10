@@ -373,6 +373,14 @@ var spawn_BuildCreeps5 = {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
+            let blockedRole = ''
+            let queLength = Memory.creepInQue.length;
+            for (var i = 0; i < queLength; i++) {
+                if (Memory.creepInQue[i] == thisRoom.name) {
+                    blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
+                }
+            }
+
             if (suppliers.length < supplierMax && !blockedRole.includes('supplier')) {
                 Memory.isSpawning = true;
                 let supplierConfig = [MOVE, CARRY, CARRY, CARRY];
