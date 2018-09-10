@@ -173,7 +173,7 @@ var spawn_BuildInstruction = {
                 break;
             case 'helper':
                 var helpers = _.filter(Game.creeps, (creep) => creep.memory.priority == 'helper' && creep.memory.homeRoom == spawn.room.name);
-                if (helpers.length < 6) {
+                if (helpers.length < 3) {
                     var helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY];
                     if (spawn.room.energyCapacityAvailable >= 2000) {
                         helperConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY];
