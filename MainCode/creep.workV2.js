@@ -2,6 +2,15 @@ var creep_workV2 = {
 
     /** @param {Creep} creep **/
     run: function(creep, moveRecalc) {
+
+        if (creep.carry.energy > 0 && creep.memory.priority != 'harvester' && creep.memory.priority != 'harvesterNearDeath') {
+            //All creeps check for road under them and repair if needed.
+            var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
+            if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 600) && someStructure[0].structureType == STRUCTURE_ROAD) {
+                creep.repair(someStructure[0]);
+            }
+        }
+
         switch (creep.memory.priority) {
             case 'harvester':
             case 'harvesterNearDeath':
@@ -36,10 +45,10 @@ var creep_workV2 = {
                     } else {
                         //This is a storage Unit
                         if (creep.transfer(thisUnit, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        	creep.travelTo(thisUnit);
+                            creep.travelTo(thisUnit);
                         } else if (!creep.memory.onContainer) {
                             creep.memory.onContainer = true;
-                        }       
+                        }
                     }
                 } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
                     let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 2, {
