@@ -521,7 +521,7 @@ function repairCompare(a, b) {
 }
 
 function findContainerWithEnergy(thisCreep, energyMin) {
-    let storageContainer = thisCreep.pos.findClosestByRange(FIND_STRUCTURES, {
+    let storageContainer = thisCreep.pos.findClosestByPath(FIND_STRUCTURES, {
         filter: (structure) => (structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) >= energyMin
     });
     if (storageContainer) {
