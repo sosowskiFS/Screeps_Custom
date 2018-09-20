@@ -65,6 +65,9 @@ var creep_asshealer = {
         } else {
             var targetAttacker = Game.getObjectById(creep.memory.attackerID);
             if (targetAttacker) {
+                if (targetAttacker.memory.priority == 'assattackerNearDeath' && creep.memory.priority != 'asshealerNearDeath') {
+                    creep.memory.priority = 'asshealerNearDeath';
+                }
                 var thisPortal = undefined;
                 if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                     var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
