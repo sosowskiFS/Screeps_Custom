@@ -47,6 +47,17 @@ var creep_powerHeal = {
                 }
             }
         }
+
+        let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+        });
+        if (inRangeEnemy.length) {
+            creep.rangedAttack(inRangeEnemy[0]);
+        }
+
+        if (creep.hits < creep.hitsMax - 300) {
+            creep.heal(creep);
+        }
     }
 
 };

@@ -52,6 +52,13 @@ var creep_powerAttack = {
                 }
             }
         }
+
+        let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 1, {
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+        });
+        if (inRangeEnemy.length) {
+            creep.attack(inRangeEnemy[0]);
+        }
     }
 
 };
