@@ -768,7 +768,7 @@ module.exports.loop = function() {
                     //Search observed room for power bank
                     if (Game.rooms[Memory.powerCheckList[thisRoom.name][0]]) {
                         var powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
-                            filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.power >= 1650 && eStruct.ticksToDecay >= 4500)
+                            filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.ticksToDecay >= 4500)
                         });
                         if (powerbanks.length) {
                             Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(powerbanks[0].pos.x, powerbanks[0].pos.y, thisRoom.name + "PowerGather");
@@ -889,7 +889,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "Ranger2"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', 'E13N18;E12N18;E12N17')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', '')
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
