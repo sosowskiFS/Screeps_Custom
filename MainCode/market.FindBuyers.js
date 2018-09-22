@@ -36,7 +36,7 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
             neededMinerals.push(RESOURCE_HYDROXIDE);
             HydroxidePriority = 0;
-        } else if (Game.flags[thisRoom.name + "OHProducer"]) {
+        } else if (Game.flags[thisRoom.name + "OHProducer(3)"] || Game.flags[thisRoom.name + "OHProducer(9)"]) {
             neededMinerals.push(RESOURCE_OXYGEN);
             neededMinerals.push(RESOURCE_HYDROGEN);
         } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
@@ -57,7 +57,7 @@ var market_buyers = {
         } else if (Game.flags[thisRoom.name + "ULProducer"]) {
             neededMinerals.push(RESOURCE_UTRIUM);
             neededMinerals.push(RESOURCE_LEMERGIUM);
-        } else if (Game.flags[thisRoom.name + "GProducer"]) {
+        } else if (Game.flags[thisRoom.name + "GProducer(4)"] || Game.flags[thisRoom.name + "GProducer(9)"]) {
             neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE);
             neededMinerals.push(RESOURCE_ZYNTHIUM_KEANITE);
         } else if (Game.flags[thisRoom.name + "GHProducer"]) {
