@@ -1597,7 +1597,7 @@ function RemoveMineralFlags() {
     //Loop through all rooms, remove production flags
     //Game.rooms is all visible rooms, only need home rooms
     for (let j in Game.spawns) {
-        let thisRoom = Game.spawns[i].room;
+        let thisRoom = Game.spawns[j].room;
         if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
             Game.flags[thisRoom.name + "XGHO2Producer"].remove();
         } else if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
