@@ -79,7 +79,7 @@ module.exports.loop = function() {
         }
     }
 
-    if (Game.flags["AttackFlags"]){
+    if (Game.flags["AttackFlags"]) {
         Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(Game.flags["AttackFlags"].pos, Game.flags["AttackFlags"].room.name + "RallyHere");
         Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 10, Game.flags["AttackFlags"].room.name + "DoBoost");
         Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 12, Game.flags["AttackFlags"].room.name + "WarBoosts");
@@ -105,6 +105,18 @@ module.exports.loop = function() {
         if (Game.flags["DAttackFlags"]) {
             Game.flags["DAttackFlags"].remove();
         }
+    }
+
+    if (Game.flags["RemoveMineralFlags"]) {
+        //Clear all production flags for replacing
+        RemoveMineralFlags();
+        Game.flags["RemoveMineralFlags"].remove();
+    }
+
+    if (Game.flags["GetMineralReport"]) {
+        //Returns count of mineral flag paths
+        GetMineralReport();
+        Game.flags["GetMineralReport"].remove();
     }
 
     //Reset average CPU usage records on request
@@ -231,7 +243,7 @@ module.exports.loop = function() {
                     //Populate the room creeps memory.
                     Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
-                        //Check for hostiles in this room
+                    //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -730,6 +742,8 @@ module.exports.loop = function() {
                             let response = lab6.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5]);
+                            } else if (response == -10) {
+                                Game.notify('Wrong Mineral! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5])
                             }
                         }
                         let lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
@@ -737,6 +751,8 @@ module.exports.loop = function() {
                             let response = lab7.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6]);
+                            } else if (response == -10) {
+                                Game.notify('Wrong Mineral! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6])
                             }
                         }
                         let lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
@@ -744,6 +760,8 @@ module.exports.loop = function() {
                             let response = lab8.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7]);
+                            } else if (response == -10) {
+                                Game.notify('Wrong Mineral! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7])
                             }
                         }
                         let lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
@@ -751,6 +769,8 @@ module.exports.loop = function() {
                             let response = lab9.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8]);
+                            } else if (response == -10) {
+                                Game.notify('Wrong Mineral! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8])
                             }
                         }
                         let lab10 = Game.getObjectById(Memory.labList[thisRoom.name][9]);
@@ -758,6 +778,8 @@ module.exports.loop = function() {
                             let response = lab10.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9]);
+                            } else if (response == -10) {
+                                Game.notify('Wrong Mineral! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9])
                             }
                         }
                     }
@@ -1569,4 +1591,77 @@ function controlRamparts(RampartDirection, thisTower) {
         }
         Memory.ClosedRampartList[thisTower.room.name] = [];
     }
+}
+
+function RemoveMineralFlags() {
+    //Loop through all rooms, remove production flags
+    //Game.rooms is all visible rooms, only need home rooms
+    for (let j in Game.spawns) {
+        let thisRoom = Game.spawns[i].room;
+        if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
+            Game.flags[thisRoom.name + "XGHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
+            Game.flags[thisRoom.name + "XGH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
+            Game.flags[thisRoom.name + "XUH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
+            Game.flags[thisRoom.name + "XZHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
+            Game.flags[thisRoom.name + "XZH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
+            Game.flags[thisRoom.name + "XKHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
+            Game.flags[thisRoom.name + "XLH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
+            Game.flags[thisRoom.name + "XLHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "OHProducer(3)"]) {
+            Game.flags[thisRoom.name + "OHProducer(3)"].remove();
+        } else if (Game.flags[thisRoom.name + "GProducer(4)"]) {
+            Game.flags[thisRoom.name + "GProducer(4)"].remove();
+        } else if (Game.flags[thisRoom.name + "GHO2Producer"]) {
+            Game.flags[thisRoom.name + "GHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
+            Game.flags[thisRoom.name + "GH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
+            Game.flags[thisRoom.name + "ZHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
+            Game.flags[thisRoom.name + "ZH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "KHO2Producer"]) {
+            Game.flags[thisRoom.name + "KHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
+            Game.flags[thisRoom.name + "UH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
+            Game.flags[thisRoom.name + "LH2OProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "LHO2Producer"]) {
+            Game.flags[thisRoom.name + "LHO2Producer"].remove();
+        } else if (Game.flags[thisRoom.name + "UHProducer"]) {
+            Game.flags[thisRoom.name + "UHProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "GHProducer"]) {
+            Game.flags[thisRoom.name + "GHProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "GOProducer"]) {
+            Game.flags[thisRoom.name + "GOProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "KOProducer"]) {
+            Game.flags[thisRoom.name + "KOProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "ZHProducer"]) {
+            Game.flags[thisRoom.name + "ZHProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
+            Game.flags[thisRoom.name + "ZOProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "LOProducer"]) {
+            Game.flags[thisRoom.name + "LOProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "LHProducer"]) {
+            Game.flags[thisRoom.name + "LHProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "ULProducer"]) {
+            Game.flags[thisRoom.name + "ULProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
+            Game.flags[thisRoom.name + "ZKProducer"].remove();
+        } else if (Game.flags[thisRoom.name + "GProducer(9)"]) {
+            Game.flags[thisRoom.name + "GProducer(9)"].remove();
+        } else if (Game.flags[thisRoom.name + "OHProducer(9)"]) {
+            Game.flags[thisRoom.name + "OHProducer(9)"].remove();
+        }
+    }
+}
+
+function GetMineralReport() {
+
 }

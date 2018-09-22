@@ -46,24 +46,27 @@ var spawn_BuildCreeps5 = {
         let backupFlag = '';
         if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
             //Mineral loops
-            //SHARD 0 COUNTS
-            //1: UH/LO/ZH - 1 (E87N85)        
-            //2: OH/G/GH/GH2O/XGH2O - 4 (E88N83, E86N83, E85N89, E88N75)           
-            //3: UH2O/ZHO2/LHO2 - 1 (E89N83)          
-            //4: ZK/ZO/ZH2O - 2 (E89N86, E88N87)          
-            //5: LH/UL/XLHO2 - 2 (E84N77, E81N79)        
-            //6: GHO2/LH2O/XLH2O/GO - 2 (E88N88, E77N83)          
-            //7: XUH2O/XZH2O/XZHO2 - 1 (E86N68)            
-            //8: KO/KHO2/XKHO2/XGHO2 - 1 (E74N81)
-            //SHARD 1 COUNTS
-            //1: UH/LO/ZH - 1
-            //2: OH/G/GH/GH2O/XGH2O - 1
-            //3: UH2O/ZHO2/LHO2 - 1
-            //4: ZK/ZO/ZH2O - 1
-            //5: LH/UL/XLHO2 - 1
-            //6: GHO2/LH2O/XLH2O/GO - 1
-            //7: XUH2O/XZH2O/XZHO2 - 1
-            //8: KO/KHO2/XKHO2/XGHO2 - 1
+
+            //Unique : OH/G
+            //T1 : UH/LO/ZH/GH/ZK/ZO/LH/UL/GO/KO - 10
+            //T2 : GHO2/KHO2/ZHO2/ZH2O/UH2O/LH2O/LHO2/GH2O - 8
+            //T3 : XGHO2/XKHO2/XZHO2/XZH2O/XUH2O/XLH2O/XLHO2/XGH2O - 8 
+
+            //Most Frequent (2 SETS PER GROUPING)
+            //XGHO2/XGH2O/XUH2O
+            //XZHO2/XZH2O/XKHO2
+            //XLH2O/XLHO2/OH
+
+            //Mid Frequency (1 SET PER GROUPING)
+            //G/GHO2/GH2O
+            //ZHO2/ZH2O/KHO2
+            //UH2O/LH2O/LHO2
+
+            //Low Frequency (1 SET PER GROUPING)
+            //UH/KO/GH/GO
+            //ZH/ZO/LO/LH
+            //UL/ZK/G/OH
+
             //DO NOT CARE LIST : UO/KH
             if (Memory.labList[thisRoom.name].length >= 6) {
                 if (Game.flags[thisRoom.name + "WarBoosts"]) {
@@ -73,176 +76,219 @@ var spawn_BuildCreeps5 = {
                     min4 = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
                     min5 = RESOURCE_CATALYZED_UTRIUM_ACID;
                     min6 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
-                } else if (Game.flags[thisRoom.name + "UHProducer"]) {
-                    min4 = RESOURCE_UTRIUM;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_UTRIUM_HYDRIDE;
-                    primaryFlag = thisRoom.name + "UHProducer";
-                    backupFlag = thisRoom.name + "LOProducer";
-                } else if (Game.flags[thisRoom.name + "OHProducer"]) {
+                } else if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
+                    //1
+                    min4 = RESOURCE_GHODIUM_ALKALIDE;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
+                    primaryFlag = thisRoom.name + "XGHO2Producer";
+                    backupFlag = thisRoom.name + "XGH2OProducer";
+                } else if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
+                    //1
+                    min4 = RESOURCE_GHODIUM_ACID;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_GHODIUM_ACID;
+                    primaryFlag = thisRoom.name + "XGH2OProducer";
+                    backupFlag = thisRoom.name + "XUH2OProducer";
+                } else if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
+                    //1
+                    min4 = RESOURCE_UTRIUM_ACID;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_UTRIUM_ACID;
+                    primaryFlag = thisRoom.name + "XUH2OProducer";
+                    backupFlag = thisRoom.name + "XGHO2Producer";
+                } else if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
+                    //2
+                    min4 = RESOURCE_ZYNTHIUM_ALKALIDE;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
+                    primaryFlag = thisRoom.name + "XZHO2Producer";
+                    backupFlag = thisRoom.name + "XZH2OProducer";
+                } else if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
+                    //2
+                    min4 = RESOURCE_ZYNTHIUM_ACID;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
+                    primaryFlag = thisRoom.name + "XZH2OProducer";
+                    backupFlag = thisRoom.name + "XKHO2Producer";
+                } else if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
+                    //2
+                    min4 = RESOURCE_KEANIUM_ALKALIDE;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+                    primaryFlag = thisRoom.name + "XKHO2Producer";
+                    backupFlag = thisRoom.name + "XZHO2Producer";
+                } else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
+                    //3
+                    min4 = RESOURCE_LEMERGIUM_ACID;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_LEMERGIUM_ACID;
+                    primaryFlag = thisRoom.name + "XLH2OProducer";
+                    backupFlag = thisRoom.name + "XLHO2Producer";
+                } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
+                    //3
+                    min4 = RESOURCE_LEMERGIUM_ALKALIDE;
+                    min5 = RESOURCE_CATALYST;
+                    min6 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
+                    primaryFlag = thisRoom.name + "XLHO2Producer";
+                    backupFlag = thisRoom.name + "OHProducer(3)";
+                } else if (Game.flags[thisRoom.name + "OHProducer(3)"]) {
+                    //3
                     min4 = RESOURCE_OXYGEN;
                     min5 = RESOURCE_HYDROGEN;
                     min6 = RESOURCE_HYDROXIDE;
-                    primaryFlag = thisRoom.name + "OHProducer";
-                    backupFlag = thisRoom.name + "GProducer";
-                } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
-                    min4 = RESOURCE_UTRIUM_HYDRIDE;
+                    primaryFlag = thisRoom.name + "OHProducer(3)";
+                    backupFlag = thisRoom.name + "XLH2OProducer";
+                } else if (Game.flags[thisRoom.name + "GProducer(4)"]) {
+                    //4
+                    min4 = RESOURCE_UTRIUM_LEMERGITE;
+                    min5 = RESOURCE_ZYNTHIUM_KEANITE;
+                    min6 = RESOURCE_GHODIUM;
+                    primaryFlag = thisRoom.name + "GProducer(4)";
+                    backupFlag = thisRoom.name + "GHO2Producer";
+                } else if (Game.flags[thisRoom.name + "GHO2Producer"]) {
+                    //4
+                    min4 = RESOURCE_GHODIUM_OXIDE;
                     min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_UTRIUM_ACID;
-                    primaryFlag = thisRoom.name + "UH2OProducer";
-                    backupFlag = thisRoom.name + "ZHO2Producer";
+                    min6 = RESOURCE_GHODIUM_ALKALIDE;
+                    primaryFlag = thisRoom.name + "GHO2Producer";
+                    backupFlag = thisRoom.name + "GH2OProducer";
+                } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
+                    //4
+                    min4 = RESOURCE_GHODIUM_HYDRIDE;
+                    min5 = RESOURCE_HYDROXIDE;
+                    min6 = RESOURCE_GHODIUM_ACID;
+                    primaryFlag = thisRoom.name + "GH2OProducer";
+                    backupFlag = thisRoom.name + "GProducer(4)";
                 } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
+                    //5
                     min4 = RESOURCE_ZYNTHIUM_OXIDE;
                     min5 = RESOURCE_HYDROXIDE;
                     min6 = RESOURCE_ZYNTHIUM_ALKALIDE;
                     primaryFlag = thisRoom.name + "ZHO2Producer";
+                    backupFlag = thisRoom.name + "ZH2OProducer";
+                } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
+                    //5
+                    min4 = RESOURCE_ZYNTHIUM_HYDRIDE;
+                    min5 = RESOURCE_HYDROXIDE;
+                    min6 = RESOURCE_ZYNTHIUM_ACID;
+                    primaryFlag = thisRoom.name + "ZH2OProducer";
+                    backupFlag = thisRoom.name + "KHO2Producer";
+                } else if (Game.flags[thisRoom.name + "KHO2Producer"]) {
+                    //5
+                    min4 = RESOURCE_KEANIUM_OXIDE;
+                    min5 = RESOURCE_HYDROXIDE;
+                    min6 = RESOURCE_KEANIUM_ALKALIDE;
+                    primaryFlag = thisRoom.name + "KHO2Producer";
+                    backupFlag = thisRoom.name + "ZHO2Producer";
+                } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
+                    //6
+                    min4 = RESOURCE_UTRIUM_HYDRIDE;
+                    min5 = RESOURCE_HYDROXIDE;
+                    min6 = RESOURCE_UTRIUM_ACID;
+                    primaryFlag = thisRoom.name + "UH2OProducer";
+                    backupFlag = thisRoom.name + "LH2OProducer";
+                } else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
+                    //6
+                    min4 = RESOURCE_LEMERGIUM_HYDRIDE;
+                    min5 = RESOURCE_HYDROXIDE;
+                    min6 = RESOURCE_LEMERGIUM_ACID;
+                    primaryFlag = thisRoom.name + "LH2OProducer";
                     backupFlag = thisRoom.name + "LHO2Producer";
                 } else if (Game.flags[thisRoom.name + "LHO2Producer"]) {
+                    //6
                     min4 = RESOURCE_LEMERGIUM_OXIDE;
                     min5 = RESOURCE_HYDROXIDE;
                     min6 = RESOURCE_LEMERGIUM_ALKALIDE;
                     primaryFlag = thisRoom.name + "LHO2Producer";
                     backupFlag = thisRoom.name + "UH2OProducer";
-                } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
-                    min4 = RESOURCE_ZYNTHIUM_HYDRIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_ZYNTHIUM_ACID;
-                    primaryFlag = thisRoom.name + "ZH2OProducer";
-                    backupFlag = thisRoom.name + "ZKProducer";
-                } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
-                    min4 = RESOURCE_ZYNTHIUM;
-                    min5 = RESOURCE_KEANIUM;
-                    min6 = RESOURCE_ZYNTHIUM_KEANITE;
-                    primaryFlag = thisRoom.name + "ZKProducer";
-                    backupFlag = thisRoom.name + "ZOProducer";
-                } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
-                    min4 = RESOURCE_ZYNTHIUM;
-                    min5 = RESOURCE_OXYGEN;
-                    min6 = RESOURCE_ZYNTHIUM_OXIDE;
-                    primaryFlag = thisRoom.name + "ZOProducer";
-                    backupFlag = thisRoom.name + "ZH2OProducer";
-                } else if (Game.flags[thisRoom.name + "LHProducer"]) {
-                    min4 = RESOURCE_LEMERGIUM;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_LEMERGIUM_HYDRIDE;
-                    primaryFlag = thisRoom.name + "LHProducer";
-                    backupFlag = thisRoom.name + "ULProducer";
-                } else if (Game.flags[thisRoom.name + "LOProducer"]) {
-                    min4 = RESOURCE_LEMERGIUM;
-                    min5 = RESOURCE_OXYGEN;
-                    min6 = RESOURCE_LEMERGIUM_OXIDE;
-                    primaryFlag = thisRoom.name + "LOProducer";
-                    backupFlag = thisRoom.name + "ZHProducer";
-                } else if (Game.flags[thisRoom.name + "ZHProducer"]) {
-                    min4 = RESOURCE_ZYNTHIUM;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_ZYNTHIUM_HYDRIDE;
-                    primaryFlag = thisRoom.name + "ZHProducer";
-                    backupFlag = thisRoom.name + "UHProducer";
-                } else if (Game.flags[thisRoom.name + "ULProducer"]) {
+                } else if (Game.flags[thisRoom.name + "UHProducer"]) {
+                    //7
                     min4 = RESOURCE_UTRIUM;
-                    min5 = RESOURCE_LEMERGIUM;
-                    min6 = RESOURCE_UTRIUM_LEMERGITE;
-                    primaryFlag = thisRoom.name + "ULProducer";
-                    backupFlag = thisRoom.name + "XLHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
-                    min4 = RESOURCE_LEMERGIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XLHO2Producer";
-                    backupFlag = thisRoom.name + "LHProducer";
-                } else if (Game.flags[thisRoom.name + "GProducer"]) {
-                    min4 = RESOURCE_UTRIUM_LEMERGITE;
-                    min5 = RESOURCE_ZYNTHIUM_KEANITE;
-                    min6 = RESOURCE_GHODIUM;
-                    primaryFlag = thisRoom.name + "GProducer";
+                    min5 = RESOURCE_HYDROGEN;
+                    min6 = RESOURCE_UTRIUM_HYDRIDE;
+                    primaryFlag = thisRoom.name + "UHProducer";
                     backupFlag = thisRoom.name + "GHProducer";
                 } else if (Game.flags[thisRoom.name + "GHProducer"]) {
+                    //7
                     min4 = RESOURCE_GHODIUM;
                     min5 = RESOURCE_HYDROGEN;
                     min6 = RESOURCE_GHODIUM_HYDRIDE;
                     primaryFlag = thisRoom.name + "GHProducer";
-                    backupFlag = thisRoom.name + "GH2OProducer";
+                    backupFlag = thisRoom.name + "GOProducer";
                 } else if (Game.flags[thisRoom.name + "GOProducer"]) {
+                    //7
                     min4 = RESOURCE_GHODIUM;
                     min5 = RESOURCE_OXYGEN;
                     min6 = RESOURCE_GHODIUM_OXIDE;
                     primaryFlag = thisRoom.name + "GOProducer";
-                    backupFlag = thisRoom.name + "GHO2Producer";
-                } else if (Game.flags[thisRoom.name + "GHO2Producer"]) {
-                    min4 = RESOURCE_GHODIUM_OXIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_GHODIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "GHO2Producer";
-                    backupFlag = thisRoom.name + "LH2OProducer";
-                } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
-                    min4 = RESOURCE_GHODIUM_HYDRIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_GHODIUM_ACID;
-                    primaryFlag = thisRoom.name + "GH2OProducer";
-                    backupFlag = thisRoom.name + "XGH2OProducer";
-                } else if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
-                    min4 = RESOURCE_GHODIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_GHODIUM_ACID;
-                    primaryFlag = thisRoom.name + "XGH2OProducer";
-                    backupFlag = thisRoom.name + "OHProducer";
-                } else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
-                    min4 = RESOURCE_LEMERGIUM_HYDRIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_LEMERGIUM_ACID;
-                    primaryFlag = thisRoom.name + "LH2OProducer";
-                    backupFlag = thisRoom.name + "XLH2OProducer";
-                } else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
-                    min4 = RESOURCE_LEMERGIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_LEMERGIUM_ACID;
-                    primaryFlag = thisRoom.name + "XLH2OProducer";
-                    backupFlag = thisRoom.name + "GOProducer";
-                } else if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
-                    min4 = RESOURCE_UTRIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_UTRIUM_ACID;
-                    primaryFlag = thisRoom.name + "XUH2OProducer";
-                    backupFlag = thisRoom.name + "XZH2OProducer";
-                } else if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
-                    min4 = RESOURCE_ZYNTHIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
-                    primaryFlag = thisRoom.name + "XZH2OProducer";
-                    backupFlag = thisRoom.name + "XZHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
-                    min4 = RESOURCE_ZYNTHIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XZHO2Producer";
-                    backupFlag = thisRoom.name + "XUH2OProducer";
+                    backupFlag = thisRoom.name + "KOProducer";
                 } else if (Game.flags[thisRoom.name + "KOProducer"]) {
-                    min4 = RESOURCE_OXYGEN;
-                    min5 = RESOURCE_KEANIUM;
+                    //7
+                    min4 = RESOURCE_KEANIUM;
+                    min5 = RESOURCE_OXYGEN;
                     min6 = RESOURCE_KEANIUM_OXIDE;
                     primaryFlag = thisRoom.name + "KOProducer";
-                    backupFlag = thisRoom.name + "KHO2Producer";
-                } else if (Game.flags[thisRoom.name + "KHO2Producer"]) {
-                    min4 = RESOURCE_KEANIUM_OXIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_KEANIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "KHO2Producer";
-                    backupFlag = thisRoom.name + "XKHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
-                    min4 = RESOURCE_KEANIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XKHO2Producer";
-                    backupFlag = thisRoom.name + "XGHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
-                    min4 = RESOURCE_GHODIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XGHO2Producer";
-                    backupFlag = thisRoom.name + "KOProducer";
+                    backupFlag = thisRoom.name + "UHProducer";
+                } else if (Game.flags[thisRoom.name + "ZHProducer"]) {
+                    //8
+                    min4 = RESOURCE_ZYNTHIUM;
+                    min5 = RESOURCE_HYDROGEN;
+                    min6 = RESOURCE_ZYNTHIUM_HYDRIDE;
+                    primaryFlag = thisRoom.name + "ZHProducer";
+                    backupFlag = thisRoom.name + "ZOProducer";
+                } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
+                    //8
+                    min4 = RESOURCE_ZYNTHIUM;
+                    min5 = RESOURCE_OXYGEN;
+                    min6 = RESOURCE_ZYNTHIUM_OXIDE;
+                    primaryFlag = thisRoom.name + "ZOProducer";
+                    backupFlag = thisRoom.name + "LOProducer";
+                } else if (Game.flags[thisRoom.name + "LOProducer"]) {
+                    //8
+                    min4 = RESOURCE_LEMERGIUM;
+                    min5 = RESOURCE_OXYGEN;
+                    min6 = RESOURCE_LEMERGIUM_OXIDE;
+                    primaryFlag = thisRoom.name + "LOProducer";
+                    backupFlag = thisRoom.name + "LHProducer";
+                } else if (Game.flags[thisRoom.name + "LHProducer"]) {
+                    //8
+                    min4 = RESOURCE_LEMERGIUM;
+                    min5 = RESOURCE_HYDROGEN;
+                    min6 = RESOURCE_LEMERGIUM_HYDRIDE;
+                    primaryFlag = thisRoom.name + "LHProducer";
+                    backupFlag = thisRoom.name + "ZHProducer";
+                } else if (Game.flags[thisRoom.name + "ULProducer"]) {
+                    //9
+                    min4 = RESOURCE_UTRIUM;
+                    min5 = RESOURCE_LEMERGIUM;
+                    min6 = RESOURCE_UTRIUM_LEMERGITE;
+                    primaryFlag = thisRoom.name + "ULProducer";
+                    backupFlag = thisRoom.name + "ZKProducer";
+                } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
+                    //9
+                    min4 = RESOURCE_ZYNTHIUM;
+                    min5 = RESOURCE_KEANIUM;
+                    min6 = RESOURCE_ZYNTHIUM_KEANITE;
+                    primaryFlag = thisRoom.name + "ZKProducer";
+                    backupFlag = thisRoom.name + "GProducer(9)";
+                } else if (Game.flags[thisRoom.name + "GProducer(9)"]) {
+                    //9
+                    min4 = RESOURCE_UTRIUM_LEMERGITE;
+                    min5 = RESOURCE_ZYNTHIUM_KEANITE;
+                    min6 = RESOURCE_GHODIUM;
+                    primaryFlag = thisRoom.name + "GProducer(9)";
+                    backupFlag = thisRoom.name + "OHProducer(9)";
+                } else if (Game.flags[thisRoom.name + "OHProducer(9)"]) {
+                    //9
+                    min4 = RESOURCE_OXYGEN;
+                    min5 = RESOURCE_HYDROGEN;
+                    min6 = RESOURCE_HYDROXIDE;
+                    primaryFlag = thisRoom.name + "OHProducer(9)";
+                    backupFlag = thisRoom.name + "ULProducer";
                 }
             }
+
             labWorkerMax = 1;
         }
         let strSources = Memory.sourceList[thisRoom.name];
