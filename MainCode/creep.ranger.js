@@ -35,7 +35,7 @@ var creep_ranger = {
             }
 
             //Cancel this flag if room is in safe mode
-            if (creep.room.controller.safeMode && creep.room.controller.owner.username != "Montblanc") {
+            if (creep.room.controller && creep.room.controller.safeMode && creep.room.controller.owner.username != "Montblanc") {
                 if (Game.flags[creep.memory.homeRoom + flagName]) {
                     Game.flags[creep.memory.homeRoom + flagName].remove();
                 }
