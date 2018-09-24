@@ -57,7 +57,12 @@ var creep_powerHeal = {
             }
         }
 
-        if (creep.hits < creep.hitsMax - 300) {
+        let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
+            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 400 && thisCreep.id != creep.memory.targetAttacker && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+        });
+        if (hurtAlly.length > 0) {
+            creep.heal(hurtAlly[0]);
+        } else if (creep.hits < creep.hitsMax - 300) {
             creep.heal(creep);
         }
     }
