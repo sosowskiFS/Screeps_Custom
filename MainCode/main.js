@@ -914,6 +914,10 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', 'E12N18;E12N17')
                 }
 
+                if (Game.flags[thisRoom.name + "PowerGuard"]) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger3', Game.flags[thisRoom.name + "PowerGuard"].pos.roomName, energyIndex, '', '')
+                }
+
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E6N12;E3N12');

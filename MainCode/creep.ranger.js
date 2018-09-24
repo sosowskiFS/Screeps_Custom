@@ -42,7 +42,7 @@ var creep_ranger = {
 
             if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
                 let somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                    filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_POWER_BANK)
                 });
                 if (somethingNearby) {
                     creep.attack(somethingNearby);

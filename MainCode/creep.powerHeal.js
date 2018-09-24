@@ -52,7 +52,9 @@ var creep_powerHeal = {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
         if (inRangeEnemy.length) {
-            creep.rangedAttack(inRangeEnemy[0]);
+            if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
+            }
         }
 
         if (creep.hits < creep.hitsMax - 300) {

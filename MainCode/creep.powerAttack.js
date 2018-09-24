@@ -28,10 +28,13 @@ var creep_powerAttack = {
                         } else {
                             //No bank located, delete flag
                             Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
+                            if (Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                                Game.flags[creep.memory.homeRoom + "PowerGuard"].remove();
+                            }
                             //Game.notify('Power flag deleted - Cannot find bank. Initial look |' + creep.room.name);
                         }
                     } catch (e) {
-                    	creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"])
+                        creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"])
                     }
 
                 } else if (creep.hits >= 2500) {
@@ -47,6 +50,9 @@ var creep_powerAttack = {
                     } else {
                         //Cannot find bank, abort
                         Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
+                        if (Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                            Game.flags[creep.memory.homeRoom + "PowerGuard"].remove();
+                        }
                         //Game.notify('Power flag deleted - Cannot find bank. |' + creep.room.name);
                     }
                 }
