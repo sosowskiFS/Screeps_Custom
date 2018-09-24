@@ -57,8 +57,8 @@ var creep_powerHeal = {
             }
         }
 
-        let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
-            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 400 && thisCreep.id != creep.memory.targetAttacker && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+        let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 1, {
+            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 500 && thisCreep.id != creep.memory.targetAttacker && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
         });
         if (hurtAlly.length > 0) {
             creep.heal(hurtAlly[0]);
