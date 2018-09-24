@@ -10,6 +10,8 @@ var creep_ranger = {
         let flagName = 'Ranger';
         if (creep.memory.flagName == 'ranger2') {
             flagName = 'Ranger2';
+        } else if (creep.memory.flagName == 'PowerGuard') {
+            flagName = 'PowerGuard'
         }
 
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'rangerNearDeath') {

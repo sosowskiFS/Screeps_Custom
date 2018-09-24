@@ -348,7 +348,7 @@ var spawn_BuildInstruction = {
                 break;
             case 'ranger':
             case 'ranger2':
-            case 'ranger3':
+            case 'PowerGuard':
                 var rangers = _.filter(Game.creeps, (creep) => creep.memory.priority == instruction && creep.memory.homeRoom == spawn.room.name);
                 if (rangers.length < 1) {
                     let priorityName = instruction;

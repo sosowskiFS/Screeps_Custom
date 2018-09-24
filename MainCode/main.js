@@ -915,7 +915,7 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "PowerGuard"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger3', Game.flags[thisRoom.name + "PowerGuard"].pos.roomName, energyIndex, '', '')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'PowerGuard', Game.flags[thisRoom.name + "PowerGuard"].pos.roomName, energyIndex, '', '')
                 }
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
@@ -1169,6 +1169,7 @@ module.exports.loop = function() {
                     break;
                 case 'ranger':
                 case 'ranger2':
+                case 'PowerGuard':
                 case 'rangerNearDeath':
                     creep_ranger.run(creep);
                     break;
