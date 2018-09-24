@@ -243,7 +243,7 @@ module.exports.loop = function() {
                     //Populate the room creeps memory.
                     Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
-                    //Check for hostiles in this room
+                        //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -682,6 +682,30 @@ module.exports.loop = function() {
                                 theseNukes[0].room.createConstructionSite(theseNukes[0].pos.x, theseNukes[0].pos.y, STRUCTURE_RAMPART);
                             }
                         }
+                    }
+                }
+
+                //Determine if ramparts have been maxed out
+                if (Game.time % 10000 == 0 && !Game.flags[thisRoom.name + "MAXRAMP"]) {
+                    let biggestRampart = thisRoom.find(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType == STRUCTURE_RAMPART)
+                    });
+
+                    if (biggestRampart.length > 0) {
+                        biggestRampart.sort(hiHitCompare);
+                        if (biggestRampart.hits >= 299500000) {
+                            thisRoom.createFlag(25, 25, thisRoom.name + "MAXRAMP");
+                        }
+                    }
+                }
+
+                if (Game.flags[thisRoom.name + "MAXRAMP"] && Game.time % 5000 == 0) {
+                    //Put a rampart on all extentions
+                    let allExtensions = thisRoom.find(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION)
+                    });
+                    for (let thisExtension in allExtensions) {
+                        thisRoom.createConstructionSite(thisExtension.pos.x, thisExtension.pos.y, STRUCTURE_RAMPART);
                     }
                 }
 
@@ -1669,4 +1693,12 @@ function RemoveMineralFlags() {
 
 function GetMineralReport() {
 
+}
+
+function hiHitCompare(a, b) {
+    if (a.hits < b.hits)
+        return 1;
+    if (a.hits > b.hits)
+        return -1;
+    return 0;
 }
