@@ -51,17 +51,23 @@ var creep_powerHeal = {
         let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
+
         if (inRangeEnemy.length) {
             if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
                 creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
             }
         }
 
-        if (creep.hits < creep.hitsMax - 300) {
+        let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 1, {
+            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 500 && thisCreep.id != creep.memory.targetAttacker && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+        });
+
+        if (hurtAlly.length > 0) {
+            creep.heal(hurtAlly[0];
+        } else if (creep.hits < creep.hitsMax - 300) {
             creep.heal(creep);
         }
     }
-
 };
 
 module.exports = creep_powerHeal;
