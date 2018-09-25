@@ -3,13 +3,13 @@ var creep_work5 = {
     /** @param {Creep} creep **/
     run: function(creep) {
 
-        if (creep.carry.energy > 0 && creep.memory.priority != 'miner' && creep.memory.priority != 'minerNearDeath') {
+        /*if (creep.carry.energy > 0 && creep.memory.priority != 'miner' && creep.memory.priority != 'minerNearDeath') {
             //All creeps check for road under them and repair if needed.
             var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
             if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 600) && someStructure[0].structureType == STRUCTURE_ROAD) {
                 creep.repair(someStructure[0]);
             }
-        }
+        }*/
 
         switch (creep.memory.priority) {
             case 'mule':
