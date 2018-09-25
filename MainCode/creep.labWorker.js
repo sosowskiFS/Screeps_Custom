@@ -474,7 +474,7 @@ var creep_labWorker = {
                     let withdrawResult = "N/A"
                     for (let i = 0, len = Object.keys(nearbyContainer[0].store).length; i < len; i++) {
                         if (Object.keys(nearbyContainer[0].store)[i] == RESOURCE_ENERGY) {
-                            if (nearbyContainer[0].store[i] >= creep.carryCapacity) {
+                            if (nearbyContainer[0].store[RESOURCE_ENERGY] >= creep.carryCapacity) {
                                 withdrawResult = creep.withdraw(nearbyContainer[0], Object.keys(nearbyContainer[0].store)[i]);
                                 break;
                             }
