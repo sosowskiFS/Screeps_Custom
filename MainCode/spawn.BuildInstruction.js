@@ -501,6 +501,25 @@ var spawn_BuildInstruction = {
                     }
                 }
                 break;
+            case 'farScout':
+                var mScouts = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'farScout' && creep.memory.homeRoom == spawn.room.name));
+                if (mScouts.length < 1) {
+                    let mConfig = [MOVE, MOVE];
+                    let configCost = calculateConfigCost(mConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(mConfig, 'farScout_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: 'farScout',
+                                homeRoom: spawn.room.name,
+                                deathWarn: _.size(mConfig) * 4
+                            }
+                        });
+                        Memory.isSpawning = true;
+                        console.log('Far Scout, ' + spawn.room.name);
+                    }
+                }
+                break;
         }
     }
 };

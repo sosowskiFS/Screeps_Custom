@@ -32,6 +32,7 @@ var creep_powerCollect = require('creep.powerCollect');
 var creep_scraper = require('creep.scraper');
 var creep_distantSupplier = require('creep.distantSupplier');
 var creep_ranger = require('creep.ranger');
+var creep_farScout = require('creep.farScout');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -709,6 +710,17 @@ module.exports.loop = function() {
                     }
                 }
 
+                //Determine if far mining scout needs to run
+                if (Game.time % 10000 == 0 && Memory.scoutedMiningRooms.indexOf(thisRoom.name) === -1){
+                    if (Game.flags[thisRoom.name + "FarMining"]) {
+                        //Assume this has already been done
+                        Memory.scoutedMiningRooms.push(thisRoom.name);
+                    } else {
+                        //Create flag to run scout
+                        thisRoom.createFlag(25,25, thisRoom.name + "MineScout");
+                    }
+                }
+
                 if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage) {
                     if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < 300000) {
                         Memory.energyNeedRooms.push(thisRoom.name);
@@ -984,6 +996,10 @@ module.exports.loop = function() {
                     spawn_BuildInstruction.run(Game.spawns[i], 'supplyEnergy', Game.flags[thisRoom.name + "supplyEnergy"].pos.roomName, energyIndex, '', 2);
                 }
 
+                if (Game.flags[thisRoom.name + "MineScout"]) {
+                    spawn_BuildInstruction.run(Game.spawns[i], 'farScout', '', energyIndex, '', '');
+                }
+
                 if (!Memory.isSpawning) {
                     if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
                         if (!Game.flags["DoNotBuild"]) {
@@ -1197,6 +1213,9 @@ module.exports.loop = function() {
                 case 'rangerNearDeath':
                     creep_ranger.run(creep);
                     break;
+                case 'farScout':
+                    creep_farScout.run(creep);
+                    break;
                 default:
                     if (!creep.memory.priority) {
                         creep.memory.priority = 'constructor';
@@ -1337,6 +1356,9 @@ function memCheck() {
     }
     if (!Memory.energyNeedRooms) {
         Memory.energyNeedRooms = [];
+    }
+    if (!Memory.scoutedMiningRooms) {
+        Memory.scoutedMiningRooms = [];
     }
     //Boolean
     if (Memory.warMode == null) {
