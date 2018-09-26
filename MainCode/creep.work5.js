@@ -437,7 +437,12 @@ var creep_work5 = {
                 }
                 break;
             case 'mineralMiner':
-                var thisMineral = Game.getObjectById(creep.memory.mineralID);
+            case 'mineralMinerNearDeath':
+                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'mineralMinerNearDeath') {
+                    creep.memory.priority = 'mineralMinerNearDeath';
+                }
+
+                let thisMineral = Game.getObjectById(creep.memory.mineralID);
 
                 if (thisMineral.mineralAmount == 0 && creep.memory.onPoint) {
                     //Nothing left to do
@@ -446,6 +451,10 @@ var creep_work5 = {
                     let harvestResult = creep.harvest(thisMineral);
                     if (harvestResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(thisMineral);
+                        if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+                            creep.memory.travelDistance = creep.memory._trav.path.length;
+                            creep.memory.deathWarn = ((creep.memory.travelDistance * 2) + _.size(creep.body) * 3) + 15;
+                        }
                     } else if (harvestResult == OK) {
                         creep.memory.nextMine = Game.time + 6;
                         if (!creep.memory.storageUnit) {

@@ -827,6 +827,7 @@ var spawn_BuildCreeps5 = {
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name,
                                 nextMine: 0,
+                                deathWarn: _.size(mineralMinerConfig) * 4,
                                 onPoint: false
                             }
                         });
