@@ -257,48 +257,79 @@ var creep_assattacker = {
                                 wallFlag.remove();
                             }
                         } else {
-                            let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
+                            //Find structures that don't have a rampart on them
+                            let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+                                filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                             });
-                            if (eSpawns) {
-                                if (healerIsGood) {
-                                    creep.travelTo(eSpawns, {
-                                        ignoreRoads: true,
-                                        maxRooms: 1,
-                                        stuckValue: 2,
-                                        allowSK: true
-                                    });
+                            let targetFound = false;
+                            for (let thisStruct in allStruct) {
+                                let found = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
+                                let hasRampart = false;
+                                for (var building in found) {
+                                    if (found[building].structureType == STRUCTURE_RAMPART) {
+                                        hasRampart = true;
+                                        break;
+                                    }
                                 }
-                                creep.dismantle(eSpawns);
-                                creep.attack(eSpawns);
-                                creep.rangedAttack(eSpawns);
-                            } else {
-                                let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                    filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
-                                });
-                                if (eStructures) {
+                                if (!hasRampart) {
                                     if (healerIsGood) {
-                                        creep.travelTo(eStructures, {
+                                        creep.travelTo(allStruct[thisStruct], {
                                             ignoreRoads: true,
                                             maxRooms: 1,
                                             stuckValue: 2,
                                             allowSK: true
                                         });
                                     }
-                                    creep.dismantle(eStructures);
-                                    creep.attack(eStructures);
-                                    creep.rangedAttack(eStructures);
-                                } else if (closeFoe) {
-                                    creep.moveTo(closeFoe, {
-                                        ignoreRoads: true,
-                                        maxRooms: 1,
-                                        allowSK: true
-                                    });
-                                } else if (targetFlag) {
-                                    targetFlag.remove();
+                                    creep.dismantle(allStruct[thisStruct]);
+                                    creep.attack(allStruct[thisStruct]);
+                                    creep.rangedAttack(allStruct[thisStruct]);
+                                    targetFound = true;
+                                    break;
                                 }
                             }
-
+                            if (!targetFound) {
+                                let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                                    filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
+                                });
+                                if (eSpawns) {
+                                    if (healerIsGood) {
+                                        creep.travelTo(eSpawns, {
+                                            ignoreRoads: true,
+                                            maxRooms: 1,
+                                            stuckValue: 2,
+                                            allowSK: true
+                                        });
+                                    }
+                                    creep.dismantle(eSpawns);
+                                    creep.attack(eSpawns);
+                                    creep.rangedAttack(eSpawns);
+                                } else {
+                                    let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
+                                    });
+                                    if (eStructures) {
+                                        if (healerIsGood) {
+                                            creep.travelTo(eStructures, {
+                                                ignoreRoads: true,
+                                                maxRooms: 1,
+                                                stuckValue: 2,
+                                                allowSK: true
+                                            });
+                                        }
+                                        creep.dismantle(eStructures);
+                                        creep.attack(eStructures);
+                                        creep.rangedAttack(eStructures);
+                                    } else if (closeFoe) {
+                                        creep.moveTo(closeFoe, {
+                                            ignoreRoads: true,
+                                            maxRooms: 1,
+                                            allowSK: true
+                                        });
+                                    } else if (targetFlag) {
+                                        targetFlag.remove();
+                                    }
+                                }
+                            }
                         }
                     }
                 } else if (!healerIsNear) {

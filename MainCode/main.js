@@ -706,7 +706,7 @@ module.exports.loop = function() {
                         filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION)
                     });
                     for (let thisExtension in allExtensions) {
-                        thisRoom.createConstructionSite(thisExtension.pos.x, thisExtension.pos.y, STRUCTURE_RAMPART);
+                        thisRoom.createConstructionSite(allExtensions[thisExtension].pos.x, allExtensions[thisExtension].pos.y, STRUCTURE_RAMPART);
                     }
                 }
 
