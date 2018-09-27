@@ -77,6 +77,9 @@ var creep_assattacker = {
                 if (thisHealer.fatigue <= 0) {
                     healerIsGood = true;
                 }
+                if (!healerIsNear && otherHealers.length) {
+                    healerIsNear = true;
+                }
             } else if (otherHealers.length) {
                 healerIsNear = true;
                 if (otherHealers[0].fatigue <= 0) {
