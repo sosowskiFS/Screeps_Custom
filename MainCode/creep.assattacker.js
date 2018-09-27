@@ -100,10 +100,17 @@ var creep_assattacker = {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                 });
                 let hasTraveled = false;
+                let result;
                 if (MoveLab.length && unboostedMove > 0) {
-                    MoveLab[0].boostCreep(creep);
+                    result = MoveLab[0].boostCreep(creep);
                     creep.travelTo(MoveLab[0]);
                     hasTraveled = true;
+                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                        if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                            Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                            console.log(creep.memory.homeRoom + " Labs are dry");
+                        }
+                    }
                 }
                 if (ToughLab.length && unboostedTough > 0) {
                     if (!hasTraveled) {
@@ -112,7 +119,13 @@ var creep_assattacker = {
                         });
                         hasTraveled = true;
                     }
-                    ToughLab[0].boostCreep(creep);
+                    result = ToughLab[0].boostCreep(creep);
+                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                        if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                            Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                            console.log(creep.memory.homeRoom + " Labs are dry");
+                        }
+                    }
                 }
                 if (RangedLab.length && unboostedRanged > 0) {
                     if (!hasTraveled) {
@@ -121,7 +134,13 @@ var creep_assattacker = {
                         });
                         hasTraveled = true;
                     }
-                    RangedLab[0].boostCreep(creep);
+                    result = RangedLab[0].boostCreep(creep);
+                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                        if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                            Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                            console.log(creep.memory.homeRoom + " Labs are dry");
+                        }
+                    }
                 }
                 if (AttackLab.length && unboostedAttack > 0) {
                     if (!hasTraveled) {
@@ -130,7 +149,13 @@ var creep_assattacker = {
                         });
                         hasTraveled = true;
                     }
-                    AttackLab[0].boostCreep(creep);
+                    result = AttackLab[0].boostCreep(creep);
+                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                        if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                            Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                            console.log(creep.memory.homeRoom + " Labs are dry");
+                        }
+                    }
                 }
                 if (WorkLab.length && unboostedWork > 0) {
                     if (!hasTraveled) {
@@ -139,7 +164,13 @@ var creep_assattacker = {
                         });
                         hasTraveled = true;
                     }
-                    WorkLab[0].boostCreep(creep);
+                    result = WorkLab[0].boostCreep(creep);
+                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                        if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                            Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                            console.log(creep.memory.homeRoom + " Labs are dry");
+                        }
+                    }
                 }
             } else {
                 if (targetFlag.pos.roomName == creep.pos.roomName) {

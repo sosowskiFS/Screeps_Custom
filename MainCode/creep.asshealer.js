@@ -39,10 +39,17 @@ var creep_asshealer = {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
             let hasTraveled = false;
+            let result;
             if (MoveLab.length && unboostedMove > 0) {
-                MoveLab[0].boostCreep(creep);
+                result = MoveLab[0].boostCreep(creep);
                 creep.travelTo(MoveLab[0]);
                 hasTraveled = true;
+                if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                        Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                        console.log(creep.memory.homeRoom + " Labs are dry");
+                    }
+                }
             }
             if (ToughLab.length && unboostedTough > 0) {
                 if (!hasTraveled) {
@@ -51,7 +58,13 @@ var creep_asshealer = {
                     });
                     hasTraveled = true;
                 }
-                ToughLab[0].boostCreep(creep);
+                result = ToughLab[0].boostCreep(creep);
+                if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                        Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                        console.log(creep.memory.homeRoom + " Labs are dry");
+                    }
+                }
             }
             if (HealLab.length && unboostedHeal > 0) {
                 if (!hasTraveled) {
@@ -60,7 +73,13 @@ var creep_asshealer = {
                     });
                     hasTraveled = true;
                 }
-                HealLab[0].boostCreep(creep);
+                result = HealLab[0].boostCreep(creep);
+                if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                        Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                        console.log(creep.memory.homeRoom + " Labs are dry");
+                    }
+                }
             }
         } else {
             var targetAttacker = Game.getObjectById(creep.memory.attackerID);
