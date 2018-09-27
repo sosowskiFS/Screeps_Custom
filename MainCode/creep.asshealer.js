@@ -198,6 +198,7 @@ var creep_asshealer = {
                 });
                 if (newTarget.length) {
                     creep.memory.attackerID = newTarget[0].id;
+                    creep.memory.priority = 'targetlessHealer';
                 }
             }
         }
