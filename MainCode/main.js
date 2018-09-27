@@ -779,7 +779,7 @@ module.exports.loop = function() {
                             if (response == -9) {
                                 Game.notify('Lab not in range! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5]);
                             } else if (response == -10) {
-                                Game.notify('Wrong Mineral! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5])
+                                //Game.notify('Wrong Mineral! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5])
                             }
                         }
                         let lab7 = Game.getObjectById(Memory.labList[thisRoom.name][6]);
@@ -788,7 +788,7 @@ module.exports.loop = function() {
                             if (response == -9) {
                                 Game.notify('Lab not in range! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6]);
                             } else if (response == -10) {
-                                Game.notify('Wrong Mineral! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6])
+                                //Game.notify('Wrong Mineral! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6])
                             }
                         }
                         let lab8 = Game.getObjectById(Memory.labList[thisRoom.name][7]);
@@ -797,7 +797,7 @@ module.exports.loop = function() {
                             if (response == -9) {
                                 Game.notify('Lab not in range! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7]);
                             } else if (response == -10) {
-                                Game.notify('Wrong Mineral! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7])
+                                //Game.notify('Wrong Mineral! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7])
                             }
                         }
                         let lab9 = Game.getObjectById(Memory.labList[thisRoom.name][8]);
@@ -806,7 +806,7 @@ module.exports.loop = function() {
                             if (response == -9) {
                                 Game.notify('Lab not in range! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8]);
                             } else if (response == -10) {
-                                Game.notify('Wrong Mineral! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8])
+                                //Game.notify('Wrong Mineral! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8])
                             }
                         }
                         let lab10 = Game.getObjectById(Memory.labList[thisRoom.name][9]);
@@ -815,7 +815,7 @@ module.exports.loop = function() {
                             if (response == -9) {
                                 Game.notify('Lab not in range! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9]);
                             } else if (response == -10) {
-                                Game.notify('Wrong Mineral! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9])
+                                //Game.notify('Wrong Mineral! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9])
                             }
                         }
                     }
