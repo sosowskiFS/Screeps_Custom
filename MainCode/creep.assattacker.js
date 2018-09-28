@@ -52,7 +52,7 @@ var creep_assattacker = {
                 }
             }
 
-            if (!creep.memory.isReserved && !creep.spawning) {
+            if (!creep.memory.healerID && !creep.spawning) {
                 let nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
                     filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.attackerID == creep.id)
                 });
