@@ -57,6 +57,7 @@ var creep_assattacker = {
                     filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.attackerID == creep.id)
                 });
                 if (nearbyHealer.length) {
+                    creep.memory.healerID = nearbyHealer[0].id;
                     creep.memory.isReserved = true;
                 }
             }
