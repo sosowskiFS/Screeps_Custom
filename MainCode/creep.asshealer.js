@@ -165,7 +165,10 @@ var creep_asshealer = {
                     }
 
                     if (!healedAlly) {
-                        if (creep.pos.getRangeTo(targetAttacker) > 1) {
+                        let thisRange = creep.pos.getRangeTo(targetAttacker);
+                        if (thisRange >= 3) {
+                            creep.heal(creep);
+                        }else if (thisRange > 1) {
                             creep.rangedHeal(targetAttacker);
                         } else {
                             creep.heal(targetAttacker);
