@@ -257,6 +257,10 @@ var creep_assattacker = {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                             });
                             let targetFound = false;
+                            if (allStruct.length) {
+                            	//Sort based on distance.
+                            	allStruct.sort(distCompare(creep));
+                            }
                             for (let thisStruct in allStruct) {
                                 let found = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
                                 let hasRampart = false;
@@ -483,5 +487,17 @@ var creep_assattacker = {
     }
 
 };
+
+function distCompare(creep) {
+	return function(a, b) {
+		let aRange = a.pos.getRangeTo(creep);
+		let bRange = b.pos.getRangeTo(creep);
+		if (aRange < bRange)
+        	return -1;
+	    if (aRange > bRange)
+	        return 1;
+	    return 0;
+	}
+}
 
 module.exports = creep_assattacker;
