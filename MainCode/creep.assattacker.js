@@ -42,7 +42,7 @@ var creep_assattacker = {
                 creep.memory._trav = undefined;
             }
 
-            var wallFlag = Game.flags[creep.memory.homeRoom + "WallFlag"];
+            let wallFlag = Game.flags[creep.memory.homeRoom + "WallFlag"];
             if (!wallFlag) {
                 for (i = 2; i < 6; i++) {
                     wallFlag = Game.flags[creep.memory.homeRoom + "WallFlag" + i]
@@ -52,43 +52,29 @@ var creep_assattacker = {
                 }
             }
 
-            if (!creep.memory.healerID && !creep.spawning) {
-                var nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
+            if (!creep.memory.isReserved && !creep.spawning) {
+                let nearbyHealer = creep.pos.findInRange(FIND_MY_CREEPS, 2, {
                     filter: (mCreep) => (mCreep.memory.priority == "asshealer" && mCreep.memory.attackerID == creep.id)
                 });
                 if (nearbyHealer.length) {
-                    creep.memory.healerID = nearbyHealer[0].id;
                     creep.memory.isReserved = true;
                 }
             }
 
-            var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+            let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
             });
 
-            var thisHealer = Game.getObjectById(creep.memory.healerID);
-            var otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                filter: (mCreep) => ((mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer") && mCreep.memory.attackerID != creep.id)
+            let otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                filter: (mCreep) => ((mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer"))
             });
-            var healerIsNear = false;
+            let healerIsNear = false;
             let healerIsGood = false;
-            if (thisHealer) {
-                healerIsNear = creep.pos.isNearTo(thisHealer);
-                if (thisHealer.fatigue <= 0) {
-                    healerIsGood = true;
-                }
-                if (!healerIsNear && otherHealers.length) {
-                    healerIsNear = true;
-                }
-            } else if (otherHealers.length) {
+            if (otherHealers.length) {
                 healerIsNear = true;
                 if (otherHealers[0].fatigue <= 0) {
                     healerIsGood = true;
                 }
-            }
-
-            if (!thisHealer) {
-                creep.memory.healerID = undefined;
             }
 
             if (Game.flags[creep.memory.homeRoom + "DoBoost"] && creep.pos.roomName == creep.memory.homeRoom && (unboostedMove > 0 || unboostedTough > 0 || unboostedAttack > 0 || unboostedWork > 0 || unboostedRanged > 0)) {
