@@ -67,7 +67,7 @@ var creep_assattacker = {
             });
 
             let otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                filter: (mCreep) => (mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer")
+                filter: (mCreep) => ((mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer") && mCreep.memory.attackerID == creep.id)
             });
             let healerIsNear = false;
             let healerIsGood = false;
