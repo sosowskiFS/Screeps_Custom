@@ -200,6 +200,9 @@ var creep_asshealer = {
                     filter: (mCreep) => (mCreep.memory.priority == "assattacker" || mCreep.memory.priority == "assranger")
                 });
                 if (newTarget.length) {
+                    if (creep.memory.attackerID) {
+                        creep.memory.priority = 'targetlessHealer';
+                    }
                     creep.memory.attackerID = newTarget[0].id;
                 }
             }
