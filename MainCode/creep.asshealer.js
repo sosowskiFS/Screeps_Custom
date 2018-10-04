@@ -177,7 +177,7 @@ var creep_asshealer = {
                 }
             } else {
                 creep.memory.UnassignDelay++;
-                if (creep.memory.UnassignDelay > 3) {
+                if (creep.memory.UnassignDelay > 50) {
                     creep.memory.priority = 'targetlessHealer';
                 }
                 creep.heal(creep);
