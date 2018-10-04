@@ -6,9 +6,9 @@ var creep_asshealer = {
             creep.memory.priority = 'asshealerNearDeath';
         }
 
-        var unboostedTough = 0;
-        var unboostedHeal = 0;
-        var unboostedMove = 0;
+        let unboostedTough = 0;
+        let unboostedHeal = 0;
+        let unboostedMove = 0;
 
         creep.body.forEach(function(thisPart) {
             if (thisPart.type == HEAL && !thisPart.boost) {
@@ -35,7 +35,7 @@ var creep_asshealer = {
             let ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
-            var HealLab = creep.room.find(FIND_MY_STRUCTURES, {
+            let HealLab = creep.room.find(FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
             let hasTraveled = false;
@@ -82,14 +82,14 @@ var creep_asshealer = {
                 }
             }
         } else {
-            var targetAttacker = Game.getObjectById(creep.memory.attackerID);
+            let targetAttacker = Game.getObjectById(creep.memory.attackerID);
             if (targetAttacker) {
                 if (targetAttacker.memory.priority == 'assattackerNearDeath' && creep.memory.priority != 'asshealerNearDeath') {
                     creep.memory.priority = 'asshealerNearDeath';
                 }
-                var thisPortal = undefined;
+                let thisPortal = undefined;
                 if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
-                    var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                    let thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                         filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
                     });
                 }
@@ -98,8 +98,8 @@ var creep_asshealer = {
                         ignoreRoads: true
                     });
                 } else if ((creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) && targetAttacker.room.name == creep.room.name) {
-                    /*var xTarget = 0;
-                    var yTarget = 0;
+                    /*let xTarget = 0;
+                    let yTarget = 0;
                     if (creep.pos.x == 0) {
                         xTarget = 2;
                         yTarget = creep.pos.y;
@@ -147,10 +147,10 @@ var creep_asshealer = {
                         creep.say("(=\u229D\u11BD\u229D=)", true);
                     }
 
-                    var hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
+                    let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
                         filter: (thisCreep) => thisCreep.hits < targetAttacker.hits && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
                     });
-                    var healedAlly = false
+                    let healedAlly = false
                     if (hurtAlly.length > 0) {
                         hurtAlly.sort(healCompare);
                         if (creep.pos.getRangeTo(hurtAlly[0]) > 1) {
@@ -196,11 +196,11 @@ var creep_asshealer = {
                         stuckValue: 1
                     });
                 }
-                var newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
+                let newTarget = creep.pos.findInRange(FIND_MY_CREEPS, 10, {
                     filter: (mCreep) => (mCreep.memory.priority == "assattacker" || mCreep.memory.priority == "assranger")
                 });
                 if (newTarget.length) {
-                    if (creep.memory.attackerID) {
+                    if (creep.ticksToLive <= 1300) {
                         creep.memory.priority = 'targetlessHealer';
                     }
                     creep.memory.attackerID = newTarget[0].id;
