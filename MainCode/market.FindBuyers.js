@@ -270,10 +270,10 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
         var amountAvailable = thisTerminal.store[thisMineral];
         var targetStoreCap = 5000;
         if (saveFlag) {
-            if (thisMineral == RESOURCE_GHODIUM || _.includes(thisMineral, "X")) {
+            if (thisMineral == RESOURCE_GHODIUM || thisMineral == RESOURCE_CATALYZED_KEANIUM_ALKALIDE) {
                 amountAvailable = thisTerminal.store[thisMineral] - 5000;
             } else {
-                amountAvailable = thisTerminal.store[thisMineral] - 5000;
+                amountAvailable = thisTerminal.store[thisMineral] - 1000;
             }
         }
         if (amountAvailable > 5000) {
