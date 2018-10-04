@@ -266,14 +266,15 @@ module.exports = market_buyers;
 
 function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit) {
     if (thisTerminal.store[thisMineral] && Game.rooms[targetRoom]) {
-        var targetTerminal = Game.rooms[targetRoom].terminal
-        var amountAvailable = thisTerminal.store[thisMineral];
-        var targetStoreCap = 5000;
+        let targetTerminal = Game.rooms[targetRoom].terminal
+        let amountAvailable = thisTerminal.store[thisMineral];
+        let targetStoreCap = 5000;
         if (saveFlag) {
             if (thisMineral == RESOURCE_GHODIUM || thisMineral == RESOURCE_CATALYZED_KEANIUM_ALKALIDE) {
                 amountAvailable = thisTerminal.store[thisMineral] - 5000;
             } else {
-                amountAvailable = thisTerminal.store[thisMineral] - 1000;
+                targetStoreCap = 3000;
+                amountAvailable = thisTerminal.store[thisMineral] - 3000;
             }
         }
         if (amountAvailable > 5000) {
@@ -285,16 +286,16 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
                     amountAvailable = targetStoreCap
                 }
                 if (thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
-                    var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                    let thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
                     if (thisRoomIndex != -1) {
                         Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
                     }
                     return true;
                 }
             } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < targetStoreCap) {
-                var neededAmount = targetStoreCap - targetTerminal.store[thisMineral]
+                let neededAmount = targetStoreCap - targetTerminal.store[thisMineral]
                 if (neededAmount < 100) {
-                    var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                    let thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
                     if (thisRoomIndex != -1) {
                         Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
                     }
