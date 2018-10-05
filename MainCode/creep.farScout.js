@@ -52,9 +52,6 @@ var creep_farScout = {
         } else {
             //Done, suicide. Mark global var that scouting is done.
             Memory.scoutedMiningRooms.push(creep.memory.homeRoom);
-            if (Game.flags[creep.memory.homeRoom + "MineScout"]) {
-                Game.flags[creep.memory.homeRoom + "MineScout"].remove();
-            }
             creep.suicide();
         }
     }
