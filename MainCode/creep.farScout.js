@@ -51,8 +51,8 @@ var creep_farScout = {
         } else {
             //Done, suicide. Mark global var that scouting is done.
             Memory.scoutedMiningRooms.push(creep.memory.homeRoom);
-            if (Game.flags[thisRoom.name + "MineScout"]) {
-                Game.flags[thisRoom.name + "MineScout"].remove();
+            if (Game.flags[creep.memory.homeRoom + "MineScout"]) {
+                Game.flags[creep.memory.homeRoom + "MineScout"].remove();
             }
             creep.suicide();
         }
@@ -60,24 +60,24 @@ var creep_farScout = {
 };
 
 function CreateNewMiningFlag(creep, x, y) {
-    if (!Game.flags[creep.memory.homeRoom.name + "FarMining"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining2"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining2");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining3"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining3");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining4"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining4");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining5"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining5");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining6"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining6");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining7"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining7");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining8"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining8");
-    } else if (!Game.flags[creep.memory.homeRoom.name + "FarMining9"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom.name + "FarMining9");
+    if (!Game.flags[creep.memory.homeRoom + "FarMining"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining2"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining2");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining3"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining3");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining4"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining4");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining5"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining5");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining6"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining6");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining7"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining7");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining8"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining8");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining9"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining9");
     }
 }
 
