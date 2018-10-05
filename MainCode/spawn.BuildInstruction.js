@@ -504,7 +504,7 @@ var spawn_BuildInstruction = {
             case 'farScout':
                 var mScouts = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'farScout' && creep.memory.homeRoom == spawn.room.name));
                 if (mScouts.length < 1) {
-                    let mConfig = [MOVE, MOVE];
+                    let mConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(mConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
