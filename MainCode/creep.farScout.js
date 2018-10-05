@@ -44,6 +44,7 @@ var creep_farScout = {
                         CreateNewMiningFlag(creep, roomSources[sourceCounter].pos.x, roomSources[sourceCounter].pos.y)
                         sourceCounter++;
                     }
+                    CreateNewGuardFlag(creep);
                     creep.memory.path.splice(0, 1);
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
                 }
@@ -78,6 +79,28 @@ function CreateNewMiningFlag(creep, x, y) {
         creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining8");
     } else if (!Game.flags[creep.memory.homeRoom + "FarMining9"]) {
         creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining9");
+    }
+}
+
+function CreateNewGuardFlag(creep) {
+	if (!Game.flags[creep.memory.homeRoom + "FarGuard"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard2"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard2");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard3"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard3");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard4"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard4");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard5"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard5");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard6"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard6");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard7"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard7");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard8"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard8");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard9"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard9");
     }
 }
 
