@@ -516,7 +516,7 @@ var spawn_BuildInstruction = {
                             }
                         });
                         Memory.isSpawning = true;
-                        if (Game.flags[spawn.room.name "MineScout"]) {
+                        if (Game.flags[spawn.room.name + "MineScout"]) {
                             Game.flags[spawn.room.name + "MineScout"].remove();
                         }
                         console.log('Far Scout, ' + spawn.room.name);
