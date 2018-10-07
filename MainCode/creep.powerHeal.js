@@ -37,6 +37,9 @@ var creep_powerHeal = {
                         if (creep.heal(thisAttacker) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisAttacker);
                         }
+                        if (Game.time % 10 == 0) {
+                            creep.memory.deathWarn = thisAttacker.memory.deathWarn;
+                        }
                     } else {
                         //Cannot find attacker, clear memory
                         creep.memory.targetAttacker = undefined;

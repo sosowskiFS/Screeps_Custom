@@ -25,6 +25,10 @@ var creep_powerAttack = {
                         if (powerBanks.length) {
                             creep.memory.targetBank = powerBanks[0].id
                             creep.travelTo(powerBanks[0]);
+                            if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+                                creep.memory.travelDistance = creep.memory._trav.path.length;
+                                creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
+                            }
                         } else {
                             //No bank located, delete flag
                             Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
@@ -34,7 +38,11 @@ var creep_powerAttack = {
                             //Game.notify('Power flag deleted - Cannot find bank. Initial look |' + creep.room.name);
                         }
                     } catch (e) {
-                        creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"])
+                        creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"]);
+                        if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+                            creep.memory.travelDistance = creep.memory._trav.path.length;
+                            creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
+                        }
                     }
 
                 } else if (creep.hits >= 2500) {
@@ -46,6 +54,12 @@ var creep_powerAttack = {
                         if (thisBank.hits <= 468000 && !Game.flags[creep.memory.homeRoom + "PowerCollect"]) {
                             //Set flag to signal mule creation
                             Game.rooms[creep.room.name].createFlag(25, 25, creep.memory.homeRoom + "PowerCollect");
+                        }
+                        //750 = attack per hit
+                        if (creep.memory.deathWarn > 0 && (thisBank.hits / 750) <= creep.ticksToLive) {
+                        	//Don't deathwarn. May be able to destroy it now.
+                        	creep.memory.deathWarn = 0;
+                        	creep.memory.priority = 'powerAttack';
                         }
                     } else {
                         //Cannot find bank, abort
