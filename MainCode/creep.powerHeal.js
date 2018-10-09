@@ -39,6 +39,10 @@ var creep_powerHeal = {
                         }
                         if (Game.time % 10 == 0) {
                             creep.memory.deathWarn = thisAttacker.memory.deathWarn;
+                            if (creep.memory.deathWarn > 0) {
+                                //Account for difference in body
+                                creep.memory.deathWarn = creep.memory.deathWarn - 54;
+                            }
                         }
                     } else {
                         //Cannot find attacker, clear memory
