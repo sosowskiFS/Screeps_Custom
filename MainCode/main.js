@@ -1054,7 +1054,7 @@ module.exports.loop = function() {
     Memory.CurrentRoomEnergy = [];
     Memory.roomCreeps = new Object();
 
-    if (Game.time % 1000 == 0) {
+    if (Game.time % 50 == 0) {
         //Periodically look for purchasable tokens
         var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_SELL && order.price <= Game.market.credits);
         if (FilteredOrders.length > 0) {
