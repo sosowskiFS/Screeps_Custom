@@ -140,7 +140,6 @@ var creep_asshealer = {
                     creep.heal(creep);
                     creep.say("(=\u2716\u11BD\u2716=)", true);
                 } else {
-
                     if (Game.time % 2 == 0) {
                         creep.say("(=\u25D5\u11BD\u25D5\u0E3A=)", true);
                     } else {
@@ -148,7 +147,7 @@ var creep_asshealer = {
                     }
 
                     let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {
-                        filter: (thisCreep) => thisCreep.hits < targetAttacker.hits + 500 && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+                        filter: (thisCreep) => thisCreep.hits < targetAttacker.hits && thisCreep.id != targetAttacker.id && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
                     });
                     let healedAlly = false
                     if (hurtAlly.length > 0) {
