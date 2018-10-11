@@ -25,6 +25,7 @@ var creep_towerDrainer = require('creep.towerDrainer');
 var creep_looter = require('creep.looter');
 var creep_assattacker = require('creep.assattacker');
 var creep_asshealer = require('creep.asshealer');
+var creep_assranger = require('creep.assranger');
 var creep_distractor = require('creep.distractor');
 var creep_powerAttack = require('creep.powerAttack');
 var creep_powerHeal = require('creep.powerHeal');
@@ -82,27 +83,27 @@ module.exports.loop = function() {
 
     if (Game.flags["AttackFlags"]) {
         Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(Game.flags["AttackFlags"].pos, Game.flags["AttackFlags"].room.name + "RallyHere");
-        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 10, Game.flags["AttackFlags"].room.name + "DoBoost");
-        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 12, Game.flags["AttackFlags"].room.name + "WarBoosts");
-        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 14, Game.flags["AttackFlags"].room.name + "MeleeStyle");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 16, Game.flags["AttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 18, Game.flags["AttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["AttackFlags"].room.name].createFlag(2, 20, Game.flags["AttackFlags"].room.name + "MeleeStyle");
         if (Game.flags["AttackFlags"]) {
             Game.flags["AttackFlags"].remove();
         }
     }
     if (Game.flags["RAttackFlags"]) {
         Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(Game.flags["RAttackFlags"].pos, Game.flags["RAttackFlags"].room.name + "RallyHere");
-        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 10, Game.flags["RAttackFlags"].room.name + "DoBoost");
-        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 12, Game.flags["RAttackFlags"].room.name + "WarBoosts");
-        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 14, Game.flags["RAttackFlags"].room.name + "RangedStyle");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 16, Game.flags["RAttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 18, Game.flags["RAttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["RAttackFlags"].room.name].createFlag(2, 20, Game.flags["RAttackFlags"].room.name + "RangedStyle");
         if (Game.flags["RAttackFlags"]) {
             Game.flags["RAttackFlags"].remove();
         }
     }
     if (Game.flags["DAttackFlags"]) {
         Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(Game.flags["DAttackFlags"].pos, Game.flags["DAttackFlags"].room.name + "RallyHere");
-        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 10, Game.flags["DAttackFlags"].room.name + "DoBoost");
-        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 12, Game.flags["DAttackFlags"].room.name + "WarBoosts");
-        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 14, Game.flags["DAttackFlags"].room.name + "DisassembleStyle");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 16, Game.flags["DAttackFlags"].room.name + "DoBoost");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 18, Game.flags["DAttackFlags"].room.name + "WarBoosts");
+        Game.rooms[Game.flags["DAttackFlags"].room.name].createFlag(2, 20, Game.flags["DAttackFlags"].room.name + "DisassembleStyle");
         if (Game.flags["DAttackFlags"]) {
             Game.flags["DAttackFlags"].remove();
         }
@@ -1184,6 +1185,10 @@ module.exports.loop = function() {
                 case 'assattacker':
                 case 'assattackerNearDeath':
                     creep_assattacker.run(creep);
+                    break;
+                case 'assranger':
+                case 'assrangerNearDeath':
+                    creep_assranger.run(creep);
                     break;
                 case 'asshealer':
                 case 'asshealerNearDeath':
