@@ -238,10 +238,10 @@ var creep_assranger = {
                                             maxRooms: 1,
                                             stuckValue: 2,
                                             allowSK: true,
-                                            range: 3
+                                            range: 2
                                         });
                                     }
-                                    creep.rangedAttack(eSpawns);
+                                    creep.rangedMassAttack();
                                 } else {
                                     let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                                         filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
@@ -253,10 +253,10 @@ var creep_assranger = {
                                                 maxRooms: 1,
                                                 stuckValue: 2,
                                                 allowSK: true,
-                                                range: 3
+                                                range: 2
                                             });
                                         }
-                                        creep.rangedAttack(eStructures);
+                                        creep.rangedMassAttack();
                                     } else if (closeFoe) {
                                         creep.moveTo(closeFoe, {
                                             ignoreRoads: true,
