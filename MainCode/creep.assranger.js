@@ -219,10 +219,10 @@ var creep_assranger = {
                                             maxRooms: 1,
                                             stuckValue: 2,
                                             allowSK: true,
-                                            range: 3
+                                            range: 2
                                         });
                                     }
-                                    creep.rangedAttack(allStruct[thisStruct]);
+                                    creep.rangedMassAttack();
                                     targetFound = true;
                                     break;
                                 }
