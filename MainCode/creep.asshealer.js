@@ -136,7 +136,7 @@ var creep_asshealer = {
                     //}
                 }
 
-                if (creep.hits < targetAttacker.hits + 300) {
+                if (creep.hits + 300 < targetAttacker.hits) {
                     creep.heal(creep);
                     creep.say("(=\u2716\u11BD\u2716=)", true);
                 } else {
