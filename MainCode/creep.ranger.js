@@ -67,7 +67,7 @@ var creep_ranger = {
                 });
                 creep.attack(eSpawns);
                 creep.rangedAttack(eSpawns);
-            } else if (eSites && creep.room.controller && creep.room.controller.owner.username != "Montblanc") {
+            } else if (eSites && creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
                 creep.travelTo(eSites, {
                     ignoreRoads: true,
                     maxRooms: 1,
