@@ -359,6 +359,15 @@ var spawn_BuildCreeps5 = {
             upSupplierMax = 0;
             supplierMax = 1;
             distributorMax = 1;
+        } else if (thisRoom.controller.level == 8) {
+            //Minimize staffing
+            minerMax = 2;
+            muleMax = 1;
+            upgraderMax = 1;
+            repairMax = 0;
+            upSupplierMax = 1;
+            supplierMax = 1;
+            distributorMax = 1;
         }
 
         if (Game.flags[thisRoom.name + "upFocus"]) {
