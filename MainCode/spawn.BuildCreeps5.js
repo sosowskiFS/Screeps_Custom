@@ -309,8 +309,17 @@ var spawn_BuildCreeps5 = {
         }
 
 
-        if (thisRoom.storage) {
-            if (thisRoom.controller.level != 8 && thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
+        if (thisRoom.controller.level == 8) {
+            //Minimize staffing
+            muleMax = 1;
+            upgraderMax = 1;
+            repairMax = 0;
+            upSupplierMax = 1;
+            supplierMax = 1;
+            distributorMax = 1;
+            salvagerMax = 0;
+        } else if (thisRoom.storage) {
+            if (thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
                 upgraderMax++;
                 //muleMax++;
             }
@@ -359,16 +368,6 @@ var spawn_BuildCreeps5 = {
             upSupplierMax = 0;
             supplierMax = 1;
             distributorMax = 1;
-        } else if (thisRoom.controller.level == 8) {
-            //Minimize staffing
-            minerMax = 2;
-            muleMax = 1;
-            upgraderMax = 1;
-            repairMax = 0;
-            upSupplierMax = 1;
-            supplierMax = 1;
-            distributorMax = 1;
-            salvagerMax = 0;
         }
 
         if (Game.flags[thisRoom.name + "upFocus"]) {
