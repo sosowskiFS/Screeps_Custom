@@ -368,6 +368,7 @@ var spawn_BuildCreeps5 = {
             upSupplierMax = 1;
             supplierMax = 1;
             distributorMax = 1;
+            salvagerMax = 0;
         }
 
         if (Game.flags[thisRoom.name + "upFocus"]) {
