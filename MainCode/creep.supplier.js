@@ -22,7 +22,7 @@ var creep_supplier = {
                     creep.travelTo(storageTarget);
                 }
             }
-        } else if (Memory.towerNeedEnergy[creep.room.name].length) {
+        } else if (Memory.towerNeedEnergy[creep.room.name] && Memory.towerNeedEnergy[creep.room.name].length) {
             var target = Game.getObjectById(Memory.towerNeedEnergy[creep.room.name][0]);
             if (target) {
                 if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
