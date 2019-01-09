@@ -54,6 +54,12 @@ var creep_Helper = {
                             ignoreRoads: true
                         });
                     }
+                } else if (creep.room.terminal && creep.room.terminal.store[RESOURCE_ENERGY] >= 400){
+                    if (creep.withdraw(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(creep.room.terminal, {
+                            ignoreRoads: true
+                        });
+                    }
                 } else if (creep.memory.targetSource) {
                     let thisSource = Game.getObjectById(creep.memory.targetSource);
                     if (thisSource) {
