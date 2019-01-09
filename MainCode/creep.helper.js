@@ -48,16 +48,7 @@ var creep_Helper = {
             }
 
             if (creep.memory.currentState == 1) {
-                let oldNuker = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType == STRUCTURE_NUKER && structure.energy >= 400)
-                });
-                if (oldNuker) {
-                    if (creep.withdraw(oldNuker, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(oldNuker, {
-                            ignoreRoads: true
-                        });
-                    }
-                } else if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 400) {
+                if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 400) {
                     if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage, {
                             ignoreRoads: true
