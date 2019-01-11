@@ -957,7 +957,7 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E4N10;E5N8');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E30N40');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex);
                     }
@@ -1223,11 +1223,12 @@ module.exports.loop = function() {
                     break;
                 default:
                     if (!creep.memory.priority) {
-                        creep.memory.priority = 'claimer';
+                        creep.memory.priority = 'helper';
                         var creepPath = 'E30N43;E29N43'.split(";");
                         creep.memory.path = creepPath;
                         creep.memory.destination = 'E29N43';
                         creep.memory.homeRoom = 'E29N43';
+                        creep.memory.previousPriority = 'helper';
                     }
                     if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
                         var pre = Game.cpu.getUsed();
