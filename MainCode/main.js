@@ -592,7 +592,9 @@ module.exports.loop = function() {
                             }
                         }
                         if (!hasRampart) {
-                            allStruct[thisStruct].room.createConstructionSite(allStruct[thisStruct].pos.x, allStruct[thisStruct].pos.y, STRUCTURE_RAMPART);
+                            if (allStruct[thisStruct].room.createConstructionSite(allStruct[thisStruct].pos.x, allStruct[thisStruct].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
+                                break;
+                            }
                         }
                     }
                 }
