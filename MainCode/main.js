@@ -579,8 +579,8 @@ module.exports.loop = function() {
                 //biggestRampart.sort(hiHitCompare);
                 //Check all structures for ramparts, add if missing
                 if (Game.time % 10000 == 0) {
-                    let allStruct = thisRoom.find(FIND_MY_STRUCTURES, {
-                        filter: (structure) => (structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_EXTRACTOR)
+                    let allStruct = thisRoom.find(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_CONTAINER)
                     });
                     for (let thisStruct in allStruct) {
                         let rampCheck = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
