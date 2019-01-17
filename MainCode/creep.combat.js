@@ -83,7 +83,7 @@ var creep_combat = {
                             if (creep.pos.inRangeTo(closeFoe, 3)) {
                                 creep.memory.waitingTimer = 0;
                             } else if (lookResult[y].isPublic == true) {
-                                creep.memory.waitingTimer = creep.memory.waitingTimer + 25;
+                                creep.memory.waitingTimer = creep.memory.waitingTimer + 150;
                             } else {
                                 creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
                             }
