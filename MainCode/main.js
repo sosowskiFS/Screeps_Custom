@@ -227,20 +227,6 @@ module.exports.loop = function() {
         var alreadySearched = [];
         for (var y = 0; y < towers.length; y++) {
             if (towers[y].room.controller.owner && towers[y].room.controller.owner.username == "Montblanc") {
-                if (Game.time % 1000 == 0) {
-                    var found = towers[y].pos.lookFor(LOOK_STRUCTURES);
-                    var hasRampart = false;
-                    for (var building in found) {
-                        if (found[building].structureType == STRUCTURE_RAMPART) {
-                            hasRampart = true;
-                            break;
-                        }
-                    }
-                    if (!hasRampart) {
-                        towers[y].room.createConstructionSite(towers[y].pos.x, towers[y].pos.y, STRUCTURE_RAMPART);
-                    }
-                }
-
                 if (alreadySearched.indexOf(towers[y].room.name) < 0) {
                     //Populate the room creeps memory.
                     Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
@@ -349,21 +335,6 @@ module.exports.loop = function() {
         if (thisRoom.controller.owner) {
             var controllerLevel = thisRoom.controller.level;
 
-            //Ensure all spawns have a rampart
-            if (Game.time % 1000 == 0) {
-                var found = Game.spawns[i].pos.lookFor(LOOK_STRUCTURES);
-                var hasRampart = false;
-                for (var building in found) {
-                    if (found[building].structureType == STRUCTURE_RAMPART) {
-                        hasRampart = true;
-                        break;
-                    }
-                }
-                if (!hasRampart) {
-                    Game.spawns[i].room.createConstructionSite(Game.spawns[i].pos.x, Game.spawns[i].pos.y, STRUCTURE_RAMPART);
-                }
-            }
-
             if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
                 //Gimme some pie graphs
                 let vis = new RoomVisual(thisRoom.name);
@@ -383,36 +354,6 @@ module.exports.loop = function() {
                 } else if (thisRoom.storage) {
                     drawPie(vis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 1.5);
                     drawPie(vis, Math.round(Memory.CPUAverages.TotalCPU.CPU * 100) / 100, Game.cpu.limit, 'Average', getColourByPercentage(Math.min(1, Memory.CPUAverages.TotalCPU.CPU / Game.cpu.limit), true), 2, 2.5);
-                }
-
-                //Ensure all storage units have a rampart
-                if (thisRoom.storage && Game.time % 1000 == 0) {
-                    var found = thisRoom.storage.pos.lookFor(LOOK_STRUCTURES);
-                    var hasRampart = false;
-                    for (var building in found) {
-                        if (found[building].structureType == STRUCTURE_RAMPART) {
-                            hasRampart = true;
-                            break;
-                        }
-                    }
-                    if (!hasRampart) {
-                        thisRoom.storage.room.createConstructionSite(thisRoom.storage.pos.x, thisRoom.storage.pos.y, STRUCTURE_RAMPART);
-                    }
-                }
-
-                //Ensure all terminals have a rampart
-                if (thisRoom.terminal && Game.time % 1000 == 0) {
-                    var found = thisRoom.terminal.pos.lookFor(LOOK_STRUCTURES);
-                    var hasRampart = false;
-                    for (var building in found) {
-                        if (found[building].structureType == STRUCTURE_RAMPART) {
-                            hasRampart = true;
-                            break;
-                        }
-                    }
-                    if (!hasRampart) {
-                        thisRoom.terminal.room.createConstructionSite(thisRoom.terminal.pos.x, thisRoom.terminal.pos.y, STRUCTURE_RAMPART);
-                    }
                 }
 
                 //Get non-suppliers off the supplier spot
@@ -500,19 +441,6 @@ module.exports.loop = function() {
                             if (linkCounter == 0 && nearSources.length == 0) {
                                 reverseFlag = true;
                             }*/
-
-                            //Check and add rampart if missing
-                            var found = roomLinks[linkCounter].pos.lookFor(LOOK_STRUCTURES);
-                            var hasRampart = false;
-                            for (var building in found) {
-                                if (found[building].structureType == STRUCTURE_RAMPART) {
-                                    hasRampart = true;
-                                    break;
-                                }
-                            }
-                            if (!hasRampart) {
-                                roomLinks[linkCounter].room.createConstructionSite(roomLinks[linkCounter].pos.x, roomLinks[linkCounter].pos.y, STRUCTURE_RAMPART);
-                            }
 
                             linkCounter++;
                         }
@@ -604,18 +532,6 @@ module.exports.loop = function() {
                         if (Memory.labList[thisRoom.name].indexOf(labLocations[thisLab].id) == -1) {
                             Memory.labList[thisRoom.name].push(labLocations[thisLab].id);
                         }
-                        //Check and add rampart if missing
-                        var found = labLocations[thisLab].pos.lookFor(LOOK_STRUCTURES);
-                        var hasRampart = false;
-                        for (var building in found) {
-                            if (found[building].structureType == STRUCTURE_RAMPART) {
-                                hasRampart = true;
-                                break;
-                            }
-                        }
-                        if (!hasRampart) {
-                            labLocations[thisLab].room.createConstructionSite(labLocations[thisLab].pos.x, labLocations[thisLab].pos.y, STRUCTURE_RAMPART);
-                        }
                     }
                     Memory.labList[thisRoom.name].sort();
                 }
@@ -628,22 +544,8 @@ module.exports.loop = function() {
                             structureType: STRUCTURE_POWER_SPAWN
                         }
                     });
-                    if (powerSpawns) {
-                        if (powerSpawns.length > 0) {
-                            Memory.powerSpawnList[thisRoom.name].push(powerSpawns[0].id);
-
-                            var found = powerSpawns[0].pos.lookFor(LOOK_STRUCTURES);
-                            var hasRampart = false;
-                            for (var building in found) {
-                                if (found[building].structureType == STRUCTURE_RAMPART) {
-                                    hasRampart = true;
-                                    break;
-                                }
-                            }
-                            if (!hasRampart) {
-                                powerSpawns[0].room.createConstructionSite(powerSpawns[0].pos.x, powerSpawns[0].pos.y, STRUCTURE_RAMPART);
-                            }
-                        }
+                    if (powerSpawns.length) {
+                        Memory.powerSpawnList[thisRoom.name].push(powerSpawns[0].id);
                     }
                 }
 
@@ -668,57 +570,41 @@ module.exports.loop = function() {
                             structureType: STRUCTURE_NUKER
                         }
                     });
-                    if (theseNukes) {
-                        if (theseNukes.length > 0) {
-                            Memory.nukerList[thisRoom.name].push(theseNukes[0].id);
-
-                            var found = theseNukes[0].pos.lookFor(LOOK_STRUCTURES);
-                            var hasRampart = false;
-                            for (var building in found) {
-                                if (found[building].structureType == STRUCTURE_RAMPART) {
-                                    hasRampart = true;
-                                    break;
-                                }
-                            }
-                            if (!hasRampart) {
-                                theseNukes[0].room.createConstructionSite(theseNukes[0].pos.x, theseNukes[0].pos.y, STRUCTURE_RAMPART);
-                            }
-                        }
+                    if (theseNukes.length) {
+                        Memory.nukerList[thisRoom.name].push(theseNukes[0].id);
                     }
                 }
 
-                //Determine if ramparts have been maxed out
-                if (Game.time % 10000 == 0 && !Game.flags[thisRoom.name + "MAXRAMP"]) {
-                    let biggestRampart = thisRoom.find(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_RAMPART)
+                //For future "I have nothing to do with energy" check
+                //biggestRampart.sort(hiHitCompare);
+                //Check all structures for ramparts, add if missing
+                if (Game.time % 10000 == 0) {
+                    let allStruct = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: (structure) => (structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_EXTRACTOR)
                     });
-
-                    if (biggestRampart.length > 0) {
-                        biggestRampart.sort(hiHitCompare);
-                        if (biggestRampart.hits >= 299500000) {
-                            thisRoom.createFlag(25, 25, thisRoom.name + "MAXRAMP");
+                    for (let thisStruct in allStruct) {
+                        let rampCheck = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
+                        let hasRampart = false;
+                        for (let thisCheck in rampCheck) {
+                            if (rampCheck[thisCheck].structureType == STRUCTURE_RAMPART) {
+                                hasRampart = true;
+                                break;
+                            }
                         }
-                    }
-                }
-
-                if (Game.flags[thisRoom.name + "MAXRAMP"] && Game.time % 5000 == 0) {
-                    //Put a rampart on all extentions
-                    let allExtensions = thisRoom.find(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_EXTENSION)
-                    });
-                    for (let thisExtension in allExtensions) {
-                        thisRoom.createConstructionSite(allExtensions[thisExtension].pos.x, allExtensions[thisExtension].pos.y, STRUCTURE_RAMPART);
+                        if (!hasRampart) {
+                            allStruct[thisStruct].room.createConstructionSite(allStruct[thisStruct].pos.x, allStruct[thisStruct].pos.y, STRUCTURE_RAMPART);
+                        }
                     }
                 }
 
                 //Determine if far mining scout needs to run
-                if (Game.time % 10000 == 0 && Memory.scoutedMiningRooms.indexOf(thisRoom.name) === -1){
+                if (Game.time % 10000 == 0 && Memory.scoutedMiningRooms.indexOf(thisRoom.name) === -1) {
                     if (Game.flags[thisRoom.name + "FarMining"]) {
                         //Assume this has already been done
                         Memory.scoutedMiningRooms.push(thisRoom.name);
                     } else {
                         //Create flag to run scout
-                        thisRoom.createFlag(25,25, thisRoom.name + "MineScout");
+                        thisRoom.createFlag(25, 25, thisRoom.name + "MineScout");
                     }
                 }
 
@@ -915,13 +801,13 @@ module.exports.loop = function() {
                 if (Game.flags[thisRoom.name + "BuildThis"]) {
                     //var sitesOnTile = Game.flags[thisRoom.name + "BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
                     //if (sitesOnTile.length) {
-                        if (Game.flags["UseDefinedRoute"]) {
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags[thisRoom.name + "BuildThis"].pos.roomName, 'E30N40');
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName, 'E30N39;E30N40;E28N40;E28N43;E27N43');
-                        } else {
-                            //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags[thisRoom.name + "BuildThis"].pos.roomName);
-                            spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName);
-                        }
+                    if (Game.flags["UseDefinedRoute"]) {
+                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags[thisRoom.name + "BuildThis"].pos.roomName, 'E30N40');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName, 'E30N39;E30N40;E28N40;E28N43;E27N43');
+                    } else {
+                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags[thisRoom.name + "BuildThis"].pos.roomName);
+                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName);
+                    }
                     //}
                 }
 
