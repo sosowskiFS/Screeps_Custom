@@ -208,6 +208,17 @@ var market_buyers = {
                 }
             }
 
+            if (!hasSent) {
+                //Buy GCL juice
+                let XGH2OSellers = Game.market.getAllOrders(order => order.resourceType == RESOURCE_CATALYZED_GHODIUM_ACID && order.amount >= 100 && order.type == ORDER_SELL && Game.market.calcTransactionCost(order.amount, thisRoom.name, order.roomName) <= TerminalEnergy)
+                if (XGH2OSellers.length) {
+                    XGH2OSellers.sort(orderBuyCompare);
+                    if (Game.market.deal(XGH2OSellers[0].id, XGH2OSellers[0].amount, thisRoom.name) == OK) {
+                        hasSent = true;
+                    }
+                }
+            }
+
             var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST];
 
             var sellEnergyCap = 30000;
@@ -234,14 +245,13 @@ var market_buyers = {
                         }
                         var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == sellMinerals[y] && order.amount >= 100 && order.type == ORDER_BUY && order.price >= Memory.PriceList[sellMinerals[y]] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
                         if (FilteredOrders.length > 0) {
-                            FilteredOrders.sort(orderPriceCompare);
+                            FilteredOrders.sort(orderSellCompare);
                             var tradeAmount = FilteredOrders[0].amount;
                             if (mineralInTerminal < tradeAmount) {
                                 tradeAmount = mineralInTerminal;
                             }
                             if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
                                 //console.log('DEAL: ' + thisRoom.name + '|' + sellMinerals[y] + '|' + tradeAmount + 'u');
-                                Game.notify('DEAL: ' + thisRoom.name + '|' + sellMinerals[y] + '|' + tradeAmount + 'u');
                                 Memory.PriceList[sellMinerals[y]] = FilteredOrders[0].price;
                                 if (Memory.ordersFilled.indexOf(FilteredOrders[0].id) == -1) {
                                     Memory.ordersFilled.push(FilteredOrders[0].id);
@@ -326,10 +336,18 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit
     return false;
 }
 
-function orderPriceCompare(a, b) {
+function orderSellCompare(a, b) {
     if (a.price < b.price)
         return 1;
     if (a.price > b.price)
         return -1;
+    return 0;
+}
+
+function orderBuyCompare(a, b) {
+    if (a.price < b.price)
+        return -1;
+    if (a.price > b.price)
+        return 1;
     return 0;
 }
