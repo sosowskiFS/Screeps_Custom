@@ -210,10 +210,13 @@ var market_buyers = {
 
             if (!hasSent) {
                 //Buy GCL juice
-                let XGH2OSellers = Game.market.getAllOrders(order => order.resourceType == RESOURCE_CATALYZED_GHODIUM_ACID && order.amount >= 100 && order.type == ORDER_SELL && Game.market.calcTransactionCost(order.amount, thisRoom.name, order.roomName) <= TerminalEnergy)
+                let XGH2OSellers = Game.market.getAllOrders(order => order.resourceType == RESOURCE_CATALYZED_GHODIUM_ACID && order.amount >= 100 && order.type == ORDER_SELL && Game.market.calcTransactionCost(order.amount, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
                 if (XGH2OSellers.length) {
                     XGH2OSellers.sort(orderBuyCompare);
                     if (Game.market.deal(XGH2OSellers[0].id, XGH2OSellers[0].amount, thisRoom.name) == OK) {
+                        if (Memory.ordersFilled.indexOf(XGH2OSellers[0].id) == -1) {
+                            Memory.ordersFilled.push(XGH2OSellers[0].id);
+                        }
                         hasSent = true;
                     }
                 }
