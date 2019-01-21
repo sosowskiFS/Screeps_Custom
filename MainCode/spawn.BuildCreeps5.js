@@ -318,6 +318,9 @@ var spawn_BuildCreeps5 = {
             supplierMax = 1;
             distributorMax = 1;
             salvagerMax = 0;
+            if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 900000) {
+                repairMax = 2;
+            }
         } else if (thisRoom.storage) {
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
                 upgraderMax++;
