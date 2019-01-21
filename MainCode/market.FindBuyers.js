@@ -157,7 +157,7 @@ var market_buyers = {
             //Memory.needMin room name
             //resource
             var hasSent = false;
-            if (Game.time % 1000 == 0) {
+            if (Game.time % 100 == 0) {
                 for (var y in Memory.mineralNeed) {
                     if (y == RESOURCE_CATALYZED_GHODIUM_ACID && thisRoom.controller.level < 8) {
                         //No
