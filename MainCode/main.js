@@ -231,7 +231,7 @@ module.exports.loop = function() {
                     //Populate the room creeps memory.
                     Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
-                        //Check for hostiles in this room
+                    //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -578,10 +578,18 @@ module.exports.loop = function() {
                 //For future "I have nothing to do with energy" check
                 //biggestRampart.sort(hiHitCompare);
                 //Check all structures for ramparts, add if missing
-                if (thisRoom.controller.level == 8 && Game.time % 10000 == 0) {
-                    let allStruct = thisRoom.find(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_CONTAINER)
-                    });
+                if (Game.time % 10000 == 0) {
+                    let allStruct;
+                    if (thisRoom.controller.level == 8) {
+                        allStruct = thisRoom.find(FIND_MY_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_CONTAINER)
+                        });
+                    } else {
+                        allStruct = thisRoom.find(FIND_MY_STRUCTURES, {
+                            filter: (structure) => (structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_CONTAINER && structure.structureType != STRUCTURE_EXTENSION)
+                        });
+                    }
+
                     for (let thisStruct in allStruct) {
                         let rampCheck = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
                         let hasRampart = false;
