@@ -315,7 +315,10 @@ var creep_farMule = {
                     }
                 }
             }
-            evadeAttacker(creep, 4);
+
+            if (creep.hits <= (creep.hitsMax - 500)) {
+                evadeAttacker(creep, 4);
+            }
         }
     }
 };
