@@ -268,37 +268,6 @@ var creep_farMule = {
                 }
             }
 
-            if (_.sum(creep.carry) < creep.carryCapacity - 100) {
-                if (Game.flags[creep.room.name + "SKRoom"]) {
-                    var sources = creep.pos.findInRange(FIND_TOMBSTONES, 5, {
-                        filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
-                    });
-                    if (sources.length && Object.keys(sources[0].store).length > 1) {
-                        if (creep.withdraw(sources[0], Object.keys(sources[0].store)[1]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(sources[0], {
-                                ignoreRoads: roadIgnore,
-                                ignoreCreeps: false
-                            });
-                        }
-                    } else if (sources.length && Object.keys(sources[0].store).length && creep.withdraw(sources[0], Object.keys(sources[0].store)[0]) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(sources[0], {
-                            ignoreRoads: roadIgnore,
-                            ignoreCreeps: false
-                        });
-                    }
-                } else {
-                    var someEnergy = creep.pos.lookFor(LOOK_TOMBSTONES);
-                    if (someEnergy.length && _.sum(someEnergy[0].store) > 0) {
-                        if (Object.keys(someEnergy[0].store).length > 1) {
-                            creep.withdraw(someEnergy[0], Object.keys(someEnergy[0].store)[1]);
-                        } else {
-                            creep.withdraw(someEnergy[0], Object.keys(someEnergy[0].store)[0])
-                        }
-                    }
-                }
-            }
-            //}
-
             if (_.sum(creep.carry) > creep.carryCapacity - 300 && !creep.memory.didRoadSearch && !creep.memory.doNotRoadSearch && roadSearchTarget) {
                 creep.memory.didRoadSearch = true;
                 //Autogenerate roads
