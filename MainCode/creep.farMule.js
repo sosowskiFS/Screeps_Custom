@@ -1,4 +1,4 @@
-var creep_farMule = {
+let creep_farMule = {
     run: function(creep, doExcessWork) {
         if ((creep.ticksToLive <= creep.memory.deathWarn || creep.getActiveBodyparts(CARRY) <= 2) && creep.memory.priority != 'farMuleNearDeath') {
             creep.memory.priority = 'farMuleNearDeath';
@@ -16,13 +16,13 @@ var creep_farMule = {
             creep.memory.doNotRoadSearch = false;
         }
 
-        var roadSearchTarget;
+        let roadSearchTarget;
 
         if (!creep.memory.lastRoom || creep.memory.lastRoom != creep.room.name) {
             creep.memory.didRoadSearch = false;
             creep.memory.lastRoom = creep.room.name;
             //Autogenerate roads
-            var someSites = creep.room.find(FIND_CONSTRUCTION_SITES);
+            let someSites = creep.room.find(FIND_CONSTRUCTION_SITES);
             if (someSites.length) {
                 creep.memory.lookForSites = true;
             } else {
@@ -30,25 +30,18 @@ var creep_farMule = {
             }
         }
 
-        var roadIgnore = false;
+        let roadIgnore = false;
 
         if (creep.carry.energy > 0 && doExcessWork) {
             //All creeps check for road under them and repair if needed.
-            var someSite = [];
+            let someSite = [];
             if (creep.memory.lookForSites) {
                 someSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
             }
             if (someSite.length) {
                 creep.build(someSite[0]);
             } else {
-                var someStructure = [];
-                if (creep.room.name == creep.memory.homeRoom) {
-                    someStructure = creep.pos.findInRange(FIND_STRUCTURES, 3, {
-                        filter: (structure) => (structure.hitsMax - structure.hits >= 100)
-                    });
-                } else {
-                    someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
-                }
+                let someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
                 if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 100)) {
                     someStructure.sort(repairCompare);
                     creep.repair(someStructure[0]);
@@ -77,7 +70,7 @@ var creep_farMule = {
                     });
                     if (creep.memory.didRoadSearch == false) {
                         if (creep.memory.storageSource) {
-                            var storageUnit = Game.getObjectById(creep.memory.storageSource)
+                            let storageUnit = Game.getObjectById(creep.memory.storageSource)
                             if ((storageUnit && creep.pos.isNearTo(storageUnit)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                                 roadSearchTarget = creep.memory.containerPosition;
                             } else {
@@ -89,7 +82,7 @@ var creep_farMule = {
                     }
                 } else if (creep.memory.containerTarget) {
                     //doReservationCheck(creep);
-                    var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+                    let thisContainer = Game.getObjectById(creep.memory.containerTarget);
                     if (thisContainer) {
                         if (!creep.memory.containerPosition) {
                             creep.memory.containerPosition = thisContainer.pos;
@@ -112,7 +105,7 @@ var creep_farMule = {
                         } else {
                             //Assume ok, do road search back to home
                             if (creep.memory.didRoadSearch == false && creep.memory.storageSource) {
-                                var storageUnit = Game.getObjectById(creep.memory.storageSource)
+                                let storageUnit = Game.getObjectById(creep.memory.storageSource)
                                 if ((thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                                     roadSearchTarget = storageUnit.pos;
                                 } else {
@@ -138,7 +131,7 @@ var creep_farMule = {
                 } else {
                     //No container yet, move to be near source
                     if (!creep.memory.mineSource) {
-                        var markedSources = [];
+                        let markedSources = [];
                         if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].room) {
                             markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
                         }
@@ -147,7 +140,7 @@ var creep_farMule = {
                         }
                     }
 
-                    var thisSource = Game.getObjectById(creep.memory.mineSource);
+                    let thisSource = Game.getObjectById(creep.memory.mineSource);
                     if (thisSource) {
                         //doReservationCheck(creep);
                         if (creep.pos.inRangeTo(thisSource, 3)) {
@@ -207,7 +200,7 @@ var creep_farMule = {
                     creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
                     if (creep.memory.didRoadSearch == false) {
                         if (creep.memory.containerTarget) {
-                            var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+                            let thisContainer = Game.getObjectById(creep.memory.containerTarget);
                             if ((thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                                 roadSearchTarget = creep.memory.storagePosition;
                             } else {
@@ -218,7 +211,7 @@ var creep_farMule = {
                         }
                     }
                 } else if (creep.memory.storageSource) {
-                    var storageUnit = Game.getObjectById(creep.memory.storageSource);
+                    let storageUnit = Game.getObjectById(creep.memory.storageSource);
                     if (storageUnit) {
                         if (!creep.memory.storagePosition) {
                             creep.memory.storagePosition = storageUnit.pos
@@ -228,18 +221,9 @@ var creep_farMule = {
                                 creep.travelTo(storageUnit);
                             }
                         } else if (Object.keys(creep.carry).length) {
-                            var transferResult = creep.transfer(storageUnit, Object.keys(creep.carry)[0])
+                            let transferResult = creep.transfer(storageUnit, Object.keys(creep.carry)[0])
                             if (transferResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(storageUnit);
-                                //If room energy not full, check adjacent extentions and transfer into them
-                                if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
-                                    let structList = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
-                                        filter: (thisStruct) => ((thisStruct.structureType == STRUCTURE_EXTENSION || thisStruct.structureType == STRUCTURE_SPAWN || thisStruct.structureType == STRUCTURE_POWER_SPAWN) && thisStruct.energy < thisStruct.energyCapacity)
-                                    });
-                                    if (structList.length) {
-                                        creep.transfer(structList[0], RESOURCE_ENERGY);
-                                    }
-                                }
                             } else if (transferResult == OK) {
                                 creep.memory.doNotRoadSearch = false;
                                 if (creep.memory.containerPosition) {
@@ -251,7 +235,7 @@ var creep_farMule = {
                         }
                         if (creep.memory.didRoadSearch == false) {
                             if (creep.memory.containerTarget) {
-                                var thisContainer = Game.getObjectById(creep.memory.containerTarget);
+                                let thisContainer = Game.getObjectById(creep.memory.containerTarget);
                                 if ((thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                                     roadSearchTarget = storageUnit.pos;
                                 } else {
@@ -272,10 +256,10 @@ var creep_farMule = {
                 creep.memory.didRoadSearch = true;
                 //Autogenerate roads
                 //.dest.x, .dest.y, .dest.room
-                var thisPath = creep.room.findPath(creep.pos, roadSearchTarget, {
+                let thisPath = creep.room.findPath(creep.pos, roadSearchTarget, {
                     ignoreCreeps: true
                 });
-                for (var thisPos in thisPath) {
+                for (let thisPos in thisPath) {
                     if (creep.room.createConstructionSite(thisPath[thisPos].x, thisPath[thisPos].y, STRUCTURE_ROAD) == ERR_FULL) {
                         break;
                     }
@@ -293,9 +277,9 @@ var creep_farMule = {
 };
 
 function evadeAttacker(creep, evadeRange) {
-    var Foe = undefined;
-    var closeFoe = undefined;
-    var didRanged = false;
+    let Foe = undefined;
+    let closeFoe = undefined;
+    let didRanged = false;
 
     Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
         filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
@@ -309,9 +293,9 @@ function evadeAttacker(creep, evadeRange) {
         closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
         });
-        var foeDirection = creep.pos.getDirectionTo(closeFoe);
-        var y = 0;
-        var x = 0;
+        let foeDirection = creep.pos.getDirectionTo(closeFoe);
+        let y = 0;
+        let x = 0;
         switch (foeDirection) {
             case TOP:
                 y = 5;
@@ -379,7 +363,7 @@ function evadeAttacker(creep, evadeRange) {
             ignoreRoads: true
         });
     } else if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
-        var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
+        let UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
         if (UnderAttackPos >= 0) {
             Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
         }
