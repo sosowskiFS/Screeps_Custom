@@ -44,7 +44,7 @@ var creep_ranger = {
 
             if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
                 let somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_POWER_BANK)
+                    filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_POWER_BANK && structure.structureType != STRUCTURE_TERMINAL)
                 });
                 if (somethingNearby) {
                     creep.attack(somethingNearby);
@@ -81,7 +81,7 @@ var creep_ranger = {
                 });
             } else {
                 let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                    filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
+                    filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_TERMINAL)
                 });
                 if (eStructures) {
                     creep.travelTo(eStructures, {
