@@ -23,14 +23,26 @@ var creep_looter = {
                 //In far room, loot container
                 if (creep.room.storage) {
                     if (_.sum(creep.room.storage.store) <= 0) {
-                        //Nothing left to loot
-                        if (Game.flags[creep.memory.homeRoom + "Loot"]) {
-                            Game.flags[creep.memory.homeRoom + "Loot"].remove();
+                        if (creep.room.terminal && _.sum(creep.room.terminal.store > 0)) {
+                            if (Object.keys(creep.room.terminal).length > 1) {
+                                if (creep.withdraw(creep.room.terminal, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(creep.room.terminal);
+                                }
+                            } else {
+                                if (creep.withdraw(creep.room.terminal, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(creep.room.terminal);
+                                }
+                            }
+                        } else {
+                            //Nothing left to loot
+                            if (Game.flags[creep.memory.homeRoom + "Loot"]) {
+                                Game.flags[creep.memory.homeRoom + "Loot"].remove();
+                            }
+                            if (Memory.lootSpawn) {
+                                Memory.lootSpawn = undefined;
+                            }
+                            creep.suicide();
                         }
-                        if (Memory.lootSpawn) {
-                            Memory.lootSpawn = undefined;
-                        }
-                        creep.suicide();
                     } else {
                         let withdrawResult = creep.withdraw(creep.room.storage, RESOURCE_ENERGY);
                         if (withdrawResult == ERR_NOT_IN_RANGE) {
@@ -43,19 +55,37 @@ var creep_looter = {
                             }
                         }
                     }
+                } else if (creep.room.terminal && _.sum(creep.room.terminal.store > 0)) {
+                    if (Object.keys(creep.room.terminal).length > 1) {
+                        if (creep.withdraw(creep.room.terminal, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(creep.room.terminal);
+                        }
+                    } else {
+                        if (creep.withdraw(creep.room.terminal, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(creep.room.terminal);
+                        }
+                    }
+                } else {
+                    //Nothing left to loot
+                    if (Game.flags[creep.memory.homeRoom + "Loot"]) {
+                        Game.flags[creep.memory.homeRoom + "Loot"].remove();
+                    }
+                    if (Memory.lootSpawn) {
+                        Memory.lootSpawn = undefined;
+                    }
+                    creep.suicide();
                 }
             } else {
                 //In home room, drop off energy
                 if (creep.room.storage) {
-                    let transferResult = creep.transfer(creep.room.storage, RESOURCE_ENERGY);
+                    let transferResult = undefined;
+                    if (Object.keys(creep.carry).length > 1) {
+                        transferResult = creep.transfer(creep.room.storage, Object.keys(creep.carry)[1])
+                    } else {
+                        transferResult = creep.transfer(creep.room.storage, Object.keys(creep.carry)[0])
+                    }
                     if (transferResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage);
-                    } else if (transferResult == OK) {
-                        if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].storage) {
-                            creep.travelTo(Game.rooms[creep.memory.destination].storage);
-                        } else {
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
-                        }
                     }
                 }
             }
