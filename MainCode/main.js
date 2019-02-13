@@ -217,7 +217,14 @@ module.exports.loop = function() {
     var roomName = '';
     var instructionSpawn;
 
-    //Loop through all spawns
+    //General Pie Graphs
+    let vis = new RoomVisual();
+    //GCL
+    drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5);
+    //Bucket
+    drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 5, 0.5);
+    //CPU Average
+    drawPie(vis, Math.round(Memory.CPUAverages.TotalCPU.CPU * 100) / 100, Game.cpu.limit, 'Average', getColourByPercentage(Math.min(1, Memory.CPUAverages.TotalCPU.CPU / Game.cpu.limit), true), 2, 2.5);
 
     //Log average CPU for spawn processes in memory.
     var preSpawnCPU = Game.cpu.getUsed();
@@ -337,23 +344,16 @@ module.exports.loop = function() {
 
             if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
                 //Gimme some pie graphs
-                let vis = new RoomVisual(thisRoom.name);
-                //GCL
-                drawPie(vis, Math.round(Game.gcl.progress), Game.gcl.progressTotal, 'GCL ' + Game.gcl.level, getColourByPercentage(Game.gcl.progress / Game.gcl.progressTotal, true), 2, 0.5);
-
-                //Bucket
-                drawPie(vis, Game.cpu.bucket, 10000, 'Bucket', getColourByPercentage(Math.min(1, Game.cpu.bucket / 10000), true), 5, 0.5);
+                let roomVis = new RoomVisual(thisRoom.name);
 
                 //Controller Progress + Storage Amount + CPU Average
                 if (thisRoom.controller.level < 8) {
-                    drawPie(vis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 1.5);
+                    drawPie(roomVis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 3.5);
                     if (thisRoom.storage) {
-                        drawPie(vis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
-                        drawPie(vis, Math.round(Memory.CPUAverages.TotalCPU.CPU * 100) / 100, Game.cpu.limit, 'Average', getColourByPercentage(Math.min(1, Memory.CPUAverages.TotalCPU.CPU / Game.cpu.limit), true), 2, 3.5);
+                        drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 1.5);                       
                     }
                 } else if (thisRoom.storage) {
-                    drawPie(vis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 1.5);
-                    drawPie(vis, Math.round(Memory.CPUAverages.TotalCPU.CPU * 100) / 100, Game.cpu.limit, 'Average', getColourByPercentage(Math.min(1, Memory.CPUAverages.TotalCPU.CPU / Game.cpu.limit), true), 2, 2.5);
+                    drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 1.5);              
                 }
 
                 //Get non-suppliers off the supplier spot
