@@ -74,7 +74,7 @@ var creep_powerAttack = {
         }
 
         let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 1, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Digital")
         });
         if (inRangeEnemy.length) {
             creep.attack(inRangeEnemy[0]);

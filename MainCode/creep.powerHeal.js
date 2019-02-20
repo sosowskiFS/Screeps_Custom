@@ -56,7 +56,7 @@ var creep_powerHeal = {
         }
 
         let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Digital")
         });
         if (inRangeEnemy.length) {
             if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
@@ -65,7 +65,7 @@ var creep_powerHeal = {
         }
 
         let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 1, {
-            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 500 && thisCreep.id != creep.memory.targetAttacker && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username))
+            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax - 500 && thisCreep.id != creep.memory.targetAttacker && (thisCreep.owner.username == "Montblanc" || Memory.whiteList.includes(thisCreep.owner.username) || thisCreep.owner.username == "Digital")
         });
         if (hurtAlly.length > 0) {
             creep.heal(hurtAlly[0]);
