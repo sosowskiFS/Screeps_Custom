@@ -208,7 +208,7 @@ var market_buyers = {
                 }
             }
 
-            if (!hasSent && Game.market.credits >= 100000) {
+            /*if (!hasSent && Game.market.credits >= 100000) {
                 //Buy GCL juice
                 let XGH2OSellers = Game.market.getAllOrders(order => order.resourceType == RESOURCE_CATALYZED_GHODIUM_ACID && order.amount >= 100 && order.price <= 4.0 && order.type == ORDER_SELL && Game.market.calcTransactionCost(order.amount, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
                 if (XGH2OSellers.length) {
@@ -220,7 +220,7 @@ var market_buyers = {
                         hasSent = true;
                     }
                 }
-            }
+            }*/
 
             var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST];
 
