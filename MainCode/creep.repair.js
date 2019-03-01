@@ -88,7 +88,7 @@ function findNewTarget(creep, creepEnergy) {
             if (thisStructure) {
                 if (thisStructure.hits == thisStructure.hitsMax) {
                     //No repair needed, clear for reassignment
-                    Memory.repairTarget[thisRoom.name] = undefined;
+                    Memory.repairTarget[creep.room.name] = undefined;
                     creep.memory.structureTarget = undefined;
                     findNewTarget(creep, _.sum(creep.carry));
                 } else {
@@ -121,16 +121,16 @@ function findNewTarget(creep, creepEnergy) {
                 }
             } else {
                 //Dead, clear for reassignment
-                Memory.repairTarget[thisRoom.name] = undefined;
+                Memory.repairTarget[creep.room.name] = undefined;
                 creep.memory.structureTarget = undefined;
                 findNewTarget(creep, _.sum(creep.carry));
             }
         }
     } else {
-        if (Memory.repairTarget[thisRoom.name]) {
-            let closestDamagedStructure = Game.getObjectById(Memory.repairTarget[thisRoom.name]);
+        if (Memory.repairTarget[creep.room.name]) {
+            let closestDamagedStructure = Game.getObjectById(Memory.repairTarget[creep.room.name]);
             if (closestDamagedStructure) {
-                creep.memory.structureTarget = Memory.repairTarget[thisRoom.name];
+                creep.memory.structureTarget = Memory.repairTarget[creep.room.name];
                 if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
                     if (!Memory.warMode) {
                         creep.travelTo(closestDamagedStructure, {
@@ -145,7 +145,7 @@ function findNewTarget(creep, creepEnergy) {
                 }
             } else {
                 //Bad target, let main handle reassignment
-                Memory.repairTarget[thisRoom.name] = undefined;
+                Memory.repairTarget[creep.room.name] = undefined;
             }
         }
     }
