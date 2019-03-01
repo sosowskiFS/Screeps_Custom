@@ -581,9 +581,9 @@ module.exports.loop = function() {
                     mostDamagedStructure = thisRoom.find(FIND_STRUCTURES, {
                         filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)
                     });
-                    if (closestDamagedStructure.length > 0) {
-                        closestDamagedStructure.sort(repairCompare);
-                        Memory.repairTarget[thisRoom.name] = closestDamagedStructure[0].id;
+                    if (mostDamagedStructure.length > 0) {
+                        mostDamagedStructure.sort(repairCompare);
+                        Memory.repairTarget[thisRoom.name] = mostDamagedStructure[0].id;
                     }
                 }
 
