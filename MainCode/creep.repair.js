@@ -70,9 +70,9 @@ function findNewTarget(creep, creepEnergy) {
             }
         }
     } else if (creep.memory.structureTarget) {
-        var doRepair = true;
+        let doRepair = true;
         if (creep.memory.previousPriority == 'mule' && creep.carry.energy > 300 && Memory.linkList[creep.room.name].length > 1) {
-            var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+            let upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
             if (upgraderLink && upgraderLink.energy < 100) {
                 doRepair = false;
                 creep.memory.priority = 'mule';
@@ -84,14 +84,16 @@ function findNewTarget(creep, creepEnergy) {
         }
 
         if (doRepair) {
-            var thisStructure = Game.getObjectById(creep.memory.structureTarget);
+            let thisStructure = Game.getObjectById(creep.memory.structureTarget);
             if (thisStructure) {
                 if (thisStructure.hits == thisStructure.hitsMax) {
+                    //No repair needed, clear for reassignment
+                    Memory.repairTarget[thisRoom.name] = undefined;
                     creep.memory.structureTarget = undefined;
                     findNewTarget(creep, _.sum(creep.carry));
                 } else {
                     //If using last bit of energy this tick, find new target
-                    var repairResult = creep.repair(thisStructure);
+                    let repairResult = creep.repair(thisStructure);
                     if (repairResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(thisStructure, {
                             maxRooms: 1
@@ -118,30 +120,32 @@ function findNewTarget(creep, creepEnergy) {
                     }
                 }
             } else {
+                //Dead, clear for reassignment
+                Memory.repairTarget[thisRoom.name] = undefined;
                 creep.memory.structureTarget = undefined;
                 findNewTarget(creep, _.sum(creep.carry));
             }
         }
     } else {
-        var closestDamagedStructure = [];
-        closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)
-        });
-
-        if (closestDamagedStructure.length > 0) {
-            closestDamagedStructure.sort(repairCompare);
-            creep.memory.structureTarget = closestDamagedStructure[0].id;
-            if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
-                if (!Memory.warMode) {
-                    creep.travelTo(closestDamagedStructure[0], {
-                        maxRooms: 1,
-                        range: 1
-                    });
-                } else {
-                    creep.travelTo(closestDamagedStructure[0], {
-                        maxRooms: 1
-                    });
+        if (Memory.repairTarget[thisRoom.name]) {
+            let closestDamagedStructure = Game.getObjectById(Memory.repairTarget[thisRoom.name]);
+            if (closestDamagedStructure) {
+                creep.memory.structureTarget = Memory.repairTarget[thisRoom.name];
+                if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
+                    if (!Memory.warMode) {
+                        creep.travelTo(closestDamagedStructure, {
+                            maxRooms: 1,
+                            range: 1
+                        });
+                    } else {
+                        creep.travelTo(closestDamagedStructure, {
+                            maxRooms: 1
+                        });
+                    }
                 }
+            } else {
+                //Bad target, let main handle reassignment
+                Memory.repairTarget[thisRoom.name] = undefined;
             }
         }
     }

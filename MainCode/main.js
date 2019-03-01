@@ -238,7 +238,7 @@ module.exports.loop = function() {
                     //Populate the room creeps memory.
                     Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
-                    //Check for hostiles in this room
+                        //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
@@ -350,10 +350,10 @@ module.exports.loop = function() {
                 if (thisRoom.controller.level < 8) {
                     drawPie(roomVis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 3.5);
                     if (thisRoom.storage) {
-                        drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);                       
+                        drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
                     }
                 } else if (thisRoom.storage) {
-                    drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);              
+                    drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
                 }
 
                 //Get non-suppliers off the supplier spot
@@ -572,6 +572,18 @@ module.exports.loop = function() {
                     });
                     if (theseNukes.length) {
                         Memory.nukerList[thisRoom.name].push(theseNukes[0].id);
+                    }
+                }
+
+                //Find repair target for room
+                if (Game.time % 500 == 0 || !Memory.repairTarget[thisRoom.name]) {
+                    Memory.repairTarget[thisRoom.name] = "";
+                    mostDamagedStructure = thisRoom.find(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)
+                    });
+                    if (closestDamagedStructure.length > 0) {
+                        closestDamagedStructure.sort(repairCompare);
+                        Memory.repairTarget[thisRoom.name] = closestDamagedStructure[0].id;
                     }
                 }
 
@@ -1388,6 +1400,9 @@ function memCheck() {
     if (!Memory.labList) {
         Memory.labList = new Object();
     }
+    if (!Memory.repairTarget) {
+        Memory.repairTarget = new Object();
+    }
     if (!Memory.CPUAverages) {
         Memory.CPUAverages = new Object();
         Memory.CPUAverages.TotalCPU = new Object();
@@ -1630,6 +1645,15 @@ function RemoveMineralFlags() {
 function GetMineralReport() {
 
 }
+
+function repairCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
+
 
 function hiHitCompare(a, b) {
     if (a.hits < b.hits)
