@@ -576,7 +576,7 @@ module.exports.loop = function() {
                 }
 
                 //Find repair target for room
-                if (Game.time % 500 == 0 || !Memory.repairTarget[thisRoom.name]) {
+                if (Game.time % 1000 == 0 || !Memory.repairTarget[thisRoom.name]) {
                     Memory.repairTarget[thisRoom.name] = "";
                     mostDamagedStructure = thisRoom.find(FIND_STRUCTURES, {
                         filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)

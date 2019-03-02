@@ -136,13 +136,13 @@ var tower_Operate = {
 			if (criticalRoads.length) {
 				criticalRoads.sort(repairCompare);
 				tower.repair(criticalRoads[0]);
-			} else {
-				var decayingRampart = tower.pos.findInRange(FIND_MY_STRUCTURES, 5, {
-					filter: (structure) => ((structure.structureType == STRUCTURE_RAMPART || structure.structureType == STRUCTURE_WALL) && structure.hits < structure.hitsMax)
-				});
-				if (decayingRampart.length) {
-					decayingRampart.sort(repairCompare);
-					tower.repair(decayingRampart[0]);
+			} else if (Memory.repairTarget[tower.room.name]) {
+				let decayingRampart = Game.getObjectById(Memory.repairTarget[tower.room.name]);
+				if (decayingRampart && decayingRampart.hits != decayingRampart.hitsMax) {
+					tower.repair(decayingRampart);
+				} else {
+					//Bad target, let main handle reassignment
+                	Memory.repairTarget[tower.room.name] = undefined;
 				}
 			}
 		}
