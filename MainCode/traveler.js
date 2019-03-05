@@ -112,7 +112,7 @@ class Traveler {
                     color = "red";
                 }
                 if (options.returnData) {
-                    options.returnData.pathfinderReturn = ret;
+                    //options.returnData.pathfinderReturn = ret;
                 }
                 travelData.path = Traveler.serializePath(creep.pos, ret.path, color);
                 state.stuckCount = 0;
@@ -121,12 +121,16 @@ class Traveler {
             if (!travelData.path || travelData.path.length === 0) {
                 return ERR_NO_PATH;
             }
+            if (options.returnData) {
+                options.returnData.state = travelData.state;
+                options.returnData.path = travelData.path;
+            }
             // consume path
             if (state.stuckCount === 0 && !newPath) {
                 travelData.path = travelData.path.substr(1);
             }
             let nextDirection = parseInt(travelData.path[0], 10);
-            if (options.returnData) {
+            /*if (options.returnData) {
                 if (nextDirection) {
                     let nextPos = Traveler.positionAtDirection(creep.pos, nextDirection);
                     if (nextPos) {
@@ -135,7 +139,7 @@ class Traveler {
                 }
                 options.returnData.state = state;
                 options.returnData.path = travelData.path;
-            }
+            }*/
             return creep.move(nextDirection);
         }
         /**
