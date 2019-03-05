@@ -119,11 +119,14 @@ let creep_farMule = {
                                 //Do not know the creep's carry at this tick, calculate to determine if creep is full
                                 if ((_.sum(creep.carry) + _.sum(thisContainer.store)) > creep.carryCapacity - 300) {
                                     //HERE - Store/Load path to storage
-                                    if (creep.memory._storPath) {
-                                        creep.memory._trav.path = creep.memory._storPath
+                                    if (creep.memory._storData) {
+                                        creep.memory._trav = creep.memory._storData
                                         creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
                                     } else {
-                                        creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName), {}, "Storage");
+                                        if (!creep.memory._storData) {
+                                            creep.memory._storData = {};
+                                        }
+                                        creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName), {returnData: creep.memory._storData});
                                     }
                                 }
                             }
@@ -234,15 +237,19 @@ let creep_farMule = {
                                 creep.memory.doNotRoadSearch = false;
                                 if (creep.memory.containerPosition) {
                                     //HERE - Store/Load Path To Container
-                                    if (creep.memory._contPath) {
-                                        creep.memory._trav.path = creep.memory._contPath;
+                                    if (creep.memory._contData) {
+                                        creep.memory._trav = creep.memory._contData;
                                         creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
                                             ignoreRoads: roadIgnore
                                         });
                                     } else {
+                                        if (!creep.memory._contData) {
+                                            creep.memory._contData = {};
+                                        }
                                         creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
-                                            ignoreRoads: roadIgnore
-                                        }, "Container");
+                                            ignoreRoads: roadIgnore,
+                                            returnData: creep.memory_contData
+                                        });
                                     }
                                 }
                             }
