@@ -248,7 +248,7 @@ let creep_farMule = {
                                         }
                                         creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
                                             ignoreRoads: roadIgnore,
-                                            returnData: creep.memory_contData
+                                            returnData: creep.memory._contData
                                         });
                                     }
                                 }
