@@ -14,7 +14,7 @@ class Traveler {
      * @param options
      * @returns {number}
      */
-    static travelTo(creep, destination, options = {}) {
+    static travelTo(creep, destination, options = {}, storePathTo = undefined) {
             // uncomment if you would like to register hostile rooms entered
             // this.updateRoomStatus(creep.room);
             if (!destination) {
@@ -115,6 +115,14 @@ class Traveler {
                     options.returnData.pathfinderReturn = ret;
                 }
                 travelData.path = Traveler.serializePath(creep.pos, ret.path, color);
+                if (storePathTo) {
+                    if (storePathTo == "Storage") {
+                        creep.memory._storPath = travelData.path;
+                    } else if (storePathTo == "Container") {
+                        //Container
+                        creep.memory._contPath = travelData.path;
+                    }
+                }
                 state.stuckCount = 0;
             }
             this.serializeState(creep, destination, state, travelData);
@@ -583,7 +591,7 @@ const STATE_DEST_X = 4;
 const STATE_DEST_Y = 5;
 const STATE_DEST_ROOMNAME = 6;
 // assigns a function to Creep.prototype: creep.travelTo(destination)
-Creep.prototype.travelTo = function(destination, options) {
-    return Traveler.travelTo(this, destination, options);
+Creep.prototype.travelTo = function(destination, options, storePathTo) {
+    return Traveler.travelTo(this, destination, options, storePathTo);
     //return this.moveTo(destination, options);
 };
