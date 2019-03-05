@@ -119,7 +119,7 @@ let creep_farMule = {
                                 //Do not know the creep's carry at this tick, calculate to determine if creep is full
                                 if ((_.sum(creep.carry) + _.sum(thisContainer.store)) > creep.carryCapacity - 300) {
                                     //HERE - Store/Load path to storage
-                                    if (creep.memory._storData) {
+                                    if (creep.memory._storData && creep.memory._storData.state) {
                                         creep.memory._trav.path = creep.memory._storData.path;
                                         serializeState(creep, creep.memory._storData.state);
                                         creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
@@ -238,7 +238,7 @@ let creep_farMule = {
                                 creep.memory.doNotRoadSearch = false;
                                 if (creep.memory.containerPosition) {
                                     //HERE - Store/Load Path To Container
-                                    if (creep.memory._contData) {
+                                    if (creep.memory._contData && creep.memory._contData.state) {
                                         creep.memory._trav.path = creep.memory._contData.path;
                                         serializeState(creep, creep.memory._contData.state);
                                         creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
