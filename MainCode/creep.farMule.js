@@ -121,7 +121,7 @@ let creep_farMule = {
                                     //HERE - Store/Load path to storage
                                     if (creep.memory._storData) {
                                         creep.memory._trav.path = creep.memory._storData.path;
-                                        serializeState(creep.memory._storData.state);
+                                        serializeState(creep, creep.memory._storData.state);
                                         creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
                                     } else {
                                         if (!creep.memory._storData) {
@@ -240,7 +240,7 @@ let creep_farMule = {
                                     //HERE - Store/Load Path To Container
                                     if (creep.memory._contData) {
                                         creep.memory._trav.path = creep.memory._contData.path;
-                                        serializeState(creep.memory._contData.state);
+                                        serializeState(creep, creep.memory._contData.state);
                                         creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
                                             ignoreRoads: roadIgnore
                                         });
@@ -425,7 +425,7 @@ function storageCompare(a, b) {
     return 0;
 }
 
-function serializeState(stateObj) {
+function serializeState(creep, stateObj) {
         creep.memory._trav.state = [stateObj.lastCoord.x, stateObj.lastCoord.y, stateObj.stuckCount, stateObj.cpu, stateObj.destination.x, stateObj.destination.y,
             stateObj.destination.roomName
         ];
