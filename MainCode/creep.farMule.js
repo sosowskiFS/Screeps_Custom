@@ -239,7 +239,7 @@ let creep_farMule = {
                             } else if (transferResult == OK) {
                                 creep.memory.doNotRoadSearch = false;
                                 if (creep.memory.containerPosition) {
-                                    if (creep.memory._contData && creep.pos.x == creep.memory._contData.state[0] && creep.pos.y == creep.memory._contData.state[1]) {
+                                    if (creep.memory._contData && creep.memory._contData.state && creep.pos.x == creep.memory._contData.state[0] && creep.pos.y == creep.memory._contData.state[1]) {
                                         creep.memory._trav.path = creep.memory._contData.path;
                                         creep.memory._trav.state = creep.memory._contData.state;
                                         creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {

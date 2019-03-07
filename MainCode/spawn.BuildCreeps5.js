@@ -454,7 +454,7 @@ var spawn_BuildCreeps5 = {
                             atSpot: false
                         }
                     });
-                    Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+                    Memory.creepInQue.push(thisRoom.name, 'supplier', '', spawn.name);
                 }
             } else if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 650 && (Foe.length || defenders.length < 1)) {
                 //Try to produce millitary units
