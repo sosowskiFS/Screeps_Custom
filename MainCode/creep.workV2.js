@@ -303,7 +303,7 @@ var creep_workV2 = {
                             }
                         }
                     }
-                } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable || !creep.room.storage) {
+                } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable || !creep.room.storage || creep.room.name != creep.memory.homeRoom) {
                     var savedTarget = Game.getObjectById(creep.memory.structureTarget);
                     var getNewStructure = false;
                     if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
