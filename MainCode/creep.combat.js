@@ -60,6 +60,8 @@ var creep_combat = {
                 });
             }
 
+            var rFound = false;
+            var rangeToFoe = creep.pos.getRangeTo(closeFoe);
             if (creep.memory.needBoosts && unboostedAttack > 0) {
                 var thisLab = creep.room.find(FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
@@ -76,21 +78,20 @@ var creep_combat = {
                 }
                 var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
                 if (lookResult.length && creep.memory.waitingTimer < 300) {
-                    var found = false;
                     for (let y = 0; y < lookResult.length; y++) {
                         if (lookResult[y].structureType == STRUCTURE_RAMPART) {
-                            found = true;
-                            if (creep.pos.inRangeTo(closeFoe, 3)) {
+                            rFound = true;
+                            if (rangeToFoe <= 3) {
                                 creep.memory.waitingTimer = 0;
                             } else if (lookResult[y].isPublic == true) {
-                                creep.memory.waitingTimer = creep.memory.waitingTimer + 150;
+                                creep.memory.waitingTimer = creep.memory.waitingTimer + 50;
                             } else {
                                 creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
                             }
                             break;
                         }
                     }
-                    if (!found) {
+                    if (!rFound) {
                         creep.travelTo(closeFoe, {
                             maxRooms: 1
                         });
@@ -103,7 +104,7 @@ var creep_combat = {
                 }
             }
 
-            if (closeFoe && creep.pos.inRangeTo(closeFoe, 3)) {
+            if (closeFoe && rangeToFoe <= 3) {
                 if (massAttackFlag) {
                     creep.rangedMassAttack(closeFoe);
                 } else {
@@ -111,7 +112,16 @@ var creep_combat = {
                 }
                 creep.say("\uFF08\u0E07\u03A6 \u0414 \u03A6\uFF09\u0E07", true);
                 creep.memory.waitingTimer = 0;
-                creep.travelTo(creep);
+                if (!rFound && rangeToFoe <= 2) {
+                    //Back up
+                    creep.travelTo(closeFoe, {
+                        maxRooms: 1,
+                        flee: true
+                    });
+                } else {
+                    //Eat movement request
+                    creep.travelTo(creep);
+                }
             }
         } else {
             //Move out of the way
