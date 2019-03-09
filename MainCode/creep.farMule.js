@@ -319,7 +319,7 @@ function evadeAttacker(creep, evadeRange, roadIgnore) {
             filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
         });
 
-        creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
+        creep.travelTo(closeFoe, {
             ignoreRoads: roadIgnore,
             flee: true
         });
