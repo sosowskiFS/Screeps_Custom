@@ -230,6 +230,7 @@ class Traveler {
                 ignoreCreeps: true,
                 maxOps: DEFAULT_MAXOPS,
                 range: 1,
+                flee: false
             });
             if (options.movingTarget) {
                 options.range = 0;
@@ -299,6 +300,7 @@ class Traveler {
                 maxRooms: options.maxRooms,
                 plainCost: options.offRoad ? 1 : options.ignoreRoads ? 1 : 2,
                 swampCost: options.offRoad ? 1 : options.ignoreRoads ? 5 : 10,
+                flee: options.flee,
                 roomCallback: callback,
             });
             if (ret.incomplete && options.ensurePath) {
