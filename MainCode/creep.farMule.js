@@ -60,7 +60,7 @@ let creep_farMule = {
         if (creep.memory.evadingUntil && creep.memory.evadingUntil > Game.time) {
             creep.memory.didRoadSearch = true;
             creep.memory.doNotRoadSearch = true;
-            evadeAttacker(creep, 4);
+            evadeAttacker(creep, 4, roadIgnore);
         } else {
             if (!creep.memory.storing) {
                 //in farRoom, pick up container contents
@@ -295,13 +295,13 @@ let creep_farMule = {
             }
 
             if (creep.hits <= (creep.hitsMax - 500)) {
-                evadeAttacker(creep, 4);
+                evadeAttacker(creep, 4, roadIgnore);
             }
         }
     }
 };
 
-function evadeAttacker(creep, evadeRange) {
+function evadeAttacker(creep, evadeRange, roadIgnore) {
     let Foe = undefined;
     let closeFoe = undefined;
     let didRanged = false;
@@ -318,74 +318,10 @@ function evadeAttacker(creep, evadeRange) {
         closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
         });
-        let foeDirection = creep.pos.getDirectionTo(closeFoe);
-        let y = 0;
-        let x = 0;
-        switch (foeDirection) {
-            case TOP:
-                y = 5;
-                break;
-            case TOP_RIGHT:
-                y = 5;
-                x = -5;
-                break;
-            case RIGHT:
-                x = -5;
-                break;
-            case BOTTOM_RIGHT:
-                y = -5;
-                x = -5;
-                break;
-            case BOTTOM:
-                y = -5;
-                break;
-            case BOTTOM_LEFT:
-                y = -5;
-                x = 5;
-                break;
-            case LEFT:
-                x = 5;
-                break;
-            case TOP_LEFT:
-                y = 5;
-                x = 5;
-                break;
-        }
-        x = creep.pos.x + x;
-        y = creep.pos.y + y;
-        if (x < 0) {
-            x = 0;
-            if (y < 25 && y > 0) {
-                y = y - 1;
-            } else if (y < 49) {
-                y = y + 1;
-            }
-        } else if (x > 49) {
-            x = 49;
-            if (y < 25 && y > 0) {
-                y = y - 1;
-            } else if (y < 49) {
-                y = y + 1;
-            }
-        }
-        if (y < 0) {
-            y = 0;
-            if (x < 25 && x > 0) {
-                x = x - 1;
-            } else if (x < 49) {
-                x = x + 1;
-            }
-        } else if (y > 49) {
-            y = 49;
-            if (x < 25 && x > 0) {
-                x = x - 1;
-            } else if (x < 49) {
-                x = x + 1;
-            }
-        }
 
-        creep.moveTo(x, y, {
-            ignoreRoads: true
+        creep.travelTo(new RoomPosition(creep.memory.containerPosition.x, creep.memory.containerPosition.y, creep.memory.containerPosition.roomName), {
+            ignoreRoads: roadIgnore,
+            flee: true
         });
     } else if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
         let UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
