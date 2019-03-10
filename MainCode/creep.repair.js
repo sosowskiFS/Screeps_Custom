@@ -96,7 +96,8 @@ function findNewTarget(creep, creepEnergy) {
                     let repairResult = creep.repair(thisStructure);
                     if (repairResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(thisStructure, {
-                            maxRooms: 1
+                            maxRooms: 1,
+                            range: 2
                         });
                     } else if (repairResult == OK) {
                         //Listen for creeps
@@ -110,7 +111,17 @@ function findNewTarget(creep, creepEnergy) {
                                 let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
                                 creep.move(thisDirection);
                                 creep.say("\uD83D\uDCA6", true);
+                            } else {
+                                creep.travelTo(thisStructure, {
+                                    maxRooms: 1,
+                                    range: 2
+                                });
                             }
+                        } else {
+                            creep.travelTo(thisStructure, {
+                                maxRooms: 1,
+                                range: 2
+                            });
                         }
                     }
 
