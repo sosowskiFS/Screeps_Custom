@@ -152,33 +152,27 @@ function findNewTarget(creep, creepEnergy) {
 }
 
 function moveToNewTarget(creep) {
-    var closestDamagedStructure = [];
-    closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
-        filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
-    });
-
-    if (closestDamagedStructure.length > 0) {
-        closestDamagedStructure.sort(repairCompare);
-        creep.memory.structureTarget = closestDamagedStructure[0].id;
-        if (!Memory.warMode) {
-            creep.travelTo(closestDamagedStructure[0], {
-                maxRooms: 1,
-                range: 1
-            });
+    if (Memory.repairTarget[creep.room.name]) {
+        let closestDamagedStructure = Game.getObjectById(Memory.repairTarget[creep.room.name]);
+        if (closestDamagedStructure) {
+            creep.memory.structureTarget = Memory.repairTarget[creep.room.name];
+            if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
+                if (!Memory.warMode) {
+                    creep.travelTo(closestDamagedStructure, {
+                        maxRooms: 1,
+                        range: 1
+                    });
+                } else {
+                    creep.travelTo(closestDamagedStructure, {
+                        maxRooms: 1
+                    });
+                }
+            }
         } else {
-            creep.travelTo(closestDamagedStructure[0], {
-                maxRooms: 1
-            });
+            //Bad target, let main handle reassignment
+            Memory.repairTarget[creep.room.name] = undefined;
         }
     }
-}
-
-function repairCompare(a, b) {
-    if (a.hits < b.hits)
-        return -1;
-    if (a.hits > b.hits)
-        return 1;
-    return 0;
 }
 
 module.exports = creep_repair;
