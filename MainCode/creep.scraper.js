@@ -41,7 +41,9 @@ var creep_scraper = {
                     }
                 } else {
                     if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(creep.room.storage);
+                        creep.travelTo(creep.room.storage. {
+                        	maxRooms: 1
+                        });
                     }
                 }
             }
