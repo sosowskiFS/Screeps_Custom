@@ -19,7 +19,9 @@ var creep_miner = {
         let mineTarget = Game.getObjectById(creep.memory.mineSource);
         if (mineTarget) {
             if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !creep.memory.ignoreTravel) {
-                creep.travelTo(mineTarget);
+                creep.travelTo(mineTarget, {
+                    maxRooms: 1
+                });
             }
 
             if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
