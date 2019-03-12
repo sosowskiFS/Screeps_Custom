@@ -18,19 +18,19 @@ var tower_Operate = {
 
 		}
 
-		var checkDelay = 10;
+		var checkDelay;
 		if (thisRoom.storage) {
 			if (thisRoom.storage.store[RESOURCE_ENERGY] >= 425000) {
-				checkDelay = 10;
+				checkDelay = 5;
 			} else if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
-				checkDelay = 25;
+				checkDelay = 10;
 			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
-				checkDelay = 500;
-			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 225000) {
 				checkDelay = 50;
+			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 225000) {
+				checkDelay = 25;
 			}
 		} else {
-			checkDelay = 50000;
+			checkDelay = 250;
 		}
 
 		let UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
