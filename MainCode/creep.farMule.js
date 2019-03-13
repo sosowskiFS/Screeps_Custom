@@ -320,7 +320,8 @@ function evadeAttacker(creep, evadeRange, roadIgnore) {
         });
 
         creep.travelTo(closeFoe, {
-            ignoreRoads: roadIgnore
+            ignoreRoads: roadIgnore,
+            range: 8
         }, true);
     } else if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
         let UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);

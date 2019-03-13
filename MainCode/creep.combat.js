@@ -116,8 +116,8 @@ var creep_combat = {
                     //Back up
                     creep.travelTo(closeFoe, {
                         maxRooms: 1,
-                        flee: true
-                    });
+                        range: 3
+                    }, true);
                 } else {
                     //Eat movement request
                     creep.travelTo(creep);

@@ -236,8 +236,6 @@ class Traveler {
             });
             if (options.movingTarget) {
                 options.range = 0;
-            } else if (options.flee) {
-                options.range = 4;
             }
             origin = this.normalizePos(origin);
             destination = this.normalizePos(destination);

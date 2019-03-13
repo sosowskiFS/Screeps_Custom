@@ -146,8 +146,8 @@ var creep_ranger = {
                 if (closeRange <= 2 && (foeCount.length > 1 || determineThreat(closeFoe))) {
                     //Dodge away from foe
                     creep.travelTo(closeFoe, {
-                        flee: true
-                    });
+                        range: 4
+                    }, true);
                 }
             } else {
                 creep.heal(creep);
