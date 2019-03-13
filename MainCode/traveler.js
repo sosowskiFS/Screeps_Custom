@@ -27,18 +27,20 @@ class Traveler {
             destination = this.normalizePos(destination);
             // manage case where creep is nearby destination
             let rangeToDestination = creep.pos.getRangeTo(destination);
-            if (options.range && rangeToDestination <= options.range) {
-                return OK;
-            } else if (rangeToDestination <= 1) {
-                if (rangeToDestination === 1 && !options.range) {
-                    let direction = creep.pos.getDirectionTo(destination);
-                    if (options.returnData) {
-                        options.returnData.nextPos = destination;
-                        options.returnData.path = direction.toString();
+            if (!doFlee) {
+                if (options.range && rangeToDestination <= options.range) {
+                    return OK;
+                } else if (rangeToDestination <= 1) {
+                    if (rangeToDestination === 1 && !options.range) {
+                        let direction = creep.pos.getDirectionTo(destination);
+                        if (options.returnData) {
+                            options.returnData.nextPos = destination;
+                            options.returnData.path = direction.toString();
+                        }
+                        return creep.move(direction);
                     }
-                    return creep.move(direction);
+                    return OK;
                 }
-                return OK;
             }
             // initialize data object
             if (!creep.memory._trav) {
