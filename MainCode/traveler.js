@@ -14,7 +14,7 @@ class Traveler {
      * @param options
      * @returns {number}
      */
-    static travelTo(creep, destination, options = {}) {
+    static travelTo(creep, destination, options = {}, doFlee = false) {
             // uncomment if you would like to register hostile rooms entered
             // this.updateRoomStatus(creep.room);
             if (!destination) {
@@ -98,7 +98,7 @@ class Traveler {
                 }
                 state.destination = destination;
                 let cpu = Game.cpu.getUsed();
-                let ret = this.findTravelPath(creep.pos, destination, options);
+                let ret = this.findTravelPath(creep.pos, destination, options, doFlee);
                 let cpuUsed = Game.cpu.getUsed() - cpu;
                 state.cpu = _.round(cpuUsed + state.cpu);
                 if (state.cpu > REPORT_CPU_THRESHOLD) {
@@ -225,12 +225,12 @@ class Traveler {
          * @param options
          * @returns {PathfinderReturn}
          */
-    static findTravelPath(origin, destination, options = {}) {
+    static findTravelPath(origin, destination, options = {}, doFlee = false) {
             _.defaults(options, {
                 ignoreCreeps: true,
                 maxOps: DEFAULT_MAXOPS,
                 range: 1,
-                flee: false
+                flee: doFlee
             });
             if (options.movingTarget) {
                 options.range = 0;
@@ -245,7 +245,7 @@ class Traveler {
             let roomDistance = Game.map.getRoomLinearDistance(origin.roomName, destination.roomName);
             let allowedRooms = options.route;
             if (!allowedRooms && (options.useFindRoute || (options.useFindRoute === undefined && roomDistance > 2))) {
-                let route = this.findRoute(origin.roomName, destination.roomName, options);
+                let route = this.findRoute(origin.roomName, destination.roomName, options, doFlee);
                 if (route) {
                     allowedRooms = route;
                 }
@@ -314,7 +314,7 @@ class Traveler {
                         console.log(`TRAVELER: path failed without findroute, trying with options.useFindRoute = true`);
                         console.log(`from: ${origin}, destination: ${destination}`);
                         options.useFindRoute = true;
-                        ret = this.findTravelPath(origin, destination, options);
+                        ret = this.findTravelPath(origin, destination, options, doFlee);
                         console.log(`TRAVELER: second attempt was ${ret.incomplete ? "not " : ""}successful`);
                         return ret;
                     }
@@ -330,7 +330,7 @@ class Traveler {
          * @param options
          * @returns {{}}
          */
-    static findRoute(origin, destination, options = {}) {
+    static findRoute(origin, destination, options = {}, doFlee = false) {
             let restrictDistance = options.restrictDistance || Game.map.getRoomLinearDistance(origin, destination) + 10;
             let allowedRooms = {
                 [origin]: true, [destination]: true
