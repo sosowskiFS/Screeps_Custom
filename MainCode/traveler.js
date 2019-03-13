@@ -591,7 +591,7 @@ const STATE_DEST_X = 4;
 const STATE_DEST_Y = 5;
 const STATE_DEST_ROOMNAME = 6;
 // assigns a function to Creep.prototype: creep.travelTo(destination)
-Creep.prototype.travelTo = function(destination, options) {
-    return Traveler.travelTo(this, destination, options);
+Creep.prototype.travelTo = function(destination, options, doFlee) {
+    return Traveler.travelTo(this, destination, options, doFlee);
     //return this.moveTo(destination, options);
 };
