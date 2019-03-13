@@ -21,13 +21,13 @@ var tower_Operate = {
 		var checkDelay;
 		if (thisRoom.storage) {
 			if (thisRoom.storage.store[RESOURCE_ENERGY] >= 425000) {
-				checkDelay = 5;
-			} else if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
 				checkDelay = 10;
+			} else if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
+				checkDelay = 20;
 			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
 				checkDelay = 50;
 			} else if (thisRoom.storage.store[RESOURCE_ENERGY] < 225000) {
-				checkDelay = 25;
+				checkDelay = 35;
 			}
 		} else {
 			checkDelay = 250;
