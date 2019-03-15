@@ -313,7 +313,7 @@ var spawn_BuildCreeps5 = {
             //Minimize staffing
             muleMax = 1;
             upgraderMax = 1;
-            repairMax = 0;
+            repairMax = 1;
             upSupplierMax = 1;
             supplierMax = 1;
             distributorMax = 1;
