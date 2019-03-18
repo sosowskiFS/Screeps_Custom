@@ -29,15 +29,13 @@ var creep_baseOp = {
             if (powerSpawnTarget) {
                 var renewResult = creep.renew(powerSpawnTarget);
                 if (renewResult == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(powerSpawnTarget);
+                    creep.moveTo(powerSpawnTarget);
                 }
             }
         } else if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
             var useResult = creep.usePower(PWR_OPERATE_EXTENSION, creep.room.storage);
             if (useResult == ERR_NOT_IN_RANGE) {
-                creep.travelTo(creep.room.storage, {
-                    range: 3
-                });
+                creep.moveTo(creep.room.storage);
             } else if (useResult == OK) {
                 creep.memory.cooldowns.OPERATE_EXTENSION = Game.time + 50;
                 totalOps = totalOps - 2;
@@ -52,9 +50,7 @@ var creep_baseOp = {
 
             var useResult = creep.usePower(PWR_REGEN_SOURCE, targetSource);
             if (useResult == ERR_NOT_IN_RANGE) {
-                creep.travelTo(targetSource, {
-                    range: 3
-                });
+                creep.moveTo(targetSource);
             } else if (useResult == OK) {
                 creep.memory.cooldowns.REGEN_SOURCE = Game.time + 100;
                 if (targetSource.id == creep.memory.sources[0]) {
@@ -69,9 +65,7 @@ var creep_baseOp = {
             if (targetLab) {
                 var useResult = creep.usePower(PWR_OPERATE_LAB, targetLab);
                 if (useResult == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(targetLab, {
-                        range: 3
-                    });
+                    creep.moveTo(targetLab);
                 } else if (useResult == OK) {
                     creep.memory.cooldowns.OPERATE_LAB = Game.time + 50;
                     updateLabBoost(creep);
