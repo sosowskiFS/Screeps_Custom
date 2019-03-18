@@ -10,7 +10,9 @@ var creep_miner = {
         if (Game.flags[creep.room.name + creep.memory.jobSpecific] && !creep.memory.atSpot) {
             creep.memory.ignoreTravel = true;
             if (creep.pos.x != Game.flags[creep.room.name + creep.memory.jobSpecific].pos.x || creep.pos.y != Game.flags[creep.room.name + creep.memory.jobSpecific].pos.y) {
-                creep.travelTo(Game.flags[creep.room.name + creep.memory.jobSpecific]);
+                creep.travelTo(Game.flags[creep.room.name + creep.memory.jobSpecific], {
+                    maxRooms: 1
+                });
             } else {
                 creep.memory.atSpot = true;
             }
