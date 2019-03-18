@@ -1,4 +1,4 @@
-var creep_baseOperator = {
+var creep_baseOp = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -157,4 +157,4 @@ var creep_baseOperator = {
     }
 };
 
-module.exports = creep_baseOperator;
+module.exports = creep_baseOp;
