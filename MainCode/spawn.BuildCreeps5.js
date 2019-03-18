@@ -636,11 +636,11 @@ var spawn_BuildCreeps5 = {
                     Memory.isSpawning = true;
                     let minerConfig = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY];
                     if (Game.flags[thisRoom.name + "RoomOperator"]) {
-                        //Level 4 source boost config
-                        minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+                        //Level 5 source boost config
+                        minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
                     }
                     let configCost = calculateConfigCost(minerConfig);
-                    if (configCost > thisRoom.energyCapacityAvailable && !Game.flags[thisRoom.name + "RoomOperator"]) {
+                    if (configCost > thisRoom.energyCapacityAvailable) {
                         //Took severe damage, assume cap of 300
                         minerConfig = [CARRY, WORK, WORK, MOVE];
                         configCost = 300

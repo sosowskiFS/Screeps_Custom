@@ -118,9 +118,28 @@ module.exports.loop = function() {
     }
 
     if (Game.flags["GetMineralReport"]) {
+        //UNFINISHED
         //Returns count of mineral flag paths
         GetMineralReport();
         Game.flags["GetMineralReport"].remove();
+    }
+
+    if (Game.flags["SpawnOperator"]) {
+        for (let pName in Game.powerCreeps) {
+            if (!Game.powerCreeps[pName].ticksToLive && Game.powerCreeps[pName].className == OPERATOR) {
+            	//This is an unspawned pCreep
+            	if (Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name].length > 0) {
+            		Game.powerCreeps[pName].spawn(Game.getObjectById(Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name][0]));
+            		Game.powerCreeps[pName].memory.priority = 'baseOp';
+            		Game.flags["SpawnOperator"].remove();
+            	} else {
+            		console.log("Error: No power spawn in requested room");
+            	}
+            	break;
+            }
+        }
+        Game.flags["SpawnOperator"].remove();
+        console.log("Error: No free operators");
     }
 
     //Reset average CPU usage records on request
@@ -240,7 +259,7 @@ module.exports.loop = function() {
                     //Populate the room creeps memory.
                     Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
-                        //Check for hostiles in this room
+                    //Check for hostiles in this room
                     var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });

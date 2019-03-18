@@ -348,7 +348,7 @@ function setupCreepMemory(creep) {
     creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time, Game.time, Game.time]
 
     if (!Game.flags[creep.room.name + "RoomOperator"]) {
-        Game.rooms[creep.room.name].createFlag(47, 2, creep.room.name + "RoomOperator");
+        Game.rooms[creep.room.name].createFlag(46, 2, creep.room.name + "RoomOperator");
     }
 
     if (Memory.linkList[creep.room.name].length >= 4) {
