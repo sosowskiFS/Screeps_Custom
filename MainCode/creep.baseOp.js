@@ -375,7 +375,7 @@ function setupCreepMemory(creep) {
 function findNeededWork(creep, totalOps) {
     if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'OPERATE_EXTENSION';
-    } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] <= Game.time || creep.memory.empoweredSources[1] <= Game.time)) {
+    } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] - 15 <= Game.time || creep.memory.empoweredSources[1] - 15 <= Game.time)) {
         return 'REGEN_SOURCE';
     } else if (!Game.flags[creep.room.name + "WarBoosts"] && creep.memory.cooldowns.OPERATE_LAB <= Game.time && totalOps >= 10 && checkForLabNeed(creep)) {
         return 'OPERATE_LAB';
