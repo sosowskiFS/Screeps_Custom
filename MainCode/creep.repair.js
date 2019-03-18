@@ -110,7 +110,7 @@ function findNewTarget(creep, creepEnergy, repairRange) {
                         })
                         if (talkingCreeps.length) {
                             let coords = talkingCreeps[0].saying.split(";");
-                            if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                            if (talkingCreeps[0].memory.priority != 'repair' && coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
                                 //Standing in the way of a creep
                                 let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
                                 creep.move(thisDirection);
