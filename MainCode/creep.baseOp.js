@@ -189,7 +189,7 @@ var creep_baseOp = {
                 }
             }
         } else if (creep.memory.jobFocus == 'FILL_POWER') {
-            if (creep.carry[RESOURCE_POWER] == 0 && creep.withdraw(creep.room.storage, RESOURCE_POWER, 100) == ERR_NOT_IN_RANGE) {
+            if (!creep.carry[RESOURCE_POWER] && creep.withdraw(creep.room.storage, RESOURCE_POWER, 100) == ERR_NOT_IN_RANGE) {
                 creep.travelTo(creep.room.storage, {
                     ignoreRoads: true,
                     maxRooms: 1
