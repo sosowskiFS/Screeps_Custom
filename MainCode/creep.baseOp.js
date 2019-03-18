@@ -7,6 +7,9 @@ var creep_baseOp = {
         }
         //Resource generation
         var totalOps = creep.carry[RESOURCE_OPS];
+        if (!totalOps) {
+        	totalOps = 0;
+        }
         if (totalOps < 600 && creep.memory.cooldowns.GENERATE_OPS <= Game.time) {
             if (creep.usePower(PWR_GENERATE_OPS) == OK) {
                 creep.memory.cooldowns.GENERATE_OPS = Game.time + 50;
@@ -315,6 +318,15 @@ var creep_baseOp = {
                 creep.move(thisDirection);
                 creep.say("\uD83D\uDCA6", true);
             }
+        }
+
+        if(creep.room.controller && !creep.room.controller.isPowerEnabled) {
+        	if (creep.enableRoom(creep.room.controller) == ERR_NOT_IN_RANGE) {
+        		creep.travelTo(creep.room.controller, {
+        			ignoreRoads: true,
+        			maxRooms: 1
+        		})
+        	}
         }
     }
 };
