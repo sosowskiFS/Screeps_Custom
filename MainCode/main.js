@@ -126,16 +126,16 @@ module.exports.loop = function() {
 
     if (Game.flags["SpawnOperator"]) {
         for (let pName in Game.powerCreeps) {
-            if (!Game.powerCreeps[pName].ticksToLive && Game.powerCreeps[pName].className == POWER_CLASS.OPERATOR) {
-            	//This is an unspawned pCreep
-            	if (Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name].length > 0) {
-            		Game.powerCreeps[pName].spawn(Game.getObjectById(Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name][0]));
-            		Game.powerCreeps[pName].memory.priority = 'baseOp';
-            		Game.flags["SpawnOperator"].remove();
-            	} else {
-            		console.log("Error: No power spawn in requested room");
-            	}
-            	break;
+            if (!Game.powerCreeps[pName].shard && Game.powerCreeps[pName].className == POWER_CLASS.OPERATOR) {
+                //This is an unspawned pCreep
+                if (Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name].length > 0) {
+                    Game.powerCreeps[pName].spawn(Game.getObjectById(Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name][0]));
+                    Game.powerCreeps[pName].memory.priority = 'baseOp';
+                    Game.flags["SpawnOperator"].remove();
+                } else {
+                    console.log("Error: No power spawn in requested room");
+                }
+                break;
             }
         }
         Game.flags["SpawnOperator"].remove();
@@ -1003,10 +1003,12 @@ module.exports.loop = function() {
     var post5CPU = 0;
     for (let pName in Game.powerCreeps) {
         let creep = Game.powerCreeps[pName];
-        switch (creep.memory.priority) {
-            case 'baseOp':
-                creep_baseOp.run(creep);
-                break;
+        if (creep.shard == Game.shard.name) {
+            switch (creep.memory.priority) {
+                case 'baseOp':
+                    creep_baseOp.run(creep);
+                    break;
+            }
         }
     }
     for (var name in Game.creeps) {
