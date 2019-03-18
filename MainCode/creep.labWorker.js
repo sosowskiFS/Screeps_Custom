@@ -515,13 +515,13 @@ var creep_labWorker = {
                     creep.memory.structureTarget = creep.room.terminal.id;
                     creep.memory.direction = 'Transfer';
                     creep.memory.mineralToMove = RESOURCE_GHODIUM;
-                } else {
+                } else if (!Game.flags[creep.room.name + "RoomOperator"]) {
                     //creep.memory.offlineUntil = Game.time + 10;
                     creep.memory.previousPriority = 'labWorker';
                     creep.memory.priority = 'distributor';
                     creep.memory.hasDistributed = false;
                 }
-            } else if (!foundWork) {
+            } else if (!foundWork && !Game.flags[creep.room.name + "RoomOperator"]) {
                 //creep.memory.offlineUntil = Game.time + 10;
                 creep.memory.previousPriority = 'labWorker';
                 creep.memory.priority = 'distributor';
