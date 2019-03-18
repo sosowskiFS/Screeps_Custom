@@ -23,7 +23,7 @@ var creep_baseOp = {
 
         if (!creep.memory.jobFocus) {
             //Try to find work that needs doing
-            creep.memory.jobFocus = findNeededWork(creep);
+            creep.memory.jobFocus = findNeededWork(creep, totalOps);
         }
 
         //Main work loop
@@ -127,6 +127,8 @@ var creep_baseOp = {
                         creep.memory.jobFocus = undefined;
                         creep.memory.structureTarget = undefined;
                     }
+                } else {
+                    creep.memory.structureTarget = undefined;
                 }
                 if (!creep.memory.structureTarget) {
                     var target = undefined;
@@ -293,7 +295,7 @@ function setupCreepMemory(creep) {
     creep.memory.initialSetup = true;
 }
 
-function findNeededWork(creep) {
+function findNeededWork(creep, totalOps) {
     if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'OPERATE_EXTENSION';
     } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] <= Game.time || creep.memory.empoweredSources[1] <= Game.time)) {
