@@ -300,6 +300,7 @@ function findNeededWork(creep) {
     } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'FILL_SPAWNS';
     }
+    return undefined;
 }
 
 function checkForLabNeed(creep) {
