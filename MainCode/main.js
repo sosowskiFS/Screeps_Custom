@@ -126,7 +126,7 @@ module.exports.loop = function() {
 
     if (Game.flags["SpawnOperator"]) {
         for (let pName in Game.powerCreeps) {
-            if (!Game.powerCreeps[pName].ticksToLive && Game.powerCreeps[pName].className == OPERATOR) {
+            if (!Game.powerCreeps[pName].ticksToLive && Game.powerCreeps[pName].className == 'operator') {
             	//This is an unspawned pCreep
             	if (Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name].length > 0) {
             		Game.powerCreeps[pName].spawn(Game.getObjectById(Memory.powerSpawnList[Game.flags["SpawnOperator"].room.name][0]));
