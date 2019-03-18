@@ -104,7 +104,7 @@ var creep_baseOp = {
             if (creep.carry[RESOURCE_ENERGY] <= 0) {
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
                 if (creep.carry[RESOURCE_OPS]) {
-                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY];
+                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS] + 6) - creep.carry[RESOURCE_ENERGY];
                 }
                 creep.memory.structureTarget = undefined;
                 //Get from storage
@@ -196,7 +196,7 @@ var creep_baseOp = {
 
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
                 if (creep.carry[RESOURCE_OPS]) {
-                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY];
+                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS] + 6) - creep.carry[RESOURCE_ENERGY];
                 }
 
                 if (creep.memory.linkSource) {
