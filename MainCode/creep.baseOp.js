@@ -33,14 +33,17 @@ var creep_baseOp = {
             if (powerSpawnTarget) {
                 var renewResult = creep.renew(powerSpawnTarget);
                 if (renewResult == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(powerSpawnTarget);
+                    creep.travelTo(powerSpawnTarget, {
+                        ignoreRoads: true
+                    });
                 }
             }
         } else if (creep.memory.jobFocus == 'OPERATE_EXTENSION') {
             var useResult = creep.usePower(PWR_OPERATE_EXTENSION, creep.room.storage);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(creep.room.storage, {
-                    range: 3
+                    range: 3,
+                    ignoreRoads: true
                 });
             } else if (useResult == OK) {
                 creep.memory.cooldowns.OPERATE_EXTENSION = Game.time + 50;
@@ -58,7 +61,8 @@ var creep_baseOp = {
             var useResult = creep.usePower(PWR_REGEN_SOURCE, targetSource);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(targetSource, {
-                    range: 3
+                    range: 3,
+                    ignoreRoads: true
                 });
             } else if (useResult == OK) {
                 creep.memory.cooldowns.REGEN_SOURCE = Game.time + 100;
@@ -76,7 +80,8 @@ var creep_baseOp = {
                 var useResult = creep.usePower(PWR_OPERATE_LAB, targetLab);
                 if (useResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(targetLab, {
-                        range: 3
+                        range: 3,
+                        ignoreRoads: true
                     });
                 } else if (useResult == OK) {
                     creep.memory.cooldowns.OPERATE_LAB = Game.time + 50;
@@ -122,7 +127,9 @@ var creep_baseOp = {
                 var getNewStructure = false;
                 if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(savedTarget);
+                        creep.travelTo(savedTarget, {
+                            ignoreRoads: true
+                        });
                     } else {
                         creep.memory.jobFocus = undefined;
                         creep.memory.structureTarget = undefined;
@@ -149,7 +156,9 @@ var creep_baseOp = {
 
                     if (target) {
                         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(target);
+                            creep.travelTo(target, {
+                                ignoreRoads: true
+                            });
                             creep.memory.structureTarget = target.id;
                         } else {
                             //OK
@@ -184,7 +193,9 @@ var creep_baseOp = {
                     if (thisTarget) {
                         let tResult = creep.transfer(thisTarget, RESOURCE_ENERGY)
                         if (tResult == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisTarget);
+                            creep.travelTo(thisTarget, {
+                                ignoreRoads: true
+                            });
                         } else if (tResult == OK) {
                             creep.memory.structureTarget = undefined;
                         }
@@ -207,7 +218,9 @@ var creep_baseOp = {
                             foundWork = true;
                             creep.memory.structureTarget = creep.room.terminal.id;
                             if (creep.transfer(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(creep.room.terminal);
+                                creep.travelTo(creep.room.terminal, {
+                                    ignoreRoads: true
+                                });
                             }
                         }
                     }
@@ -223,7 +236,9 @@ var creep_baseOp = {
                             foundWork = true;
                             creep.memory.structureTarget = target.id;
                             if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(target);
+                                creep.travelTo(target, {
+                                    ignoreRoads: true
+                                });
                             } else {
                                 creep.memory.structureTarget = undefined;
                             }
@@ -232,7 +247,9 @@ var creep_baseOp = {
 
                     if (!foundWork && creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.memory.structureTarget = creep.room.storage.id;
-                        creep.travelTo(creep.room.storage);
+                        creep.travelTo(creep.room.storage, {
+                            ignoreRoads: true
+                        });
                     }
                 }
 
