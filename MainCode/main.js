@@ -10,6 +10,8 @@ var creep_upgrader = require('creep.upgrader');
 var creep_repair = require('creep.repair');
 var creep_labWorker = require('creep.labWorker');
 
+var creep_baseOperator = require('creep.baseOperator');
+
 var creep_farMining = require('creep.farMining');
 var creep_farMule = require('creep.farMule');
 var creep_farMiner = require('creep.farMiner');
@@ -980,6 +982,14 @@ module.exports.loop = function() {
     var farMiningCPU = 0;
     var pre5CPU = 0;
     var post5CPU = 0;
+    for (let pName in Game.powerCreeps) {
+        let creep = Game.powerCreeps[pName];
+        switch (creep.memory.priority) {
+            case 'baseOperator':
+                creep_baseOperator.run(creep);
+                break;
+        }
+    }
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (!creep.spawning) {
