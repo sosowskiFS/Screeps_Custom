@@ -24,7 +24,7 @@ var creep_baseOp = {
         //Main work loop
         //Focus on one action at a time for now, implement multiple later
         //Keep creep alive (Better than resetting ops)
-        if (creep.ticksToLive <= 50 && Memory.powerSpawnList[creep.room.name]) {
+        if (creep.ticksToLive <= 100 && Memory.powerSpawnList[creep.room.name]) {
             var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
             if (powerSpawnTarget) {
                 var renewResult = creep.renew(powerSpawnTarget);
@@ -77,6 +77,110 @@ var creep_baseOp = {
                     updateLabBoost(creep);
                 }
             }
+        } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+            //Power only fills extentions, fill spawns.
+            if (creep.carry[RESOURCE_ENERGY] <= 900) {
+                let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
+                creep.memory.structureTarget = undefined;
+                //Get from storage
+                //Check overflow link first
+                var linkTarget = undefined;
+                if (creep.memory.linkSource) {
+                    linkTarget = Game.getObjectById(creep.memory.linkSource)
+                }
+                if (linkTarget && linkTarget.energy >= 400) {
+                    if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(linkTarget, {
+                            ignoreRoads: true
+                        });
+                    }
+                } else {
+                    var storageTarget = creep.room.storage;
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        storageTarget = creep.room.terminal;
+                    }
+                    if (storageTarget) {
+                        let withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY, neededAmount)
+                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(storageTarget, {
+                                ignoreRoads: true
+                            });
+                        } else if (withdrawResult == ERR_NOT_ENOUGH_RESOURCES) {
+                            creep.withdraw(storageTarget, RESOURCE_ENERGY)
+                        }
+                    }
+                }
+            } else {
+                let savedTarget = Game.getObjectById(creep.memory.structureTarget);
+                var getNewStructure = false;
+                if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
+                    if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(savedTarget);
+                    } else {
+                        getNewStructure = true;
+                        creep.memory.structureTarget = undefined;
+                    }
+                }
+                if (!creep.memory.structureTarget) {
+                    var target = undefined;
+                    if (getNewStructure) {
+                        target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                            }
+                        });
+                    } else {
+                        target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+                            }
+                        });
+                    }
+                    if (!target) {
+                        //Find closest by path will not return anything if path is blocked
+                        if (getNewStructure) {
+                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                filter: (structure) => {
+                                    return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
+                                }
+                            });
+                        } else {
+                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                filter: (structure) => {
+                                    return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+                                }
+                            });
+                        }
+                    }
+
+                    if (target) {
+                        if (getNewStructure) {
+                            creep.travelTo(target);
+                            creep.memory.structureTarget = target.id;
+                        } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(target);
+                            creep.memory.structureTarget = target.id;
+                        }
+                    }
+                }
+            }
+        } else {
+            //Busywork - dump overflow link into storage
+            if (creep.carry[RESOURCE_ENERGY] <= 1200) {
+                var linkTarget = undefined;
+                if (creep.memory.linkSource) {
+                    linkTarget = Game.getObjectById(creep.memory.linkSource)
+                }
+                if (linkTarget && linkTarget.energy >= 400) {
+                    if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(linkTarget, {
+                            ignoreRoads: true
+                        });
+                    }
+                }
+            } else if (creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                creep.travelTo(savedTarget);
+            }
         }
 
         let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
@@ -124,6 +228,10 @@ function setupCreepMemory(creep) {
 
     if (!Game.flags[creep.room.name + "RoomOperator"]) {
         Game.rooms[creep.room.name].createFlag(47, 2, creep.room.name + "RoomOperator");
+    }
+
+    if (Memory.linkList[creep.room.name].length >= 4) {
+        creep.memory.linkSource = Memory.linkList[creep.room.name][3];
     }
 
     creep.memory.initialSetup = true;
