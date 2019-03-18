@@ -1026,7 +1026,7 @@ var spawn_BuildCreeps5 = {
                     }
                 }
             }
-        } else if (mules.length == 0) {
+        } else if (mules.length == 0 && !Game.flags[thisRoom.name + "RoomOperator"]) {
             var blockedRole = '';
             var blockedSubRole = '';
 
