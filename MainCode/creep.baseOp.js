@@ -21,6 +21,11 @@ var creep_baseOp = {
         //When RunningAssault flag exists - OPERATE_SPAWN
         //if creep.memory.cooldowns.OPERATE_SPAWN <= Game.time && totalOps >= 100 && checkForSpawnNeed(creep)
 
+        if (!creep.memory.jobFocus) {
+            //Try to find work that needs doing
+            creep.memory.jobFocus = findNeededWork(creep);
+        }
+
         //Main work loop
         //Should change to focus on a job until it's done (Exception : Keeping creep alive)
         if (creep.ticksToLive <= 100 && Memory.powerSpawnList[creep.room.name]) {
@@ -31,7 +36,7 @@ var creep_baseOp = {
                     creep.travelTo(powerSpawnTarget);
                 }
             }
-        } else if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+        } else if (creep.memory.jobFocus == 'OPERATE_EXTENSION') {
             var useResult = creep.usePower(PWR_OPERATE_EXTENSION, creep.room.storage);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(creep.room.storage, {
@@ -40,8 +45,9 @@ var creep_baseOp = {
             } else if (useResult == OK) {
                 creep.memory.cooldowns.OPERATE_EXTENSION = Game.time + 50;
                 totalOps = totalOps - 2;
+                creep.memory.jobFocus = undefined;
             }
-        } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] <= Game.time || creep.memory.empoweredSources[1] <= Game.time)) {
+        } else if (creep.memory.jobFocus == 'REGEN_SOURCE') {
             var targetSource;
             if (creep.memory.empoweredSources[0] <= Game.time) {
                 targetSource = Game.getObjectById(creep.memory.sources[0]);
@@ -61,8 +67,9 @@ var creep_baseOp = {
                 } else {
                     creep.memory.empoweredSources[1] = Game.time + 300;
                 }
+                creep.memory.jobFocus = undefined;
             }
-        } else if (!Game.flags[creep.room.name + "WarBoosts"] && creep.memory.cooldowns.OPERATE_LAB <= Game.time && totalOps >= 10 && checkForLabNeed(creep)) {
+        } else if (creep.memory.jobFocus == 'OPERATE_LAB') {
             var targetLab = getNeededLab(creep);
             //Creep will do nothing if lab is undefined, add handling?
             if (targetLab) {
@@ -74,9 +81,10 @@ var creep_baseOp = {
                 } else if (useResult == OK) {
                     creep.memory.cooldowns.OPERATE_LAB = Game.time + 50;
                     updateLabBoost(creep);
+                    creep.memory.jobFocus = undefined;
                 }
             }
-        } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+        } else if (creep.memory.jobFocus == 'FILL_SPAWNS') {
             //Power only fills extentions, fill spawns.
             if (creep.carry[RESOURCE_ENERGY] <= 900) {
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
@@ -116,49 +124,35 @@ var creep_baseOp = {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(savedTarget);
                     } else {
-                        getNewStructure = true;
+                        creep.memory.jobFocus = undefined;
                         creep.memory.structureTarget = undefined;
                     }
                 }
                 if (!creep.memory.structureTarget) {
                     var target = undefined;
-                    if (getNewStructure) {
-                        target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                            filter: (structure) => {
-                                return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                            }
-                        });
-                    } else {
-                        target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                    target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                        filter: (structure) => {
+                            return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
+                        }
+                    });
+
+                    if (!target) {
+                        //Find closest by path will not return anything if path is blocked
+                        target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
                             }
                         });
                     }
-                    if (!target) {
-                        //Find closest by path will not return anything if path is blocked
-                        if (getNewStructure) {
-                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                                }
-                            });
-                        } else {
-                            target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
-                                }
-                            });
-                        }
-                    }
 
                     if (target) {
-                        if (getNewStructure) {
+                        if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(target);
                             creep.memory.structureTarget = target.id;
-                        } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(target);
-                            creep.memory.structureTarget = target.id;
+                        } else {
+                            //OK
+                            creep.memory.jobFocus = undefined;
+                            creep.memory.structureTarget = undefined;
                         }
                     }
                 }
@@ -291,7 +285,21 @@ function setupCreepMemory(creep) {
         creep.memory.linkSource = Memory.linkList[creep.room.name][3];
     }
 
+    creep.memory.jobFocus = undefined;
+
     creep.memory.initialSetup = true;
+}
+
+function findNeededWork(creep) {
+    if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+        return 'OPERATE_EXTENSION';
+    } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] <= Game.time || creep.memory.empoweredSources[1] <= Game.time)) {
+        return 'REGEN_SOURCE';
+    } else if (!Game.flags[creep.room.name + "WarBoosts"] && creep.memory.cooldowns.OPERATE_LAB <= Game.time && totalOps >= 10 && checkForLabNeed(creep)) {
+        return 'OPERATE_LAB';
+    } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+        return 'FILL_SPAWNS';
+    }
 }
 
 function checkForLabNeed(creep) {
