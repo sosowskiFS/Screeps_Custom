@@ -285,12 +285,19 @@ var creep_baseOp = {
                         }
                     }
 
+                    //Link is checked first, so if overflow is filled then there's energy to be moved.
                     if (!foundWork && creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.memory.structureTarget = creep.room.storage.id;
-                        creep.travelTo(creep.room.storage, {
-                            ignoreRoads: true,
-                            maxRooms: 1
-                        });
+                    	var linkTarget = undefined;
+                    	if (creep.memory.linkSource) {
+		                    linkTarget = Game.getObjectById(creep.memory.linkSource)
+		                }
+		                if (linkTarget && linkTarget.energy >= 400 && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+		                	creep.memory.structureTarget = creep.room.storage.id;
+	                        creep.travelTo(creep.room.storage, {
+	                            ignoreRoads: true,
+	                            maxRooms: 1
+	                        });
+		                }       
                     }
                 }
 
