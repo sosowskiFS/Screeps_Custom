@@ -179,7 +179,7 @@ var creep_baseOp = {
                     }
                 }
             } else if (creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.travelTo(savedTarget);
+                creep.travelTo(creep.room.storage);
             }
         }
 
