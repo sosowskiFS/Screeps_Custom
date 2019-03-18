@@ -18,8 +18,8 @@ var creep_farMiner = {
                     Game.notify('War mode has been enabled.');
                 }
                 if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
-		            Memory.FarRoomsUnderAttack.push(creep.room.name);
-		        }
+                    Memory.FarRoomsUnderAttack.push(creep.room.name);
+                }
                 let targetTime = Game.time + 750;
                 creep.room.createFlag(Game.flags[creep.memory.targetFlag].pos, creep.memory.targetFlag + ";" + targetTime.toString());
                 Game.flags[creep.memory.targetFlag].remove();

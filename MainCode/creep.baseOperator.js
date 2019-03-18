@@ -96,7 +96,9 @@ var creep_baseOperator = {
         creep.memory.spawnList = [];
         creep.memory.empoweredSpawns = [];
         let roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
-            filter: { structureType: STRUCTURE_SPAWN }
+            filter: {
+                structureType: STRUCTURE_SPAWN
+            }
         });
         for (let thisSpawn in roomSpawns) {
             creep.memory.spawnList.push(roomSpawns[thisSpawn].id);
@@ -114,7 +116,7 @@ var creep_baseOperator = {
     }
 
     function checkForLabNeed(creep) {
-        for (let thisLab in creep.memory.empoweredLabs){
+        for (let thisLab in creep.memory.empoweredLabs) {
             if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
                 return true;
             }
@@ -124,7 +126,7 @@ var creep_baseOperator = {
 
     function getNeededLab(creep) {
         let labIndex = 3;
-        for (let thisLab in creep.memory.empoweredLabs){
+        for (let thisLab in creep.memory.empoweredLabs) {
             if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
                 let thisLab = Game.getObjectById(Memory.labList[creep.room.name][labIndex]);
                 if (thisLab) {
@@ -137,7 +139,7 @@ var creep_baseOperator = {
     }
 
     function updateLabBoost(creep) {
-        for (let thisLab in creep.memory.empoweredLabs){
+        for (let thisLab in creep.memory.empoweredLabs) {
             if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
                 creep.memory.empoweredLabs[thisLab] = Game.time + 1000;
                 break;
