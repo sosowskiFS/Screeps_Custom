@@ -24,6 +24,9 @@ var creep_baseOp = {
         if (!creep.memory.jobFocus) {
             //Try to find work that needs doing
             creep.memory.jobFocus = findNeededWork(creep, totalOps);
+            if (creep.memory.jobFocus) {
+                creep.memory.structureTarget = undefined;
+            }
         }
 
         //Main work loop
@@ -172,7 +175,7 @@ var creep_baseOp = {
                 }
             }
         } else {
-            //Busywork - dump overflow link
+            //Busywork
             if (creep.carry[RESOURCE_ENERGY] <= 1200) {
                 var linkTarget = undefined;
                 creep.memory.structureTarget = undefined;
