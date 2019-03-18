@@ -154,6 +154,9 @@ var creep_baseOp = {
                             creep.memory.jobFocus = undefined;
                             creep.memory.structureTarget = undefined;
                         }
+                    } else {
+                        creep.memory.jobFocus = undefined;
+                        creep.memory.structureTarget = undefined;
                     }
                 }
             }
