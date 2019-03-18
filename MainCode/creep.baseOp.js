@@ -8,7 +8,7 @@ var creep_baseOp = {
         //Resource generation
         var totalOps = creep.carry[RESOURCE_OPS];
         if (!totalOps) {
-        	totalOps = 0;
+            totalOps = 0;
         }
         if (totalOps < 600 && creep.memory.cooldowns.GENERATE_OPS <= Game.time) {
             if (creep.usePower(PWR_GENERATE_OPS) == OK) {
@@ -104,7 +104,7 @@ var creep_baseOp = {
             if (creep.carry[RESOURCE_ENERGY] <= 0) {
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
                 if (creep.carry[RESOURCE_OPS]) {
-                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS] + 6) - creep.carry[RESOURCE_ENERGY];
+                    neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS] + 6) - creep.carry[RESOURCE_ENERGY];
                 }
                 creep.memory.structureTarget = undefined;
                 //Get from storage
@@ -188,6 +188,30 @@ var creep_baseOp = {
                     }
                 }
             }
+        } else if (creep.memory.jobFocus == 'FILL_POWER') {
+            if (creep.carry[RESOURCE_POWER] == 0 && creep.withdraw(creep.room.storage, RESOURCE_POWER, 100) == ERR_NOT_IN_RANGE) {
+                creep.travelTo(creep.room.storage, {
+                    ignoreRoads: true,
+                    maxRooms: 1
+                });
+            } else {
+                var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
+                if (pSpawn) {
+                    var transferResult = creep.transfer(pSpawn, RESOURCE_POWER);
+                    if (transferResult == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(pSpawn, {
+                            maxRooms: 1,
+                            ignoreRoads: true
+                        });
+                    } else if (transferResult == OK) {
+                        creep.memory.jobFocus = undefined;
+                        creep.memory.structureTarget = undefined;
+                    }
+                } else {
+                    creep.memory.jobFocus = undefined;
+                    creep.memory.structureTarget = undefined;
+                }
+            }
         } else {
             //Busywork
             if (creep.carry[RESOURCE_ENERGY] <= 0) {
@@ -196,7 +220,7 @@ var creep_baseOp = {
 
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
                 if (creep.carry[RESOURCE_OPS]) {
-                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS] + 6) - creep.carry[RESOURCE_ENERGY];
+                    neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS] + 6) - creep.carry[RESOURCE_ENERGY];
                 }
 
                 if (creep.memory.linkSource) {
@@ -290,17 +314,17 @@ var creep_baseOp = {
 
                     //Link is checked first, so if overflow is filled then there's energy to be moved.
                     if (!foundWork && creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    	var linkTarget = undefined;
-                    	if (creep.memory.linkSource) {
-		                    linkTarget = Game.getObjectById(creep.memory.linkSource)
-		                }
-		                if (linkTarget && linkTarget.energy >= 400 && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-		                	creep.memory.structureTarget = creep.room.storage.id;
-	                        creep.travelTo(creep.room.storage, {
-	                            ignoreRoads: true,
-	                            maxRooms: 1
-	                        });
-		                }       
+                        var linkTarget = undefined;
+                        if (creep.memory.linkSource) {
+                            linkTarget = Game.getObjectById(creep.memory.linkSource)
+                        }
+                        if (linkTarget && linkTarget.energy >= 400 && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.memory.structureTarget = creep.room.storage.id;
+                            creep.travelTo(creep.room.storage, {
+                                ignoreRoads: true,
+                                maxRooms: 1
+                            });
+                        }
                     }
                 }
 
@@ -320,13 +344,13 @@ var creep_baseOp = {
             }
         }
 
-        if(creep.room.controller && !creep.room.controller.isPowerEnabled) {
-        	if (creep.enableRoom(creep.room.controller) == ERR_NOT_IN_RANGE) {
-        		creep.travelTo(creep.room.controller, {
-        			ignoreRoads: true,
-        			maxRooms: 1
-        		})
-        	}
+        if (creep.room.controller && !creep.room.controller.isPowerEnabled) {
+            if (creep.enableRoom(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                creep.travelTo(creep.room.controller, {
+                    ignoreRoads: true,
+                    maxRooms: 1
+                })
+            }
         }
     }
 };
@@ -381,6 +405,13 @@ function findNeededWork(creep, totalOps) {
         return 'OPERATE_LAB';
     } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'FILL_SPAWNS';
+    }
+
+    if (creep.room.storage.store[RESOURCE_POWER] && creep.room.storage.store[RESOURCE_POWER] >= 100 && Memory.powerSpawnList[creep.room.name]) {
+        var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
+        if (powerSpawnTarget && powerSpawnTarget.power == 0) {
+            return 'FILL_POWER';
+        }
     }
     return undefined;
 }
