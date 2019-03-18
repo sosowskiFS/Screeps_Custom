@@ -122,7 +122,7 @@ var creep_baseOp = {
                     }
                 } else {
                     var storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 33000) {
                         storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
@@ -235,7 +235,7 @@ var creep_baseOp = {
                     }
                 } else {
                     var storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 33000) {
                         storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
