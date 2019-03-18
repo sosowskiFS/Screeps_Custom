@@ -325,8 +325,8 @@ var spawn_BuildCreeps5 = {
                 //The RoomOperator is robust enough to make up for multiple roles
                 upSupplierMax = 0;
                 distributorMax = 0;
-                muleMax = 0;
-                repairMax = 2;
+                //muleMax = 0;
+                //repairMax = 2;
                 //labWorkerMax = 0;
             }
         } else if (thisRoom.storage) {
@@ -382,7 +382,7 @@ var spawn_BuildCreeps5 = {
             if (Game.flags[thisRoom.name + "RoomOperator"]) {
                 //The RoomOperator is robust enough to make up for multiple roles
                 distributorMax = 0;
-                muleMax = 0;
+                //muleMax = 0;
             }
         }
 
