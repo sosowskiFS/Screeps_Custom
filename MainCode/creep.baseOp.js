@@ -381,7 +381,7 @@ function setupCreepMemory(creep) {
     }
 
     //Can ignore first 3 labs, never set to run reactions
-    creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time, Game.time, Game.time]
+    creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time]
 
     if (!Game.flags[creep.room.name + "RoomOperator"]) {
         Game.rooms[creep.room.name].createFlag(46, 2, creep.room.name + "RoomOperator");
@@ -426,7 +426,7 @@ function checkForLabNeed(creep) {
 }
 
 function getNeededLab(creep) {
-    var labIndex = 3;
+    var labIndex = 5;
     for (var thisLab in creep.memory.empoweredLabs) {
         if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
             var thisLab = Game.getObjectById(Memory.labList[creep.room.name][labIndex]);
