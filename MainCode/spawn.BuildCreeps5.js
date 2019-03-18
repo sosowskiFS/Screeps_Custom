@@ -321,6 +321,12 @@ var spawn_BuildCreeps5 = {
             if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 900000) {
                 repairMax = 2;
             }
+            if (Game.flags[thisRoom.name + "RoomOperator"]) {
+                //The RoomOperator is robust enough to make up for multiple roles
+                upSupplierMax = 0;
+                distributorMax = 0;
+                //labWorkerMax = 0;
+            }
         } else if (thisRoom.storage) {
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
                 upgraderMax++;
