@@ -37,7 +37,8 @@ var creep_baseOp = {
                 var renewResult = creep.renew(powerSpawnTarget);
                 if (renewResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(powerSpawnTarget, {
-                        ignoreRoads: true
+                        ignoreRoads: true,
+                        maxRooms: 1
                     });
                 }
             }
@@ -46,7 +47,8 @@ var creep_baseOp = {
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(creep.room.storage, {
                     range: 3,
-                    ignoreRoads: true
+                    ignoreRoads: true,
+                    maxRooms: 1
                 });
             } else if (useResult == OK) {
                 creep.memory.cooldowns.OPERATE_EXTENSION = Game.time + 50;
@@ -65,7 +67,8 @@ var creep_baseOp = {
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(targetSource, {
                     range: 3,
-                    ignoreRoads: true
+                    ignoreRoads: true,
+                    maxRooms: 1
                 });
             } else if (useResult == OK) {
                 creep.memory.cooldowns.REGEN_SOURCE = Game.time + 100;
@@ -84,7 +87,8 @@ var creep_baseOp = {
                 if (useResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(targetLab, {
                         range: 3,
-                        ignoreRoads: true
+                        ignoreRoads: true,
+                        maxRooms: 1
                     });
                 } else if (useResult == OK) {
                     creep.memory.cooldowns.OPERATE_LAB = Game.time + 50;
@@ -106,7 +110,8 @@ var creep_baseOp = {
                 if (linkTarget && linkTarget.energy >= 400) {
                     if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(linkTarget, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            maxRooms: 1
                         });
                     }
                 } else {
@@ -118,7 +123,8 @@ var creep_baseOp = {
                         let withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY, neededAmount)
                         if (withdrawResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(storageTarget, {
-                                ignoreRoads: true
+                                ignoreRoads: true,
+                                maxRooms: 1
                             });
                         } else if (withdrawResult == ERR_NOT_ENOUGH_RESOURCES) {
                             creep.withdraw(storageTarget, RESOURCE_ENERGY)
@@ -131,7 +137,8 @@ var creep_baseOp = {
                 if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(savedTarget, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            maxRooms: 1
                         });
                     } else {
                         creep.memory.jobFocus = undefined;
@@ -160,7 +167,8 @@ var creep_baseOp = {
                     if (target) {
                         if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(target, {
-                                ignoreRoads: true
+                                ignoreRoads: true,
+                                maxRooms: 1
                             });
                             creep.memory.structureTarget = target.id;
                         } else {
@@ -185,7 +193,8 @@ var creep_baseOp = {
                 if (linkTarget && linkTarget.energy >= 400) {
                     if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(linkTarget, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            maxRooms: 1
                         });
                     }
                 }
@@ -197,7 +206,8 @@ var creep_baseOp = {
                         let tResult = creep.transfer(thisTarget, RESOURCE_ENERGY)
                         if (tResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisTarget, {
-                                ignoreRoads: true
+                                ignoreRoads: true,
+                                maxRooms: 1
                             });
                         } else if (tResult == OK) {
                             creep.memory.structureTarget = undefined;
@@ -222,7 +232,8 @@ var creep_baseOp = {
                             creep.memory.structureTarget = creep.room.terminal.id;
                             if (creep.transfer(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(creep.room.terminal, {
-                                    ignoreRoads: true
+                                    ignoreRoads: true,
+                                    maxRooms: 1
                                 });
                             }
                         }
@@ -240,7 +251,8 @@ var creep_baseOp = {
                             creep.memory.structureTarget = target.id;
                             if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(target, {
-                                    ignoreRoads: true
+                                    ignoreRoads: true,
+                                    maxRooms: 1
                                 });
                             } else {
                                 creep.memory.structureTarget = undefined;
@@ -251,7 +263,8 @@ var creep_baseOp = {
                     if (!foundWork && creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                         creep.memory.structureTarget = creep.room.storage.id;
                         creep.travelTo(creep.room.storage, {
-                            ignoreRoads: true
+                            ignoreRoads: true,
+                            maxRooms: 1
                         });
                     }
                 }
