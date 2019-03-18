@@ -377,6 +377,10 @@ var spawn_BuildCreeps5 = {
             upSupplierMax = 0;
             supplierMax = 1;
             distributorMax = 1;
+            if (Game.flags[thisRoom.name + "RoomOperator"]) {
+                //The RoomOperator is robust enough to make up for multiple roles
+                distributorMax = 0;
+            }
         }
 
         if (Game.flags[thisRoom.name + "upFocus"]) {
