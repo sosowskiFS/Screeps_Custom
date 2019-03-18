@@ -637,7 +637,7 @@ var spawn_BuildCreeps5 = {
                     let minerConfig = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY];
                     if (Game.flags[thisRoom.name + "RoomOperator"]) {
                         //Level 5 source boost config
-                        minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+                        minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY];
                     }
                     let configCost = calculateConfigCost(minerConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
