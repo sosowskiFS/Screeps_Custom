@@ -595,3 +595,8 @@ Creep.prototype.travelTo = function(destination, options, doFlee) {
     return Traveler.travelTo(this, destination, options, doFlee);
     //return this.moveTo(destination, options);
 };
+// assigns a function to Creep.prototype: creep.travelTo(destination)
+PowerCreep.prototype.travelTo = function(destination, options, doFlee) {
+    return Traveler.travelTo(this, destination, options, doFlee);
+    //return this.moveTo(destination, options);
+};
