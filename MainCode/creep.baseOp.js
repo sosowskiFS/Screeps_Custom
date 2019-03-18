@@ -22,8 +22,7 @@ var creep_baseOp = {
         //if creep.memory.cooldowns.OPERATE_SPAWN <= Game.time && totalOps >= 100 && checkForSpawnNeed(creep)
 
         //Main work loop
-        //Focus on one action at a time for now, implement multiple later
-        //Keep creep alive (Better than resetting ops)
+        //Should change to focus on a job until it's done (Exception : Keeping creep alive)
         if (creep.ticksToLive <= 100 && Memory.powerSpawnList[creep.room.name]) {
             var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
             if (powerSpawnTarget) {
@@ -165,9 +164,10 @@ var creep_baseOp = {
                 }
             }
         } else {
-            //Busywork - dump overflow link into storage
+            //Busywork - dump overflow link
             if (creep.carry[RESOURCE_ENERGY] <= 1200) {
                 var linkTarget = undefined;
+                creep.memory.structureTarget = undefined;
                 if (creep.memory.linkSource) {
                     linkTarget = Game.getObjectById(creep.memory.linkSource)
                 }
@@ -178,8 +178,65 @@ var creep_baseOp = {
                         });
                     }
                 }
-            } else if (creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.travelTo(creep.room.storage);
+            } else {
+                //Saved Target
+                if (creep.memory.structureTarget) {
+                    var thisTarget = Game.getObjectById(creep.memory.structureTarget);
+                    if (thisTarget) {
+                        let tResult = creep.transfer(thisTarget, RESOURCE_ENERGY)
+                        if (tResult == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(thisTarget);
+                        } else if (tResult == OK) {
+                            creep.memory.structureTarget = undefined;
+                        }
+                    } else {
+                        creep.memory.structureTarget = undefined;
+                    }
+                } else {
+                    //Terminal
+                    let foundWork = false;
+                    if (creep.room.terminal) {
+                        let targetEnergy = 0;
+                        if (creep.room.storage) {
+                            if (creep.room.storage.store[RESOURCE_ENERGY] >= 275000) {
+                                targetEnergy = 60000;
+                            } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
+                                targetEnergy = 30000;
+                            }
+                        }
+                        if (creep.room.terminal.store[RESOURCE_ENERGY] < targetEnergy && (creep.room.terminal.storeCapacity - 5000) > _.sum(creep.room.terminal.store)) {
+                            foundWork = true;
+                            creep.memory.structureTarget = creep.room.terminal.id;
+                            if (creep.transfer(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(creep.room.terminal);
+                            }
+                        }
+                    }
+                    //PowerSpawn/Nuker
+                    if (!foundWork && creep.room.controller.level == 8) {
+                        var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_POWER_SPAWN ||
+                                    structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
+                            }
+                        });
+                        if (target) {
+                            foundWork = true;
+                            creep.memory.structureTarget = target.id;
+                            if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(target);
+                            } else {
+                                creep.memory.structureTarget = undefined;
+                            }
+                        }
+                    }
+
+                    if (!foundWork && creep.room.storage && creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        creep.memory.structureTarget = creep.room.storage.id;
+                        creep.travelTo(creep.room.storage);
+                    }
+                }
+
             }
         }
 
