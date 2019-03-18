@@ -98,10 +98,10 @@ var creep_baseOp = {
             }
         } else if (creep.memory.jobFocus == 'FILL_SPAWNS') {
             //Power only fills extentions, fill spawns.
-            if (creep.carry[RESOURCE_ENERGY] <= 900) {
+            if (creep.carry[RESOURCE_ENERGY] <= 0) {
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
                 if (creep.carry[RESOURCE_OPS]) {
-                	neededAmount = (2000 - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY];
+                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY];
                 }
                 creep.memory.structureTarget = undefined;
                 //Get from storage
@@ -187,9 +187,15 @@ var creep_baseOp = {
             }
         } else {
             //Busywork
-            if (creep.carry[RESOURCE_ENERGY] <= 1200) {
+            if (creep.carry[RESOURCE_ENERGY] <= 0) {
                 var linkTarget = undefined;
                 creep.memory.structureTarget = undefined;
+
+                let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
+                if (creep.carry[RESOURCE_OPS]) {
+                	neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY];
+                }
+
                 if (creep.memory.linkSource) {
                     linkTarget = Game.getObjectById(creep.memory.linkSource)
                 }
@@ -199,6 +205,22 @@ var creep_baseOp = {
                             ignoreRoads: true,
                             maxRooms: 1
                         });
+                    }
+                } else {
+                    var storageTarget = creep.room.storage;
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        storageTarget = creep.room.terminal;
+                    }
+                    if (storageTarget) {
+                        let withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY, neededAmount)
+                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(storageTarget, {
+                                ignoreRoads: true,
+                                maxRooms: 1
+                            });
+                        } else if (withdrawResult == ERR_NOT_ENOUGH_RESOURCES) {
+                            creep.withdraw(storageTarget, RESOURCE_ENERGY)
+                        }
                     }
                 }
             } else {
