@@ -6,7 +6,7 @@ var creep_baseOp = {
             setupCreepMemory(creep);
         }
         //Resource generation
-        let totalOps = creep.carry[RESOURCE_OPS];
+        var totalOps = creep.carry[RESOURCE_OPS];
         if (totalOps < 600 && creep.memory.cooldowns.GENERATE_OPS <= Game.time) {
             if (creep.usePower(PWR_GENERATE_OPS) == OK) {
                 creep.memory.cooldowns.GENERATE_OPS = Game.time + 50;
@@ -25,15 +25,15 @@ var creep_baseOp = {
         //Focus on one action at a time for now, implement multiple later
         //Keep creep alive (Better than resetting ops)
         if (creep.ticksToLive <= 50 && Memory.powerSpawnList[creep.room.name]) {
-            let powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
+            var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
             if (powerSpawnTarget) {
-                let renewResult = creep.renew(powerSpawnTarget);
+                var renewResult = creep.renew(powerSpawnTarget);
                 if (renewResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(powerSpawnTarget);
                 }
             }
         } else if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
-            let useResult = creep.usePower(PWR_OPERATE_EXTENSION, creep.room.storage);
+            var useResult = creep.usePower(PWR_OPERATE_EXTENSION, creep.room.storage);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(creep.room.storage, {
                     range: 3
@@ -43,14 +43,14 @@ var creep_baseOp = {
                 totalOps = totalOps - 2;
             }
         } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] <= Game.time || creep.memory.empoweredSources[1] <= Game.time)) {
-            let targetSource;
+            var targetSource;
             if (creep.memory.empoweredSources[0] <= Game.time) {
                 targetSource = Game.getObjectById(creep.memory.sources[0]);
             } else {
                 targetSource = Game.getObjectById(creep.memory.sources[1]);
             }
 
-            let useResult = creep.usePower(PWR_REGEN_SOURCE, targetSource);
+            var useResult = creep.usePower(PWR_REGEN_SOURCE, targetSource);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(targetSource, {
                     range: 3
@@ -64,14 +64,14 @@ var creep_baseOp = {
                 }
             }
         } else if (!Game.flags[creep.room.name + "WarBoosts"] && creep.memory.cooldowns.OPERATE_LAB <= Game.time && totalOps >= 10 && checkForLabNeed(creep)) {
-            let targetLab = getNeededLab(creep);
+            var targetLab = getNeededLab(creep);
             //Creep will do nothing if lab is undefined, add handling?
             if (targetLab) {
-                let useResult = creep.usePower(PWR_OPERATE_LAB, targetLab);
+                var useResult = creep.usePower(PWR_OPERATE_LAB, targetLab);
                 if (useResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(targetLab, {
                         range: 3
-                    })
+                    });
                 } else if (useResult == OK) {
                     creep.memory.cooldowns.OPERATE_LAB = Game.time + 50;
                     updateLabBoost(creep);
@@ -81,7 +81,7 @@ var creep_baseOp = {
     }
 
     function setupCreepMemory(creep) {
-        let cooldownObject = {};
+        var cooldownObject = {};
         cooldownObject.GENERATE_OPS = Game.time;
         cooldownObject.OPERATE_SPAWN = Game.time;
         cooldownObject.OPERATE_TOWER = Game.time;
@@ -95,12 +95,12 @@ var creep_baseOp = {
 
         creep.memory.spawnList = [];
         creep.memory.empoweredSpawns = [];
-        let roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
+        var roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
             filter: {
                 structureType: STRUCTURE_SPAWN
             }
         });
-        for (let thisSpawn in roomSpawns) {
+        for (var thisSpawn in roomSpawns) {
             creep.memory.spawnList.push(roomSpawns[thisSpawn].id);
             creep.memory.empoweredSpawns.push(Game.time);
         }
@@ -116,7 +116,7 @@ var creep_baseOp = {
     }
 
     function checkForLabNeed(creep) {
-        for (let thisLab in creep.memory.empoweredLabs) {
+        for (var thisLab in creep.memory.empoweredLabs) {
             if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
                 return true;
             }
@@ -125,10 +125,10 @@ var creep_baseOp = {
     }
 
     function getNeededLab(creep) {
-        let labIndex = 3;
-        for (let thisLab in creep.memory.empoweredLabs) {
+        var labIndex = 3;
+        for (var thisLab in creep.memory.empoweredLabs) {
             if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
-                let thisLab = Game.getObjectById(Memory.labList[creep.room.name][labIndex]);
+                var thisLab = Game.getObjectById(Memory.labList[creep.room.name][labIndex]);
                 if (thisLab) {
                     return thisLab;
                 }
@@ -139,7 +139,7 @@ var creep_baseOp = {
     }
 
     function updateLabBoost(creep) {
-        for (let thisLab in creep.memory.empoweredLabs) {
+        for (var thisLab in creep.memory.empoweredLabs) {
             if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
                 creep.memory.empoweredLabs[thisLab] = Game.time + 1000;
                 break;
@@ -148,7 +148,7 @@ var creep_baseOp = {
     }
 
     function checkForSpawnNeed(creep) {
-        for (let thisSpawnCD in creep.memory.empoweredSpawns) {
+        for (var thisSpawnCD in creep.memory.empoweredSpawns) {
             if (creep.memory.empoweredSpawns[thisSpawnCD] <= Game.time) {
                 return true;
             }
