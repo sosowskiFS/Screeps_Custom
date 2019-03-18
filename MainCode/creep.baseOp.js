@@ -79,82 +79,82 @@ var creep_baseOp = {
             }
         }
     }
-
-    function setupCreepMemory(creep) {
-        var cooldownObject = {};
-        cooldownObject.GENERATE_OPS = Game.time;
-        cooldownObject.OPERATE_SPAWN = Game.time;
-        cooldownObject.OPERATE_TOWER = Game.time;
-        cooldownObject.OPERATE_LAB = Game.time;
-        cooldownObject.OPERATE_EXTENSION = Game.time;
-        cooldownObject.REGEN_SOURCE = Game.time;
-        creep.memory.cooldowns = cooldownObject;
-
-        creep.memory.sources = Memory.sourceList[creep.room.name];
-        creep.memory.empoweredSources = [Game.time, Game.time];
-
-        creep.memory.spawnList = [];
-        creep.memory.empoweredSpawns = [];
-        var roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
-            filter: {
-                structureType: STRUCTURE_SPAWN
-            }
-        });
-        for (var thisSpawn in roomSpawns) {
-            creep.memory.spawnList.push(roomSpawns[thisSpawn].id);
-            creep.memory.empoweredSpawns.push(Game.time);
-        }
-
-        //Can ignore first 3 labs, never set to run reactions
-        creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time, Game.time, Game.time]
-
-        if (!Game.flags[creep.room.name + "RoomOperator"]) {
-            Game.rooms[creep.room.name].createFlag(47, 2, creep.room.name + "RoomOperator");
-        }
-
-        creep.memory.initialSetup = true;
-    }
-
-    function checkForLabNeed(creep) {
-        for (var thisLab in creep.memory.empoweredLabs) {
-            if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    function getNeededLab(creep) {
-        var labIndex = 3;
-        for (var thisLab in creep.memory.empoweredLabs) {
-            if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
-                var thisLab = Game.getObjectById(Memory.labList[creep.room.name][labIndex]);
-                if (thisLab) {
-                    return thisLab;
-                }
-            }
-            labIndex++;
-        }
-        return undefined;
-    }
-
-    function updateLabBoost(creep) {
-        for (var thisLab in creep.memory.empoweredLabs) {
-            if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
-                creep.memory.empoweredLabs[thisLab] = Game.time + 1000;
-                break;
-            }
-        }
-    }
-
-    function checkForSpawnNeed(creep) {
-        for (var thisSpawnCD in creep.memory.empoweredSpawns) {
-            if (creep.memory.empoweredSpawns[thisSpawnCD] <= Game.time) {
-                return true;
-            }
-        }
-        return false;
-    }
 };
+
+function setupCreepMemory(creep) {
+    var cooldownObject = {};
+    cooldownObject.GENERATE_OPS = Game.time;
+    cooldownObject.OPERATE_SPAWN = Game.time;
+    cooldownObject.OPERATE_TOWER = Game.time;
+    cooldownObject.OPERATE_LAB = Game.time;
+    cooldownObject.OPERATE_EXTENSION = Game.time;
+    cooldownObject.REGEN_SOURCE = Game.time;
+    creep.memory.cooldowns = cooldownObject;
+
+    creep.memory.sources = Memory.sourceList[creep.room.name];
+    creep.memory.empoweredSources = [Game.time, Game.time];
+
+    creep.memory.spawnList = [];
+    creep.memory.empoweredSpawns = [];
+    var roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
+        filter: {
+            structureType: STRUCTURE_SPAWN
+        }
+    });
+    for (var thisSpawn in roomSpawns) {
+        creep.memory.spawnList.push(roomSpawns[thisSpawn].id);
+        creep.memory.empoweredSpawns.push(Game.time);
+    }
+
+    //Can ignore first 3 labs, never set to run reactions
+    creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time, Game.time, Game.time]
+
+    if (!Game.flags[creep.room.name + "RoomOperator"]) {
+        Game.rooms[creep.room.name].createFlag(47, 2, creep.room.name + "RoomOperator");
+    }
+
+    creep.memory.initialSetup = true;
+}
+
+function checkForLabNeed(creep) {
+    for (var thisLab in creep.memory.empoweredLabs) {
+        if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function getNeededLab(creep) {
+    var labIndex = 3;
+    for (var thisLab in creep.memory.empoweredLabs) {
+        if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
+            var thisLab = Game.getObjectById(Memory.labList[creep.room.name][labIndex]);
+            if (thisLab) {
+                return thisLab;
+            }
+        }
+        labIndex++;
+    }
+    return undefined;
+}
+
+function updateLabBoost(creep) {
+    for (var thisLab in creep.memory.empoweredLabs) {
+        if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
+            creep.memory.empoweredLabs[thisLab] = Game.time + 1000;
+            break;
+        }
+    }
+}
+
+function checkForSpawnNeed(creep) {
+    for (var thisSpawnCD in creep.memory.empoweredSpawns) {
+        if (creep.memory.empoweredSpawns[thisSpawnCD] <= Game.time) {
+            return true;
+        }
+    }
+    return false;
+}
 
 module.exports = creep_baseOp;
