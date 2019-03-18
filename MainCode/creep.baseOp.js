@@ -101,7 +101,7 @@ var creep_baseOp = {
             }
         } else if (creep.memory.jobFocus == 'FILL_SPAWNS') {
             //Power only fills extentions, fill spawns.
-            if (creep.carry[RESOURCE_ENERGY] <= 0) {
+            if (!creep.carry[RESOURCE_ENERGY]) {
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
                 if (creep.carry[RESOURCE_OPS]) {
                     neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS] + 6) - creep.carry[RESOURCE_ENERGY];
@@ -214,7 +214,7 @@ var creep_baseOp = {
             }
         } else {
             //Busywork
-            if (creep.carry[RESOURCE_ENERGY] <= 0) {
+            if (!creep.carry[RESOURCE_ENERGY]) {
                 var linkTarget = undefined;
                 creep.memory.structureTarget = undefined;
 
