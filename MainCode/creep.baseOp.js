@@ -100,6 +100,9 @@ var creep_baseOp = {
             //Power only fills extentions, fill spawns.
             if (creep.carry[RESOURCE_ENERGY] <= 900) {
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
+                if (creep.carry[RESOURCE_OPS]) {
+                	neededAmount = (2000 - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY];
+                }
                 creep.memory.structureTarget = undefined;
                 //Get from storage
                 //Check overflow link first
