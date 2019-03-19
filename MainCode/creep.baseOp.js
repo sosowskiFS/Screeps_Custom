@@ -371,6 +371,24 @@ var creep_baseOp = {
                 })
             }
         }
+
+        if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
+            //Stay away from hostiles
+            Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 6, {
+                filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+            });
+
+            if (Foe.length) {
+                closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+                    filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+                });
+
+                creep.travelTo(closeFoe, {
+                    ignoreRoads: roadIgnore,
+                    range: 8
+                }, true);
+            } 
+        }
     }
 };
 
