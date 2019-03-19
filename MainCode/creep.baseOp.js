@@ -70,7 +70,7 @@ var creep_baseOp = {
                     });
                 } else if (useResult == OK) {
                     creep.memory.cooldowns.OPERATE_TOWER = Game.time + 10;
-                    updateLabBoost(creep);
+                    updateTowerBoost(creep);
                     creep.memory.jobFocus = undefined;
                 }
             } else {
