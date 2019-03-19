@@ -1001,16 +1001,6 @@ module.exports.loop = function() {
     var farMiningCPU = 0;
     var pre5CPU = 0;
     var post5CPU = 0;
-    for (let pName in Game.powerCreeps) {
-        let creep = Game.powerCreeps[pName];
-        if (creep.shard == Game.shard.name) {
-            switch (creep.memory.priority) {
-                case 'baseOp':
-                    creep_baseOp.run(creep);
-                    break;
-            }
-        }
-    }
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (!creep.spawning) {
@@ -1191,6 +1181,16 @@ module.exports.loop = function() {
                             }
                         }
                     }
+                    break;
+            }
+        }
+    }
+    for (let pName in Game.powerCreeps) {
+        let creep = Game.powerCreeps[pName];
+        if (creep.shard == Game.shard.name) {
+            switch (creep.memory.priority) {
+                case 'baseOp':
+                    creep_baseOp.run(creep);
                     break;
             }
         }
