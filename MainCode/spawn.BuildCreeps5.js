@@ -328,6 +328,9 @@ var spawn_BuildCreeps5 = {
                 muleMax = 0;
                 repairMax = 2;
                 //labWorkerMax = 0;
+                if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 900000) {
+                    repairMax = 4;
+                }
             }
         } else if (thisRoom.storage) {
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
