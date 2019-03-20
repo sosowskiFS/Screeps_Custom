@@ -1385,8 +1385,8 @@ function memCheck() {
     Memory.powerCheckList["E88N88"] = ["E89N90", "E90N90", "E90N89"];
     Memory.powerCheckList["E38N46"] = ["E40N47", "E40N46", "E40N45"];
     Memory.powerCheckList["E21N58"] = ["E20N59", "E20N58", "E20N57"];
-    Memory.powerCheckList["E44N41"] = ["E43N40", "E44N40", "E45N40"];
-    Memory.powerCheckList["E37N39"] = ["E38N40", "E37N40", "E36N40"];
+    Memory.powerCheckList["E44N41"] = ["E42N40", "E43N40", "E44N40", "E45N40", "E46N40"];
+    Memory.powerCheckList["E37N39"] = ["E39N40", "E38N40", "E37N40", "E36N40", "E35N40"];
     Memory.powerCheckList["E32N39"] = ["E31N40", "E32N40", "E33N40", "E30N39"];
     Memory.powerCheckList["E22N42"] = ["E20N42", "E22N40"];
     Memory.powerCheckList["E39N37"] = ["E40N38", "E40N37", "E40N36"];
@@ -1402,11 +1402,11 @@ function memCheck() {
     Memory.powerCheckList["E26N32"] = ["E25N30", "E26N30", "E27N30"];
     Memory.powerCheckList["E18N22"] = ["E17N20", "E18N20", "E19N20"];
     Memory.powerCheckList["E25N38"] = ["E24N40", "E25N40"];
-    Memory.powerCheckList["E12N11"] = ["E12N10", "E13N10", "E14N10"];
+    Memory.powerCheckList["E12N11"] = ["E11N10", "E12N10", "E13N10", "E14N10", "E15N10"];
     Memory.powerCheckList["E5N8"] = ["E5N10", "E6N10"];
     Memory.powerCheckList["E27N18"] = ["E25N20", "E26N20", "E27N20", "E28N20"];
-    Memory.powerCheckList["E17N41"] = ["E16N40", "E17N40", "E18N40"];
-    Memory.powerCheckList["E29N43"] = ["E30N44", "E30N43", "E30N42"];
+    Memory.powerCheckList["E17N41"] = ["E15N40", "E16N40", "E17N40", "E18N40", "E19N40"];
+    Memory.powerCheckList["E29N43"] = ["E30N45", "E30N44", "E30N43", "E30N42", "E30N41"];
     if (!Memory.observerList) {
         Memory.observerList = new Object();
     }
