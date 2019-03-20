@@ -84,7 +84,7 @@ var creep_combat = {
                             if (rangeToFoe <= 3) {
                                 creep.memory.waitingTimer = 0;
                             } else if (lookResult[y].isPublic == true) {
-                                creep.memory.waitingTimer = creep.memory.waitingTimer + 10;
+                                creep.memory.waitingTimer = creep.memory.waitingTimer + 20;
                             } else {
                                 creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
                             }
@@ -106,7 +106,7 @@ var creep_combat = {
 
             if (closeFoe && rangeToFoe <= 3) {
                 if (massAttackFlag) {
-                    creep.rangedMassAttack(closeFoe);
+                    creep.rangedMassAttack();
                 } else {
                     creep.rangedAttack(closeFoe);
                 }
@@ -122,6 +122,9 @@ var creep_combat = {
                     //Eat movement request
                     creep.travelTo(creep);
                 }
+            } else {
+                //The specified target isn't near, but other targets might be.
+                creep.rangedMassAttack();
             }
         } else {
             //Move out of the way
