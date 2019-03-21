@@ -14,27 +14,31 @@ var creep_work5 = {
         switch (creep.memory.priority) {
             case 'mule':
             case 'muleNearDeath':
-                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
-                    creep.memory.priority = 'muleNearDeath';
-                }
+            if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
+                creep.memory.priority = 'muleNearDeath';
+            }
 
-                if (_.sum(creep.carry) <= 15) {
-                    creep.memory.structureTarget = undefined;
-                    let storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
-                        storageTarget = creep.room.terminal;
-                    }
-                    if (storageTarget) {
-                        if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
+            if (_.sum(creep.carry) <= 15) {
+                creep.memory.structureTarget = undefined;
+                let storageTarget = creep.room.storage;
+                if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                    storageTarget = creep.room.terminal;
+                }
+                if (storageTarget) {
+                    if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
                             //Get from container
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(storageTarget);
+                                creep.travelTo(storageTarget, {
+                                    maxRooms: 1
+                                });
                             }
                         } else {
                             var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
                             if (spawnTarget) {
                                 if (!creep.pos.isNearTo(spawnTarget)) {
-                                    creep.travelTo(spawnTarget);
+                                    creep.travelTo(spawnTarget, {
+                                        maxRooms: 1
+                                    });
                                 }
                             }
                         }
@@ -44,12 +48,16 @@ var creep_work5 = {
                         if (creep.room.terminal) {
                             var currentlyCarrying = _.findKey(creep.carry);
                             if (creep.transfer(creep.room.terminal, currentlyCarrying) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(creep.room.terminal);
+                                creep.travelTo(creep.room.terminal, {
+                                    maxRooms: 1
+                                });
                             }
                         } else if (!creep.room.terminal && creep.room.storage) {
                             var currentlyCarrying = _.findKey(creep.carry);
                             if (creep.transfer(creep.room.storage, currentlyCarrying) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(creep.room.storage);
+                                creep.travelTo(creep.room.storage, {
+                                    maxRooms: 1
+                                });
                             }
                         }
                     } else {
@@ -69,13 +77,17 @@ var creep_work5 = {
                                     if (newRampart) {
                                         creep.memory.structureTarget = newRampart.id;
                                         if (creep.repair(newRampart) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(newRampart);
+                                            creep.travelTo(newRampart, {
+                                                maxRooms: 1
+                                            });
                                         }
                                     }
                                 } else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
                                     //Storing in spawn/extension/tower/link
                                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
-                                        creep.travelTo(savedTarget);
+                                        creep.travelTo(savedTarget, {
+                                            maxRooms: 1
+                                        });
                                     } else {
                                         //assumed OK, drop target
                                         creep.memory.structureTarget = undefined;
@@ -108,7 +120,9 @@ var creep_work5 = {
                                 }
                             } else {
                                 if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(savedTarget);
+                                    creep.travelTo(savedTarget, {
+                                        maxRooms: 1
+                                    });
                                 } else if (creep.build(savedTarget) != OK) {
                                     creep.memory.structureTarget = undefined;
                                 }
@@ -160,9 +174,13 @@ var creep_work5 = {
                             if (targets) {
                                 creep.memory.structureTarget = targets.id;
                                 if (getNewStructure) {
-                                    creep.travelTo(targets);
+                                    creep.travelTo(targets, {
+                                        maxRooms: 1
+                                    });
                                 } else if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(targets);
+                                    creep.travelTo(targets, {
+                                        maxRooms: 1
+                                    });
                                 } else {
                                     creep.memory.structureTarget = undefined;
                                 }
@@ -181,7 +199,9 @@ var creep_work5 = {
                                     if (terminalTarget.store[RESOURCE_ENERGY] < targetEnergy && (terminalTarget.storeCapacity - 5000) > _.sum(terminalTarget.store)) {
                                         creep.memory.structureTarget = terminalTarget.id;
                                         if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(terminalTarget);
+                                            creep.travelTo(terminalTarget, {
+                                                maxRooms: 1
+                                            });
                                         }
                                     } else {
                                         terminalTarget = undefined;
@@ -202,7 +222,9 @@ var creep_work5 = {
                                     if (targets2) {
                                         creep.memory.structureTarget = targets2.id;
                                         if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(targets2);
+                                            creep.travelTo(targets2, {
+                                                maxRooms: 1
+                                            });
                                         } else {
                                             creep.memory.structureTarget = undefined;
                                         }
@@ -216,7 +238,9 @@ var creep_work5 = {
                                             }
 
                                             if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
-                                                creep.travelTo(targets2);
+                                                creep.travelTo(targets2, {
+                                                    maxRooms: 1
+                                                });
                                             } else if (creep.build(targets2) == ERR_NO_BODYPART) {
                                                 creep.suicide();
                                             }
@@ -263,8 +287,8 @@ var creep_work5 = {
                     }
                 }
                 break;
-            case 'distributor':
-            case 'distributorNearDeath':
+                case 'distributor':
+                case 'distributorNearDeath':
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
                     creep.memory.priority = 'distributorNearDeath';
                 }
@@ -436,8 +460,8 @@ var creep_work5 = {
                     }
                 }
                 break;
-            case 'mineralMiner':
-            case 'mineralMinerNearDeath':
+                case 'mineralMiner':
+                case 'mineralMinerNearDeath':
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'mineralMinerNearDeath') {
                     creep.memory.priority = 'mineralMinerNearDeath';
                 }
@@ -489,34 +513,34 @@ var creep_work5 = {
                     }
                 }
                 break;
+            }
         }
+    };
+
+    module.exports = creep_work5;
+
+    function repairCompare(a, b) {
+        if (a.hits < b.hits)
+            return -1;
+        if (a.hits > b.hits)
+            return 1;
+        return 0;
     }
-};
 
-module.exports = creep_work5;
+    function orderPriceCompareBuying(a, b) {
+        if (a.price < b.price)
+            return -1;
+        if (a.price > b.price)
+            return 1;
+        return 0;
+    }
 
-function repairCompare(a, b) {
-    if (a.hits < b.hits)
-        return -1;
-    if (a.hits > b.hits)
-        return 1;
-    return 0;
-}
-
-function orderPriceCompareBuying(a, b) {
-    if (a.price < b.price)
-        return -1;
-    if (a.price > b.price)
-        return 1;
-    return 0;
-}
-
-function DoResourceCheck(creep) {
-    creep.memory.nextResourceCheck = Game.time + 50;
-    if (creep.memory.resourceChecks < 15) {
-        var lab4 = Game.getObjectById(creep.memory.lab4);
-        var lab5 = Game.getObjectById(creep.memory.lab5);
-        if (creep.room.terminal && creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
+    function DoResourceCheck(creep) {
+        creep.memory.nextResourceCheck = Game.time + 50;
+        if (creep.memory.resourceChecks < 15) {
+            var lab4 = Game.getObjectById(creep.memory.lab4);
+            var lab5 = Game.getObjectById(creep.memory.lab5);
+            if (creep.room.terminal && creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
             //Immediately swap flags
             creep.memory.resourceChecks = 15;
             if (creep.memory.mineral5 == RESOURCE_CATALYST && creep.memory.mineral6 != RESOURCE_CATALYZED_GHODIUM_ACID) {
