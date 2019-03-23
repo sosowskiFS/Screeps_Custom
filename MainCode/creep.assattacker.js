@@ -204,7 +204,7 @@ var creep_assattacker = {
                             creep.attack(somethingNearby);
                             creep.rangedAttack(somethingNearby);
                             if (creep.pos.getRangeTo(somethingNearby) == 1) {
-                                
+                                didDismantle = true;
                             }
                         }
                     }
@@ -295,7 +295,7 @@ var creep_assattacker = {
                                     filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
                                 });
                                 if (eSpawns) {
-                                    if (healerIsGood) {
+                                    if (healerIsGood && !didDismantle) {
                                         creep.travelTo(eSpawns, {
                                             ignoreRoads: true,
                                             maxRooms: 1,
@@ -311,7 +311,7 @@ var creep_assattacker = {
                                         filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                                     });
                                     if (eStructures) {
-                                        if (healerIsGood) {
+                                        if (healerIsGood && !didDismantle) {
                                             creep.travelTo(eStructures, {
                                                 ignoreRoads: true,
                                                 maxRooms: 1,
