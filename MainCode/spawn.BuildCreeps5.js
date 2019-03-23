@@ -333,6 +333,10 @@ var spawn_BuildCreeps5 = {
                 muleMax = 0;
                 repairMax = 2;
                 //labWorkerMax = 0;
+                if (Game.flags[thisRoom.name + "RunningAssault"]) {
+                	//To aid with lab refilling
+                	distributorMax = 1;
+                }
                 if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 50000) {
                     //Something's fucked
                     repairMax = 0;
