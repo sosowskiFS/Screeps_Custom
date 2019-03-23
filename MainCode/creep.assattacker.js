@@ -299,7 +299,7 @@ var creep_assattacker = {
                                         creep.travelTo(eSpawns, {
                                             ignoreRoads: true,
                                             maxRooms: 1,
-                                            stuckValue: 2,
+                                            stuckValue: stuckValue,
                                             allowSK: true
                                         });
                                     }
@@ -315,7 +315,7 @@ var creep_assattacker = {
                                             creep.travelTo(eStructures, {
                                                 ignoreRoads: true,
                                                 maxRooms: 1,
-                                                stuckValue: 2,
+                                                stuckValue: stuckValue,
                                                 allowSK: true
                                             });
                                         }
