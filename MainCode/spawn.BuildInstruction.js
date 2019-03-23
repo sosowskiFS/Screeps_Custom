@@ -295,6 +295,16 @@ var spawn_BuildInstruction = {
                                 });
                                 Memory.isSpawning = true;
                                 console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+                                if (Game.flags[spawn.room.name + "RangedStyle"]) {
+                                    Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "DisassembleStyle");
+                                    Game.flags[spawn.room.name + "RangedStyle"].remove();
+                                } else if (Game.flags[spawn.room.name + "DisassembleStyle"]) {
+                                    Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "MeleeStyle");
+                                    Game.flags[spawn.room.name + "DisassembleStyle"].remove();
+                                } else if (Game.flags[spawn.room.name + "MeleeStyle"]) {
+                                    Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "RangedStyle");
+                                    Game.flags[spawn.room.name + "MeleeStyle"].remove();
+                                }
                             }
                         }
                     } else {
@@ -312,6 +322,16 @@ var spawn_BuildInstruction = {
                             });
                             Memory.isSpawning = true;
                             console.log('FUCK. SHIT. UP. ' + spawn.room.name);
+                            if (Game.flags[spawn.room.name + "RangedStyle"]) {
+                                Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "DisassembleStyle");
+                                Game.flags[spawn.room.name + "RangedStyle"].remove();
+                            } else if (Game.flags[spawn.room.name + "DisassembleStyle"]) {
+                                Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "MeleeStyle");
+                                Game.flags[spawn.room.name + "DisassembleStyle"].remove();
+                            } else if (Game.flags[spawn.room.name + "MeleeStyle"]) {
+                                Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "RangedStyle");
+                                Game.flags[spawn.room.name + "MeleeStyle"].remove();
+                            }
                         }
                     }
                 } else if (healers.length < 2 && healers.length < attackers.length && healerlessAttackers.length) {

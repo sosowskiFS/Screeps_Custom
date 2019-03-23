@@ -152,10 +152,7 @@ var creep_asshealer = {
                 if (closeTower && creep.pos.getRangeTo(closeTower) < targetAttacker.pos.getRangeTo(closeTower)) {
                     IAmInDanger = true;
                 }
-                if (IAmInDanger && targetAttacker.hits == targetAttacker.hitsMax) {
-                    creep.heal(creep);
-                    creep.say("(=\u2716\u11BD\u2716=)", true);
-                } else if (creep.hits + 300 < targetAttacker.hits) {
+                if ((IAmInDanger && targetAttacker.hits == targetAttacker.hitsMax) || creep.hits < targetAttacker.hits) {
                     creep.heal(creep);
                     creep.say("(=\u2716\u11BD\u2716=)", true);
                 } else {
