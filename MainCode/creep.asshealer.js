@@ -137,8 +137,25 @@ var creep_asshealer = {
                     }
                     //}
                 }
-
-                if (creep.hits + 300 < targetAttacker.hits) {
+                //Determine if closest to tower, if so heal self if other targets hits are full
+                let closeTower = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_TOWER
+                    }
+                });
+                let tCloseTower = targetAttacker.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                    filter: {
+                        structureType: STRUCTURE_TOWER
+                    }
+                });
+                let IAmInDanger = false;
+                if (closeTower && creep.pos.getRangeTo(closeTower) < targetAttacker.pos.getRangeTo(closeTower)) {
+                    IAmInDanger = true;
+                }
+                if (IAmInDanger && targetAttacker.hits == targetAttacker.hitsMax) {
+                    creep.heal(creep);
+                    creep.say("(=\u2716\u11BD\u2716=)", true);
+                } else if (creep.hits + 300 < targetAttacker.hits) {
                     creep.heal(creep);
                     creep.say("(=\u2716\u11BD\u2716=)", true);
                 } else {
@@ -169,7 +186,7 @@ var creep_asshealer = {
                         let thisRange = creep.pos.getRangeTo(targetAttacker);
                         if (thisRange >= 3) {
                             creep.heal(creep);
-                        }else if (thisRange > 1) {
+                        } else if (thisRange > 1) {
                             creep.rangedHeal(targetAttacker);
                         } else {
                             creep.heal(targetAttacker);
