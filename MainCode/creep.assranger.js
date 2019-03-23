@@ -194,11 +194,11 @@ var creep_assranger = {
                             }
                         } else {
                             //Find structures that don't have a rampart on them
-                            let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+                            /*let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
-                            });
+                            });*/
                             let targetFound = false;
-                            if (allStruct.length) {
+                            /*if (allStruct.length) {
                                 //Sort based on distance.
                                 allStruct.sort(distCompare(creep));
                             }
@@ -225,7 +225,7 @@ var creep_assranger = {
                                     targetFound = true;
                                     break;
                                 }
-                            }
+                            }*/
                             if (!targetFound) {
                                 let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                                     filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
