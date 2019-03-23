@@ -184,7 +184,6 @@ var creep_assattacker = {
                     }
 
                     var didDismantle = false;
-                    let stuckValue = 2;
                     if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
                         var thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
                         if (thisWall.length && creep.pos.isNearTo(thisWall[0])) {
@@ -192,7 +191,6 @@ var creep_assattacker = {
                             creep.attack(thisWall[0]);
                             creep.rangedAttack(thisWall[0]);
                             didDismantle = true;
-                            stuckValue = 300;
                         }
                     }
 
@@ -206,7 +204,7 @@ var creep_assattacker = {
                             creep.attack(somethingNearby);
                             creep.rangedAttack(somethingNearby);
                             if (creep.pos.getRangeTo(somethingNearby) == 1) {
-                                stuckValue = 300;
+                                
                             }
                         }
                     }
@@ -216,7 +214,7 @@ var creep_assattacker = {
                         //Fall back
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "FallBack"], {
                             ignoreRoads: true,
-                            stuckValue: stuckValue,
+                            stuckValue: 2,
                             allowSK: true
                         });
                     } else if (!healerIsNear) {
@@ -246,7 +244,7 @@ var creep_assattacker = {
                                 if (healerIsGood) {
                                     creep.travelTo(thisWall[0], {
                                         maxRooms: 1,
-                                        stuckValue: stuckValue,
+                                        stuckValue: 2,
                                         allowSK: true,
                                         ignoreRoads: true
                                     });
@@ -301,7 +299,7 @@ var creep_assattacker = {
                                         creep.travelTo(eSpawns, {
                                             ignoreRoads: true,
                                             maxRooms: 1,
-                                            stuckValue: stuckValue,
+                                            stuckValue: 2,
                                             allowSK: true
                                         });
                                     }
@@ -317,7 +315,7 @@ var creep_assattacker = {
                                             creep.travelTo(eStructures, {
                                                 ignoreRoads: true,
                                                 maxRooms: 1,
-                                                stuckValue: stuckValue,
+                                                stuckValue: 2,
                                                 allowSK: true
                                             });
                                         }
