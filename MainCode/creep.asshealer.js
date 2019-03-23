@@ -125,12 +125,14 @@ var creep_asshealer = {
                         creep.travelTo(targetAttacker, {
                             maxRooms: 1,
                             ignoreRoads: true,
-                            stuckValue: 1
+                            stuckValue: 1,
+                            movingTarget: true
                         });
                     } else {
                         creep.travelTo(targetAttacker, {
                             ignoreRoads: true,
-                            stuckValue: 1
+                            stuckValue: 1,
+                            movingTarget: true
                         });
                     }
                     //}
