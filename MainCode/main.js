@@ -943,7 +943,7 @@ module.exports.loop = function() {
                     }
                 }
 
-                if (!Memory.isSpawning && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000) {
+                if (!Memory.isSpawning && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
                     if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
                         //Run farMining spawn
                         if (Game.flags[thisRoom.name + "RunningAssault"]) {
