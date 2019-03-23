@@ -184,6 +184,7 @@ var creep_assattacker = {
                     }
 
                     var didDismantle = false;
+                    let stuckValue = 2;
                     if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
                         var thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
                         if (thisWall.length && creep.pos.isNearTo(thisWall[0])) {
@@ -191,6 +192,7 @@ var creep_assattacker = {
                             creep.attack(thisWall[0]);
                             creep.rangedAttack(thisWall[0]);
                             didDismantle = true;
+                            stuckValue = 300;
                         }
                     }
 
@@ -204,7 +206,7 @@ var creep_assattacker = {
                             creep.attack(somethingNearby);
                             creep.rangedAttack(somethingNearby);
                             if (creep.pos.getRangeTo(somethingNearby) == 1) {
-                                didDismantle = true;
+                                stuckValue = 300;
                             }
                         }
                     }
@@ -214,7 +216,7 @@ var creep_assattacker = {
                         //Fall back
                         creep.travelTo(Game.flags[creep.memory.homeRoom + "FallBack"], {
                             ignoreRoads: true,
-                            stuckValue: 2,
+                            stuckValue: stuckValue,
                             allowSK: true
                         });
                     } else if (!healerIsNear) {
@@ -244,7 +246,7 @@ var creep_assattacker = {
                                 if (healerIsGood) {
                                     creep.travelTo(thisWall[0], {
                                         maxRooms: 1,
-                                        stuckValue: 2
+                                        stuckValue: stuckValue,
                                         allowSK: true,
                                         ignoreRoads: true
                                     });
@@ -262,8 +264,8 @@ var creep_assattacker = {
                             });*/
                             let targetFound = false;
                             /*if (allStruct.length) {
-                                //Sort based on distance.
-                                allStruct.sort(distCompare(creep));
+                            	//Sort based on distance.
+                            	allStruct.sort(distCompare(creep));
                             }
                             for (let thisStruct in allStruct) {
                                 let found = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
@@ -295,7 +297,7 @@ var creep_assattacker = {
                                     filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
                                 });
                                 if (eSpawns) {
-                                    if (healerIsGood && !didDismantle) {
+                                    if (healerIsGood) {
                                         creep.travelTo(eSpawns, {
                                             ignoreRoads: true,
                                             maxRooms: 1,
@@ -311,7 +313,7 @@ var creep_assattacker = {
                                         filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                                     });
                                     if (eStructures) {
-                                        if (healerIsGood && !didDismantle) {
+                                        if (healerIsGood) {
                                             creep.travelTo(eStructures, {
                                                 ignoreRoads: true,
                                                 maxRooms: 1,
@@ -493,15 +495,15 @@ var creep_assattacker = {
 };
 
 function distCompare(creep) {
-    return function(a, b) {
-        let aRange = a.pos.getRangeTo(creep);
-        let bRange = b.pos.getRangeTo(creep);
-        if (aRange < bRange)
-            return -1;
-        if (aRange > bRange)
-            return 1;
-        return 0;
-    }
+	return function(a, b) {
+		let aRange = a.pos.getRangeTo(creep);
+		let bRange = b.pos.getRangeTo(creep);
+		if (aRange < bRange)
+        	return -1;
+	    if (aRange > bRange)
+	        return 1;
+	    return 0;
+	}
 }
 
 module.exports = creep_assattacker;
