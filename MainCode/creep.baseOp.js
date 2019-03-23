@@ -58,6 +58,24 @@ var creep_baseOp = {
                 totalOps = totalOps - 2;
                 creep.memory.jobFocus = undefined;
             }
+        } else if (creep.memory.jobFocus == 'OPERATE_SPAWN') {
+            var targetSpawn = getNeededSpawn(creep);
+            if (targetSpawn) {
+                var useResult = creep.usePower(PWR_OPERATE_SPAWN, targetSpawn);
+                if (useResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(targetSpawn, {
+                        range: 3,
+                        ignoreRoads: true,
+                        maxRooms: 1
+                    });
+                } else if (useResult == OK) {
+                    creep.memory.cooldowns.OPERATE_SPAWN = Game.time + 300;
+                    updateSpawnBoost(creep);
+                    creep.memory.jobFocus = undefined;
+                }
+            } else {
+                creep.memory.jobFocus = undefined;
+            }
         } else if (creep.memory.jobFocus == 'OPERATE_TOWER') {
             var targetTower = getNeededTower(creep);
             if (targetTower) {
@@ -439,10 +457,10 @@ function setupCreepMemory(creep) {
     }
 
     if (!creep.memory.empoweredLabs) {
-
+        //Can ignore first 3 labs, never set to run reactions
+        creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time]
     }
-    //Can ignore first 3 labs, never set to run reactions
-    creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time]
+
 
     if (!Game.flags[creep.room.name + "RoomOperator"]) {
         Game.rooms[creep.room.name].createFlag(46, 2, creep.room.name + "RoomOperator");
@@ -460,6 +478,8 @@ function setupCreepMemory(creep) {
 function findNeededWork(creep, totalOps) {
     if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < (creep.room.energyCapacityAvailable - 900)) {
         return 'OPERATE_EXTENSION';
+    } else if (Game.flags[creep.room.name + "RunningAssault"] && totalOps >= 100 && creep.memory.cooldowns.OPERATE_SPAWN <= Game.time && checkForSpawnNeed(creep)) {
+        return 'OPERATE_SPAWN';
     } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1 && creep.memory.cooldowns.OPERATE_TOWER <= Game.time && totalOps >= 10 && checkForTowerNeed(creep)) {
         return 'OPERATE_TOWER'
     } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] - 15 <= Game.time || creep.memory.empoweredSources[1] - 15 <= Game.time)) {
@@ -550,6 +570,29 @@ function checkForSpawnNeed(creep) {
         }
     }
     return false;
+}
+
+function getNeededSpawn(creep) {
+    spawnIndex = 0;
+    for (var thisSpawn in creep.memory.empoweredSpawns) {
+        if (creep.memory.empoweredSpawns[thisSpawn] <= Game.time) {
+            var thisSpawn = Game.getObjectById(creep.memory.spawnList[spawnIndex]);
+            if (thisSpawn) {
+                return thisSpawn;
+            }
+        }
+        spawnIndex++;
+    }
+    return undefined;
+}
+
+function updateSpawnBoost(creep) {
+    for (var thisSpawn in creep.memory.empoweredSpawns) {
+        if (creep.memory.empoweredSpawns[thisSpawn] <= Game.time) {
+            creep.memory.empoweredSpawns[thisSpawn] = Game.time + 1000;
+            break;
+        }
+    }
 }
 
 module.exports = creep_baseOp;
