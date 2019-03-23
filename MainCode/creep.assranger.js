@@ -146,8 +146,7 @@ var creep_assranger = {
                     let didDismantle = false;
                     if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
                         let thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
-                        if (thisWall.length && creep.pos.isNearTo(thisWall[0])) {
-                            creep.rangedAttack(thisWall[0]);
+                        if (thisWall.length && creep.rangedAttack(thisWall[0]) == OK) {
                             didDismantle = true;
                         }
                     }
@@ -200,8 +199,8 @@ var creep_assranger = {
                             });
                             let targetFound = false;
                             if (allStruct.length) {
-                            	//Sort based on distance.
-                            	allStruct.sort(distCompare(creep));
+                                //Sort based on distance.
+                                allStruct.sort(distCompare(creep));
                             }
                             for (let thisStruct in allStruct) {
                                 let found = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
@@ -398,6 +397,7 @@ var creep_assranger = {
             if (closeFoe) {
                 let lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
                 let inRampart = false;
+                let closeRange = creep.pos.getRangeTo(closeFoe);
                 if (lookResult.length) {
                     for (let d = 0; d < lookResult.length; d++) {
                         if (lookResult[d].structureType == STRUCTURE_RAMPART) {
@@ -410,12 +410,18 @@ var creep_assranger = {
                         creep.rangedAttack(closeFoe);
                     }
                 } else {
-                    if (creep.pos.getRangeTo(closeFoe) == 1) {
+                    if (closeRange == 1) {
                         creep.rangedMassAttack(closeFoe);
                     } else {
                         creep.rangedAttack(closeFoe);
                     }
-                    
+
+                }
+                if (closeRange <= 2 && determineThreat(closeFoe)) {
+                    //Back away from melee part creeps
+                    creep.travelTo(closeFoe, {
+                        range: 4
+                    }, true);
                 }
             }
         } else {
@@ -430,15 +436,24 @@ var creep_assranger = {
 };
 
 function distCompare(creep) {
-	return function(a, b) {
-		let aRange = a.pos.getRangeTo(creep);
-		let bRange = b.pos.getRangeTo(creep);
-		if (aRange < bRange)
-        	return -1;
-	    if (aRange > bRange)
-	        return 1;
-	    return 0;
-	}
+    return function(a, b) {
+        let aRange = a.pos.getRangeTo(creep);
+        let bRange = b.pos.getRangeTo(creep);
+        if (aRange < bRange)
+            return -1;
+        if (aRange > bRange)
+            return 1;
+        return 0;
+    }
+}
+
+function determineThreat(thisCreep) {
+    thisCreep.body.forEach(function(thisPart) {
+        if (thisPart.type == ATTACK) {
+            return true;
+        }
+    });
+    return false;
 }
 
 module.exports = creep_assranger;
