@@ -194,7 +194,7 @@ var creep_baseOp = {
                     var target = undefined;
                     target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                         filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
+                            return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
                         }
                     });
 
@@ -202,7 +202,7 @@ var creep_baseOp = {
                         //Find closest by path will not return anything if path is blocked
                         target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
-                                return (structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
+                                return (structure.structureType == STRUCTURE_SPAWN) && structure.energy < structure.energyCapacity;
                             }
                         });
                     }
@@ -332,7 +332,7 @@ var creep_baseOp = {
                         var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_POWER_SPAWN ||
-                                    structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
+                                    structure.structureType == STRUCTURE_NUKER || structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
                             }
                         });
                         if (target) {
