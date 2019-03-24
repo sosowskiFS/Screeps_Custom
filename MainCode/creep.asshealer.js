@@ -13,13 +13,9 @@ var creep_asshealer = {
         creep.body.forEach(function(thisPart) {
             if (thisPart.type == HEAL && !thisPart.boost) {
                 unboostedHeal = unboostedHeal + 1;
-            }
-
-            if (thisPart.type == TOUGH && !thisPart.boost) {
+            }else if (thisPart.type == TOUGH && !thisPart.boost) {
                 unboostedTough = unboostedTough + 1;
-            }
-
-            if (thisPart.type == MOVE && !thisPart.boost) {
+            }else if (thisPart.type == MOVE && !thisPart.boost) {
                 unboostedMove = unboostedMove + 1;
             }
         });

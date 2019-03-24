@@ -22,6 +22,7 @@ var creep_assattacker = {
             var unboostedMove = 0;
             var unboostedWork = 0;
             var unboostedRanged = 0;
+            var unboostedHeal = 0;
 
             creep.body.forEach(function(thisPart) {
                 if (thisPart.type == ATTACK && !thisPart.boost) {
@@ -34,6 +35,8 @@ var creep_assattacker = {
                     unboostedWork = unboostedWork + 1;
                 } else if (thisPart.type == RANGED_ATTACK && !thisPart.boost) {
                     unboostedRanged = unboostedRanged + 1;
+                } else if (thisPart.type == HEAL && !thisPart.boost) {
+                    unboostedHeal = unboostedHeal + 1;
                 }
             });
 
@@ -93,6 +96,9 @@ var creep_assattacker = {
                 });
                 let RangedLab = creep.room.find(FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
+                });
+                let HealLab = creep.room.find(FIND_MY_STRUCTURES, {
+                    filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
                 });
                 let hasTraveled = false;
                 let result;
@@ -160,6 +166,21 @@ var creep_assattacker = {
                         hasTraveled = true;
                     }
                     result = WorkLab[0].boostCreep(creep);
+                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                        if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
+                            Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
+                            console.log(creep.memory.homeRoom + " Labs are dry");
+                        }
+                    }
+                }
+                if (HealLab.length && unboostedHeal > 0) {
+                    if (!hasTraveled) {
+                        creep.travelTo(HealLab[0], {
+                            ignoreRoads: true
+                        });
+                        hasTraveled = true;
+                    }
+                    result = HealLab[0].boostCreep(creep);
                     if (result == ERR_NOT_ENOUGH_RESOURCES) {
                         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                             Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
@@ -262,8 +283,8 @@ var creep_assattacker = {
                             });*/
                             let targetFound = false;
                             /*if (allStruct.length) {
-                            	//Sort based on distance.
-                            	allStruct.sort(distCompare(creep));
+                                //Sort based on distance.
+                                allStruct.sort(distCompare(creep));
                             }
                             for (let thisStruct in allStruct) {
                                 let found = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
@@ -487,21 +508,21 @@ var creep_assattacker = {
                 console.log(creep.memory.homeRoom + " unable to find any more marks.");
             }
         }
-
+        creep.heal(creep);
     }
 
 };
 
 function distCompare(creep) {
-	return function(a, b) {
-		let aRange = a.pos.getRangeTo(creep);
-		let bRange = b.pos.getRangeTo(creep);
-		if (aRange < bRange)
-        	return -1;
-	    if (aRange > bRange)
-	        return 1;
-	    return 0;
-	}
+    return function(a, b) {
+        let aRange = a.pos.getRangeTo(creep);
+        let bRange = b.pos.getRangeTo(creep);
+        if (aRange < bRange)
+            return -1;
+        if (aRange > bRange)
+            return 1;
+        return 0;
+    }
 }
 
 module.exports = creep_assattacker;
