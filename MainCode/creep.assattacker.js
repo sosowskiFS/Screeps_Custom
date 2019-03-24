@@ -508,7 +508,9 @@ var creep_assattacker = {
                 console.log(creep.memory.homeRoom + " unable to find any more marks.");
             }
         }
-        creep.heal(creep);
+        if (creep.hits < creep.hitsMax) {
+            creep.heal(creep);
+        }    
     }
 
 };
