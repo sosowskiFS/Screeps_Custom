@@ -910,7 +910,7 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "PowerCollect"]) {
                     //Mule capacity = 1650
-                    if (Game.flags[thisRoom.name + "PowerGather"] && Game.flags[thisRoom.name + "PowerGather"].pos) {
+                    if (Game.flags[thisRoom.name + "PowerGather"] && Game.flags[thisRoom.name + "PowerGather"].room) {
                         //Calculate needed number of mules
                         var powerBanks = Game.flags[thisRoom.name + "PowerGather"].pos.lookFor(LOOK_STRUCTURES);
                         if (powerBanks.length) {
