@@ -1,5 +1,8 @@
 var tower_Operate = {
     run: function(tower, attackDuration, towerNum) {
+        //My bit that computes "how much damage could my towers do to creep x?" counted inactive towers
+        //Count defender damage from current ones as well
+        //Remember to factor in boosted ranged parts
         var thisRoom = tower.room;
 
         if (!Memory.towerNeedEnergy[thisRoom.name]) {
