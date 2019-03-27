@@ -3,6 +3,7 @@ var tower_Operate = {
         //My bit that computes "how much damage could my towers do to creep x?" counted inactive towers
         //Count defender damage from current ones as well
         //Remember to factor in boosted ranged parts
+        //Check after picking target, and check with range of 1 for nearby healers, totalling healing parts
         var thisRoom = tower.room;
 
         if (!Memory.towerNeedEnergy[thisRoom.name]) {
