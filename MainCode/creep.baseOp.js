@@ -34,7 +34,7 @@ var creep_baseOp = {
 
         //Main work loop
         //Should change to focus on a job until it's done (Exception : Keeping creep alive)
-        if (creep.ticksToLive <= 100 && Memory.powerSpawnList[creep.room.name]) {
+        if (creep.ticksToLive <= 250 && Memory.powerSpawnList[creep.room.name]) {
             var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
             if (powerSpawnTarget) {
                 var renewResult = creep.renew(powerSpawnTarget);
