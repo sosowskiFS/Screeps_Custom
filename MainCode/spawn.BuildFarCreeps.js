@@ -10,7 +10,9 @@ var spawn_BuildFarCreeps = {
             }
             if (Game.flags[thisRoom.name + "50mCap"]) {
                 Flag25 = true;
-                Flag50 = true;
+                if (!Memory.powerCheckList[thisRoom.name]) {
+                    Flag50 = true;
+                }               
             }
 
             let eFarGuards = [];
