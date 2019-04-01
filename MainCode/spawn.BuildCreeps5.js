@@ -344,6 +344,12 @@ var spawn_BuildCreeps5 = {
                 } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 900000) {
                     repairMax = 4;
                 }
+
+                let someSites = thisRoom.find(FIND_CONSTRUCTION_SITES);
+                if (someSites.length) {
+                    //Need builders
+                    muleMax = 2;
+                }
             }
         } else if (thisRoom.storage) {
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
