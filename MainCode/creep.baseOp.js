@@ -32,6 +32,15 @@ var creep_baseOp = {
             }
         }
 
+        if (creep.ticksToLive <= 1) {
+            //Not going to make it, reset memory and remove flag
+            if (Game.flags[creep.room.name + "RoomOperator"]) {
+                Game.rooms[creep.room.name + "RoomOperator"].remove();
+            }
+            creep.memory = undefined;
+            creep.memory.priority = 'baseOp';
+        }
+
         //Main work loop
         //Should change to focus on a job until it's done (Exception : Keeping creep alive)
         if (creep.ticksToLive <= 250 && Memory.powerSpawnList[creep.room.name]) {
