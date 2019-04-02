@@ -106,7 +106,7 @@ var creep_assattacker = {
                     result = MoveLab[0].boostCreep(creep);
                     creep.travelTo(MoveLab[0]);
                     hasTraveled = true;
-                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (result == ERR_NOT_ENOUGH_RESOURCES && MoveLab[0].energy >= 1000) {
                         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                             Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                             console.log(creep.memory.homeRoom + " Labs are dry");
@@ -121,7 +121,7 @@ var creep_assattacker = {
                         hasTraveled = true;
                     }
                     result = ToughLab[0].boostCreep(creep);
-                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (result == ERR_NOT_ENOUGH_RESOURCES && ToughLab[0].energy >= 1000) {
                         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                             Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                             console.log(creep.memory.homeRoom + " Labs are dry");
@@ -136,7 +136,7 @@ var creep_assattacker = {
                         hasTraveled = true;
                     }
                     result = RangedLab[0].boostCreep(creep);
-                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (result == ERR_NOT_ENOUGH_RESOURCES && RangedLab[0].energy >= 1000) {
                         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                             Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                             console.log(creep.memory.homeRoom + " Labs are dry");
@@ -151,7 +151,7 @@ var creep_assattacker = {
                         hasTraveled = true;
                     }
                     result = AttackLab[0].boostCreep(creep);
-                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (result == ERR_NOT_ENOUGH_RESOURCES && AttackLab[0].energy >= 1000) {
                         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                             Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                             console.log(creep.memory.homeRoom + " Labs are dry");
@@ -166,7 +166,7 @@ var creep_assattacker = {
                         hasTraveled = true;
                     }
                     result = WorkLab[0].boostCreep(creep);
-                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (result == ERR_NOT_ENOUGH_RESOURCES && WorkLab[0].energy >= 1000) {
                         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                             Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                             console.log(creep.memory.homeRoom + " Labs are dry");
@@ -181,7 +181,7 @@ var creep_assattacker = {
                         hasTraveled = true;
                     }
                     result = HealLab[0].boostCreep(creep);
-                    if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                    if (result == ERR_NOT_ENOUGH_RESOURCES && HealLab[0].energy >= 1000) {
                         if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                             Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                             console.log(creep.memory.homeRoom + " Labs are dry");
