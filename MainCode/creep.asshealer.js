@@ -70,7 +70,7 @@ var creep_asshealer = {
                     hasTraveled = true;
                 }
                 result = HealLab[0].boostCreep(creep);
-                if (result == ERR_NOT_ENOUGH_RESOURCES) {
+                if (result == ERR_NOT_ENOUGH_RESOURCES && HealLab[0].energy >= 1000) {
                     if (Game.flags[creep.memory.homeRoom + "RunningAssault"]) {
                         Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                         console.log(creep.memory.homeRoom + " Labs are dry");
