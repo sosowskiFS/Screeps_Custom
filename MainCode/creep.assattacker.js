@@ -262,7 +262,7 @@ var creep_assattacker = {
                         if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
                             let thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
                             if (thisWall.length) {
-                                if (healerIsGood) {
+                                if (healerIsGood && !didDismantle) {
                                     creep.travelTo(thisWall[0], {
                                         maxRooms: 1,
                                         stuckValue: 2,
