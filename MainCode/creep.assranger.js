@@ -429,6 +429,12 @@ var creep_assranger = {
                 Game.flags[creep.memory.homeRoom + "RunningAssault"].remove();
                 console.log(creep.memory.homeRoom + " unable to find any more marks.");
             }
+            //Dance party!
+            if (Game.time % 2 == 0) {
+                creep.say("\u{266A}~ \u{1555}( \u{141B} )\u{1557}", true);
+            } else {
+                creep.say("\u{669}( \u{141B} )\u{648} ~\u{266A}", true);
+            }
         }
 
     }
