@@ -218,7 +218,7 @@ var creep_assattacker = {
 
                     if (!didDismantle) {
                         var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL)
                         });
                         if (somethingNearby) {
                             creep.dismantle(somethingNearby);
@@ -262,7 +262,7 @@ var creep_assattacker = {
                         if (wallFlag && wallFlag.pos.roomName == creep.pos.roomName) {
                             let thisWall = wallFlag.pos.lookFor(LOOK_STRUCTURES);
                             if (thisWall.length) {
-                                if (healerIsGood) {
+                                if (healerIsGood && !didDismantle) {
                                     creep.travelTo(thisWall[0], {
                                         maxRooms: 1,
                                         stuckValue: 2,
@@ -329,7 +329,7 @@ var creep_assattacker = {
                                     creep.rangedAttack(eSpawns);
                                 } else {
                                     let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
+                                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL)
                                     });
                                     if (eStructures) {
                                         if (healerIsGood && !didDismantle) {
