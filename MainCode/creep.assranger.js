@@ -435,6 +435,12 @@ var creep_assranger = {
             } else {
                 creep.say("\u{669}( \u{141B} )\u{648} ~\u{266A}", true);
             }
+            let otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                filter: (mCreep) => ((mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer" || mCreep.memory.priority == "asshealerNearDeath") && mCreep.memory.attackerID == creep.id)
+            });
+            if (otherHealers.length) {
+                creep.moveTo(otherHealers[0]);
+            }
         }
 
     }
