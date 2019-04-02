@@ -218,7 +218,7 @@ var creep_assattacker = {
 
                     if (!didDismantle) {
                         var somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL)
+                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_CONTROLLER)
                         });
                         if (somethingNearby) {
                             creep.dismantle(somethingNearby);
