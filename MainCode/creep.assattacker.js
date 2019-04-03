@@ -443,7 +443,8 @@ var creep_assattacker = {
                             if (healerIsGood) {
                                 creep.travelTo(Game.flags[creep.memory.homeRoom + "GroupHere"], {
                                     stuckValue: 2,
-                                    allowSK: true
+                                    allowSK: true,
+                                    preferHighway: true
                                 });
                             }
 
@@ -468,14 +469,16 @@ var creep_assattacker = {
                                 if (healerIsGood) {
                                     creep.travelTo(wallFlag, {
                                         stuckValue: 2,
-                                        allowSK: true
+                                        allowSK: true,
+                                        preferHighway: true
                                     });
                                 }
                             } else {
                                 if (healerIsGood) {
                                     creep.travelTo(targetFlag, {
                                         stuckValue: 2,
-                                        allowSK: true
+                                        allowSK: true,
+                                        preferHighway: true
                                     });
                                 }
                             }
@@ -483,7 +486,8 @@ var creep_assattacker = {
                             if (healerIsGood) {
                                 creep.travelTo(new RoomPosition(25, 25, targetFlag.pos.roomName), {
                                     stuckValue: 2,
-                                    allowSK: true
+                                    allowSK: true,
+                                    preferHighway: true
                                 });
                             }
                         }
