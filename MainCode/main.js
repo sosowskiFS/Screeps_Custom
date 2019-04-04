@@ -616,7 +616,7 @@ module.exports.loop = function() {
                             if (mostDamagedStructure[0].hits >= 25000000 && !Game.flags[thisRoom.name + "25mCap"]) {
                                 Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "25mCap");
                             }
-                            if (mostDamagedStructure[0]).hits < 25000000) {
+                            if (mostDamagedStructure[0].hits < 25000000) {
                                 if (Game.flags[thisRoom.name + "25mCap"]) {
                                     Game.flags[thisRoom.name + "25mCap"].remove();
                                 }
