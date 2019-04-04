@@ -66,7 +66,6 @@ var creep_baseOp = {
                 creep.memory.cooldowns.OPERATE_EXTENSION = Game.time + 50;
                 totalOps = totalOps - 2;
                 creep.memory.jobFocus = undefined;
-                creep_baseOp.run(creep);
             }
         } else if (creep.memory.jobFocus == 'OPERATE_SPAWN') {
             var targetSpawn = getNeededSpawn(creep);
@@ -82,11 +81,9 @@ var creep_baseOp = {
                     creep.memory.cooldowns.OPERATE_SPAWN = Game.time + 300;
                     updateSpawnBoost(creep);
                     creep.memory.jobFocus = undefined;
-                    creep_baseOp.run(creep);
                 }
             } else {
                 creep.memory.jobFocus = undefined;
-                creep_baseOp.run(creep);
             }
         } else if (creep.memory.jobFocus == 'OPERATE_TOWER') {
             var targetTower = getNeededTower(creep);
@@ -102,11 +99,9 @@ var creep_baseOp = {
                     creep.memory.cooldowns.OPERATE_TOWER = Game.time + 10;
                     updateTowerBoost(creep);
                     creep.memory.jobFocus = undefined;
-                    creep_baseOp.run(creep);
                 }
             } else {
                 creep.memory.jobFocus = undefined;
-                creep_baseOp.run(creep);
             }
         } else if (creep.memory.jobFocus == 'REGEN_SOURCE') {
             var targetSource;
@@ -131,7 +126,6 @@ var creep_baseOp = {
                     creep.memory.empoweredSources[1] = Game.time + 300;
                 }
                 creep.memory.jobFocus = undefined;
-                creep_baseOp.run(creep);
             }
         } else if (creep.memory.jobFocus == 'OPERATE_LAB') {
             var targetLab = getNeededLab(creep);
@@ -147,11 +141,9 @@ var creep_baseOp = {
                     creep.memory.cooldowns.OPERATE_LAB = Game.time + 50;
                     updateLabBoost(creep);
                     creep.memory.jobFocus = undefined;
-                    creep_baseOp.run(creep);
                 }
             } else {
                 creep.memory.jobFocus = undefined;
-                creep_baseOp.run(creep);
             }
         } else if (creep.memory.jobFocus == 'FILL_SPAWNS') {
             //Power only fills extentions, fill spawns.
@@ -264,12 +256,10 @@ var creep_baseOp = {
                     } else if (transferResult == OK) {
                         creep.memory.jobFocus = undefined;
                         creep.memory.structureTarget = undefined;
-                        creep_baseOp.run(creep);
                     }
                 } else {
                     creep.memory.jobFocus = undefined;
                     creep.memory.structureTarget = undefined;
-                    creep_baseOp.run(creep);
                 }
             }
         } else {
