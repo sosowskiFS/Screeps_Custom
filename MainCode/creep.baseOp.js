@@ -270,7 +270,7 @@ var creep_baseOp = {
 
                 let neededAmount = 2000 - _.sum(creep.carry);
                 if (creep.carry[RESOURCE_OPS]) {
-                    neededAmount = - 606;
+                    neededAmount = _.sum(creep.carry) - 606;
                 }
 
                 if (creep.memory.linkSource) {
