@@ -268,9 +268,9 @@ var creep_baseOp = {
                 var linkTarget = undefined;
                 creep.memory.structureTarget = undefined;
 
-                let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
+                let neededAmount = 2000 - _.sum(creep.carry);
                 if (creep.carry[RESOURCE_OPS]) {
-                    neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY] - 6;
+                    neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS]) - _.sum(creep.carry) - 6;
                 }
 
                 if (creep.memory.linkSource) {
