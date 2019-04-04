@@ -147,7 +147,11 @@ var creep_baseOp = {
             }
         } else if (creep.memory.jobFocus == 'FILL_SPAWNS') {
             //Power only fills extentions, fill spawns.
-            if (!creep.carry[RESOURCE_ENERGY]) {
+            let checkValue = creep.room.energyCapacityAvailable - creep.room.energyAvailable;
+            if (checkValue > 900) {
+                checkValue = 900;
+            }
+            if (creep.carry[RESOURCE_ENERGY] < checkValue) {
                 let neededAmount = 2000 - creep.carry[RESOURCE_ENERGY];
                 if (creep.carry[RESOURCE_OPS]) {
                     neededAmount = (creep.carryCapacity - creep.carry[RESOURCE_OPS]) - creep.carry[RESOURCE_ENERGY] - 6;
