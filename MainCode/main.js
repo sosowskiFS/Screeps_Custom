@@ -612,8 +612,7 @@ module.exports.loop = function() {
                                     Game.flags[thisRoom.name + "25mCap"].remove();
                                 }
                                 Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "50mCap");
-                            }
-                            if (mostDamagedStructure[0].hits >= 25000000 && !Game.flags[thisRoom.name + "25mCap"]) {
+                            } else if (mostDamagedStructure[0].hits >= 25000000 && !Game.flags[thisRoom.name + "25mCap"] && !Game.flags[thisRoom.name + "50mCap"]) {
                                 Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "25mCap");
                             }
                             if (mostDamagedStructure[0].hits < 25000000) {
