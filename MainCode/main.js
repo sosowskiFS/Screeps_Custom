@@ -606,24 +606,26 @@ module.exports.loop = function() {
                         mostDamagedStructure.sort(repairCompare);
                         Memory.repairTarget[thisRoom.name] = mostDamagedStructure[0].id;
                         //Cap energy harvesting if room meets certain minimums
-                        if (mostDamagedStructure[0].hits >= 50000000 && !Game.flags[thisRoom.name + "50mCap"]) {
-                            if (Game.flags[thisRoom.name + "25mCap"]) {
-                                Game.flags[thisRoom.name + "25mCap"].remove();
+                        if (mostDamagedStructure[0].structureType == STRUCTURE_RAMPART) {
+                            if (mostDamagedStructure[0].hits >= 50000000 && !Game.flags[thisRoom.name + "50mCap"]) {
+                                if (Game.flags[thisRoom.name + "25mCap"]) {
+                                    Game.flags[thisRoom.name + "25mCap"].remove();
+                                }
+                                Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "50mCap");
                             }
-                            Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "50mCap");
-                        } else if (!Game.flags[thisRoom.name + "50mCap"] && mostDamagedStructure[0].hits >= 25000000 && !Game.flags[thisRoom.name + "25mCap"]) {
-                            if (Game.flags[thisRoom.name + "50mCap"]) {
-                                Game.flags[thisRoom.name + "50mCap"].remove();
+                            if (mostDamagedStructure[0].hits >= 25000000 && !Game.flags[thisRoom.name + "25mCap"]) {
+                                Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "25mCap");
                             }
-                            Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "25mCap");
-                        } else if (mostDamagedStructure[0].hits < 25000000 && (Game.flags[thisRoom.name + "25mCap"] || Game.flags[thisRoom.name + "50mCap"])) {
-                            if (Game.flags[thisRoom.name + "25mCap"]) {
-                                Game.flags[thisRoom.name + "25mCap"].remove();
-                            }
-                            if (Game.flags[thisRoom.name + "50mCap"]) {
-                                Game.flags[thisRoom.name + "50mCap"].remove();
+                            if (mostDamagedStructure[0]).hits < 25000000) {
+                                if (Game.flags[thisRoom.name + "25mCap"]) {
+                                    Game.flags[thisRoom.name + "25mCap"].remove();
+                                }
+                                if (Game.flags[thisRoom.name + "50mCap"]) {
+                                    Game.flags[thisRoom.name + "50mCap"].remove();
+                                }
                             }
                         }
+                        
                     }
                 }
 
