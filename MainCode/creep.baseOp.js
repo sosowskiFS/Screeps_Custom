@@ -152,7 +152,7 @@ var creep_baseOp = {
                 checkValue = 900;
             }
             if (creep.carry[RESOURCE_ENERGY] < checkValue) {
-                let neededAmount = 1994 - _.sum(creep.carry);
+                let neededAmount = creep.carryCapacity - (_.sum(creep.carry) + 6);
                 creep.memory.structureTarget = undefined;
                 //Get from storage
                 //Check overflow link first
@@ -265,7 +265,7 @@ var creep_baseOp = {
                 var linkTarget = undefined;
                 creep.memory.structureTarget = undefined;
 
-                let neededAmount = 1994 - _.sum(creep.carry);
+                let neededAmount = creep.carryCapacity - (_.sum(creep.carry) + 6);
 
                 if (creep.memory.linkSource) {
                     linkTarget = Game.getObjectById(creep.memory.linkSource)
