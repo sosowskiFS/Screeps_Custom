@@ -5,16 +5,15 @@ var spawn_BuildFarCreeps = {
 
             let Flag25 = false;
             let Flag50 = false;
-            if (Game.flags[thisRoom.name + "25mCap"]) {
+            if (!thisRoom.storage.store[RESOURCE_POWER] && Game.flags[thisRoom.name + "25mCap"]) {
                 Flag25 = true;
-            }
-            if (Game.flags[thisRoom.name + "50mCap"]) {
+            } else if (!thisRoom.storage.store[RESOURCE_POWER] && Game.flags[thisRoom.name + "50mCap"]) {
                 Flag25 = true;
                 if (!Memory.powerCheckList[thisRoom.name]) {
                     Flag50 = true;
                 }               
             }
-
+            
             let eFarGuards = [];
             if (Memory.warMode) {
                 eFarGuards = _.filter(controlledCreeps, (creep) => creep.memory.priority == 'farGuard' && creep.memory.homeRoom == thisRoom.name && creep.memory.targetFlag == thisRoom.name + "eFarGuard");
