@@ -55,6 +55,7 @@ let creep_farMule = {
             creep.memory.storing = true;
         } else if (_.sum(creep.carry) == 0 && creep.memory.storing) {
             creep.memory.storing = false;
+            creep.memory.lookNearby = false;
         }
 
         if (creep.memory.evadingUntil && creep.memory.evadingUntil > Game.time) {
@@ -277,16 +278,30 @@ let creep_farMule = {
                     }
                     if (!didTransfer) {
                         //Distribute into nearby structures
-                        let NeedyStructures = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
-                            filter: (structure) => {
-                                return (structure.structureType == STRUCTURE_EXTENSION ||
-                                    structure.structureType == STRUCTURE_SPAWN ||
-                                    structure.structureType == STRUCTURE_LAB ||
-                                    structure.structureType == STRUCTURE_POWER_SPAWN) && structure.energy < structure.energyCapacity;
+                        if (!creep.memory.lookNearby) {
+                            //Don't search for structures until you pass a rampart
+                            //This check is cheaper than searching for structures
+                            let lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
+                            if (lookResult.length) {
+                                for (let y = 0; y < lookResult.length; y++) {
+                                    if (lookResult[y].structureType == STRUCTURE_RAMPART) {
+                                        creep.memory.lookNearby = true;
+                                        break;
+                                    }
                                 }
-                        });
-                        if (NeedyStructures.length > 0) {
-                            creep.transfer(NeedyStructures[0], RESOURCE_ENERGY);
+                            } 
+                        } else {
+                            let NeedyStructures = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
+                                filter: (structure) => {
+                                    return (structure.structureType == STRUCTURE_EXTENSION ||
+                                        structure.structureType == STRUCTURE_SPAWN ||
+                                        structure.structureType == STRUCTURE_LAB ||
+                                        structure.structureType == STRUCTURE_POWER_SPAWN) && structure.energy < structure.energyCapacity;
+                                    }
+                            });
+                            if (NeedyStructures.length > 0) {
+                                creep.transfer(NeedyStructures[0], RESOURCE_ENERGY);
+                            }
                         }
                     }
                 } else {
