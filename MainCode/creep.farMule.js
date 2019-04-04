@@ -223,6 +223,7 @@ let creep_farMule = {
                         }
                     }
                 } else if (creep.memory.storageSource) {
+                    let didTransfer = false;
                     let storageUnit = Game.getObjectById(creep.memory.storageSource);
                     if (storageUnit) {
                         if (!creep.memory.storagePosition) {
@@ -231,12 +232,15 @@ let creep_farMule = {
                         if (Object.keys(creep.carry).length > 1) {
                             if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(storageUnit);
+                            } else {
+                                didTransfer = true;
                             }
                         } else if (Object.keys(creep.carry).length) {
                             let transferResult = creep.transfer(storageUnit, Object.keys(creep.carry)[0])
                             if (transferResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(storageUnit);
                             } else if (transferResult == OK) {
+                                didTransfer = true;
                                 creep.memory.doNotRoadSearch = false;
                                 if (creep.memory.containerPosition) {
                                     if (creep.memory._contData && creep.memory._contData.state && creep.pos.x == creep.memory._contData.state[0] && creep.pos.y == creep.memory._contData.state[1]) {
@@ -269,6 +273,20 @@ let creep_farMule = {
                             } else {
                                 creep.memory.didRoadSearch = true;
                             }
+                        }
+                    }
+                    if (!didTransfer) {
+                        //Distribute into nearby structures
+                        let NeedyStructures = creep.pos.findInRange(FIND_MY_STRUCTURES, 1, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_EXTENSION ||
+                                    structure.structureType == STRUCTURE_SPAWN ||
+                                    structure.structureType == STRUCTURE_LAB ||
+                                    structure.structureType == STRUCTURE_POWER_SPAWN) && structure.energy < structure.energyCapacity;
+                                }
+                        });
+                        if (NeedyStructures.length > 0) {
+                            creep.transfer(NeedyStructures[0], RESOURCE_ENERGY);
                         }
                     }
                 } else {
