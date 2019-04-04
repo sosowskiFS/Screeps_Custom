@@ -343,19 +343,6 @@ var creep_farMining = {
                     }
                 }
 
-                /*if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-                    if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
-                        Memory.FarClaimerNeeded[creep.room.name] = true;
-                    } else if (Memory.FarClaimerNeeded[creep.room.name]) {
-                        Memory.FarClaimerNeeded[creep.room.name] = false;
-                    }
-                } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
-                    Memory.FarClaimerNeeded[creep.room.name] = true;
-                } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
-                    Memory.FarClaimerNeeded[creep.room.name] = false;
-                }*/
-
-
                 var Foe = [];
                 var closeFoe = [];
                 if (Game.flags[creep.room.name + "SKRoom"]) {
@@ -412,160 +399,9 @@ var creep_farMining = {
                         }
                     }
 
-                    /*if (creep.pos.getRangeTo(closeFoe) > 3 || (closeFoe.getActiveBodyparts(ATTACK) > 0) || (creep.getActiveBodyparts(RANGED_ATTACK) == 0) || (creep.room.controller && creep.room.controller.safeMode)) {
-                        if (Foe.length && Foe[0].getActiveBodyparts(ATTACK) - 2 > creep.getActiveBodyparts(ATTACK) && creep.pos.getRangeTo(Foe[0]) <= 3) {
-                            var foeDirection = creep.pos.getDirectionTo(Foe[0]);
-                            var y = 0;
-                            var x = 0;
-                            switch (foeDirection) {
-                                case TOP:
-                                    y = 2;
-                                    break;
-                                case TOP_RIGHT:
-                                    y = 2;
-                                    x = -2;
-                                    break;
-                                case RIGHT:
-                                    x = -2;
-                                    break;
-                                case BOTTOM_RIGHT:
-                                    y = -2;
-                                    x = -2;
-                                    break;
-                                case BOTTOM:
-                                    y = -2;
-                                    break;
-                                case BOTTOM_LEFT:
-                                    y = -2;
-                                    x = 2;
-                                    break;
-                                case LEFT:
-                                    x = 2;
-                                    break;
-                                case TOP_LEFT:
-                                    y = 2;
-                                    x = 2
-                                    break;
-                            }
-                            x = creep.pos.x + x;
-                            y = creep.pos.y + y;
-                            if (x < 1) {
-                                x = 1;
-                                if (y < 25 && y > 1) {
-                                    y = y - 1;
-                                } else if (y < 48) {
-                                    y = y + 1;
-                                }
-                            } else if (x > 48) {
-                                x = 48;
-                                if (y < 25 && y > 1) {
-                                    y = y - 1;
-                                } else if (y < 48) {
-                                    y = y + 1;
-                                }
-                            }
-                            if (y < 1) {
-                                y = 1;
-                                if (x < 25 && x > 1) {
-                                    x = x - 1;
-                                } else if (x < 48) {
-                                    x = x + 1;
-                                }
-                            } else if (y > 48) {
-                                y = 48;
-                                if (x < 25 && x > 1) {
-                                    x = x - 1;
-                                } else if (x < 48) {
-                                    x = x + 1;
-                                }
-                            }
-
-                            creep.moveTo(x, y, {
-                                maxRooms: 1
-                            });
-                        } else {*/
                     creep.travelTo(closeFoe, {
                         maxRooms: 1
                     });
-                    //}
-                    /*} else {
-                        var foeDirection = creep.pos.getDirectionTo(closeFoe);
-                        if (creep.pos.getRangeTo(closeFoe) <= 2) {
-                            var y = 0;
-                            var x = 0;
-                            switch (foeDirection) {
-                                case TOP:
-                                    y = 2;
-                                    break;
-                                case TOP_RIGHT:
-                                    y = 2;
-                                    x = -2;
-                                    break;
-                                case RIGHT:
-                                    x = -2;
-                                    break;
-                                case BOTTOM_RIGHT:
-                                    y = -2;
-                                    x = -2;
-                                    break;
-                                case BOTTOM:
-                                    y = -2;
-                                    break;
-                                case BOTTOM_LEFT:
-                                    y = -2;
-                                    x = 2;
-                                    break;
-                                case LEFT:
-                                    x = 2;
-                                    break;
-                                case TOP_LEFT:
-                                    y = 2;
-                                    x = 2
-                                    break;
-                            }
-                            x = creep.pos.x + x;
-                            y = creep.pos.y + y;
-                            if (x < 1) {
-                                x = 1;
-                                if (y < 25 && y > 1) {
-                                    y = y - 1;
-                                } else if (y < 48) {
-                                    y = y + 1;
-                                }
-                            } else if (x > 48) {
-                                x = 48;
-                                if (y < 25 && y > 1) {
-                                    y = y - 1;
-                                } else if (y < 48) {
-                                    y = y + 1;
-                                }
-                            }
-                            if (y < 1) {
-                                y = 1;
-                                if (x < 25 && x > 1) {
-                                    x = x - 1;
-                                } else if (x < 48) {
-                                    x = x + 1;
-                                }
-                            } else if (y > 48) {
-                                y = 48;
-                                if (x < 25 && x > 1) {
-                                    x = x - 1;
-                                } else if (x < 48) {
-                                    x = x + 1;
-                                }
-                            }
-
-                            creep.moveTo(x, y, {
-                                maxRooms: 1
-                            });
-                        } else {
-                            creep.moveTo(closeFoe, {
-                                maxRooms: 1
-                            });
-                        }
-
-                    }*/
                 } else if (creep.room.name != creep.memory.destination) {
                     if (creep.memory.targetFlag.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
@@ -633,8 +469,16 @@ var creep_farMining = {
                             });
                         }
                     }
-                } else if (creep.hits < creep.hitsMax) {
-                    creep.heal(creep);
+
+                    if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
+                        var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
+                        if (UnderAttackPos >= 0) {
+                            Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
+                        }
+                    }
+                    if (creep.hits < creep.hitsMax) {
+                        creep.heal(creep);
+                    }
                 }
                 break;
             case 'SKAttackGuard':
