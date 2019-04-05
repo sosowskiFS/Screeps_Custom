@@ -172,9 +172,9 @@ function determineThreat(theseCreeps) {
             thisCreep.body.forEach(function(thisPart) {
                 if (thisPart.type == ATTACK) {
                     return true;
-                });
-            }
-        })
+                }
+            });
+        });
     }
     return false;
 }
