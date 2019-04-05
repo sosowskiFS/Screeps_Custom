@@ -171,10 +171,7 @@ function determineThreat(theseCreeps) {
         theseCreeps.forEach(function(thisCreep) {
             thisCreep.body.forEach(function(thisPart) {
             if (thisPart.type == ATTACK) {
-                    return true;
-                } else if (thisPart.type == RANGED_ATTACK) {
-                    return true;
-                }
+                return true;
             });
         })
     }
