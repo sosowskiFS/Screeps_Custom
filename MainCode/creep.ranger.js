@@ -22,7 +22,7 @@ var creep_ranger = {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
-        var foeCount = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5, {
+        var meleeThreat = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
@@ -143,11 +143,14 @@ var creep_ranger = {
                     creep.rangedAttack(closeFoe);
                     creep.attack(closeFoe);
                 }
-                if (closeRange <= 2 && (foeCount.length > 1 || determineThreat(closeFoe))) {
+                if (determineThreat(meleeThreat)) {
                     //Dodge away from foe
                     creep.travelTo(closeFoe, {
                         range: 4
                     }, true);
+                }
+                if (closeRange == 1) {
+                    creep.rangedMassAttack();
                 }
             } else {
                 creep.heal(creep);
@@ -163,14 +166,18 @@ var creep_ranger = {
 
 };
 
-function determineThreat(thisCreep) {
-    thisCreep.body.forEach(function(thisPart) {
-        if (thisPart.type == ATTACK) {
-            return true;
-        } else if (thisPart.type == RANGED_ATTACK) {
-            return true;
-        }
-    });
+function determineThreat(theseCreeps) {
+    if (theseCreeps) {
+        theseCreeps.forEach(function(thisCreep) {
+            thisCreep.body.forEach(function(thisPart) {
+            if (thisPart.type == ATTACK) {
+                    return true;
+                } else if (thisPart.type == RANGED_ATTACK) {
+                    return true;
+                }
+            });
+        })
+    }
     return false;
 }
 
