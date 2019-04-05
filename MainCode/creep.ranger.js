@@ -153,11 +153,7 @@ var creep_ranger = {
                 if (closeRange == 1) {
                     creep.rangedMassAttack();
                 }
-            } else {
-                creep.heal(creep);
             }
-        } else if (creep.hits < creep.hitsMax) {
-            creep.heal(creep);
         }
 
         //Only works with no attack parts
