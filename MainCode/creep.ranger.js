@@ -74,10 +74,11 @@ var creep_ranger = {
                     stuckValue: 2
                 })
             } else if (closeFoe) {
-                creep.moveTo(closeFoe, {
+                creep.travelTo(closeFoe, {
                     ignoreRoads: true,
                     maxRooms: 1,
-                    allowSK: true
+                    allowSK: true,
+                    movingTarget: true
                 });
             } else {
                 let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
