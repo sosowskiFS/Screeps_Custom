@@ -318,10 +318,14 @@ var spawn_BuildCreeps5 = {
             supplierMax = 1;
             distributorMax = 1;
             salvagerMax = 0;
+            if (Game.flags[thisRoom.name + "25mCap"] || Game.flags[thisRoom.name + "50mCap"]) {
+                repairMax = 0;
+            }
             if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 50000) {
                 //Something's fucked
                 upgraderMax = 0;
                 upSupplierMax = 0;
+                repairMax = 0;
             } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 100000) {
                 repairMax = 0;
             } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 900000) {
