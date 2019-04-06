@@ -58,7 +58,7 @@ var creep_baseOp = {
             var useResult = creep.usePower(PWR_OPERATE_EXTENSION, creep.room.storage);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(creep.room.storage, {
-                    range: 3,
+                    range: 2,
                     ignoreRoads: true,
                     maxRooms: 1
                 });
@@ -73,7 +73,7 @@ var creep_baseOp = {
                 var useResult = creep.usePower(PWR_OPERATE_SPAWN, targetSpawn);
                 if (useResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(targetSpawn, {
-                        range: 3,
+                        range: 2,
                         ignoreRoads: true,
                         maxRooms: 1
                     });
@@ -91,7 +91,7 @@ var creep_baseOp = {
                 var useResult = creep.usePower(PWR_OPERATE_TOWER, targetTower);
                 if (useResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(targetTower, {
-                        range: 3,
+                        range: 2,
                         ignoreRoads: true,
                         maxRooms: 1
                     });
@@ -114,7 +114,7 @@ var creep_baseOp = {
             var useResult = creep.usePower(PWR_REGEN_SOURCE, targetSource);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(targetSource, {
-                    range: 3,
+                    range: 2,
                     ignoreRoads: true,
                     maxRooms: 1
                 });
@@ -133,7 +133,7 @@ var creep_baseOp = {
                 var useResult = creep.usePower(PWR_OPERATE_LAB, targetLab);
                 if (useResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(targetLab, {
-                        range: 3,
+                        range: 2,
                         ignoreRoads: true,
                         maxRooms: 1
                     });
@@ -430,7 +430,8 @@ var creep_baseOp = {
 
                 creep.travelTo(closeFoe, {
                     ignoreRoads: roadIgnore,
-                    range: 8
+                    range: 8,
+                    maxRooms: 1
                 }, true);
             } 
         }
