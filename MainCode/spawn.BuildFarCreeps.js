@@ -5,9 +5,13 @@ var spawn_BuildFarCreeps = {
 
             let Flag25 = false;
             let Flag50 = false;
-            if (!thisRoom.storage.store[RESOURCE_POWER] && Game.flags[thisRoom.name + "25mCap"]) {
+            let hasPower = false;
+            if (thisRoom.storage.store[RESOURCE_POWER] && thisRoom.storage.store[RESOURCE_POWER] >= 100) {
+                hasPower = true;
+            }
+            if (!hasPower && Game.flags[thisRoom.name + "25mCap"]) {
                 Flag25 = true;
-            } else if (!thisRoom.storage.store[RESOURCE_POWER] && Game.flags[thisRoom.name + "50mCap"]) {
+            } else if (!hasPower && Game.flags[thisRoom.name + "50mCap"]) {
                 Flag25 = true;
                 if (!Memory.powerCheckList[thisRoom.name]) {
                     Flag50 = true;
