@@ -429,10 +429,12 @@ var creep_baseOp = {
                 });
 
                 creep.travelTo(closeFoe, {
-                    ignoreRoads: roadIgnore,
+                    ignoreRoads: true,
                     range: 8,
                     maxRooms: 1
                 }, true);
+                creep.memory.jobFocus = undefined;
+                creep.memory.structureTarget = undefined;
             } 
         }
     }
