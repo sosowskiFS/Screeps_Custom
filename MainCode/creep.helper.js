@@ -183,6 +183,11 @@ var creep_Helper = {
 
                 if (_.sum(creep.carry) <= 0) {
                     creep.memory.currentState = 1;
+                } else {
+                    let someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
+                    if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 800)) {
+                        creep.repair(someStructure[0]);
+                    }
                 }
             }
         }
