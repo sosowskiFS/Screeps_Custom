@@ -893,11 +893,11 @@ module.exports.loop = function() {
                 }
 
                 if (Game.flags[thisRoom.name + "Ranger"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', '')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', 'E33N40;E34N43')
                 }
 
                 if (Game.flags[thisRoom.name + "Ranger2"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', '')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', 'E33N40;E34N43')
                 }
 
                 if (Game.flags[thisRoom.name + "PowerGuard"]) {
