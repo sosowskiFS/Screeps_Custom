@@ -37,11 +37,12 @@ var creep_baseOp = {
             if (Game.flags[creep.room.name + "RoomOperator"]) {
                 Game.rooms[creep.room.name + "RoomOperator"].remove();
             }
-            let NotifyString = creep.name + " is dying, attempting to remove flags."
-            NotifyString += " CURRENT ROOM:" + creep.room.name
+            let NotifyString = creep.name + " is dying, attempting to remove flags.";
+            NotifyString += " CURRENT ROOM:" + creep.room.name;
             if (creep.memory.jobFocus) {
                 NotifyString += " JOB FOCUS:" + creep.memory.jobFocus
-            }          
+            }
+            NotifyString += " ON TICK:" + Game.time;          
             Game.notify(NotifyString);
             creep.memory = undefined;
             creep.memory.priority = 'baseOp';
