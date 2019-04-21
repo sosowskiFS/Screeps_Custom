@@ -66,7 +66,7 @@ var creep_assattacker = {
             }
 
             let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "KamiKatze")
             });
 
             let otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {

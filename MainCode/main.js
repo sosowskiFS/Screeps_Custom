@@ -886,18 +886,18 @@ module.exports.loop = function() {
                     }
 
                     if (targetFlag) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'assault', targetFlag.pos.roomName, energyIndex, '', 'W33S30;W30S30');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'assault', targetFlag.pos.roomName, energyIndex, '', 'W33S30');
                     } else {
                         console.log(thisRoom.name + " has assault running, but no target!");
                     }
                 }
 
                 if (Game.flags[thisRoom.name + "Ranger"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', 'E33N40;E34N43')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', '')
                 }
 
                 if (Game.flags[thisRoom.name + "Ranger2"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', 'E33N40;E34N43')
+                    spawn_BuildInstruction.run(Game.spawns[i], 'ranger2', Game.flags[thisRoom.name + "Ranger2"].pos.roomName, energyIndex, '', '')
                 }
 
                 if (Game.flags[thisRoom.name + "PowerGuard"]) {
