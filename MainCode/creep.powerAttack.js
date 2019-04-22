@@ -6,6 +6,8 @@ var creep_powerAttack = {
             //You are not required
             creep.suicide();
         } else {
+            let AgreementList = ["slowmotionghost", "Digital"];
+
             if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'powerAttackNearDeath') {
                 creep.memory.priority = 'powerAttackNearDeath';
             }
@@ -48,8 +50,11 @@ var creep_powerAttack = {
                 } else if (creep.hits >= 2500) {
                     var thisBank = Game.getObjectById(creep.memory.targetBank);
                     if (thisBank) {
-                        if (creep.attack(thisBank) == ERR_NOT_IN_RANGE) {
+                        let attackResult = creep.attack(thisBank);
+                        if (attackResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisBank);
+                        } else if (attackResult == OK) {
+                            creep.memory.checkForOwnership = true;
                         }
                         if (thisBank.hits <= 468000 && !Game.flags[creep.memory.homeRoom + "PowerCollect"]) {
                             //Set flag to signal mule creation
@@ -74,10 +79,32 @@ var creep_powerAttack = {
         }
 
         let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 1, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Digital")
+            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
         if (inRangeEnemy.length) {
-            creep.attack(inRangeEnemy[0]);
+            if (!creep.memory.isOwner && creep.memory.checkForOwnership) {
+                if (AgreementList.includes(inRangeEnemy[0].owner.username)) {
+                    //They were here first, cancel flag.
+                    Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
+                    if (Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                        Game.flags[creep.memory.homeRoom + "PowerGuard"].remove();
+                    }
+                    Game.notify(Game.time.toString() + " | " + creep.room.name + " gave ownership of power bank to " + inrangeEnemy[0].owner.username);
+                } else {
+                    if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                        creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
+                    }
+                    creep.attack(inRangeEnemy[0]);
+                    creep.memory.isOwner = true;
+                }
+            } else if (!AgreementList.includes(inRangeEnemy[0].owner.username)) {
+                creep.attack(inRangeEnemy[0]);
+                if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                    creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
+                }
+            }        
+        } else if (!creep.memory.isOwner && creep.memory.checkForOwnership) {
+            creep.memory.isOwner = true;
         }
     }
 
