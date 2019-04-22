@@ -53,7 +53,7 @@ var creep_powerAttack = {
                         let attackResult = creep.attack(thisBank);
                         if (attackResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisBank);
-                        } else if (attackResult == OK) {
+                        } else if (attackResult == OK && thisBank.hits >= 1500000) {
                             creep.memory.checkForOwnership = true;
                         }
                         if (thisBank.hits <= 468000 && !Game.flags[creep.memory.homeRoom + "PowerCollect"]) {
