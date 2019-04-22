@@ -78,7 +78,7 @@ var creep_powerAttack = {
             }
         }
 
-        let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 1, {
+        let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
         if (inRangeEnemy.length) {
@@ -94,11 +94,15 @@ var creep_powerAttack = {
                     if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
                         creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
                     }
-                    creep.attack(inRangeEnemy[0]);
+                    if (creep.pos.isNearTo(inRangeEnemy[0])) {
+                        creep.attack(inRangeEnemy[0]);
+                    }                 
                     creep.memory.isOwner = true;
                 }
             } else if (!AgreementList.includes(inRangeEnemy[0].owner.username)) {
-                creep.attack(inRangeEnemy[0]);
+                if (creep.pos.isNearTo(inRangeEnemy[0])) {
+                    creep.attack(inRangeEnemy[0]);
+                }
                 if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
                     creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
                 }
