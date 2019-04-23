@@ -6,8 +6,6 @@ var creep_powerAttack = {
             //You are not required
             creep.suicide();
         } else {
-            let AgreementList = ["slowmotionghost", "Digital"];
-
             if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'powerAttackNearDeath') {
                 creep.memory.priority = 'powerAttackNearDeath';
             }
@@ -77,6 +75,7 @@ var creep_powerAttack = {
                 }
             }
         }
+        let AgreementList = ["slowmotionghost", "Digital"];
 
         let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
