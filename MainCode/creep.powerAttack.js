@@ -75,7 +75,7 @@ var creep_powerAttack = {
                 }
             }
         }
-        let AgreementList = ["slowmotionghost", "Digital"];
+        var AgreementList = ["slowmotionghost", "Digital"];
 
         let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
