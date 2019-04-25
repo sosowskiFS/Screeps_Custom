@@ -886,7 +886,7 @@ module.exports.loop = function() {
                     }
 
                     if (targetFlag) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'assault', targetFlag.pos.roomName, energyIndex, '', 'W33S30');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'assault', targetFlag.pos.roomName, energyIndex, '', '');
                     } else {
                         console.log(thisRoom.name + " has assault running, but no target!");
                     }

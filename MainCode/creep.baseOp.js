@@ -515,7 +515,7 @@ function setupCreepMemory(creep) {
 function findNeededWork(creep, totalOps) {
     if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < (creep.room.energyCapacityAvailable - 900)) {
         return 'OPERATE_EXTENSION';
-    } else if (Game.flags[creep.room.name + "RunningAssault"] && totalOps >= 100 && creep.memory.cooldowns.OPERATE_SPAWN <= Game.time && checkForSpawnNeed(creep)) {
+    } else if ((Game.flags[creep.room.name + "RunningAssault"] || totalOps >= 600) && totalOps >= 100 && creep.memory.cooldowns.OPERATE_SPAWN <= Game.time && checkForSpawnNeed(creep)) {
         return 'OPERATE_SPAWN';
     } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1 && creep.memory.cooldowns.OPERATE_TOWER <= Game.time && totalOps >= 10 && checkForTowerNeed(creep)) {
         return 'OPERATE_TOWER'
