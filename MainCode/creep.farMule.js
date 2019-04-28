@@ -119,7 +119,7 @@ let creep_farMule = {
                             if (creep.memory.storagePosition) {
                                 //Do not know the creep's carry at this tick, calculate to determine if creep is full
                                 if ((_.sum(creep.carry) + _.sum(thisContainer.store)) > creep.carryCapacity - 300) {
-                                    if (creep.memory._storData && creep.pos.x == creep.memory._storData.state[0] && creep.pos.y == creep.memory._storData.state[1]) {
+                                    if (creep.memory._storData && creep.memory._storData.state && creep.pos.x == creep.memory._storData.state[0] && creep.pos.y == creep.memory._storData.state[1]) {
                                         creep.memory._trav.path = creep.memory._storData.path;
                                         creep.memory._trav.state = creep.memory._storData.state;
                                         creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
