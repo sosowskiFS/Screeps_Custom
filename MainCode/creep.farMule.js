@@ -123,13 +123,11 @@ let creep_farMule = {
                                         creep.memory._trav.path = creep.memory._storData.path;
                                         creep.memory._trav.state = creep.memory._storData.state;
                                         creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName));
-                                    } else {
-                                        if (!creep.memory._storData) {
-                                            creep.memory._storData = {};
-                                            creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName), {
-                                                returnData: creep.memory._storData
-                                            });
-                                        }
+                                    } else if (!creep.memory._storData || (creep.memory._storData && !creep.memory._storData.state)) {                                       
+                                        creep.memory._storData = {};
+                                        creep.travelTo(new RoomPosition(creep.memory.storagePosition.x, creep.memory.storagePosition.y, creep.memory.storagePosition.roomName), {
+                                        	returnData: creep.memory._storData
+                                        });
                                     }
 
                                 }
