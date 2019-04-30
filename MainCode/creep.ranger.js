@@ -144,15 +144,16 @@ var creep_ranger = {
                     creep.rangedAttack(closeFoe);
                     creep.attack(closeFoe);
                 }
-                if (determineThreat(meleeThreat)) {
-                    //Dodge away from foe
-                    creep.travelTo(closeFoe, {
-                        range: 4
-                    }, true);
-                }
                 if (closeRange == 1) {
                     creep.rangedMassAttack();
                 }
+            }
+
+            if (determineThreat(meleeThreat, creep)) {
+                //Dodge away from foe
+                creep.travelTo(closeFoe, {
+                    range: 4
+                }, true);
             }
         }
 
@@ -163,14 +164,16 @@ var creep_ranger = {
 
 };
 
-function determineThreat(theseCreeps) {
+function determineThreat(theseCreeps, creep) {
     if (theseCreeps) {
         theseCreeps.forEach(function(thisCreep) {
-            thisCreep.body.forEach(function(thisPart) {
-                if (thisPart.type == ATTACK) {
-                    return true;
-                }
-            });
+            if (creep.pos.getRangeTo(thisCreep) <= 3) {
+                thisCreep.body.forEach(function(thisPart) {
+                    if (thisPart.type == ATTACK) {
+                        return true;
+                    }
+                });
+            }           
         });
     }
     return false;
