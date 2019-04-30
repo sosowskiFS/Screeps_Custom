@@ -400,7 +400,8 @@ var creep_farMining = {
                     }
 
                     creep.travelTo(closeFoe, {
-                        maxRooms: 1
+                        maxRooms: 1,
+                        movingTarget: true
                     });
                 } else if (creep.room.name != creep.memory.destination) {
                     if (creep.memory.targetFlag.includes("eFarGuard")) {
