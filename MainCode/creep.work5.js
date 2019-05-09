@@ -81,6 +81,8 @@ var creep_work5 = {
                                                 maxRooms: 1
                                             });
                                         }
+                                        //Reset room repairtarget so new rampart is picked up
+                                        Memory.repairTarget[creep.room.name] = undefined;
                                     }
                                 } else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
                                     //Storing in spawn/extension/tower/link
@@ -115,8 +117,6 @@ var creep_work5 = {
                                             }
                                         }
                                     }
-                                    //Do repair for new ramparts
-                                    creep.repair(savedTarget);
                                 }
                             } else {
                                 if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
