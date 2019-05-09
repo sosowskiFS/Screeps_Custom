@@ -31,10 +31,17 @@ var creep_labWorker = {
                                     var comparableOrders = Game.market.getAllOrders(order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
                                     if (comparableOrders.length > 0) {
                                         comparableOrders.sort(orderPriceCompareBuying);
-                                        var targetPrice = comparableOrders[0].price;
+                                        var targetPrice = comparableOrders[0].price;                            
                                         if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
                                             //Not competing with self, undercut!
-                                            targetPrice = targetPrice - 0.001
+                                            //Don't get scalped
+                                            if ((thisOrder.price - 0.5) > targetPrice) {
+                                                targetPrice = thisOrder.Price
+                                            } else if (targetPrice < 1) {
+                                                targetPrice = 1
+                                            } else {
+                                                targetPrice = targetPrice - 0.001
+                                            }                         
                                         }
                                         Game.market.changeOrderPrice(foundOrder, targetPrice);
                                         Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
@@ -49,7 +56,14 @@ var creep_labWorker = {
                                         var targetPrice = comparableOrders[0].price;
                                         if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
                                             //Not competing with self, undercut!
-                                            targetPrice = targetPrice - 0.001
+                                            //Don't get scalped
+                                            if ((thisOrder.price - 0.5) > targetPrice) {
+                                                targetPrice = thisOrder.Price
+                                            } else if (targetPrice < 1) {
+                                                targetPrice = 1
+                                            } else {
+                                                targetPrice = targetPrice - 0.001
+                                            }   
                                         }
                                         Game.market.changeOrderPrice(foundOrder, targetPrice);
                                     }
