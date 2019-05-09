@@ -518,11 +518,16 @@ module.exports.loop = function() {
                 }
 
                 //Get list of Minerals
-                if (!Memory.mineralList[thisRoom.name]) {
+                //Verify that extractor is still alive (Can't put a rampart on it)
+                if (!Memory.mineralList[thisRoom.name] || (Game.time % 5000 == 0 && thisRoom.controller.level >= 6)) {
                     Memory.mineralList[thisRoom.name] = [];
                     var mineralLocations = thisRoom.find(FIND_MINERALS);
                     if (mineralLocations.length) {
                         Memory.mineralList[thisRoom.name].push(mineralLocations[0].id);
+                        let foundStruct = thisRoom.lookForAt(LOOK_STRUCTURES, mineralLocations[0])
+                        if (!foundStruct.length) {
+                            thisRoom.createConstructionSite(mineralLocations[0].pos.x, mineralLocations[0].pos.y, STRUCTURE_EXTRACTOR)
+                        }
                     }
                 }
 
