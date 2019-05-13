@@ -358,6 +358,20 @@ module.exports.loop = function() {
         }
     }
 
+    //Reset mineral flag totals before going into loop
+    if (Game.time % 5000 == 0)
+    {
+        Memory.flagCount["1"] = 0;
+        Memory.flagCount["2"] = 0;
+        Memory.flagCount["3"] = 0;
+        Memory.flagCount["4"] = 0;
+        Memory.flagCount["5"] = 0;
+        Memory.flagCount["6"] = 0;
+        Memory.flagCount["7"] = 0;
+        Memory.flagCount["8"] = 0;
+        Memory.flagCount["9"] = 0;
+    }
+
     for (const i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         if (thisRoom.controller.owner) {
@@ -560,6 +574,33 @@ module.exports.loop = function() {
                         }
                     }
                     Memory.labList[thisRoom.name].sort();
+                }
+
+                //Catagorize Mineral Production Flags
+                //Memory.flagCount
+                if (Game.time % 5000 == 0)
+                {
+                    if (Game.flags[thisRoom.name + "XGHO2Producer"] || Game.flags[thisRoom.name + "XGH2OProducer"] || Game.flags[thisRoom.name + "XUH2OProducer"]) {
+                        Memory.flagCount["1"] = Memory.flagCount["1"] + 1;
+                    } else if (Game.flags[thisRoom.name + "XZHO2Producer"] || Game.flags[thisRoom.name + "XZH2OProducer"] || Game.flags[thisRoom.name + "XKHO2Producer"]) {
+                        Memory.flagCount["2"] = Memory.flagCount["2"] + 1;
+                    } else if (Game.flags[thisRoom.name + "XLH2OProducer"] || Game.flags[thisRoom.name + "XLHO2Producer"] || Game.flags[thisRoom.name + "OHProducer(3)"]) {
+                        Memory.flagCount["3"] = Memory.flagCount["3"] + 1;
+                    } else if (Game.flags[thisRoom.name + "GProducer(4)"] || Game.flags[thisRoom.name + "GHO2Producer"] || Game.flags[thisRoom.name + "GH2OProducer"]) {
+                        Memory.flagCount["4"] = Memory.flagCount["4"] + 1;
+                    } else if (Game.flags[thisRoom.name + "ZHO2Producer"] || Game.flags[thisRoom.name + "ZH2OProducer"] || Game.flags[thisRoom.name + "KHO2Producer"]) {
+                        Memory.flagCount["5"] = Memory.flagCount["5"] + 1;
+                    } else if (Game.flags[thisRoom.name + "UH2OProducer"] || Game.flags[thisRoom.name + "LH2OProducer"] || Game.flags[thisRoom.name + "LHO2Producer"]) {
+                        Memory.flagCount["6"] = Memory.flagCount["6"] + 1;
+                    } else if (Game.flags[thisRoom.name + "UHProducer"] || Game.flags[thisRoom.name + "KOProducer"] || Game.flags[thisRoom.name + "GHProducer"] || Game.flags[thisRoom.name + "GOProducer"]) {
+                        Memory.flagCount["7"] = Memory.flagCount["7"] + 1;
+                    } else if (Game.flags[thisRoom.name + "ZHProducer"] || Game.flags[thisRoom.name + "ZOProducer"] || Game.flags[thisRoom.name + "LOProducer"] || Game.flags[thisRoom.name + "LHProducer"]) {
+                        Memory.flagCount["8"] = Memory.flagCount["8"] + 1;
+                    } else if (Game.flags[thisRoom.name + "ULProducer"] || Game.flags[thisRoom.name + "ZKProducer"] || Game.flags[thisRoom.name + "GProducer(9)"] || Game.flags[thisRoom.name + "OHProducer(9)"]) {
+                        Memory.flagCount["9"] = Memory.flagCount["9"] + 1;
+                    } else if (Memory.flagCount["NeedFlag"].indexOf(thisRoom.name) === -1){
+                        Memory.flagCount["NeedFlag"].push(thisRoom.name)
+                    }
                 }
 
                 //Get list of power spawns
@@ -992,6 +1033,80 @@ module.exports.loop = function() {
             Memory.RoomsRun.push(thisRoom.name);
         }
 
+    }
+
+    //If room lacks mineral flag, calculate what flag to give it
+    if (Game.time % 5000 == 0 && Memory.flagCount["NeedFlag"].length)
+    {
+        let flagWeights = [
+            {tier: 1, weight: Memory.flagCount["1"]},
+            {tier: 2, weight: Memory.flagCount["2"]},
+            {tier: 3, weight: Memory.flagCount["3"]},
+            {tier: 4, weight: Memory.flagCount["4"] * 2},
+            {tier: 5, weight: Memory.flagCount["5"] * 2},
+            {tier: 6, weight: Memory.flagCount["6"] * 2},
+            {tier: 7, weight: Memory.flagCount["7"] * 2},
+            {tier: 8, weight: Memory.flagCount["8"] * 2},
+            {tier: 9, weight: Memory.flagCount["9"] * 2},
+        ];
+
+        let SetCompleted = (Memory.flagCount["1"] == Memory.flagCount["2"] == Memory.flagCount["3"] == (Memory.flagCount["4"] * 2) == (Memory.flagCount["5"] * 2) == (Memory.flagCount["6"] * 2) == (Memory.flagCount["7"] * 2) == (Memory.flagCount["8"] * 2) == (Memory.flagCount["9"] * 2))
+
+        flagWeights.sort(flagWeightCompare);
+
+        if (SetCompleted) {
+            Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "XGHO2Producer");
+            Memory.flagCount["NeedFlag"].splice(0, 1);
+            Memory.flagCount["1"] = Memory.flagCount["1"] + 1;
+        } else {
+            switch (flagWeights[0].tier) {
+                case 1:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "XGHO2Producer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["1"] = Memory.flagCount["1"] + 1;
+                    break;
+                case 2:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "XZHO2Producer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["2"] = Memory.flagCount["2"] + 1;
+                    break;
+                case 3:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "XLH2OProducer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["3"] = Memory.flagCount["3"] + 1;
+                    break;
+                case 4:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "GHO2Producer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["4"] = Memory.flagCount["4"] + 1;
+                    break;
+                case 5:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "ZHO2Producer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["5"] = Memory.flagCount["5"] + 1;
+                    break;
+                case 6:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "UH2OProducer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["6"] = Memory.flagCount["6"] + 1;
+                    break;
+                case 7:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "UHProducer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["7"] = Memory.flagCount["7"] + 1;
+                    break;
+                case 8:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "ZHProducer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["8"] = Memory.flagCount["8"] + 1;
+                    break;
+                case 9:
+                    Game.rooms[Memory.flagCount["NeedFlag"][0]].createFlag(2, 24, Memory.flagCount["NeedFlag"][0] + "ULProducer");
+                    Memory.flagCount["NeedFlag"].splice(0, 1);
+                    Memory.flagCount["9"] = Memory.flagCount["9"] + 1;
+                    break;
+            }
+        }
     }
 
     //Clear observe tick, rooms have been checked.
@@ -1459,6 +1574,31 @@ function memCheck() {
     if (!Memory.repairTarget) {
         Memory.repairTarget = new Object();
     }
+    if (!Memory.flagCount) {
+        Memory.flagCount = new Object();
+        //Count by track
+        //First 3 groupings should have 2 instances for 1 of each below
+        //1- XGHO2/XGH2O/XUH2O
+        //2- XZHO2/XZH2O/XKHO2
+        //3- XLH2O/XLHO2/OH
+
+        //4- G/GHO2/GH2O
+        //5- ZHO2/ZH2O/KHO2
+        //6- UH2O/LH2O/LHO2
+        //7- UH/KO/GH/GO
+        //8- ZH/ZO/LO/LH
+        //9- UL/ZK/G/OH
+        Memory.flagCount["1"] = 0;
+        Memory.flagCount["2"] = 0;
+        Memory.flagCount["3"] = 0;
+        Memory.flagCount["4"] = 0;
+        Memory.flagCount["5"] = 0;
+        Memory.flagCount["6"] = 0;
+        Memory.flagCount["7"] = 0;
+        Memory.flagCount["8"] = 0;
+        Memory.flagCount["9"] = 0;
+        Memory.flagCount["NeedFlag"] = [];
+    }
     if (!Memory.CPUAverages) {
         Memory.CPUAverages = new Object();
         Memory.CPUAverages.TotalCPU = new Object();
@@ -1494,6 +1634,14 @@ function orderPriceCompareBuying(a, b) {
     if (a.price < b.price)
         return -1;
     if (a.price > b.price)
+        return 1;
+    return 0;
+}
+
+function flagWeightCompare(a, b) {
+    if (a.weight < b.weight)
+        return -1;
+    if (a.weight > b.weight)
         return 1;
     return 0;
 }
