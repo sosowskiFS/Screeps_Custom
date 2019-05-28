@@ -236,7 +236,7 @@ var creep_assattacker = {
                             creep.dismantle(somethingNearby);
                             creep.attack(somethingNearby);
                             creep.rangedAttack(somethingNearby);
-                            if (creep.pos.getRangeTo(somethingNearby) == 1 && somethingNearby.structureType != STRUCTURE_RAMPART && somethingNearby.structureType != STRUCTURE_WALL && somethingNearby.structureType != STRUCTURE_EXTENSION && somethingNearby.structureType != STRUCTURE_CONTAINER) {
+                            if (creep.pos.getRangeTo(somethingNearby) == 1 && somethingNearby.structureType != STRUCTURE_WALL && somethingNearby.structureType != STRUCTURE_EXTENSION && somethingNearby.structureType != STRUCTURE_CONTAINER) {
                                 didDismantle = true;
                             }
                         }
