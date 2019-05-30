@@ -243,11 +243,18 @@ var creep_baseOp = {
                 }
             }
         } else if (creep.memory.jobFocus == 'FILL_POWER') {
-            if (!creep.carry[RESOURCE_POWER] && creep.withdraw(creep.room.storage, RESOURCE_POWER, 100) == ERR_NOT_IN_RANGE) {
-                creep.travelTo(creep.room.storage, {
-                    ignoreRoads: true,
-                    maxRooms: 1
-                });
+            if (!creep.carry[RESOURCE_POWER]) {
+                let withdrawResult = creep.withdraw(creep.room.storage, RESOURCE_POWER, 100);
+                if (withdrawResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(creep.room.storage, {
+                        ignoreRoads: true,
+                        maxRooms: 1
+                    });
+                } else if (withdrawResult == ERR_FULL) {
+                    //Shouldn't have gotten here in the first place
+                    creep.memory.jobFocus = undefined;
+                    creep.memory.structureTarget = undefined;
+                }            
             } else {
                 var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
                 if (pSpawn) {
