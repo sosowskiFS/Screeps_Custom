@@ -194,9 +194,9 @@ module.exports.loop = function() {
     }
 
     //Show time for debugging
-    new RoomVisual().text(Game.time, 43, 0, {
+    new RoomVisual().text(Game.time, 43, 1, {
         align: 'left',
-        font: '2 Courier New',
+        font: '0.7 Courier New',
         color: '#FFFFFF',
         stroke: '#000000',
         strokeWidth: 0.15
