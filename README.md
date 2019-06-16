@@ -2,9 +2,9 @@
 
 **Features**
 - Manually Flagged Remote Mining
-- Manually Flagged Mineral Development
-- Autoselling
-- Combat - Automatic Defence, Manual Attacking
+- Automatic Mineral Development
+- T3 Boost Autolisting/selling
+- Combat - Automatic Defence, Manual Attacking (auto attacking not being developed)
 - Automatic Power Mining
 
 **TODO**
