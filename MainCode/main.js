@@ -1442,7 +1442,13 @@ function DisplayBoostTotals() {
         color: '#FFFFFF',
         stroke: '#000000',
         strokeWidth: 0.15
-    })
+    });
+
+    new RoomVisual().rect(1, 39, 8, 10, {
+        fill: '#2d68a0',
+        stroke: '#000000',
+        strokeWidth: 0.15
+    });
 }
 
 function recalculateBestWorker(thisEnergyCap) {
