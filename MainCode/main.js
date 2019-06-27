@@ -1421,9 +1421,10 @@ module.exports.loop = function() {
 }
 
 function DisplayBoostTotals() {
-    new RoomVisual().rect(0, 38, 8, 10, {
+    new RoomVisual().rect(0, 38, 9, 11, {
         fill: '#2d68a0',
-        stroke: '#000000',
+        stroke: '#FFFFFF',
+        opacity: 0.15,
         strokeWidth: 0.15
     });
 
