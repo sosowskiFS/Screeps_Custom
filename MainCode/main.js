@@ -117,13 +117,6 @@ module.exports.loop = function() {
         Game.flags["RemoveMineralFlags"].remove();
     }
 
-    if (Game.flags["GetMineralReport"]) {
-        //UNFINISHED
-        //Returns count of mineral flag paths
-        GetMineralReport();
-        Game.flags["GetMineralReport"].remove();
-    }
-
     if (Game.flags["SpawnOperator"]) {
         for (let pName in Game.powerCreeps) {
             if (!Game.powerCreeps[pName].shard && Game.powerCreeps[pName].className == POWER_CLASS.OPERATOR) {
@@ -379,6 +372,56 @@ module.exports.loop = function() {
         Memory.flagCount["7"] = 0;
         Memory.flagCount["8"] = 0;
         Memory.flagCount["9"] = 0;
+    }
+
+    //Reset mineral totals
+    if (Game.time % 50 == 0) {
+        Memory.mineralTotals = new Object();
+        Memory.mineralTotals[RESOURCE_HYDROGEN] = 0;
+        Memory.mineralTotals[RESOURCE_OXYGEN] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYST] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM] = 0;
+
+        Memory.mineralTotals[RESOURCE_HYDROXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_KEANITE] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM_LEMERGITE] = 0;
+
+        Memory.mineralTotals[RESOURCE_UTRIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_OXIDE] = 0;
+
+        Memory.mineralTotals[RESOURCE_UTRIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_ALKALIDE] = 0;
+
+        Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] = 0;
     }
 
     for (const i in Game.spawns) {
@@ -737,11 +780,18 @@ module.exports.loop = function() {
 
 
                 //Review market data and sell to buy orders
+                //Catalog mineral stockpiles
                 if (Game.time % 50 == 0 && thisRoom.terminal) {
                     market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
-                    /*for (var y in Object.keys(thisRoom.terminal.store)) {
-                        Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]] = thisRoom.terminal.store[Object.keys(thisRoom.terminal.store)[y]] + Memory.TerminalCollection[Object.keys(thisRoom.terminal.store)[y]];
-                    }*/
+                    
+                    var roomMinerals = _.keys(thisRoom.terminal.store);
+                    for (let p = 0; p < roomMinerals.length; p++) {
+                        if (roomMinerals[p] == RESOURCE_ENERGY || roomMinerals[p] == RESOURCE_POWER) {
+                            //Not caring about this
+                            continue;
+                        }
+                        Memory.mineralTotals[roomMinerals[p]] += thisRoom.terminal.store[roomMinerals[p]]
+                    }
                 }
 
                 //Handle Links
@@ -1629,6 +1679,54 @@ function memCheck() {
         Memory.CPUAverages.SpawnCPU.ticks = 0;
         Memory.CPUAverages.SpawnCPU.CPU = 0;
     }
+    if (!Memory.mineralTotals) {
+        Memory.mineralTotals = new Object();
+        Memory.mineralTotals[RESOURCE_HYDROGEN] = 0;
+        Memory.mineralTotals[RESOURCE_OXYGEN] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYST] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM] = 0;
+
+        Memory.mineralTotals[RESOURCE_HYDROXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_KEANITE] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM_LEMERGITE] = 0;
+
+        Memory.mineralTotals[RESOURCE_UTRIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_OXIDE] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_HYDRIDE] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_OXIDE] = 0;
+
+        Memory.mineralTotals[RESOURCE_UTRIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_UTRIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_KEANIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_LEMERGIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_ZYNTHIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_GHODIUM_ALKALIDE] = 0;
+
+        Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID] = 0;
+        Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] = 0;
+    }
 }
 
 function orderPriceCompare(a, b) {
@@ -1853,10 +1951,6 @@ function RemoveMineralFlags() {
             Game.flags[thisRoom.name + "OHProducer(9)"].remove();
         }
     }
-}
-
-function GetMineralReport() {
-
 }
 
 function repairCompare(a, b) {
