@@ -1421,6 +1421,12 @@ module.exports.loop = function() {
 }
 
 function DisplayBoostTotals() {
+    new RoomVisual().rect(0, 38, 8, 10, {
+        fill: '#2d68a0',
+        stroke: '#000000',
+        strokeWidth: 0.15
+    });
+
     let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15};
     new RoomVisual().text("SMACK : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ACID]), 1, 40, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15};
@@ -1440,12 +1446,6 @@ function DisplayBoostTotals() {
         align: 'left',
         font: '0.7 Courier New',
         color: '#FFFFFF',
-        stroke: '#000000',
-        strokeWidth: 0.15
-    });
-
-    new RoomVisual().rect(1, 39, 8, 10, {
-        fill: '#2d68a0',
         stroke: '#000000',
         strokeWidth: 0.15
     });
