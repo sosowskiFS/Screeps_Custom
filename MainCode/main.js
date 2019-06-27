@@ -186,15 +186,6 @@ module.exports.loop = function() {
         });
     }
 
-    //Show time for debugging
-    new RoomVisual().text(Game.time, 43, 0, {
-        align: 'left',
-        font: '0.7 Courier New',
-        color: '#FFFFFF',
-        stroke: '#000000',
-        strokeWidth: 0.15
-    })
-
     //Tick down SK Mineral Timers
     for (var x in Memory.SKMineralTimers) {
         if (Memory.SKMineralTimers[x] > 0) {
@@ -1443,6 +1434,15 @@ function DisplayBoostTotals() {
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffffff', stroke: '#000000', strokeWidth: 0.15};
     new RoomVisual().text("TOUGH : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE]), 1, 45, defaultSettings);
     new RoomVisual().text("UPGRA : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID]), 1, 48, defaultSettings);
+
+    //Show time for debugging
+    new RoomVisual().text("TIME  : " + Game.time.toString(), 1, 39, {
+        align: 'left',
+        font: '0.7 Courier New',
+        color: '#FFFFFF',
+        stroke: '#000000',
+        strokeWidth: 0.15
+    })
 }
 
 function recalculateBestWorker(thisEnergyCap) {
