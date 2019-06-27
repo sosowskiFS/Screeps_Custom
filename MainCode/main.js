@@ -1173,6 +1173,9 @@ module.exports.loop = function() {
         Memory.postObserveTick = false;
     }
 
+    //Display War Boosts/Upgrade Boosts/Lowest Minerals
+    DisplayBoostTotals();
+
     //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
     Memory.CPUAverages.SpawnCPU.ticks = Memory.CPUAverages.SpawnCPU.ticks + 1;
     var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
@@ -1424,6 +1427,22 @@ module.exports.loop = function() {
     Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);
 
     //});
+}
+
+function DisplayBoostTotals() {
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("SMACK : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ACID]), 1, 40, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("SHOOT : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ALKALIDE]), 1, 41, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("REPAR : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ACID]), 1, 47, defaultSettings);
+    new RoomVisual().text("HEAL  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE]), 1, 42, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("DECON : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ACID]), 1, 43, defaultSettings);
+    new RoomVisual().text("MOVE  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE]), 1, 44, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffffff', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("TOUGH : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE]), 1, 45, defaultSettings);
+    new RoomVisual().text("UPGRA : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID]), 1, 48, defaultSettings);
 }
 
 function recalculateBestWorker(thisEnergyCap) {
