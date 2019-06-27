@@ -1813,22 +1813,22 @@ function drawPie(vis, val, max, title, colour, centerx, centery, inner) {
         });
         vis.text(Number.isFinite(inner) ? formatNumber(inner) : inner, center.x, center.y + 0.33, {
             color: '#FFFFFF',
-            font: '1 monospace',
+            font: '1 Courier New',
             align: 'center',
             stroke: 'rgba(0, 0, 0, 0.8)',
-            strokeWidth: 0.08,
+            strokeWidth: 0.15,
         });
         let yoff = 0.7;
         if (0.35 < p && p < 0.65) yoff += 0.3;
         vis.text(title, center.x, center.y + r + yoff, {
             color: '#FFFFFF',
-            font: '0.6 monospace',
+            font: '0.6 Courier New',
             align: 'center',
         });
         const lastpol = poly[poly.length - 2];
         vis.text('' + Math.floor(p * 100) + '%', lastpol.x + (lastpol.x - center.x) * 0.7, lastpol.y + (lastpol.y - center.y) * 0.4 + 0.1, {
             color: '#FFFFFF',
-            font: '0.4 monospace',
+            font: '0.4 Courier New',
             align: 'center',
         });
     }
