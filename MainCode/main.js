@@ -1429,7 +1429,7 @@ module.exports.loop = function() {
 
 function DisplayBoostTotals() {
     //Left Box (T3 Boosts)
-    new RoomVisual().rect(0, 38, 8, 10.5, {
+    new RoomVisual().rect(0, 39, 6, 9.5, {
         fill: '#2d68a0',
         stroke: '#FFFFFF',
         opacity: 0.15,
@@ -1451,7 +1451,13 @@ function DisplayBoostTotals() {
     new RoomVisual().text("UPGRA : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID]), 0.5, 48, defaultSettings);
 
     //Show time for debugging
-    new RoomVisual().text("TIME  : " + Game.time.toString(), 0.5, 39, {
+    new RoomVisual().rect(36.5, 46, 8, 1, {
+        fill: '#2d68a0',
+        stroke: '#FFFFFF',
+        opacity: 0.15,
+        strokeWidth: 0.15
+    });
+    new RoomVisual().text("TIME : " + Game.time.toString(), 36.7, 46.7, {
         align: 'left',
         font: '0.7 Courier New',
         color: '#FFFFFF',
@@ -1460,7 +1466,7 @@ function DisplayBoostTotals() {
     });
 
     //Middle Box (Last Notification)
-    new RoomVisual().rect(8.5, 47.5, 36, 1, {
+    new RoomVisual().rect(6.5, 47.5, 38, 1, {
         fill: '#2d68a0',
         stroke: '#FFFFFF',
         opacity: 0.15,
@@ -1468,13 +1474,13 @@ function DisplayBoostTotals() {
     });
     if (!Memory.LastNotification) {
         defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
-        new RoomVisual().text("This is where news would go. IF I HAD ANY.", 8.7, 48.2, defaultSettings);
+        new RoomVisual().text("This is where news would go. IF I HAD ANY.", 6.7, 48.2, defaultSettings);
     } else {
         defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
         if (Memory.LastNotification.includes("tresspassing") || Memory.LastNotification.includes("attack")) {
             defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15};
         }
-        new RoomVisual().text(Memory.LastNotification, 8.7, 48.2, defaultSettings);
+        new RoomVisual().text(Memory.LastNotification, 6.7, 48.2, defaultSettings);
     }
 
 
