@@ -84,11 +84,13 @@ var creep_powerAttack = {
             if (!creep.memory.isOwner && creep.memory.checkForOwnership) {
                 if (AgreementList.includes(inRangeEnemy[0].owner.username)) {
                     //They were here first, cancel flag.
-                    Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
+                    if (Game.flags[creep.memory.homeRoom + "PowerGather"]) {
+                        Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
+                    }          
                     if (Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
                         Game.flags[creep.memory.homeRoom + "PowerGuard"].remove();
                     }
-                    Game.notify(Game.time.toString() + " | " + creep.room.name + " gave ownership of power bank to " + inrangeEnemy[0].owner.username);
+                    Game.notify(Game.time.toString() + " | " + creep.room.name + " gave ownership of power bank to " + inRangeEnemy[0].owner.username);
                 } else {
                     if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
                         creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");

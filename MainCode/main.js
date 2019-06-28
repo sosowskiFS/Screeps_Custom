@@ -1421,6 +1421,7 @@ module.exports.loop = function() {
 }
 
 function DisplayBoostTotals() {
+    //Left Box (T3 Boosts)
     new RoomVisual().rect(0, 38, 9, 11, {
         fill: '#2d68a0',
         stroke: '#FFFFFF',
@@ -1450,6 +1451,28 @@ function DisplayBoostTotals() {
         stroke: '#000000',
         strokeWidth: 0.15
     });
+
+    //Right Box (Minerals)
+    new RoomVisual().rect(44, 40, 5, 9, {
+        fill: '#2d68a0',
+        stroke: '#FFFFFF',
+        opacity: 0.15,
+        strokeWidth: 0.15
+    });
+
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("H : " + formatNumber(Memory.mineralTotals[RESOURCE_HYDROGEN]), 45, 42, defaultSettings);
+    new RoomVisual().text("O : " + formatNumber(Memory.mineralTotals[RESOURCE_OXYGEN]), 45, 43, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("Z : " + formatNumber(Memory.mineralTotals[RESOURCE_ZYNTHIUM]), 45, 44, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("K : " + formatNumber(Memory.mineralTotals[RESOURCE_KEANIUM]), 45, 45, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("U : " + formatNumber(Memory.mineralTotals[RESOURCE_UTRIUM]), 45, 46, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("L : " + formatNumber(Memory.mineralTotals[RESOURCE_LEMERGIUM]), 45, 47, defaultSettings);
+    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15};
+    new RoomVisual().text("X : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYST]), 45, 48, defaultSettings);
 }
 
 function recalculateBestWorker(thisEnergyCap) {
