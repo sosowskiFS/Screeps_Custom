@@ -1460,7 +1460,7 @@ function DisplayBoostTotals() {
         strokeWidth: 0.15
     });
 
-    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
     new RoomVisual().text("H : " + formatNumber(Memory.mineralTotals[RESOURCE_HYDROGEN]), 45, 42, defaultSettings);
     new RoomVisual().text("O : " + formatNumber(Memory.mineralTotals[RESOURCE_OXYGEN]), 45, 43, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15};
