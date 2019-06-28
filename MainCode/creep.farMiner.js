@@ -12,7 +12,8 @@ var creep_farMiner = {
                 filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0 && !Memory.whiteList.includes(creep.owner.username)) || (creep.hits <= 500)
             });
             if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
-                Game.notify(creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
+                Game.notify(creep.memory.targetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
+                Memory.LastNotification = Game.time.toString() + ' : ' + creep.memory.targetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username
                 if (!Memory.warMode) {
                     Memory.warMode = true;
                     Game.notify('War mode has been enabled.');

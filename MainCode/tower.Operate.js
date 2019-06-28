@@ -96,8 +96,9 @@ var tower_Operate = {
                 }
 
                 if (closestHostile) {
-                    if (closestHostile.owner.username != "Invader") {
+                    if (closestHostile.owner.username != "Invader" && closestHostile.hitsMax > 200) {
                         Game.notify('ROOM DEFENCE : ' + closestHostile.owner.username + ' is tresspassing in ' + thisRoom.name);
+                        Memory.LastNotification = Game.time.toString() + ' : ' + closestHostile.owner.username + ' is tresspassing in ' + thisRoom.name
                     }
                     Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
                     if (shootRandom) {

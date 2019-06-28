@@ -283,6 +283,7 @@ module.exports.loop = function() {
                             if (Memory.attackDuration >= 250 && !Memory.warMode) {
                                 Memory.warMode = true;
                                 Game.notify('War mode was enabled due to a long attack at ' + towers[y].room.name + '.');
+                                Memory.LastNotification = Game.time.toString() + ' : War mode was enabled due to a long attack at ' + towers[y].room.name + '.'
                             }
                         }
                     } else if (Memory.roomsUnderAttack.indexOf(towers[y].room.name) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0 && !Game.flags[towers[y].room.name + "eFarGuard"]) {
@@ -824,6 +825,7 @@ module.exports.loop = function() {
                             let response = lab6.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5]);
+                                Memory.LastNotification = Game.time.toString() + ' : Lab not in range! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5]
                             } else if (response == -10) {
                                 //Game.notify('Wrong Mineral! (6)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][5])
                             }
@@ -833,6 +835,7 @@ module.exports.loop = function() {
                             let response = lab7.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6]);
+                                Memory.LastNotification = Game.time.toString() + ' : Lab not in range! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6]
                             } else if (response == -10) {
                                 //Game.notify('Wrong Mineral! (7)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][6])
                             }
@@ -842,6 +845,7 @@ module.exports.loop = function() {
                             let response = lab8.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7]);
+                                Memory.LastNotification = Game.time.toString() + ' : Lab not in range! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7]
                             } else if (response == -10) {
                                 //Game.notify('Wrong Mineral! (8)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][7])
                             }
@@ -851,6 +855,7 @@ module.exports.loop = function() {
                             let response = lab9.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8]);
+                                Memory.LastNotification = Game.time.toString() + ' : Lab not in range! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8]
                             } else if (response == -10) {
                                 //Game.notify('Wrong Mineral! (9)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][8])
                             }
@@ -860,6 +865,7 @@ module.exports.loop = function() {
                             let response = lab10.runReaction(lab4, lab5);
                             if (response == -9) {
                                 Game.notify('Lab not in range! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9]);
+                                Memory.LastNotification = Game.time.toString() + ' : Lab not in range! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9]
                             } else if (response == -10) {
                                 //Game.notify('Wrong Mineral! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9])
                             }
@@ -1184,6 +1190,7 @@ module.exports.loop = function() {
             FilteredOrders.sort(orderPriceCompareBuying);
             if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
                 Game.notify('A subscription token was purchased for ' + FilteredOrders[0].price + ' credits');
+                Memory.LastNotification = Game.time.toString() + ' : A subscription token was purchased for ' + FilteredOrders[0].price + ' credits'
             }
         }
     }
@@ -1452,8 +1459,27 @@ function DisplayBoostTotals() {
         strokeWidth: 0.15
     });
 
+    //Middle Box (Last Notification)
+    new RoomVisual().rect(11.5, 48, 35, 1, {
+        fill: '#2d68a0',
+        stroke: '#FFFFFF',
+        opacity: 0.15,
+        strokeWidth: 0.15
+    });
+    if (!Memory.LastNotification) {
+        defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
+        new RoomVisual().text("This is where news would go. IF I HAD ANY.", 12, 48.5, defaultSettings);
+    } else {
+        defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
+        if (Memory.LastNotification.includes("tresspassing") || Memory.LastNotification.includes("attack")) {
+            defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15};
+        }
+        new RoomVisual().text(Memory.LastNotification, 12, 48.5, defaultSettings);
+    }
+
+
     //Right Box (Minerals)
-    new RoomVisual().rect(45, 41, 4, 8, {
+    new RoomVisual().rect(45, 41, 4, 7.5, {
         fill: '#2d68a0',
         stroke: '#FFFFFF',
         opacity: 0.15,
