@@ -1422,7 +1422,7 @@ module.exports.loop = function() {
 
 function DisplayBoostTotals() {
     //Left Box (T3 Boosts)
-    new RoomVisual().rect(0, 38, 9, 11, {
+    new RoomVisual().rect(0, 38, 8, 10.5, {
         fill: '#2d68a0',
         stroke: '#FFFFFF',
         opacity: 0.15,
@@ -1430,21 +1430,21 @@ function DisplayBoostTotals() {
     });
 
     let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("SMACK : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ACID]), 1, 40, defaultSettings);
+    new RoomVisual().text("SMACK : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ACID]), 0.5, 40, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("SHOOT : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ALKALIDE]), 1, 41, defaultSettings);
+    new RoomVisual().text("SHOOT : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ALKALIDE]), 0.5, 41, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("REPAR : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ACID]), 1, 47, defaultSettings);
-    new RoomVisual().text("HEAL  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE]), 1, 42, defaultSettings);
+    new RoomVisual().text("REPAR : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ACID]), 0.5, 47, defaultSettings);
+    new RoomVisual().text("HEAL  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE]), 0.5, 42, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("DECON : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ACID]), 1, 43, defaultSettings);
-    new RoomVisual().text("MOVE  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE]), 1, 44, defaultSettings);
+    new RoomVisual().text("DECON : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ACID]), 0.5, 43, defaultSettings);
+    new RoomVisual().text("MOVE  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE]), 0.5, 44, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffffff', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("TOUGH : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE]), 1, 45, defaultSettings);
-    new RoomVisual().text("UPGRA : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID]), 1, 48, defaultSettings);
+    new RoomVisual().text("TOUGH : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE]), 0.5, 45, defaultSettings);
+    new RoomVisual().text("UPGRA : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID]), 0.5, 48, defaultSettings);
 
     //Show time for debugging
-    new RoomVisual().text("TIME  : " + Game.time.toString(), 1, 39, {
+    new RoomVisual().text("TIME  : " + Game.time.toString(), 0.5, 39, {
         align: 'left',
         font: '0.7 Courier New',
         color: '#FFFFFF',
@@ -1453,7 +1453,7 @@ function DisplayBoostTotals() {
     });
 
     //Right Box (Minerals)
-    new RoomVisual().rect(44, 40, 5, 9, {
+    new RoomVisual().rect(45, 41, 4, 8, {
         fill: '#2d68a0',
         stroke: '#FFFFFF',
         opacity: 0.15,
@@ -1461,18 +1461,18 @@ function DisplayBoostTotals() {
     });
 
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("H : " + formatNumber(Memory.mineralTotals[RESOURCE_HYDROGEN]), 45, 42, defaultSettings);
-    new RoomVisual().text("O : " + formatNumber(Memory.mineralTotals[RESOURCE_OXYGEN]), 45, 43, defaultSettings);
+    new RoomVisual().text("H : " + formatNumber(Memory.mineralTotals[RESOURCE_HYDROGEN]), 45.3, 42, defaultSettings);
+    new RoomVisual().text("O : " + formatNumber(Memory.mineralTotals[RESOURCE_OXYGEN]), 45.3, 43, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("Z : " + formatNumber(Memory.mineralTotals[RESOURCE_ZYNTHIUM]), 45, 44, defaultSettings);
+    new RoomVisual().text("Z : " + formatNumber(Memory.mineralTotals[RESOURCE_ZYNTHIUM]), 45.3, 44, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("K : " + formatNumber(Memory.mineralTotals[RESOURCE_KEANIUM]), 45, 45, defaultSettings);
+    new RoomVisual().text("K : " + formatNumber(Memory.mineralTotals[RESOURCE_KEANIUM]), 45.3, 45, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("U : " + formatNumber(Memory.mineralTotals[RESOURCE_UTRIUM]), 45, 46, defaultSettings);
+    new RoomVisual().text("U : " + formatNumber(Memory.mineralTotals[RESOURCE_UTRIUM]), 45.3, 46, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("L : " + formatNumber(Memory.mineralTotals[RESOURCE_LEMERGIUM]), 45, 47, defaultSettings);
+    new RoomVisual().text("L : " + formatNumber(Memory.mineralTotals[RESOURCE_LEMERGIUM]), 45.3, 47, defaultSettings);
     defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15};
-    new RoomVisual().text("X : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYST]), 45, 48, defaultSettings);
+    new RoomVisual().text("X : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYST]), 45.3, 48, defaultSettings);
 }
 
 function recalculateBestWorker(thisEnergyCap) {
