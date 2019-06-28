@@ -1660,7 +1660,7 @@ function memCheck() {
     Memory.powerCheckList["E38N46"] = ["E40N47", "E40N46", "E40N45"];
     Memory.powerCheckList["E21N58"] = ["E20N59", "E20N58", "E20N57"];
     Memory.powerCheckList["E44N41"] = ["E42N40", "E43N40", "E44N40", "E45N40", "E46N40"];
-    Memory.powerCheckList["E37N39"] = ["E39N40", "E38N40", "E37N40", "E36N40", "E35N40"];
+    Memory.powerCheckList["E37N39"] = ["E38N40", "E37N40", "E36N40", "E35N40"];
     Memory.powerCheckList["E32N39"] = ["E31N40", "E32N40", "E33N40", "E30N39"];
     Memory.powerCheckList["E22N42"] = ["E20N42", "E22N40"];
     Memory.powerCheckList["E39N37"] = ["E40N38", "E40N37", "E40N36"];
