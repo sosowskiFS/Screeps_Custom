@@ -39,12 +39,12 @@ var creep_labWorker = {
                                                 targetPrice = thisOrder.Price
                                             } else {
                                                 targetPrice = targetPrice - 0.001
-                                            }
-
-                                            if (targetPrice < 1) {
-                                                targetPrice = 1
-                                            }                         
+                                            }                  
                                         }
+                                        //Regardless of everything, never dip below 1.
+                                        if (targetPrice < 1) {
+                                            targetPrice = 1
+                                        }       
                                         Game.market.changeOrderPrice(foundOrder, targetPrice);
                                         Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                                     } else {
@@ -64,11 +64,11 @@ var creep_labWorker = {
                                             } else {
                                                 targetPrice = targetPrice - 0.001
                                             }
-
-                                            if (targetPrice < 1) {
-                                                targetPrice = 1
-                                            }   
                                         }
+                                        //Regardless of everything, never dip below 1.
+                                        if (targetPrice < 1) {
+                                            targetPrice = 1
+                                        }   
                                         Game.market.changeOrderPrice(foundOrder, targetPrice);
                                     }
                                 }
@@ -81,11 +81,11 @@ var creep_labWorker = {
                                     if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
                                         //Not competing with self, undercut!
                                         targetPrice = targetPrice - 0.001
-
-                                        if (targetPrice < 1) {
-                                            targetPrice = 1
-                                        } 
                                     }
+                                    //Regardless of everything, never dip below 1.
+                                    if (targetPrice < 1) {
+                                        targetPrice = 1
+                                    } 
                                     Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
                                 }
                             }
