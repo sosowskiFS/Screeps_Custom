@@ -775,6 +775,10 @@ module.exports.loop = function() {
                 //Catalog mineral stockpiles
                 if (Game.time % 50 == 0 && thisRoom.terminal) {
                     market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
+
+                    if ((thisRoom.terminal.storeCapacity - 5000) <= _.sum(thisRoom.terminal.store)) {
+                        Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + " terminal is overloaded!"
+                    }
                     
                     var roomMinerals = _.keys(thisRoom.terminal.store);
                     for (let p = 0; p < roomMinerals.length; p++) {
