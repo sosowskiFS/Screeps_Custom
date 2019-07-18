@@ -442,11 +442,27 @@ var creep_baseOp = {
                     filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
                 });
 
-                creep.travelTo(closeFoe, {
-                    ignoreRoads: true,
-                    range: 8,
-                    maxRooms: 1
-                }, true);
+                if (Memory.powerSpawnList[creep.room.name]) {
+                    var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
+                    if (powerSpawnTarget) {
+                        creep.travelTo(powerSpawnTarget, {
+                            ignoreRoads: true,
+                            maxRooms: 1
+                        });
+                    } else {
+                        creep.travelTo(closeFoe, {
+                            ignoreRoads: true,
+                            range: 8,
+                            maxRooms: 1
+                        }, true);
+                    }
+                } else {
+                    creep.travelTo(closeFoe, {
+                        ignoreRoads: true,
+                        range: 8,
+                        maxRooms: 1
+                    }, true);
+                }
                 creep.memory.jobFocus = undefined;
                 creep.memory.structureTarget = undefined;
             } 
