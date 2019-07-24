@@ -175,17 +175,6 @@ module.exports.loop = function() {
         Game.flags["RemoveSites"].remove();
     }
 
-    //Note that warMode is on
-    if (Memory.warMode) {
-        new RoomVisual().text("War Mode", 0, 49, {
-            align: 'left',
-            font: '2 Courier New',
-            color: '#FFFFFF',
-            stroke: '#000000',
-            strokeWidth: 0.15
-        });
-    }
-
     //Tick down SK Mineral Timers
     for (var x in Memory.SKMineralTimers) {
         if (Memory.SKMineralTimers[x] > 0) {
@@ -1437,8 +1426,13 @@ module.exports.loop = function() {
 
 function DisplayBoostTotals() {
     //Left Box (T3 Boosts)
+    let fillColor = '#2d68a0';
+    if (Memory.warMode) {
+        fillColor = '#9c2d34';
+    }
+
     new RoomVisual().rect(0, 39, 6, 9.5, {
-        fill: '#2d68a0',
+        fill: fillColor,
         stroke: '#FFFFFF',
         opacity: 0.15,
         strokeWidth: 0.15
@@ -1460,7 +1454,7 @@ function DisplayBoostTotals() {
 
     //Show time for debugging
     new RoomVisual().rect(36.5, 46, 8, 1, {
-        fill: '#2d68a0',
+        fill: fillColor,
         stroke: '#FFFFFF',
         opacity: 0.15,
         strokeWidth: 0.15
@@ -1475,7 +1469,7 @@ function DisplayBoostTotals() {
 
     //Middle Box (Last Notification)
     new RoomVisual().rect(6.5, 47.5, 38, 1, {
-        fill: '#2d68a0',
+        fill: fillColor,
         stroke: '#FFFFFF',
         opacity: 0.15,
         strokeWidth: 0.15
@@ -1494,7 +1488,7 @@ function DisplayBoostTotals() {
 
     //Right Box (Minerals)
     new RoomVisual().rect(45, 41, 4, 7.5, {
-        fill: '#2d68a0',
+        fill: fillColor,
         stroke: '#FFFFFF',
         opacity: 0.15,
         strokeWidth: 0.15
