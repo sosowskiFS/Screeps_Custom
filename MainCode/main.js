@@ -1468,7 +1468,7 @@ function DisplayBoostTotals() {
     });
 
     if (Memory.warMode) {
-        new RoomVisual().rect(6.5, 46, 8, 1, {
+        new RoomVisual().rect(6.5, 46, 7.1, 1, {
             fill: fillColor,
             stroke: '#FFFFFF',
             opacity: 0.15,
