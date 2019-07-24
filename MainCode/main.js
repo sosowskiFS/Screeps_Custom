@@ -1467,6 +1467,22 @@ function DisplayBoostTotals() {
         strokeWidth: 0.15
     });
 
+    if (Memory.warMode) {
+        new RoomVisual().rect(6.5, 46, 8, 1, {
+            fill: fillColor,
+            stroke: '#FFFFFF',
+            opacity: 0.15,
+            strokeWidth: 0.15
+        });
+        new RoomVisual().text("WAR MODE ENABLED", 6.7, 46.7, {
+            align: 'left',
+            font: '0.7 Courier New',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeWidth: 0.15
+        });
+    }
+
     //Middle Box (Last Notification)
     new RoomVisual().rect(6.5, 47.5, 38, 1, {
         fill: fillColor,
