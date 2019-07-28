@@ -559,11 +559,22 @@ var creep_work5 = {
                             var targetPrice = comparableOrders[0].price;
                             if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
                                 //Not competing with self, undercut!
-                                targetPrice = targetPrice - 0.001
+                                if ((thisOrder.price - 0.5) > targetPrice) {
+                                    targetPrice = thisOrder.Price
+                                } else {
+                                    targetPrice = targetPrice - 0.001
+                                }   
                             }
+                            //Regardless of everything, never dip below 1.
+                            if (targetPrice < 1) {
+                                targetPrice = 1
+                            }  
                             Game.market.changeOrderPrice(foundOrder, targetPrice);
                             Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                         } else {
+                            if (thisOrder.price < 1) {
+                                Game.market.changeOrderPrice(foundOrder, 1);
+                            }
                             Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                         }
                     } else {
@@ -574,7 +585,15 @@ var creep_work5 = {
                             var targetPrice = comparableOrders[0].price;
                             if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
                                 //Not competing with self, undercut!
-                                targetPrice = targetPrice - 0.001
+                                if ((thisOrder.price - 0.5) > targetPrice) {
+                                    targetPrice = thisOrder.Price
+                                } else {
+                                    targetPrice = targetPrice - 0.001
+                                }
+                            }
+                            //Regardless of everything, never dip below 1.
+                            if (targetPrice < 1) {
+                                targetPrice = 1
                             }
                             Game.market.changeOrderPrice(foundOrder, targetPrice);
                         }
@@ -589,6 +608,10 @@ var creep_work5 = {
                             //Not competing with self, undercut!
                             targetPrice = targetPrice - 0.001
                         }
+                        //Regardless of everything, never dip below 1.
+                        if (targetPrice < 1) {
+                            targetPrice = 1
+                        } 
                         Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
                     }
                 }
