@@ -48,6 +48,9 @@ var creep_labWorker = {
                                         Game.market.changeOrderPrice(foundOrder, targetPrice);
                                         Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                                     } else {
+                                        if (thisOrder.price < 1) {
+                                            Game.market.changeOrderPrice(foundOrder, 1);
+                                        }
                                         Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                                     }
                                 } else {
