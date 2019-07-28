@@ -44,11 +44,13 @@ var creep_labWorker = {
                                         //Regardless of everything, never dip below 1.
                                         if (targetPrice < 1) {
                                             targetPrice = 1
-                                        }       
+                                        }
+                                        Game.notify('Extending and changing order price. ID: ' & thisOrder.id & ' | Price: ' & targetPrice.toString() & ' | Tick: ' & Game.time);      
                                         Game.market.changeOrderPrice(foundOrder, targetPrice);
                                         Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                                     } else {
                                         if (thisOrder.price < 1) {
+                                            Game.notify('Extending and changing order price. ID: ' & thisOrder.id & ' | Price: 1' & ' | Tick: ' & Game.time); 
                                             Game.market.changeOrderPrice(foundOrder, 1);
                                         }
                                         Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
@@ -71,7 +73,8 @@ var creep_labWorker = {
                                         //Regardless of everything, never dip below 1.
                                         if (targetPrice < 1) {
                                             targetPrice = 1
-                                        }   
+                                        }
+                                        Game.notify('Changing price only. ID: ' & thisOrder.id & ' | Price: ' & targetPrice & ' | Tick: ' & Game.time);    
                                         Game.market.changeOrderPrice(foundOrder, targetPrice);
                                     }
                                 }
