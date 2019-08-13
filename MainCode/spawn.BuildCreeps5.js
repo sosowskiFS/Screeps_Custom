@@ -496,13 +496,15 @@ var spawn_BuildCreeps5 = {
                     });
                     Memory.creepInQue.push(thisRoom.name, 'supplier', '', spawn.name);
                 }
-            } else if (thisRoom.energyAvailable >= thisRoom.energyCapacityAvailable - 650 && (Foe.length || defenders.length < 1)) {
+            } else if (Memory.CurrentRoomEnergy[energyIndex] >= 650 && (Foe.length || defenders.length < 1)) {
+                //6500 = build total
+
                 //Try to produce millitary units
 
                 //Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
                 //Ranged unit set: MOVE, MOVE, RANGED_ATTACK - 250
 
-                //Damaged modules do not work, put padding first.
+                //Check for the ideal defender before actually going through with it
 
                 var ToughCount = 0;
                 var MoveCount = 0;
@@ -510,7 +512,9 @@ var spawn_BuildCreeps5 = {
                 var RangedCount = 0;
                 var totalParts = 0;
 
-                var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
+                //var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
+                var remainingEnergy = thisRoom.energyCapacityAvailable;
+                var buildTotal = 0
                 var thisBuildAmount = 650;
                 while ((remainingEnergy / thisBuildAmount) >= 1) {
                     //switch (ChosenPriority) {
@@ -519,6 +523,7 @@ var spawn_BuildCreeps5 = {
                     MoveCount = MoveCount + 1;
                     RangedCount = RangedCount + 4;
                     remainingEnergy = remainingEnergy - 650;
+                    buildTotal += 650;
                     //RangedCount = RangedCount + 1;
                     totalParts = totalParts + 5;
                     //break;
@@ -559,15 +564,17 @@ var spawn_BuildCreeps5 = {
                     }
                 }
 
-                Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
-                spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
-                    memory: {
-                        priority: 'defender',
-                        fromSpawn: spawn.id,
-                        homeRoom: thisRoom.name
-                    }
-                });
-                Memory.isSpawning = true;
+                if (buildTotal <= Memory.CurrentRoomEnergy[energyIndex]) {
+                    Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - buildTotal;
+                    spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
+                        memory: {
+                            priority: 'defender',
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
+                        }
+                    });
+                    Memory.isSpawning = true;
+                }            
             } else {
                 //Lock out spawning other units until max defenders
                 Memory.isSpawning = true;
