@@ -795,7 +795,7 @@ module.exports.loop = function() {
                     if (Memory.linkList[thisRoom.name].length >= 4) {
                         var roomLink2 = Game.getObjectById(Memory.linkList[thisRoom.name][2]);
                         var receiveLink2 = Game.getObjectById(Memory.linkList[thisRoom.name][3]);
-                        if (roomLink2 && receiveLink2 && roomLink2.energy >= 400 && roomLink2.cooldown == 0 && receiveLink2.energy < 800) {
+                        if (roomLink2 && receiveLink2 && roomLink2.energy >= 400 && roomLink2.cooldown == 0 && receiveLink2.energy < 750) {
                             roomLink2.transferEnergy(receiveLink2);
                         }
                     }
