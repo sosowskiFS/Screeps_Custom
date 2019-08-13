@@ -419,9 +419,15 @@ module.exports.loop = function() {
                     drawPie(roomVis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 3.5);
                     if (thisRoom.storage) {
                         drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
+                        if (thisRoom.storage.store[RESOURCE_ENERGY] <= 40000) {
+                            Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
+                        }
                     }
                 } else if (thisRoom.storage) {
                     drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
+                    if (thisRoom.storage.store[RESOURCE_ENERGY] <= 40000) {
+                        Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
+                    }
                 }
 
                 //Get non-suppliers off the supplier spot
@@ -1514,7 +1520,7 @@ function DisplayBoostTotals() {
         new RoomVisual().text("This is where news would go. IF I HAD ANY.", 6.7, 48.2, defaultSettings);
     } else {
         defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
-        if (Memory.LastNotification.includes("tresspassing") || Memory.LastNotification.includes("attack")) {
+        if (Memory.LastNotification.includes("tresspassing") || Memory.LastNotification.includes("attack") || Memory.LastNotification.includes("critically")) {
             defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15};
         }
         new RoomVisual().text(Memory.LastNotification, 6.7, 48.2, defaultSettings);
