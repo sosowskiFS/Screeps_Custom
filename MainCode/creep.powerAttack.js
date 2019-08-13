@@ -93,7 +93,7 @@ var creep_powerAttack = {
                     Game.notify(Game.time.toString() + " | " + creep.room.name + " gave ownership of power bank to " + inRangeEnemy[0].owner.username);
                     Memory.LastNotification = Game.time.toString() + " : " + creep.room.name + " gave ownership of power bank to " + inRangeEnemy[0].owner.username
                 } else {
-                    if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                    if (!Game.flags[creep.memory.homeRoom + "PowerGuard"] && creep.room.name == creep.memory.destination) {
                         creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
                     }
                     if (creep.pos.isNearTo(inRangeEnemy[0])) {
@@ -105,7 +105,7 @@ var creep_powerAttack = {
                 if (creep.pos.isNearTo(inRangeEnemy[0])) {
                     creep.attack(inRangeEnemy[0]);
                 }
-                if (!Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+                if (!Game.flags[creep.memory.homeRoom + "PowerGuard"] && creep.room.name == creep.memory.destination) {
                     creep.room.createFlag(25, 25, creep.memory.homeRoom + "PowerGuard");
                 }
             }        
