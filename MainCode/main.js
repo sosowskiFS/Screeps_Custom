@@ -880,12 +880,29 @@ module.exports.loop = function() {
 
                     //Move searched room to the back of the list
                     Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
+                } else if (Game.flags[thisRoom.name + "PowerGather"] && Memory.postObserveTick) {
+                	//Monitor existing flag and cancel if power bank doesn't exist anymore
+                	var powerbanks = Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName].find(FIND_STRUCTURES, {
+                        filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK)
+                    });
+                    if (!powerbanks.length) {
+                        Game.flags[thisRoom.name + "PowerGather"].remove();
+                    }
                 }
 
                 if (Game.time % 50 == 0 && Memory.powerCheckList[thisRoom.name] && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"] && thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] < 50000)) {
                     var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
                     if (thisObserver) {
                         thisObserver.observeRoom(Memory.powerCheckList[thisRoom.name][0]);
+                        if (!Memory.postObserveTick) {
+                            Memory.postObserveTick = true;
+                        }
+                    }
+                } else if (Game.time % 50 == 0 && Game.flags[thisRoom.name + "PowerGather"] && Memory.observerList[thisRoom.name].length >= 1 ) {
+                	//Monitor existing flag and cancel if power bank doesn't exist anymore
+                	var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
+                    if (thisObserver) {
+                        thisObserver.observeRoom(Game.flags[thisRoom.name + "PowerGather"].pos.roomName);
                         if (!Memory.postObserveTick) {
                             Memory.postObserveTick = true;
                         }
@@ -1696,7 +1713,7 @@ function memCheck() {
     Memory.powerCheckList["W41S24"] = ["W40S23", "W40S24", "W40S25"];
     Memory.powerCheckList["E8N14"] = ["E10N15", "E10N14", "E10N13"];
     Memory.powerCheckList["E3N12"] = ["E2N10", "E3N10", "E4N10"];
-    Memory.powerCheckList["E23N28"] = ["E21N30", "E22N30", "E23N30", "E24N30", "E20N27"];
+    Memory.powerCheckList["E23N28"] = ["E21N30", "E22N30", "E23N30", "E24N30"];
     Memory.powerCheckList["E26N32"] = ["E25N30", "E26N30", "E27N30"];
     Memory.powerCheckList["E18N22"] = ["E17N20", "E18N20", "E19N20"];
     Memory.powerCheckList["E25N38"] = ["E24N40", "E25N40"];
