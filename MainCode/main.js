@@ -882,12 +882,14 @@ module.exports.loop = function() {
                     Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
                 } else if (Game.flags[thisRoom.name + "PowerGather"] && Memory.postObserveTick) {
                 	//Monitor existing flag and cancel if power bank doesn't exist anymore
-                	var powerbanks = Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName].find(FIND_STRUCTURES, {
-                        filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK)
-                    });
-                    if (!powerbanks.length) {
-                        Game.flags[thisRoom.name + "PowerGather"].remove();
-                    }
+                	if (Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName]) {
+                		var powerbanks = Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName].find(FIND_STRUCTURES, {
+                        	filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK)
+	                    });
+	                    if (!powerbanks.length) {
+	                        Game.flags[thisRoom.name + "PowerGather"].remove();
+	                    }
+                	}     	
                 }
 
                 if (Game.time % 50 == 0 && Memory.powerCheckList[thisRoom.name] && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"] && thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] < 50000)) {
