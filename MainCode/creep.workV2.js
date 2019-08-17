@@ -280,8 +280,11 @@ var creep_workV2 = {
 
                         let thisTarget = Game.getObjectById(creep.memory.storageTarget);
                         if (thisTarget && _.sum(thisTarget.store) > 100) {
-                            if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            let withdrawResult = creep.withdraw(thisTarget, RESOURCE_ENERGY);
+                            if (withdrawResult == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(thisTarget);
+                            } else if (withdrawResult == OK) {
+                                creep.memory.storageTarget = undefined;
                             }
                         } else {
                             let newContainer = findContainerWithEnergy(creep, 100);
