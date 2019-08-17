@@ -21,7 +21,7 @@ var creep_looter = {
         } else {
             if (_.sum(creep.carry) <= creep.carryCapacity - 100) {
                 //In far room, loot container
-                if (creep.room.storage) {
+                if (creep.room.storage && creep.room.storage.owner.username != "Montblanc") {
                     if (_.sum(creep.room.storage.store) <= 0) {
                         if (creep.room.terminal && _.sum(creep.room.terminal.store > 0)) {
                             if (Object.keys(creep.room.terminal).length > 1) {
@@ -55,7 +55,7 @@ var creep_looter = {
                             }
                         }
                     }
-                } else if (creep.room.terminal && _.sum(creep.room.terminal.store > 0)) {
+                } else if (creep.room.terminal && creep.room.terminal.owner.username != "Montblanc" && _.sum(creep.room.terminal.store > 0)) {
                     if (Object.keys(creep.room.terminal).length > 1) {
                         if (creep.withdraw(creep.room.terminal, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(creep.room.terminal);
