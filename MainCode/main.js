@@ -933,6 +933,21 @@ module.exports.loop = function() {
                     recalculateBestWorker(Memory.energyCap[thisRoom.name][0]);
                 }
 
+                //Monitor for operator in flagged rooms, respawn if dead
+                if (Game.time % 100 = 0 && Game.flags[thisRoom.name + "RoomOperator"] && Memory.powerSpawnList[thisRoom.name].length > 0){
+                    let inRoomCreeps = thisRoom.find(FIND_MY_POWER_CREEPS);
+                    if (!inRoomCreeps.length) {
+                        //Locate creep that's supposed to be here and respawn
+                        for (let pName in Game.powerCreeps) {
+                            if (Game.powerCreeps[pName].memory.homeRoom && Game.powerCreeps[pName].memory.homeRoom == thisRoom.name) {
+                                //Spawn it.
+                                Game.powerCreeps[pName].spawn(Game.getObjectById(Memory.powerSpawnList[thisRoom.name][0]));
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 //if (Game.flags[thisRoom.name + "FarGuard"]) {
                 //Memory.FarGuardNeeded[thisRoom.name] = true;
                 //}

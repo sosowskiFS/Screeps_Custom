@@ -530,6 +530,10 @@ function setupCreepMemory(creep) {
         creep.memory.linkSource = Memory.linkList[creep.room.name][3];
     }
 
+    if (!creep.memory.homeRoom) {
+        creep.memory.homeRoom = creep.pos.roomName;
+    }
+
     creep.memory.jobFocus = undefined;
 
     creep.memory.initialSetup = true;
