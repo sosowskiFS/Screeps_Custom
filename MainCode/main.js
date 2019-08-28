@@ -934,7 +934,7 @@ module.exports.loop = function() {
                 }
 
                 //Monitor for operator in flagged rooms, respawn if dead
-                if (Game.time % 100 = 0 && Game.flags[thisRoom.name + "RoomOperator"] && Memory.powerSpawnList[thisRoom.name].length > 0){
+                if (Game.time % 100 == 0 && Game.flags[thisRoom.name + "RoomOperator"] && Memory.powerSpawnList[thisRoom.name].length > 0){
                     let inRoomCreeps = thisRoom.find(FIND_MY_POWER_CREEPS);
                     if (!inRoomCreeps.length) {
                         //Locate creep that's supposed to be here and respawn
