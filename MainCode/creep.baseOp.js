@@ -433,7 +433,7 @@ var creep_baseOp = {
 
         if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
             //Stay away from hostiles
-            Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 6, {
+            Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 4, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
@@ -463,8 +463,6 @@ var creep_baseOp = {
                         maxRooms: 1
                     }, true);
                 }
-                creep.memory.jobFocus = undefined;
-                creep.memory.structureTarget = undefined;
             } 
         }
     }
