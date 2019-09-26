@@ -165,10 +165,11 @@ var creep_assranger = {
 
                     if (!didDismantle) {
                         let somethingNearby = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD)
+                            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_CONTROLLER)
                         });
-                        if (somethingNearby) {
+                        if (somethingNearby && creep.pos.getRangeTo(somethingNearby) <= 3) {
                             creep.rangedAttack(somethingNearby);
+                            didDismantle = true;
                         }
                     }
 
