@@ -198,7 +198,7 @@ var creep_assranger = {
                                         stuckValue: 2,
                                         allowSK: true,
                                         ignoreRoads: true,
-                                        range: 3
+                                        range: 2
                                     });
                                 }
                                 creep.rangedAttack(thisWall[0]);
@@ -250,7 +250,7 @@ var creep_assranger = {
                                             maxRooms: 1,
                                             stuckValue: 2,
                                             allowSK: true,
-                                            range: 3
+                                            range: 2
                                         });
                                     }
                                     creep.rangedMassAttack();
@@ -268,7 +268,7 @@ var creep_assranger = {
                                                 maxRooms: 1,
                                                 stuckValue: 2,
                                                 allowSK: true,
-                                                range: 3
+                                                range: 2
                                             });
                                         }
                                         creep.rangedAttack(eStructures);
