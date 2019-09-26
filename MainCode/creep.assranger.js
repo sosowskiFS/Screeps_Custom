@@ -168,7 +168,7 @@ var creep_assranger = {
                             filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_CONTROLLER)
                         });
                         if (somethingNearby && creep.pos.getRangeTo(somethingNearby) <= 3) {
-                            creep.rangedAttack(somethingNearby);
+                            creep.rangedMassAttack(somethingNearby);
                             didDismantle = true;
                         }
                     }
