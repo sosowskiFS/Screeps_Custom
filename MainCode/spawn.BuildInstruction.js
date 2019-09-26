@@ -296,8 +296,8 @@ var spawn_BuildInstruction = {
                                 Memory.isSpawning = true;
                                 console.log('FUCK. SHIT. UP. ' + spawn.room.name);
                                 if (Game.flags[spawn.room.name + "RangedStyle"]) {
-                                    Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "DisassembleStyle");
-                                    Game.flags[spawn.room.name + "RangedStyle"].remove();
+                                    //Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "DisassembleStyle");
+                                    //Game.flags[spawn.room.name + "RangedStyle"].remove();
                                 } else if (Game.flags[spawn.room.name + "DisassembleStyle"]) {
                                     Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "MeleeStyle");
                                     Game.flags[spawn.room.name + "DisassembleStyle"].remove();
