@@ -539,9 +539,16 @@ var creep_assattacker = {
                 creep.moveTo(otherHealers[0]);
             }
         }
-        if (creep.hits < creep.hitsMax) {
+
+        let targetHealer = undefined;
+        if (creep.memory.healerID) {
+            targetHealer = Game.getObjectById(creep.memory.healerID);
+        }
+        if (creep.hits < creep.hitsMax - 100) {
             creep.heal(creep);
-        }    
+        } else if (targetHealer && targetHealer.hits < targetHealer.hitsMax - 300) {
+            creep.heal(targetHealer);
+        }
     }
 
 };
