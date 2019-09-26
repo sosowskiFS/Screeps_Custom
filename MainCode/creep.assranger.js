@@ -168,7 +168,7 @@ var creep_assranger = {
                             filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_CONTROLLER)
                         });
                         if (somethingNearby && creep.pos.getRangeTo(somethingNearby) <= 3) {
-                            creep.rangedMassAttack(somethingNearby);
+                            creep.rangedAttack(somethingNearby);
                             didDismantle = true;
                         }
                     }
@@ -253,7 +253,7 @@ var creep_assranger = {
                                             range: 3
                                         });
                                     }
-                                    creep.rangedMassAttack(eSpawns);
+                                    creep.rangedMassAttack();
                                 } else {
                                     if (targetFlag) {
                                         targetFlag.remove();
@@ -431,7 +431,7 @@ var creep_assranger = {
                     }
                 } else {
                     if (closeRange == 1) {
-                        creep.rangedMassAttack(closeFoe);
+                        creep.rangedMassAttack();
                     } else {
                         creep.rangedAttack(closeFoe);
                     }
