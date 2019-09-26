@@ -546,7 +546,7 @@ var creep_assattacker = {
         }
         if (creep.hits < creep.hitsMax - 100) {
             creep.heal(creep);
-        } else if (targetHealer && targetHealer.hits < targetHealer.hitsMax - 300) {
+        } else if (targetHealer && targetHealer.hits < targetHealer.hitsMax - 500) {
             creep.heal(targetHealer);
         }
     }
