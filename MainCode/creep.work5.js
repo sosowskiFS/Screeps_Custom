@@ -68,23 +68,7 @@ var creep_work5 = {
                                 //Only other blocker is build.
                                 creep.repair(savedTarget);
 
-                                if (creep.memory.lookForNewRampart) {
-                                    creep.memory.structureTarget = undefined;
-                                    creep.memory.lookForNewRampart = undefined;
-                                    var newRampart = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                        filter: (structure) => (structure.structureType == STRUCTURE_RAMPART) && (structure.hits == 1)
-                                    });
-                                    if (newRampart) {
-                                        creep.memory.structureTarget = newRampart.id;
-                                        if (creep.repair(newRampart) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(newRampart, {
-                                                maxRooms: 1
-                                            });
-                                        }
-                                        //Reset room repairtarget so new rampart is picked up
-                                        Memory.repairTarget[creep.room.name] = undefined;
-                                    }
-                                } else if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
+                                if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
                                     //Storing in spawn/extension/tower/link
                                     if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
                                         creep.travelTo(savedTarget, {
@@ -233,16 +217,18 @@ var creep_work5 = {
                                         targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                                         if (targets2) {
                                             creep.memory.structureTarget = targets2.id;
-                                            if (targets2.structureType == STRUCTURE_RAMPART) {
-                                                creep.memory.lookForNewRampart = true;
-                                            }
-
-                                            if (creep.build(targets2) == ERR_NOT_IN_RANGE) {
+                                            let buildResult = creep.build(targets2)
+                                            if (buildResult == ERR_NOT_IN_RANGE) {
                                                 creep.travelTo(targets2, {
                                                     maxRooms: 1
                                                 });
-                                            } else if (creep.build(targets2) == ERR_NO_BODYPART) {
+                                            } else if (buildResult == ERR_NO_BODYPART) {
                                                 creep.suicide();
+                                            } else if (targets2.structureType == STRUCTURE_RAMPART && buildResult == OK) {
+                                                //Change job to repair, reset room repair target.
+                                                creep.memory.priority = 'repair';
+                                                creep.memory.previousPriority = 'mule';
+                                                Memory.repairTarget[creep.room.name] = undefined;
                                             }
                                         } else {
                                             //Upgrade
