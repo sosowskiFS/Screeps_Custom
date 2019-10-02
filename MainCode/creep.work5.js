@@ -103,13 +103,19 @@ var creep_work5 = {
                                     }
                                 }
                             } else {
-                                if (creep.build(savedTarget) == ERR_NOT_IN_RANGE) {
+                                let bResult = creep.build(savedTarget);
+                                if (bResult == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(savedTarget, {
                                         maxRooms: 1
                                     });
-                                } else if (creep.build(savedTarget) != OK) {
+                                } else if (bResult != OK) {
                                     creep.memory.structureTarget = undefined;
-                                }
+                                } else if (savedTarget.structureType == STRUCTURE_RAMPART) {
+                                    //Become a repair drone
+                                    creep.memory.priority = 'repair';
+                                    creep.memory.previousPriority = 'mule';
+                                    Memory.repairTarget[creep.room.name] = undefined;
+                                }                                              
                             }
                         } else {
                             creep.memory.structureTarget = undefined;
