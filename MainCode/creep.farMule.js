@@ -38,7 +38,7 @@ let creep_farMule = {
             if (creep.memory.lookForSites) {
                 someSite = creep.pos.findInRange(FIND_CONSTRUCTION_SITES, 3);
             }
-            if (someSite.length) {
+            if (someSite.length && someSite[0].structureType != STRUCTURE_RAMPART) {
                 creep.build(someSite[0]);
             } else {
                 let someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
