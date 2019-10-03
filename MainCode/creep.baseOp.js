@@ -2,7 +2,7 @@ var creep_baseOp = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
-        if (!creep.memory.initialSetup) {
+        if (!creep.memory.initialSetup || Game.time % 10000 == 0) {
             setupCreepMemory(creep);
         }
         //Resource generation
@@ -486,7 +486,7 @@ function setupCreepMemory(creep) {
         creep.memory.empoweredSources = [Game.time, Game.time];
     }
     
-    if (!creep.memory.spawnList) {
+    if (!creep.memory.spawnList || Game.time % 10000 == 0) {
         creep.memory.spawnList = [];
         creep.memory.empoweredSpawns = [];
         var roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
@@ -500,7 +500,7 @@ function setupCreepMemory(creep) {
         }
     }
 
-    if (!creep.memory.towerList) {
+    if (!creep.memory.towerList || Game.time % 10000 == 0) {
         creep.memory.towerList = [];
         creep.memory.empoweredTowers = [];
         var roomTowers = creep.room.find(FIND_MY_STRUCTURES, {
@@ -524,7 +524,7 @@ function setupCreepMemory(creep) {
         Game.rooms[creep.room.name].createFlag(46, 2, creep.room.name + "RoomOperator");
     }
 
-    if (Memory.linkList[creep.room.name].length >= 4) {
+    if (Memory.linkList[creep.room.name].length >= 4 || (Game.time % 10000 == 0 && Memory.linkList[creep.room.name].length >= 4)) {
         creep.memory.linkSource = Memory.linkList[creep.room.name][3];
     }
 
