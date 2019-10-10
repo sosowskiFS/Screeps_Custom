@@ -256,7 +256,7 @@ var creep_assranger = {
                                     creep.rangedMassAttack();
                                 } else {
                                     if (targetFlag) {
-                                        targetFlag.remove();
+                                        //targetFlag.remove();
                                     }
                                     let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                                         filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
