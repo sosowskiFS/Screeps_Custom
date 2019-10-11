@@ -358,7 +358,7 @@ var creep_assattacker = {
                                         creep.dismantle(eStructures);
                                         creep.attack(eStructures);
                                         creep.rangedAttack(eStructures);
-                                    } else if (closeFoe) {
+                                    } else if (closeFoe && creep.attack(closeFoe) != ERR_NO_BODYPART) {
                                         creep.moveTo(closeFoe, {
                                             ignoreRoads: true,
                                             maxRooms: 1,
