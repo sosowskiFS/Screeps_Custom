@@ -222,22 +222,19 @@ var market_buyers = {
                 }
             }*/
 
-            var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST];
+            var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST, RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER];
 
             var sellEnergyCap = 30000;
             var keepAmount = 20000;
             var MaxSaleAmount = 30000;
-            if (thisTerminal.store.getFreeCapacity <= 5000) {
+            if (thisTerminal.store.getFreeCapacity() <= 5000) {
                 sellEnergyCap = 10000;
                 keepAmount = 3000;
                 MaxSaleAmount = TerminalEnergy + 5000;
             }
             if (!hasSent && TerminalEnergy >= sellEnergyCap && Game.time % 1000 == 0) {
                 for (var y in sellMinerals) {
-                    var mineralInTerminal = thisTerminal.store[sellMinerals[y]] - keepAmount;
-                    if (sellMinerals[y] == RESOURCE_CATALYST) {
-                        mineralInTerminal = thisTerminal.store[sellMinerals[y]] - 40000;
-                    }
+                    let mineralInTerminal = thisTerminal.store[sellMinerals[y]] - keepAmount;
                     if (mineralInTerminal > 100) {
                         if (mineralInTerminal > MaxSaleAmount) {
                             mineralInTerminal = MaxSaleAmount;

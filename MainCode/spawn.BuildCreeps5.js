@@ -901,6 +901,10 @@ var spawn_BuildCreeps5 = {
                     Memory.isSpawning = true;
                     let labWorkerConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(labWorkerConfig);
+                    let factoryID = undefined;
+                    if (Memory.factoryList[thisRoom.name].length) {
+                        factoryID = Memory.factoryList[thisRoom.name][0];
+                    }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         if (Memory.labList[thisRoom.name].length >= 10) {
@@ -928,6 +932,7 @@ var spawn_BuildCreeps5 = {
                                     lab9: Memory.labList[thisRoom.name][8],
                                     mineral10: min6,
                                     lab10: Memory.labList[thisRoom.name][9],
+                                    factory: factoryID,
                                     primaryFlag: primaryFlag,
                                     backupFlag: backupFlag,
                                     isMoving: false,
@@ -962,6 +967,7 @@ var spawn_BuildCreeps5 = {
             lab8: Memory.labList[thisRoom.name][7],
             mineral9: min6,
             lab9: Memory.labList[thisRoom.name][8],
+            factory: factoryID,
             primaryFlag: primaryFlag,
             backupFlag: backupFlag,
             isMoving: false,
@@ -990,6 +996,7 @@ var spawn_BuildCreeps5 = {
             lab5: Memory.labList[thisRoom.name][4],
             mineral6: min6,
             lab6: Memory.labList[thisRoom.name][5],
+            factory: factoryID,
             primaryFlag: primaryFlag,
             backupFlag: backupFlag,
             isMoving: false,
@@ -1012,6 +1019,7 @@ var spawn_BuildCreeps5 = {
             lab2: Memory.labList[thisRoom.name][1],
             mineral3: min3,
             lab3: Memory.labList[thisRoom.name][2],
+            factory: factoryID,
             primaryFlag: primaryFlag,
             backupFlag: backupFlag,
             isMoving: false,
