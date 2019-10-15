@@ -176,7 +176,7 @@ var creep_work5 = {
                                 }
                             } else {
                                 //Store in terminal
-                                var terminalTarget = Game.getObjectById(creep.memory.terminalID)
+                                let terminalTarget = Game.getObjectById(creep.memory.terminalID)
                                 if (terminalTarget) {
                                     let targetEnergy = 0;
                                     if (creep.room.storage) {
@@ -197,28 +197,44 @@ var creep_work5 = {
                                         terminalTarget = undefined;
                                     }
                                 }
-
+                                
                                 if (!terminalTarget) {
-                                    //Level8 Structures
-                                    var targets2;
-                                    if (creep.room.controller.level == 8) {
-                                        targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                            filter: (structure) => {
-                                                return (structure.structureType == STRUCTURE_POWER_SPAWN ||
-                                                    structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
-                                            }
-                                        });
+                                    //Store in factory
+                                    let factoryTarget = undefined;
+                                    if (Memory.factoryList[thisRoom.name]) {
+                                        factoryTarget = Game.getObjectById(Memory.factoryList[thisRoom.name][0]);
                                     }
-                                    if (targets2) {
-                                        creep.memory.structureTarget = targets2.id;
-                                        if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(targets2, {
+                                    if (factoryTarget && factoryTarget.store[RESOURCE_ENERGY] < 10000) {
+                                        creep.memory.structureTarget = Memory.factoryList[thisRoom.name][0];
+                                        if (creep.transfer(factoryTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                            creep.travelTo(factoryTarget, {
                                                 maxRooms: 1
                                             });
-                                        } else {
-                                            creep.memory.structureTarget = undefined;
                                         }
                                     } else {
+                                        factoryTarget = undefined;
+                                    }
+
+                                    if (!factoryTarget) {
+                                        var targets2;
+                                        if (creep.room.controller.level == 8) {
+                                            targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                                filter: (structure) => {
+                                                    return (structure.structureType == STRUCTURE_POWER_SPAWN ||
+                                                        structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
+                                                }
+                                            });
+                                        }
+                                        if (targets2) {
+                                            creep.memory.structureTarget = targets2.id;
+                                            if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                                creep.travelTo(targets2, {
+                                                    maxRooms: 1
+                                                });
+                                            } else {
+                                                creep.memory.structureTarget = undefined;
+                                            }
+                                        } else {
                                         //Build
                                         targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                                         if (targets2) {
@@ -271,30 +287,31 @@ var creep_work5 = {
                                                     creep.suicide();
                                                 }
                                             }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                break;
-                case 'distributor':
-                case 'distributorNearDeath':
-                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
-                    creep.memory.priority = 'distributorNearDeath';
-                }
+                                        } //targets2
+                                    } //FactoryTarget
+                                } //TerminalTarget
+                            } //targets
+                        } //structureTarget
+                    } //carry energy check
+                } //storage target check
+            } //carry check
+            break;
+            case 'distributor':
+            case 'distributorNearDeath':
+            if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
+                creep.memory.priority = 'distributorNearDeath';
+            }
 
-                if (creep.memory.previousPriority == 'labWorker' && Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
-                    DoResourceCheck(creep);
-                }
+            if (creep.memory.previousPriority == 'labWorker' && Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
+                DoResourceCheck(creep);
+            }
 
-                if (_.sum(creep.carry) <= 0) {
-                    if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed) {
-                        creep.memory.priority = 'labWorker';
-                        break;
-                    }
-                    creep.memory.structureTarget = undefined;
+            if (_.sum(creep.carry) <= 0) {
+                if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed) {
+                    creep.memory.priority = 'labWorker';
+                    break;
+                }
+                creep.memory.structureTarget = undefined;
                     //Get from storage
                     //Check 4th link first just in case
                     var linkTarget = undefined;

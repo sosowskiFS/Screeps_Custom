@@ -350,7 +350,7 @@ var creep_baseOp = {
                     }
                     //Labs
                     if (!foundWork) {
-                        var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        let target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
                             }
@@ -368,9 +368,29 @@ var creep_baseOp = {
                             }
                         }
                     }
+                    //Factory
+                    if (!foundWork) {
+                        let target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_FACTORY) && structure.store[RESOURCE_ENERGY] < 10000;
+                            }
+                        });
+                        if (target) {
+                            foundWork = true;
+                            creep.memory.structureTarget = target.id;
+                            if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(target, {
+                                    ignoreRoads: true,
+                                    maxRooms: 1
+                                });
+                            } else {
+                                creep.memory.structureTarget = undefined;
+                            }
+                        }
+                    }
                     //PowerSpawn/Nuker
                     if (!foundWork && creep.room.controller.level == 8) {
-                        var target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                        let target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_POWER_SPAWN ||
                                     structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
