@@ -658,7 +658,7 @@ module.exports.loop = function() {
                 //Get list of observers
                 if (Game.time % 5000 == 0 || !Memory.observerList[thisRoom.name]) {
                     Memory.observerList[thisRoom.name] = [];
-                    var roomObservers = thisRoom.find(FIND_MY_STRUCTURES, {
+                    let roomObservers = thisRoom.find(FIND_MY_STRUCTURES, {
                         filter: {
                             structureType: STRUCTURE_OBSERVER
                         }
@@ -671,13 +671,26 @@ module.exports.loop = function() {
                 //Get list of nukers
                 if (Game.time % 5000 == 0 || !Memory.nukerList[thisRoom.name]) {
                     Memory.nukerList[thisRoom.name] = [];
-                    var theseNukes = thisRoom.find(FIND_MY_STRUCTURES, {
+                    let theseNukes = thisRoom.find(FIND_MY_STRUCTURES, {
                         filter: {
                             structureType: STRUCTURE_NUKER
                         }
                     });
                     if (theseNukes.length) {
                         Memory.nukerList[thisRoom.name].push(theseNukes[0].id);
+                    }
+                }
+
+                //Get list of factories
+                if (Game.time % 5000 == 0 || !Memory.factoryList[thisRoom.name]) {
+                    Memory.factoryList[thisRoom.name] = [];
+                    let theseFactories = thisRoom.find(FIND_MY_STRUCTURES, {
+                        filter: {
+                            structureType: STRUCTURE_FACTORY
+                        }
+                    });
+                    if (theseFactories.length) {
+                        Memory.factoryList[thisRoom.name].push(theseFactories[0].id);
                     }
                 }
 
@@ -868,6 +881,28 @@ module.exports.loop = function() {
                             } else if (response == -10) {
                                 //Game.notify('Wrong Mineral! (10)' + thisRoom.name + "-" + Memory.labList[thisRoom.name][9])
                             }
+                        }
+                    }
+                }
+
+                //Handle Factories
+                if (Game.time % 20 == 0 && Memory.factoryList[thisRoom.name].length >= 1) {
+                    let thisFactory = Game.getObjectById(Memory.factoryList[thisRoom.name][0]);
+                    if (thisFactory) {
+                        if (thisFactory.store[RESOURCE_UTRIUM]) {
+                            thisFactory.produce(RESOURCE_UTRIUM_BAR);
+                        } else if (thisFactory.store[RESOURCE_LEMERGIUM]) {
+                            thisFactory.produce(RESOURCE_LEMERGIUM_BAR);
+                        } else if (thisFactory.store[RESOURCE_ZYNTHIUM]) {
+                            thisFactory.produce(RESOURCE_ZYNTHIUM_BAR);
+                        } else if (thisFactory.store[RESOURCE_KEANIUM]) {
+                            thisFactory.produce(RESOURCE_KEANIUM_BAR);
+                        } else if (thisFactory.store[RESOURCE_OXYGEN]) {
+                            thisFactory.produce(RESOURCE_OXIDANT);
+                        } else if (thisFactory.store[RESOURCE_HYDROGEN]) {
+                            thisFactory.produce(RESOURCE_REDUCTANT);
+                        } else if (thisFactory.store[RESOURCE_CATALYST]) {
+                            thisFactory.produce(RESOURCE_PURIFIER);
                         }
                     }
                 }
@@ -1775,6 +1810,9 @@ function memCheck() {
     }
     if (!Memory.repairTarget) {
         Memory.repairTarget = new Object();
+    }
+    if (!Memory.factoryList) {
+        Memory.factoryList = new Object();
     }
     if (!Memory.flagCount) {
         Memory.flagCount = new Object();
