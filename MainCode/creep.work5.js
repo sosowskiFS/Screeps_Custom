@@ -201,11 +201,11 @@ var creep_work5 = {
                                 if (!terminalTarget) {
                                     //Store in factory
                                     let factoryTarget = undefined;
-                                    if (Memory.factoryList[thisRoom.name]) {
-                                        factoryTarget = Game.getObjectById(Memory.factoryList[thisRoom.name][0]);
+                                    if (Memory.factoryList[creep.room.name]) {
+                                        factoryTarget = Game.getObjectById(Memory.factoryList[creep.room.name][0]);
                                     }
                                     if (factoryTarget && factoryTarget.store[RESOURCE_ENERGY] < 10000) {
-                                        creep.memory.structureTarget = Memory.factoryList[thisRoom.name][0];
+                                        creep.memory.structureTarget = Memory.factoryList[creep.room.name][0];
                                         if (creep.transfer(factoryTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                             creep.travelTo(factoryTarget, {
                                                 maxRooms: 1
