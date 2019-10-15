@@ -418,13 +418,13 @@ module.exports.loop = function() {
                 if (thisRoom.controller.level < 8) {
                     drawPie(roomVis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 3.5);
                     if (thisRoom.storage) {
-                        drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
+                        drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.store.getCapacity(), 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.store.getCapacity(), true), 2, 2.5);
                         if (thisRoom.storage.store[RESOURCE_ENERGY] <= 40000) {
                             Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
                         }
                     }
                 } else if (thisRoom.storage) {
-                    drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.storeCapacity, 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.storeCapacity, true), 2, 2.5);
+                    drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.store.getCapacity(), 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.store.getCapacity(), true), 2, 2.5);
                     if (thisRoom.storage.store[RESOURCE_ENERGY] <= 40000) {
                         Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
                     }
@@ -771,7 +771,7 @@ module.exports.loop = function() {
                 if (Game.time % 50 == 0 && thisRoom.terminal) {
                     market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
 
-                    if ((thisRoom.terminal.storeCapacity - 5000) <= _.sum(thisRoom.terminal.store)) {
+                    if (thisRoom.terminal.store.getFreeCapacity() < 5000) {
                         Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + " terminal is overloaded!"
                     }
                     

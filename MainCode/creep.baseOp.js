@@ -337,7 +337,7 @@ var creep_baseOp = {
                                 targetEnergy = 30000;
                             }
                         }
-                        if (creep.room.terminal.store[RESOURCE_ENERGY] < targetEnergy && (creep.room.terminal.storeCapacity - 5000) > _.sum(creep.room.terminal.store)) {
+                        if (creep.room.terminal.store[RESOURCE_ENERGY] < targetEnergy && creep.room.terminal.store.getFreeCapacity() > 5000) {
                             foundWork = true;
                             creep.memory.structureTarget = creep.room.terminal.id;
                             if (creep.transfer(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {

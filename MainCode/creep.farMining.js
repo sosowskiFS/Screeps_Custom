@@ -136,7 +136,7 @@ var creep_farMining = {
                         if (creep.memory.mineSource) {
                             mineTarget = Game.getObjectById(creep.memory.mineSource);
                             var StorageOK = true;
-                            if (thisUnit && _.sum(thisUnit.store) == thisUnit.storeCapacity) {
+                            if (thisUnit && thisUnit.store.getFreeCapacity() <= 0) {
                                 StorageOK = false;
                             }
                             if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {

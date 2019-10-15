@@ -182,7 +182,7 @@ var creep_work = {
                         var containers = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_CONTAINER ||
-                                    structure.structureType == STRUCTURE_STORAGE) && structure.store[RESOURCE_ENERGY] < structure.storeCapacity;
+                                    structure.structureType == STRUCTURE_STORAGE) && structure.store.getFreeCapacity() > 0;
                             }
                         });
                         if (containers && creep.memory.priority == 'harvester') {

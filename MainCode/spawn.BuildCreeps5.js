@@ -300,7 +300,7 @@ var spawn_BuildCreeps5 = {
         }
         let strExtractor = Memory.extractorList[thisRoom.name];
         let readyForMineral = false;
-        if (strExtractor[0] && thisRoom.terminal && strMineral[0] && (thisRoom.terminal.storeCapacity - 25000) > _.sum(thisRoom.terminal.store)) {
+        if (strExtractor[0] && thisRoom.terminal && strMineral[0] && thisRoom.terminal.store.getFreeCapacity() > 25000) {
             readyForMineral = true;
         }
 
