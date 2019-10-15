@@ -234,6 +234,10 @@ var market_buyers = {
             }
             if (!hasSent && TerminalEnergy >= sellEnergyCap && Game.time % 1000 == 0) {
                 for (var y in sellMinerals) {
+                    if (sellMinerals[y] == RESOURCE_UTRIUM_BAR || sellMinerals[y] == RESOURCE_LEMERGIUM_BAR || sellMinerals[y] == RESOURCE_ZYNTHIUM_BAR || sellMinerals[y] == RESOURCE_KEANIUM_BAR || sellMinerals[y] == RESOURCE_OXIDANT || sellMinerals[y] == RESOURCE_REDUCTANT || sellMinerals[y] == RESOURCE_PURIFIER) {
+                        //Not storing compressed materials for now
+                        keepAmount = 0;
+                    }
                     let mineralInTerminal = thisTerminal.store[sellMinerals[y]] - keepAmount;
                     if (mineralInTerminal > 100) {
                         if (mineralInTerminal > MaxSaleAmount) {
