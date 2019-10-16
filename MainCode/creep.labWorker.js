@@ -604,8 +604,9 @@ var creep_labWorker = {
                         let roomMineral = Game.getObjectById(Memory.mineralList[creep.room.name][0]).mineralType;
                         let terminalLimit = 40000;
                         if (creep.room.terminal) {
-                            if (creep.room.terminal.store.getFreeCapacity() <= 5000) {terminalLimit = 3000;}
-                            else if (creep.room.terminal.store.getFreeCapacity() <= 50000) {terminalLimit = 20000;}                
+                            let freeRoom = creep.room.terminal.store.getFreeCapacity();
+                            if (freeRoom <= 5000) {terminalLimit = 3000;}
+                            else if (freeRoom <= 50000) {terminalLimit = 20000;}                
                         }
                         if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit) {
                             creep.memory.structureTarget = creep.room.terminal.id;
