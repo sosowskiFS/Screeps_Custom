@@ -602,9 +602,10 @@ var creep_labWorker = {
                     } else {
                         //Scan terminal for basic resources, if they exceed 20,000 (or 3,000 if too full), move them into the factory for processing
                         let roomMineral = Game.getObjectById(Memory.mineralList[creep.room.name][0]).mineralType;
-                        let terminalLimit = 20000;
-                        if (creep.room.terminal && creep.room.terminal.store.getFreeCapacity() <= 5000) {
-                            terminalLimit = 3000;
+                        let terminalLimit = 40000;
+                        if (creep.room.terminal) {
+                            if (creep.room.terminal.store.getFreeCapacity() <= 5000) {terminalLimit = 3000;}
+                            else if (creep.room.terminal.store.getFreeCapacity() <= 50000) {terminalLimit = 20000;}                
                         }
                         if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit) {
                             creep.memory.structureTarget = creep.room.terminal.id;
