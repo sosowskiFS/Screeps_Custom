@@ -344,7 +344,7 @@ var creep_farMining = {
                 }
 
                 var Foe = [];
-                let closeFoe = undefined;
+                var closeFoe = undefined;
                 let eCores = undefined;
                 if (Game.flags[creep.room.name + "SKRoom"]) {
                     Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 40, {
