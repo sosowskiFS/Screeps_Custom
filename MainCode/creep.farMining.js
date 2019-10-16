@@ -343,7 +343,7 @@ var creep_farMining = {
                     }
                 }
 
-                let Foe = [];
+                var Foe = [];
                 let closeFoe = undefined;
                 let eCores = undefined;
                 if (Game.flags[creep.room.name + "SKRoom"]) {
