@@ -325,7 +325,7 @@ var creep_assattacker = {
                             }*/
                             if (!targetFound) {
                                 let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                    filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
+                                    filter: (structure) => (structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_INVADER_CORE)
                                 });
                                 if (eSpawns) {
                                     if (healerIsGood && !didDismantle) {

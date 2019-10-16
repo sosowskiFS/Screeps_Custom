@@ -210,7 +210,7 @@ var creep_assranger = {
                             /*let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                             });*/
-                            let targetFound = false;
+let targetFound = false;
                             /*if (allStruct.length) {
                                 //Sort based on distance.
                                 allStruct.sort(distCompare(creep));
@@ -241,7 +241,7 @@ var creep_assranger = {
                             }*/
                             if (!targetFound) {
                                 let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                    filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
+                                    filter: (structure) => (structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_INVADER_CORE)
                                 });
                                 if (eSpawns) {
                                     if (healerIsGood) {
@@ -250,10 +250,12 @@ var creep_assranger = {
                                             maxRooms: 1,
                                             stuckValue: 2,
                                             allowSK: true,
-                                            range: 2
+                                            range: 3
                                         });
                                     }
-                                    creep.rangedMassAttack();
+                                    if (creep.rangedAttack(eSpawns) == ERR_NOT_IN_RANGE) {
+                                        creep.rangedMassAttack();
+                                    }               
                                 } else {
                                     if (targetFlag) {
                                         //targetFlag.remove();
@@ -268,10 +270,10 @@ var creep_assranger = {
                                                 maxRooms: 1,
                                                 stuckValue: 2,
                                                 allowSK: true,
-                                                range: 2
+                                                range: 3
                                             });
                                         }
-                                        creep.rangedAttack(eStructures);
+                                        creep.rangedMassAttack();
                                     } else if (closeFoe) {
                                         creep.moveTo(closeFoe, {
                                             ignoreRoads: true,
