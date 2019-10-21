@@ -753,6 +753,8 @@ module.exports.loop = function() {
                         if (!hasRampart) {
                             if (allStruct[thisStruct].room.createConstructionSite(allStruct[thisStruct].pos.x, allStruct[thisStruct].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
                                 break;
+                            } else {
+                                Memory.LastNotification = Game.time.toString() + ' : Rampart generated in ' + allStruct[thisStruct].room.name + '.'
                             }
                         }
                     }
