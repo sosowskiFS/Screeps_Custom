@@ -27,23 +27,26 @@ var creep_powerCollect = {
                         Game.flags[creep.memory.homeRoom + "PowerCollect"].remove();
                     }
 
-                    if (_.sum(creep.carry) < creep.carryCapacity) {
+                    if (creep.store.getFreeCapacity() > 0) {
                         let ruins = creep.pos.findClosestByRange(FIND_RUINS, {
                             filter: (thisRuin) => (thisRuin.store.getUsedCapacity() > 0)
                         });
                         if (ruins) {
+                        	Game.notify('Collector In Ruins Loop');
                             if (creep.withdraw(ruins, Object.keys(ruins.store)[0]) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(ruins, {
                                     maxRooms: 1
                                 });
                             }
                         } else {
+                        	let ruins2 = creep.pos.findClosestByRange(FIND_RUINS);
+                        	Game.notify('Attempting to find any ruins: ' & ruins2.toString());
                             let something = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 30);
                             if (something.length) {
                                 let pickupResult = creep.pickup(something[0]);
                                 if (pickupResult == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(something[0]);
-                                } else if (pickupResult == OK && something[0].amount >= (creep.carryCapacity - _.sum(creep.carry))) {
+                                } else if (pickupResult == OK && something[0].amount >= creep.store.getFreeCapacity()) {
                                     creep.memory.mode = 1;
                                     if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                                         creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
@@ -61,10 +64,12 @@ var creep_powerCollect = {
                                             maxRooms: 1
                                         });
                                     }
-                                } else if (_.sum(creep.carry) > 0) {
+                                } else if (creep.store.getUsedCapacity() > 0) {
+                                	Game.notify('Nothing left to pick up, depositing');
                                     creep.memory.mode = 1;
                                 } else {
                                     //carrying nothing, nothing to pick up
+                                    Game.notify('Nothing left to pick up, suiciding');
                                     creep.suicide();
                                 }
                             }
