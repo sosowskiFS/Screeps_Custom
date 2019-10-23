@@ -28,34 +28,45 @@ var creep_powerCollect = {
                     }
 
                     if (_.sum(creep.carry) < creep.carryCapacity) {
-                        var something = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 30);
-                        if (something.length) {
-                            let pickupResult = creep.pickup(something[0]);
-                            if (pickupResult == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(something[0]);
-                            } else if (pickupResult == OK && something[0].amount >= (creep.carryCapacity - _.sum(creep.carry))) {
-                                creep.memory.mode = 1;
-                                if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
-                                    creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
-                                } else {
-                                    creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
-                                }
+                        let ruins = creep.pos.findClosestByRange(FIND_RUINS, {
+                            filter: (thisRuin) => (thisRuin.store.getUsedCapacity() > 0)
+                        });
+                        if (ruins) {
+                            if (creep.withdraw(ruins, Object.keys(ruins.store)[0]) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(ruins, {
+                                    maxRooms: 1
+                                });
                             }
                         } else {
-                            returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
-                                filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
-                            });
-                            if (returnObject) {
-                                if (creep.withdraw(returnObject, Object.keys(returnObject.store)[0]) == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(returnObject, {
-                                        maxRooms: 1
-                                    });
+                            let something = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 30);
+                            if (something.length) {
+                                let pickupResult = creep.pickup(something[0]);
+                                if (pickupResult == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(something[0]);
+                                } else if (pickupResult == OK && something[0].amount >= (creep.carryCapacity - _.sum(creep.carry))) {
+                                    creep.memory.mode = 1;
+                                    if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
+                                        creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
+                                    } else {
+                                        creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
+                                    }
                                 }
-                            } else if (_.sum(creep.carry) > 0) {
-                                creep.memory.mode = 1;
                             } else {
-                                //carrying nothing, nothing to pick up
-                                creep.suicide();
+                                returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
+                                    filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
+                                });
+                                if (returnObject) {
+                                    if (creep.withdraw(returnObject, Object.keys(returnObject.store)[0]) == ERR_NOT_IN_RANGE) {
+                                        creep.travelTo(returnObject, {
+                                            maxRooms: 1
+                                        });
+                                    }
+                                } else if (_.sum(creep.carry) > 0) {
+                                    creep.memory.mode = 1;
+                                } else {
+                                    //carrying nothing, nothing to pick up
+                                    creep.suicide();
+                                }
                             }
                         }
                     } else {
