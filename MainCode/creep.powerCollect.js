@@ -39,8 +39,6 @@ var creep_powerCollect = {
                                 });
                             }
                         } else {
-                        	let ruins2 = creep.pos.findClosestByRange(FIND_RUINS);
-                        	Game.notify('Attempting to find any ruins: ' & ruins2.toString());
                             let something = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 30);
                             if (something.length) {
                                 let pickupResult = creep.pickup(something[0]);
