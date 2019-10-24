@@ -32,7 +32,6 @@ var creep_powerCollect = {
                             filter: (thisRuin) => (thisRuin.store.getUsedCapacity() > 0)
                         });
                         if (ruins) {
-                        	Game.notify('Collector In Ruins Loop');
                             if (creep.withdraw(ruins, Object.keys(ruins.store)[0]) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(ruins, {
                                     maxRooms: 1
@@ -63,11 +62,9 @@ var creep_powerCollect = {
                                         });
                                     }
                                 } else if (creep.store.getUsedCapacity() > 0) {
-                                	Game.notify('Nothing left to pick up, depositing');
                                     creep.memory.mode = 1;
                                 } else {
                                     //carrying nothing, nothing to pick up
-                                    Game.notify('Nothing left to pick up, suiciding');
                                     creep.suicide();
                                 }
                             }
