@@ -608,7 +608,7 @@ var creep_labWorker = {
                             if (freeRoom <= 5000) {terminalLimit = 3000;}
                             else if (freeRoom <= 50000) {terminalLimit = 20000;}                
                         }
-                        if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit) {
+                        if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit && NotOverLimit(creep.room.terminal)) {
                             creep.memory.structureTarget = creep.room.terminal.id;
                             creep.memory.direction = 'Withdraw';
                             creep.memory.mineralToMove = roomMineral;
@@ -665,6 +665,27 @@ function orderPriceCompareBuying(a, b) {
     if (a.price > b.price)
         return 1;
     return 0;
+}
+
+function NotOverLimit(thisTerminal) {
+    //Determines if there's too many unsold bars in the terminal
+    if (thisTerminal.store[RESOURCE_UTRIUM_BAR] && thisTerminal.store[RESOURCE_UTRIUM_BAR] >= 10000) {
+        return false;
+    } else if (thisTerminal.store[RESOURCE_LEMERGIUM_BAR] && thisTerminal.store[RESOURCE_LEMERGIUM_BAR] >= 10000) {
+        return false;
+    } else if (thisTerminal.store[RESOURCE_ZYNTHIUM_BAR] && thisTerminal.store[RESOURCE_ZYNTHIUM_BAR] >= 10000) {
+        return false;
+    } else if (thisTerminal.store[RESOURCE_KEANIUM_BAR] && thisTerminal.store[RESOURCE_KEANIUM_BAR] >= 10000) {
+        return false;
+    } else if (thisTerminal.store[RESOURCE_OXIDANT] && thisTerminal.store[RESOURCE_OXIDANT] >= 10000) {
+        return false;
+    } else if (thisTerminal.store[RESOURCE_REDUCTANT] && thisTerminal.store[RESOURCE_REDUCTANT] >= 10000) {
+        return false;
+    } else if (thisTerminal.store[RESOURCE_PURIFIER] && thisTerminal.store[RESOURCE_PURIFIER] >= 10000) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 module.exports = creep_labWorker;
