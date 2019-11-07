@@ -726,10 +726,15 @@ module.exports.loop = function() {
                     }
                 }
 
-                //For future "I have nothing to do with energy" check
-                //biggestRampart.sort(hiHitCompare);
                 //Check all structures for ramparts, add if missing
                 if (Game.time % 10000 == 0) {
+                    //Clear out random construction sites left by remote mining, unless a flag is down.
+                    if (!Game.flags["DoNotClear"]) {
+                        for (var s in Game.constructionSites) {
+                            Game.constructionSites[s].remove();
+                        }
+                    }
+                    
                     let allStruct;
                     if (thisRoom.controller.level == 8) {
                         allStruct = thisRoom.find(FIND_MY_STRUCTURES, {
