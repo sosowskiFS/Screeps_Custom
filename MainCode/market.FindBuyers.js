@@ -268,6 +268,9 @@ var market_buyers = {
                             //No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
                             if (Memory.PriceList[sellMinerals[y]] > 0 && Game.time % 1000 == 0) {
                                 Memory.PriceList[sellMinerals[y]] = Memory.PriceList[sellMinerals[y]] - 0.01;
+                                if (Memory.PriceList[sellMinerals[y]] < 0) {
+                                    Memory.PriceList[sellMinerals[y]] = 0;
+                                }
                             }
                         }
                     }
