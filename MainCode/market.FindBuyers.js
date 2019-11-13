@@ -227,12 +227,14 @@ var market_buyers = {
             var sellEnergyCap = 30000;
             var keepAmount = 20000;
             var MaxSaleAmount = 30000;
+            let panicSell = false
             if (thisTerminal.store.getFreeCapacity() <= 5000) {
                 sellEnergyCap = 10000;
-                keepAmount = 3000;
+                keepAmount = 5000;
                 MaxSaleAmount = TerminalEnergy + 5000;
+                panicSell = true;
             }
-            if (!hasSent && TerminalEnergy >= sellEnergyCap && Game.time % 1000 == 0) {
+            if (!hasSent && TerminalEnergy >= sellEnergyCap && (Game.time % 1000 == 0 || panicSell)) {
                 for (var y in sellMinerals) {
                     if (sellMinerals[y] == RESOURCE_UTRIUM_BAR || sellMinerals[y] == RESOURCE_LEMERGIUM_BAR || sellMinerals[y] == RESOURCE_ZYNTHIUM_BAR || sellMinerals[y] == RESOURCE_KEANIUM_BAR || sellMinerals[y] == RESOURCE_OXIDANT || sellMinerals[y] == RESOURCE_REDUCTANT || sellMinerals[y] == RESOURCE_PURIFIER) {
                         //Not storing compressed materials for now
@@ -264,7 +266,7 @@ var market_buyers = {
                             }
                         } else {
                             //No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
-                            if (Memory.PriceList[sellMinerals[y]] > 0) {
+                            if (Memory.PriceList[sellMinerals[y]] > 0 && Game.time % 1000 == 0) {
                                 Memory.PriceList[sellMinerals[y]] = Memory.PriceList[sellMinerals[y]] - 0.01;
                             }
                         }
