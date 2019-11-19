@@ -727,14 +727,15 @@ module.exports.loop = function() {
                 }
 
                 //Check all structures for ramparts, add if missing
-                if (Game.time % 10000 == 0) {
-                    //Clear out random construction sites left by remote mining, unless a flag is down.
+                if ((Game.time + 1) % 10000 == 0) {
+                    //Clear construction sites a tick before so adding sites will actually work
                     if (!Game.flags["DoNotClear"]) {
                         for (var s in Game.constructionSites) {
                             Game.constructionSites[s].remove();
                         }
                     }
-                    
+                }
+                if (Game.time % 10000 == 0) {               
                     let allStruct;
                     if (thisRoom.controller.level == 8) {
                         allStruct = thisRoom.find(FIND_MY_STRUCTURES, {
