@@ -769,12 +769,14 @@ module.exports.loop = function() {
                     if (Game.flags[thisRoom.name + "Supply"]) {
                         let rampCheck = Game.flags[thisRoom.name + "Supply"].pos.lookFor(LOOK_STRUCTURES);
                         let hasRampart = false;
-                        for (let thisCheck in rampCheck) {
-                            if (rampCheck[thisCheck].structureType == STRUCTURE_RAMPART) {
-                                hasRampart = true;
-                                break;
+                        if (rampCheck) {
+                            for (let thisCheck in rampCheck) {
+                                if (rampCheck[thisCheck].structureType == STRUCTURE_RAMPART) {
+                                    hasRampart = true;
+                                    break;
+                                }
                             }
-                        }
+                        }            
                         if (!hasRampart) {
                             if (thisRoom.createConstructionSite(Game.flags[thisRoom.name + "Supply"].pos.x, Game.flags[thisRoom.name + "Supply"].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
                                 break;
