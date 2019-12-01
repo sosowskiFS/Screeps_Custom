@@ -757,7 +757,26 @@ module.exports.loop = function() {
                             }
                         }
                         if (!hasRampart) {
-                            if (allStruct[thisStruct].room.createConstructionSite(allStruct[thisStruct].pos.x, allStruct[thisStruct].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
+                            if (thisRoom.createConstructionSite(allStruct[thisStruct].pos.x, allStruct[thisStruct].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
+                                break;
+                            } else {
+                                Memory.LastNotification = Game.time.toString() + ' : Rampart generated in ' + allStruct[thisStruct].room.name + '.'
+                            }
+                        }
+                    }
+
+                    //Check the turret supplier flag spots, add a rampart if it doesn't exist.
+                    if (Game.flags[thisRoom.name + "Supply"]) {
+                        let rampCheck = Game.flags[thisRoom.name + "Supply"].pos.lookFor(LOOK_STRUCTURES);
+                        let hasRampart = false;
+                        for (let thisCheck in rampCheck) {
+                            if (rampCheck[thisCheck].structureType == STRUCTURE_RAMPART) {
+                                hasRampart = true;
+                                break;
+                            }
+                        }
+                        if (!hasRampart) {
+                            if (thisRoom.createConstructionSite(Game.flags[thisRoom.name + "Supply"].pos.x, Game.flags[thisRoom.name + "Supply"].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
                                 break;
                             } else {
                                 Memory.LastNotification = Game.time.toString() + ' : Rampart generated in ' + allStruct[thisStruct].room.name + '.'
