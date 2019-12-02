@@ -760,7 +760,7 @@ module.exports.loop = function() {
                             if (thisRoom.createConstructionSite(allStruct[thisStruct].pos.x, allStruct[thisStruct].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
                                 break;
                             } else {
-                                Memory.LastNotification = Game.time.toString() + ' : Rampart generated in ' + allStruct[thisStruct].room.name + '.'
+                                Memory.LastNotification = Game.time.toString() + ' : Rampart generated in ' + thisRoom.name + '.'
                             }
                         }
                     }
@@ -781,7 +781,7 @@ module.exports.loop = function() {
                             if (thisRoom.createConstructionSite(Game.flags[thisRoom.name + "Supply"].pos.x, Game.flags[thisRoom.name + "Supply"].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
                                 break;
                             } else {
-                                Memory.LastNotification = Game.time.toString() + ' : Rampart generated in ' + allStruct[thisStruct].room.name + '.'
+                                Memory.LastNotification = Game.time.toString() + ' : Rampart generated in ' + thisRoom.name + '.'
                             }
                         }
                     }
