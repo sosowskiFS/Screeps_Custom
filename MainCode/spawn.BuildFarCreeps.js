@@ -629,7 +629,7 @@ var spawn_BuildFarCreeps = {
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
-                    Memory.guardType = false;
+                    Memory.guardType = !Memory.guardType;
                 } else if (prioritizedRole == 'farMineralMiner') {
                     let configCost = calculateConfigCost(farMinerConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
