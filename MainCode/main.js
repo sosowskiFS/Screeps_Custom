@@ -1163,7 +1163,7 @@ module.exports.loop = function() {
                 }
 
                 if (!Memory.isSpawning && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
-                    if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"]) {
+                    if (Game.flags[thisRoom.name + "FarMining"] || Game.flags[thisRoom.name + "FarGuard"] || Game.flags[thisRoom.name + "FarMining2"] || Game.flags[thisRoom.name + "FarMining3"] || Game.flags[thisRoom.name + "FarMining4"] || Game.flags[thisRoom.name + "FarMining5"] || Game.flags[thisRoom.name + "FarMining6"] || Game.flags[thisRoom.name + "FarMining7"] || Game.flags[thisRoom.name + "FarMining8"]) {
                         //Run farMining spawn
                         if (Game.flags[thisRoom.name + "RunningAssault"]) {
                             var attackers = _.filter(Game.creeps, (creep) => (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && creep.memory.homeRoom == thisRoom.name);
