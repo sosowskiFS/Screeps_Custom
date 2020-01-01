@@ -2183,7 +2183,7 @@ function hiHitCompare(a, b) {
 }
 
 function determineCreepThreat(eCreep, totalHostiles) {
-    if (eCreep.owner.username == 'Invader' || eCreep.name.indexOf('Drainer') >= 0) || (eCreep.hitsMax <= 1000 && totalHostiles <= 1) {
+    if ((eCreep.owner.username == 'Invader' || eCreep.name.indexOf('Drainer') >= 0) || (eCreep.hitsMax <= 1000 && totalHostiles <= 1)) {
         return false;
     } else {
         //Determine if this creep is boosted.
