@@ -52,6 +52,9 @@ var tower_Operate = {
                 });
                 shootRandom = true;
             }
+            let hostileCount = towers[y].room.find(FIND_HOSTILE_CREEPS, {
+                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+            });
 
             if (Memory.roomCreeps[thisRoom.name]) {
                 let defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
@@ -65,8 +68,8 @@ var tower_Operate = {
                 if (Game.flags[thisRoom.name + "RoomOperator"]) {
                     powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
                     if (powerCreep && powerCreep.hits < powerCreep.hitsMax) {
-                    	tower.heal(powerCreep);
-                    	didHeal = true;
+                        tower.heal(powerCreep);
+                        didHeal = true;
                     }
                 }
                 let allCreeps = Memory.roomCreeps[thisRoom.name];
@@ -81,8 +84,8 @@ var tower_Operate = {
 
             if (!didHeal) {
                 if (salvagerPos >= 0) {
-                    //Verify that it's still not worth the time
-                    if (closestHostile && (closestHostile.owner.username == 'Invader' || closestHostile.name.indexOf('Drainer') >= 0) || (closestHostile.hitsMax <= 100 && closestHostile.length == 1)) {
+                    //Verify that it's still not worth the time           
+                    if (!determineCreepThreat(closestHostile, hostileCount.length)) {
                         ignoreRangeFlag = false;
                     } else {
                         //BAD TIMES
@@ -188,17 +191,19 @@ function healCompare(a, b) {
     return 0;
 }
 
-function determineThreat(thisCreep) {
-    thisCreep.body.forEach(function(thisPart) {
-        if (thisPart.type == ATTACK) {
-            return true;
-        } else if (thisPart.type == RANGED_ATTACK) {
-            return true;
-        } else if (thisPart.type == WORK) {
-            return true;
-        }
-    });
-    return false;
+function determineCreepThreat(eCreep, totalHostiles) {
+    if (eCreep.owner.username == 'Invader' || eCreep.name.indexOf('Drainer') >= 0) || (eCreep.hitsMax <= 1000 && totalHostiles <= 1) {
+        return false;
+    } else {
+        //Determine if this creep is boosted.
+        eCreep.body.forEach(function(thisPart) {
+            if (thisPart.boost) {
+                return true;
+            }
+        });
+        //unboosted threat, not a problem.
+        return false;
+    }
 }
 
 module.exports = tower_Operate;

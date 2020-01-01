@@ -248,7 +248,7 @@ module.exports.loop = function() {
                     if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
                         Memory.roomsUnderAttack.push(towers[y].room.name);
                         //RampartDirection = "Closed";
-                        if ((hostiles[0].owner.username == 'Invader' || hostiles[0].name.indexOf('Drainer') >= 0) || (hostiles[0].hitsMax <= 1000 && hostiles.length <= 1)) {
+                        if (!determineCreepThreat(hostiles[0], hostiles.length)) {
                             Memory.roomsPrepSalvager.push(towers[y].room.name);
                         }
                     } else if (hostiles.length == 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) != -1) {
@@ -2180,4 +2180,19 @@ function hiHitCompare(a, b) {
     if (a.hits > b.hits)
         return -1;
     return 0;
+}
+
+function determineCreepThreat(eCreep, totalHostiles) {
+    if (eCreep.owner.username == 'Invader' || eCreep.name.indexOf('Drainer') >= 0) || (eCreep.hitsMax <= 1000 && totalHostiles <= 1) {
+        return false;
+    } else {
+        //Determine if this creep is boosted.
+        eCreep.body.forEach(function(thisPart) {
+            if (thisPart.boost) {
+                return true;
+            }
+        });
+        //unboosted threat, not a problem.
+        return false;
+    }
 }
