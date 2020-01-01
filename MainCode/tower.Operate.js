@@ -52,7 +52,7 @@ var tower_Operate = {
                 });
                 shootRandom = true;
             }
-            let hostileCount = towers[y].room.find(FIND_HOSTILE_CREEPS, {
+            let hostileCount = tower.room.find(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
             });
 
