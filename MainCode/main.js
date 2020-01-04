@@ -190,8 +190,14 @@ module.exports.loop = function() {
                 if (splitList.length > 1) {
                     let timeToCheck = splitList[1];
                     if (Game.time >= parseInt(timeToCheck)) {
-                        Game.flags[TF].pos.createFlag(splitList[0]);
-                        Game.flags[TF].remove();
+                        try {
+                            Game.flags[TF].pos.createFlag(splitList[0]);
+                            Game.flags[TF].remove();
+                        } catch(error) {
+                            //Despite .pos not being reliant on seeing the room, this still wants to act up?
+                            Game.notify('Could not create flag ' + splitList[0] + '.');
+                        }
+                        
                     }
                 }
             }
