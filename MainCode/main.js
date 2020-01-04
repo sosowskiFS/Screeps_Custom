@@ -189,22 +189,6 @@ module.exports.loop = function() {
         }
     }*/
 
-    //Check for timed out far mining flags
-    if (Game.time % 250 == 0) {
-        for (let TF in Game.flags) {
-            if (Game.flags[TF].name && Game.flags[TF].name.includes(';')) {
-                let splitList = Game.flags[TF].name.split(';');
-                if (splitList.length > 1) {
-                    let timeToCheck = splitList[1];
-                    if (Game.time >= parseInt(timeToCheck) && Game.flags[TF].room) {
-                        Game.flags[TF].room.createFlag(Game.flags[TF].pos, splitList[0]);
-                        Game.flags[TF].remove();
-                    }
-                }
-            }
-        }
-    }
-
     if (Game.flags["ToggleWar"]) {
         Memory.warMode = !Memory.warMode;
         Game.flags["ToggleWar"].remove();
@@ -342,8 +326,7 @@ module.exports.loop = function() {
     }
 
     //Reset mineral flag totals before going into loop
-    if (Game.time % 5000 == 0)
-    {
+    if (Game.time % 5000 == 0) {
         Memory.flagCount["1"] = 0;
         Memory.flagCount["2"] = 0;
         Memory.flagCount["3"] = 0;
@@ -405,12 +388,37 @@ module.exports.loop = function() {
         Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] = 0;
     }
 
+    //Only do the mining flag check once.
+    var didFlagLoop = false;
+
     for (const i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         if (thisRoom.controller.owner) {
             var controllerLevel = thisRoom.controller.level;
 
             if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
+                //Check for timed out far mining flags
+                //1/4 - Previous check didn't work when room not visible. Loop here makes it indipendent of target room.
+                if (Game.time % 250 == 0 && !didFlagLoop) {
+                    for (let TF in Game.flags) {
+                        if (Game.flags[TF].name && Game.flags[TF].name.includes(';')) {
+                            let splitList = Game.flags[TF].name.split(';');
+                            if (splitList.length > 1) {
+                                let timeToCheck = splitList[1];
+                                if (Game.time >= parseInt(timeToCheck)) {
+                                    //Create flag in room I own, move flag to room I don't own.
+                                    //(API doesn't seem to allow creating flags in rooms you can't see)
+                                    let miningFlagRoom = Game.flags[TF].name.split('FarMining')[0];
+                                    thisRoom.createFlag(Game.flags[TF].pos.x, Game.flags[TF].pos.y, splitList[0]);
+                                    Game.flags[splitList[0]].SetPosition(new RoomPosition(Game.flags[TF].pos.x, Game.flags[TF].pos.y, miningFlagRoom));
+                                    Game.flags[TF].remove();
+                                }
+                            }
+                        }
+                    }
+                    didFlagLoop = true;
+                }
+
                 //Gimme some pie graphs
                 let roomVis = new RoomVisual(thisRoom.name);
 
@@ -617,8 +625,7 @@ module.exports.loop = function() {
 
                 //Catagorize Mineral Production Flags
                 //Memory.flagCount
-                if (Game.time % 5000 == 0)
-                {
+                if (Game.time % 5000 == 0) {
                     if (Game.flags[thisRoom.name + "XGHO2Producer"] || Game.flags[thisRoom.name + "XGH2OProducer"] || Game.flags[thisRoom.name + "XUH2OProducer"]) {
                         Memory.flagCount["1"] = Memory.flagCount["1"] + 1;
                     } else if (Game.flags[thisRoom.name + "XZHO2Producer"] || Game.flags[thisRoom.name + "XZH2OProducer"] || Game.flags[thisRoom.name + "XKHO2Producer"]) {
@@ -637,7 +644,7 @@ module.exports.loop = function() {
                         Memory.flagCount["8"] = Memory.flagCount["8"] + 1;
                     } else if (Game.flags[thisRoom.name + "ULProducer"] || Game.flags[thisRoom.name + "ZKProducer"] || Game.flags[thisRoom.name + "GProducer(9)"] || Game.flags[thisRoom.name + "OHProducer(9)"]) {
                         Memory.flagCount["9"] = Memory.flagCount["9"] + 1;
-                    } else if (Memory.flagCount["NeedFlag"].indexOf(thisRoom.name) === -1){
+                    } else if (Memory.flagCount["NeedFlag"].indexOf(thisRoom.name) === -1) {
                         Memory.flagCount["NeedFlag"].push(thisRoom.name)
                     }
                 }
@@ -722,7 +729,7 @@ module.exports.loop = function() {
                                 }
                             }
                         }
-                        
+
                     }
                 }
 
@@ -735,7 +742,7 @@ module.exports.loop = function() {
                         }
                     }
                 }
-                if (Game.time % 10000 == 0) {               
+                if (Game.time % 10000 == 0) {
                     let allStruct;
                     if (thisRoom.controller.level == 8) {
                         allStruct = thisRoom.find(FIND_MY_STRUCTURES, {
@@ -776,7 +783,7 @@ module.exports.loop = function() {
                                     break;
                                 }
                             }
-                        }            
+                        }
                         if (!hasRampart) {
                             if (thisRoom.createConstructionSite(Game.flags[thisRoom.name + "Supply"].pos.x, Game.flags[thisRoom.name + "Supply"].pos.y, STRUCTURE_RAMPART) == ERR_FULL) {
                                 break;
@@ -816,7 +823,7 @@ module.exports.loop = function() {
                     if (thisRoom.terminal.store.getFreeCapacity() < 5000) {
                         Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + " terminal is overloaded!"
                     }
-                    
+
                     var roomMinerals = _.keys(thisRoom.terminal.store);
                     for (let p = 0; p < roomMinerals.length; p++) {
                         if (roomMinerals[p] == RESOURCE_ENERGY || roomMinerals[p] == RESOURCE_POWER) {
@@ -951,15 +958,15 @@ module.exports.loop = function() {
                     //Move searched room to the back of the list
                     Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
                 } else if (Game.flags[thisRoom.name + "PowerGather"] && Memory.postObserveTick) {
-                	//Monitor existing flag and cancel if power bank doesn't exist anymore
-                	if (Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName]) {
-                		var powerbanks = Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName].find(FIND_STRUCTURES, {
-                        	filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK)
-	                    });
-	                    if (!powerbanks.length) {
-	                        Game.flags[thisRoom.name + "PowerGather"].remove();
-	                    }
-                	}     	
+                    //Monitor existing flag and cancel if power bank doesn't exist anymore
+                    if (Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName]) {
+                        var powerbanks = Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName].find(FIND_STRUCTURES, {
+                            filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK)
+                        });
+                        if (!powerbanks.length) {
+                            Game.flags[thisRoom.name + "PowerGather"].remove();
+                        }
+                    }
                 }
 
                 if (Game.time % 50 == 0 && Memory.powerCheckList[thisRoom.name] && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"] && thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] < 50000)) {
@@ -970,9 +977,9 @@ module.exports.loop = function() {
                             Memory.postObserveTick = true;
                         }
                     }
-                } else if (Game.time % 50 == 0 && Game.flags[thisRoom.name + "PowerGather"] && Memory.observerList[thisRoom.name].length >= 1 ) {
-                	//Monitor existing flag and cancel if power bank doesn't exist anymore
-                	var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
+                } else if (Game.time % 50 == 0 && Game.flags[thisRoom.name + "PowerGather"] && Memory.observerList[thisRoom.name].length >= 1) {
+                    //Monitor existing flag and cancel if power bank doesn't exist anymore
+                    var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
                     if (thisObserver) {
                         thisObserver.observeRoom(Game.flags[thisRoom.name + "PowerGather"].pos.roomName);
                         if (!Memory.postObserveTick) {
@@ -998,7 +1005,7 @@ module.exports.loop = function() {
                 }
 
                 //Monitor for operator in flagged rooms, respawn if dead
-                if (Game.time % 100 == 0 && Game.flags[thisRoom.name + "RoomOperator"] && Memory.powerSpawnList[thisRoom.name].length > 0){
+                if (Game.time % 100 == 0 && Game.flags[thisRoom.name + "RoomOperator"] && Memory.powerSpawnList[thisRoom.name].length > 0) {
                     let inRoomCreeps = thisRoom.find(FIND_MY_POWER_CREEPS);
                     if (!inRoomCreeps.length) {
                         //Locate creep that's supposed to be here and respawn
@@ -1189,18 +1196,17 @@ module.exports.loop = function() {
     }
 
     //If room lacks mineral flag, calculate what flag to give it
-    if (Game.time % 5000 == 0 && Memory.flagCount["NeedFlag"].length)
-    {
+    if (Game.time % 5000 == 0 && Memory.flagCount["NeedFlag"].length) {
         let flagWeights = [
-            {tier: 1, weight: Memory.flagCount["1"]},
-            {tier: 2, weight: Memory.flagCount["2"]},
-            {tier: 3, weight: Memory.flagCount["3"]},
-            {tier: 4, weight: Memory.flagCount["4"] * 2},
-            {tier: 5, weight: Memory.flagCount["5"] * 2},
-            {tier: 6, weight: Memory.flagCount["6"] * 2},
-            {tier: 7, weight: Memory.flagCount["7"] * 2},
-            {tier: 8, weight: Memory.flagCount["8"] * 2},
-            {tier: 9, weight: Memory.flagCount["9"] * 2},
+            { tier: 1, weight: Memory.flagCount["1"] },
+            { tier: 2, weight: Memory.flagCount["2"] },
+            { tier: 3, weight: Memory.flagCount["3"] },
+            { tier: 4, weight: Memory.flagCount["4"] * 2 },
+            { tier: 5, weight: Memory.flagCount["5"] * 2 },
+            { tier: 6, weight: Memory.flagCount["6"] * 2 },
+            { tier: 7, weight: Memory.flagCount["7"] * 2 },
+            { tier: 8, weight: Memory.flagCount["8"] * 2 },
+            { tier: 9, weight: Memory.flagCount["9"] * 2 },
         ];
 
         let SetCompleted = (Memory.flagCount["1"] == Memory.flagCount["2"] == Memory.flagCount["3"] == (Memory.flagCount["4"] * 2) == (Memory.flagCount["5"] * 2) == (Memory.flagCount["6"] * 2) == (Memory.flagCount["7"] * 2) == (Memory.flagCount["8"] * 2) == (Memory.flagCount["9"] * 2))
@@ -1542,17 +1548,17 @@ function DisplayBoostTotals() {
         strokeWidth: 0.15
     });
 
-    let defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15};
+    let defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("SMACK : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_UTRIUM_ACID]), 0.5, 40, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("SHOOT : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_KEANIUM_ALKALIDE]), 0.5, 41, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("REPAR : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ACID]), 0.5, 47, defaultSettings);
     new RoomVisual().text("HEAL  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE]), 0.5, 42, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("DECON : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ACID]), 0.5, 43, defaultSettings);
     new RoomVisual().text("MOVE  : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE]), 0.5, 44, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffffff', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#ffffff', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("TOUGH : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE]), 0.5, 45, defaultSettings);
     new RoomVisual().text("UPGRA : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID]), 0.5, 48, defaultSettings);
 
@@ -1595,12 +1601,12 @@ function DisplayBoostTotals() {
         strokeWidth: 0.15
     });
     if (!Memory.LastNotification) {
-        defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
+        defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15 };
         new RoomVisual().text("This is where news would go. IF I HAD ANY.", 6.7, 48.2, defaultSettings);
     } else {
-        defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
+        defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15 };
         if (Memory.LastNotification.includes("tresspassing") || Memory.LastNotification.includes("attack") || Memory.LastNotification.includes("critically")) {
-            defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15};
+            defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15 };
         }
         new RoomVisual().text(Memory.LastNotification, 6.7, 48.2, defaultSettings);
     }
@@ -1614,18 +1620,18 @@ function DisplayBoostTotals() {
         strokeWidth: 0.15
     });
 
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#FFFFFF', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("H : " + formatNumber(Memory.mineralTotals[RESOURCE_HYDROGEN]), 45.3, 42, defaultSettings);
     new RoomVisual().text("O : " + formatNumber(Memory.mineralTotals[RESOURCE_OXYGEN]), 45.3, 43, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#ffd38e', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("Z : " + formatNumber(Memory.mineralTotals[RESOURCE_ZYNTHIUM]), 45.3, 44, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#a16df8', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("K : " + formatNumber(Memory.mineralTotals[RESOURCE_KEANIUM]), 45.3, 45, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#33D5F6', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("U : " + formatNumber(Memory.mineralTotals[RESOURCE_UTRIUM]), 45.3, 46, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#00f4a7', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("L : " + formatNumber(Memory.mineralTotals[RESOURCE_LEMERGIUM]), 45.3, 47, defaultSettings);
-    defaultSettings = {align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15};
+    defaultSettings = { align: 'left', font: '0.7 Courier New', color: '#ff7a7b', stroke: '#000000', strokeWidth: 0.15 };
     new RoomVisual().text("X : " + formatNumber(Memory.mineralTotals[RESOURCE_CATALYST]), 45.3, 48, defaultSettings);
 }
 
