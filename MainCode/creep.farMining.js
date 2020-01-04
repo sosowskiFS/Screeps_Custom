@@ -7,41 +7,41 @@ var creep_farMining = {
             case 'farClaimer':
             case 'farClaimerNearDeath':
 
-            if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farClaimerNearDeath') {
-                creep.memory.priority = 'farClaimerNearDeath';
-            }
+                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farClaimerNearDeath') {
+                    creep.memory.priority = 'farClaimerNearDeath';
+                }
 
                 //var isEvading = evadeAttacker(creep, 4);
 
                 //if (!isEvading) {
-                    if (creep.room.name != creep.memory.destination) {
-                        if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
-                            creep.travelTo(Game.rooms[creep.memory.destination].controller, {
-                                ignoreRoads: true
-                            });
-                        } else {
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
-                                ignoreRoads: true
-                            })
-                        }
+                if (creep.room.name != creep.memory.destination) {
+                    if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
+                        creep.travelTo(Game.rooms[creep.memory.destination].controller, {
+                            ignoreRoads: true
+                        });
                     } else {
-                        if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(creep.room.controller, {
-                                ignoreRoads: true
-                            });
-                        } else {
-                            if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
-                                creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
-                            } else if (!creep.room.controller.sign) {
-                                creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
-                            }
+                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
+                            ignoreRoads: true
+                        })
+                    }
+                } else {
+                    if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(creep.room.controller, {
+                            ignoreRoads: true
+                        });
+                    } else {
+                        if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
+                            creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
+                        } else if (!creep.room.controller.sign) {
+                            creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
                         }
                     }
+                }
                 //}
 
                 break;
-                case 'farMiner':
-                case 'farMinerNearDeath':
+            case 'farMiner':
+            case 'farMinerNearDeath':
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farMinerNearDeath') {
                     creep.memory.priority = 'farMinerNearDeath';
                 }
@@ -205,26 +205,26 @@ var creep_farMining = {
                                                     var x = Math.floor(Math.random() * 3);
                                                     switch (x) {
                                                         case 0:
-                                                        x = -1;
-                                                        break;
+                                                            x = -1;
+                                                            break;
                                                         case 1:
-                                                        x = 0;
-                                                        break;
+                                                            x = 0;
+                                                            break;
                                                         case 2:
-                                                        x = 1;
-                                                        break;
+                                                            x = 1;
+                                                            break;
                                                     }
                                                     var y = Math.floor(Math.random() * 3);
                                                     switch (y) {
                                                         case 0:
-                                                        y = -1;
-                                                        break;
+                                                            y = -1;
+                                                            break;
                                                         case 1:
-                                                        y = 0;
-                                                        break;
+                                                            y = 0;
+                                                            break;
                                                         case 2:
-                                                        y = 1;
-                                                        break;
+                                                            y = 1;
+                                                            break;
                                                     }
                                                     creep.room.createConstructionSite(creep.pos.x + x, creep.pos.y + y, STRUCTURE_CONTAINER);
                                                 }
@@ -239,7 +239,7 @@ var creep_farMining = {
                 }
 
                 break;
-                case 'farMineralMiner':
+            case 'farMineralMiner':
                 if ((_.sum(creep.carry) >= creep.carryCapacity || (_.sum(creep.carry) > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
                     creep.memory.storing = true;
                 } else if (_.sum(creep.carry) == 0 && creep.memory.storing) {
@@ -297,8 +297,8 @@ var creep_farMining = {
                 }
                 evadeAttacker(creep, 2);
                 break;
-                case 'farGuard':
-                case 'farGuardNearDeath':
+            case 'farGuard':
+            case 'farGuardNearDeath':
                 if (!creep.memory.disabledNotify) {
                     creep.notifyWhenAttacked(false);
                     creep.memory.disabledNotify = true;
@@ -364,7 +364,7 @@ var creep_farMining = {
                         eCores = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                             filter: (eStruct) => (!Memory.whiteList.includes(eStruct.owner.username))
                         })
-                    }         
+                    }
                 }
 
                 if (Foe.length) {
@@ -379,6 +379,14 @@ var creep_farMining = {
                         creep.heal(creep);
                     }
                 } else if (Foe.length) {
+                    let rangeToFoe = creep.pos.getRangeTo(closeFoe);
+                    let rangedParts = 0;
+                    creep.body.forEach(function(thisPart) {
+                        if (thisPart.type == RANGED_ATTACK) {
+                            rangedParts = rangedParts + 1;
+                        }
+                    });
+
                     creep.say("\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
                     let closeRangeResult = "";
                     let attackResult = creep.attack(closeFoe);
@@ -403,10 +411,19 @@ var creep_farMining = {
                         }
                     }
 
-                    creep.travelTo(closeFoe, {
-                        maxRooms: 1,
-                        movingTarget: true
-                    });
+                    if (rangeToFoe <= 2 && rangedParts > 10) {
+                        //Back up
+                        creep.travelTo(closeFoe, {
+                            maxRooms: 1,
+                            range: 3
+                        }, true);
+                    } else {
+                        creep.travelTo(closeFoe, {
+                            maxRooms: 1,
+                            movingTarget: true
+                        });
+                    }
+                  
                 } else if (eCores) {
                     let attackResult = creep.attack(eCores);
                     creep.rangedAttack(eCores);
@@ -508,8 +525,8 @@ var creep_farMining = {
                     }
                 }
                 break;
-                case 'SKAttackGuard':
-                case 'SKAttackGuardNearDeath':
+            case 'SKAttackGuard':
+            case 'SKAttackGuardNearDeath':
                 if (!creep.memory.disabledNotify) {
                     creep.notifyWhenAttacked(false);
                     creep.memory.disabledNotify = true;
@@ -611,8 +628,8 @@ var creep_farMining = {
                     }
                 }
                 break;
-                case 'SKHealGuard':
-                case 'SKHealGuardNearDeath':
+            case 'SKHealGuard':
+            case 'SKHealGuardNearDeath':
                 if (!creep.memory.disabledNotify) {
                     creep.notifyWhenAttacked(false);
                     creep.memory.disabledNotify = true;
@@ -702,312 +719,312 @@ var creep_farMining = {
                     }
                 }
                 break;
-            }
         }
-    };
-
-    function evadeAttacker(creep, evadeRange) {
-        var Foe = undefined;
-        var closeFoe = undefined;
-        var didRanged = false;
-
-        closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-        });
-        if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
-            Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
-                filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
-            });
-            if (Foe.length > 1) {
-                creep.rangedMassAttack();
-                didRanged = true;
-            } else if (closeFoe) {
-                if (creep.rangedAttack(closeFoe) == OK) {
-                    didRanged = true;
-                }
-            }
-        } else {
-            Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
-                filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
-            });
-        }
-
-        if (creep.getActiveBodyparts(HEAL) > 0) {
-            if (creep.hits < creep.hitsMax) {
-                creep.heal(creep);
-            } else {
-                var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-                    filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-                });
-                if (hurtAlly.length > 0) {
-                    if (creep.pos.getRangeTo(hurtAlly[0]) > 1 && !didRanged) {
-                        creep.rangedHeal(hurtAlly[0]);
-                    } else {
-                        creep.heal(hurtAlly[0]);
-                    }
-                }
-            }
-        }
-
-        if (closeFoe && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
-            Memory.FarRoomsUnderAttack.push(creep.room.name);
-        }
-
-        if (Foe.length) {
-            creep.memory.evadingUntil = Game.time + 10;
-            if (!closeFoe) {
-                closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-                    filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
-                });
-            }
-            var foeDirection = creep.pos.getDirectionTo(closeFoe);
-            var y = 0;
-            var x = 0;
-            switch (foeDirection) {
-                case TOP:
-                y = 5;
-                break;
-                case TOP_RIGHT:
-                y = 5;
-                x = -5;
-                break;
-                case RIGHT:
-                x = -5;
-                break;
-                case BOTTOM_RIGHT:
-                y = -5;
-                x = -5;
-                break;
-                case BOTTOM:
-                y = -5;
-                break;
-                case BOTTOM_LEFT:
-                y = -5;
-                x = 5;
-                break;
-                case LEFT:
-                x = 5;
-                break;
-                case TOP_LEFT:
-                y = 5;
-                x = 5;
-                break;
-            }
-            x = creep.pos.x + x;
-            y = creep.pos.y + y;
-            if (x < 0) {
-                x = 0;
-                if (y < 25 && y > 0) {
-                    y = y - 1;
-                } else if (y < 49) {
-                    y = y + 1;
-                }
-            } else if (x > 49) {
-                x = 49;
-                if (y < 25 && y > 0) {
-                    y = y - 1;
-                } else if (y < 49) {
-                    y = y + 1;
-                }
-            }
-            if (y < 0) {
-                y = 0;
-                if (x < 25 && x > 0) {
-                    x = x - 1;
-                } else if (x < 49) {
-                    x = x + 1;
-                }
-            } else if (y > 49) {
-                y = 49;
-                if (x < 25 && x > 0) {
-                    x = x - 1;
-                } else if (x < 49) {
-                    x = x + 1;
-                }
-            }
-
-            creep.moveTo(x, y, {
-                ignoreRoads: true
-            });
-
-            return true;
-        } else if (!closeFoe && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
-            var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
-            if (UnderAttackPos >= 0) {
-                Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
-            }
-            return false;
-        }
-
-        return didRanged;
     }
+};
 
-    function attackInvader(creep) {
-        var Foe = undefined;
-        var closeFoe = undefined;
-        var didRanged = false;
+function evadeAttacker(creep, evadeRange) {
+    var Foe = undefined;
+    var closeFoe = undefined;
+    var didRanged = false;
 
-        if (_.sum(creep.carry) <= 40) {
-            creep.drop(RESOURCE_ENERGY);
-        }
-
-        closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
-        });
-        Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+    closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+    });
+    if (creep.getActiveBodyparts(RANGED_ATTACK) > 0) {
+        Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
             filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
         });
         if (Foe.length > 1) {
-            Foe.sort(targetHeal);
             creep.rangedMassAttack();
             didRanged = true;
-        } else if (Foe.length) {
-            if (creep.rangedAttack(Foe[0]) == OK) {
-                didRanged = true;
-            }
-        } else {
+        } else if (closeFoe) {
             if (creep.rangedAttack(closeFoe) == OK) {
                 didRanged = true;
             }
         }
-
-        if (creep.getActiveBodyparts(HEAL) > 0) {
-            if (creep.hits < creep.hitsMax) {
-                creep.heal(creep);
-            } else {
-                var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-                    filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-                });
-                if (hurtAlly.length > 0) {
-                    if (creep.pos.getRangeTo(hurtAlly[0]) > 1 && !didRanged) {
-                        creep.rangedHeal(hurtAlly[0]);
-                    } else {
-                        creep.heal(hurtAlly[0]);
-                    }
-                }
-            }
-        }
-
-        var SKCheck = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-            filter: (eCreep) => (eCreep.owner.username == "Source Keeper")
+    } else {
+        Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
+            filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
         });
-        if (SKCheck.length) {
-            var foeDirection = creep.pos.getDirectionTo(SKCheck[0]);
-            var y = 0;
-            var x = 0;
-            switch (foeDirection) {
-                case TOP:
-                y = 5;
-                break;
-                case TOP_RIGHT:
-                y = 5;
-                x = -5;
-                break;
-                case RIGHT:
-                x = -5;
-                break;
-                case BOTTOM_RIGHT:
-                y = -5;
-                x = -5;
-                break;
-                case BOTTOM:
-                y = -5;
-                break;
-                case BOTTOM_LEFT:
-                y = -5;
-                x = 5;
-                break;
-                case LEFT:
-                x = 5;
-                break;
-                case TOP_LEFT:
-                y = 5;
-                x = 5;
-                break;
-            }
-            x = creep.pos.x + x;
-            y = creep.pos.y + y;
-            if (x < 0) {
-                x = 0;
-                if (y < 25 && y > 0) {
-                    y = y - 1;
-                } else if (y < 49) {
-                    y = y + 1;
-                }
-            } else if (x > 49) {
-                x = 49;
-                if (y < 25 && y > 0) {
-                    y = y - 1;
-                } else if (y < 49) {
-                    y = y + 1;
-                }
-            }
-            if (y < 0) {
-                y = 0;
-                if (x < 25 && x > 0) {
-                    x = x - 1;
-                } else if (x < 49) {
-                    x = x + 1;
-                }
-            } else if (y > 49) {
-                y = 49;
-                if (x < 25 && x > 0) {
-                    x = x - 1;
-                } else if (x < 49) {
-                    x = x + 1;
-                }
-            }
-            creep.moveTo(x, y, {
-                ignoreRoads: true
-            });
-            return true;
-        } else if (closeFoe) {
-            if (Foe.length) {
-                creep.travelTo(Foe[0], {
-                    maxRooms: 1
-                });
-            } else {
-                creep.travelTo(closeFoe, {
-                    maxRooms: 1
-                });
-            }
+    }
 
-            return true;
+    if (creep.getActiveBodyparts(HEAL) > 0) {
+        if (creep.hits < creep.hitsMax) {
+            creep.heal(creep);
         } else {
-            return false;
+            var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+                filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+            });
+            if (hurtAlly.length > 0) {
+                if (creep.pos.getRangeTo(hurtAlly[0]) > 1 && !didRanged) {
+                    creep.rangedHeal(hurtAlly[0]);
+                } else {
+                    creep.heal(hurtAlly[0]);
+                }
+            }
         }
     }
 
-    function targetAttacker(a, b) {
-        if (a.getActiveBodyparts(ATTACK) > b.getActiveBodyparts(ATTACK))
-            return -1;
-        if (a.getActiveBodyparts(ATTACK) < b.getActiveBodyparts(ATTACK))
-            return 1;
-        return 0;
+    if (closeFoe && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
+        Memory.FarRoomsUnderAttack.push(creep.room.name);
     }
 
-    function targetHeal(a, b) {
-        if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
-            return -1;
-        if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
-            return 1;
-        return 0;
+    if (Foe.length) {
+        creep.memory.evadingUntil = Game.time + 10;
+        if (!closeFoe) {
+            closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+                filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+            });
+        }
+        var foeDirection = creep.pos.getDirectionTo(closeFoe);
+        var y = 0;
+        var x = 0;
+        switch (foeDirection) {
+            case TOP:
+                y = 5;
+                break;
+            case TOP_RIGHT:
+                y = 5;
+                x = -5;
+                break;
+            case RIGHT:
+                x = -5;
+                break;
+            case BOTTOM_RIGHT:
+                y = -5;
+                x = -5;
+                break;
+            case BOTTOM:
+                y = -5;
+                break;
+            case BOTTOM_LEFT:
+                y = -5;
+                x = 5;
+                break;
+            case LEFT:
+                x = 5;
+                break;
+            case TOP_LEFT:
+                y = 5;
+                x = 5;
+                break;
+        }
+        x = creep.pos.x + x;
+        y = creep.pos.y + y;
+        if (x < 0) {
+            x = 0;
+            if (y < 25 && y > 0) {
+                y = y - 1;
+            } else if (y < 49) {
+                y = y + 1;
+            }
+        } else if (x > 49) {
+            x = 49;
+            if (y < 25 && y > 0) {
+                y = y - 1;
+            } else if (y < 49) {
+                y = y + 1;
+            }
+        }
+        if (y < 0) {
+            y = 0;
+            if (x < 25 && x > 0) {
+                x = x - 1;
+            } else if (x < 49) {
+                x = x + 1;
+            }
+        } else if (y > 49) {
+            y = 49;
+            if (x < 25 && x > 0) {
+                x = x - 1;
+            } else if (x < 49) {
+                x = x + 1;
+            }
+        }
+
+        creep.moveTo(x, y, {
+            ignoreRoads: true
+        });
+
+        return true;
+    } else if (!closeFoe && Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
+        var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
+        if (UnderAttackPos >= 0) {
+            Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
+        }
+        return false;
     }
 
-    function SKCompare(a, b) {
-        if (a.ticksToSpawn < b.ticksToSpawn)
-            return -1;
-        if (a.ticksToSpawn > b.ticksToSpawn)
-            return 1;
-        return 0;
+    return didRanged;
+}
+
+function attackInvader(creep) {
+    var Foe = undefined;
+    var closeFoe = undefined;
+    var didRanged = false;
+
+    if (_.sum(creep.carry) <= 40) {
+        creep.drop(RESOURCE_ENERGY);
     }
 
-    function repairCompare(a, b) {
-        if (a.hits < b.hits)
-            return -1;
-        if (a.hits > b.hits)
-            return 1;
-        return 0;
+    closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
+    });
+    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+        filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(HEAL) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
+    });
+    if (Foe.length > 1) {
+        Foe.sort(targetHeal);
+        creep.rangedMassAttack();
+        didRanged = true;
+    } else if (Foe.length) {
+        if (creep.rangedAttack(Foe[0]) == OK) {
+            didRanged = true;
+        }
+    } else {
+        if (creep.rangedAttack(closeFoe) == OK) {
+            didRanged = true;
+        }
     }
 
-    module.exports = creep_farMining;
+    if (creep.getActiveBodyparts(HEAL) > 0) {
+        if (creep.hits < creep.hitsMax) {
+            creep.heal(creep);
+        } else {
+            var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
+                filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
+            });
+            if (hurtAlly.length > 0) {
+                if (creep.pos.getRangeTo(hurtAlly[0]) > 1 && !didRanged) {
+                    creep.rangedHeal(hurtAlly[0]);
+                } else {
+                    creep.heal(hurtAlly[0]);
+                }
+            }
+        }
+    }
+
+    var SKCheck = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+        filter: (eCreep) => (eCreep.owner.username == "Source Keeper")
+    });
+    if (SKCheck.length) {
+        var foeDirection = creep.pos.getDirectionTo(SKCheck[0]);
+        var y = 0;
+        var x = 0;
+        switch (foeDirection) {
+            case TOP:
+                y = 5;
+                break;
+            case TOP_RIGHT:
+                y = 5;
+                x = -5;
+                break;
+            case RIGHT:
+                x = -5;
+                break;
+            case BOTTOM_RIGHT:
+                y = -5;
+                x = -5;
+                break;
+            case BOTTOM:
+                y = -5;
+                break;
+            case BOTTOM_LEFT:
+                y = -5;
+                x = 5;
+                break;
+            case LEFT:
+                x = 5;
+                break;
+            case TOP_LEFT:
+                y = 5;
+                x = 5;
+                break;
+        }
+        x = creep.pos.x + x;
+        y = creep.pos.y + y;
+        if (x < 0) {
+            x = 0;
+            if (y < 25 && y > 0) {
+                y = y - 1;
+            } else if (y < 49) {
+                y = y + 1;
+            }
+        } else if (x > 49) {
+            x = 49;
+            if (y < 25 && y > 0) {
+                y = y - 1;
+            } else if (y < 49) {
+                y = y + 1;
+            }
+        }
+        if (y < 0) {
+            y = 0;
+            if (x < 25 && x > 0) {
+                x = x - 1;
+            } else if (x < 49) {
+                x = x + 1;
+            }
+        } else if (y > 49) {
+            y = 49;
+            if (x < 25 && x > 0) {
+                x = x - 1;
+            } else if (x < 49) {
+                x = x + 1;
+            }
+        }
+        creep.moveTo(x, y, {
+            ignoreRoads: true
+        });
+        return true;
+    } else if (closeFoe) {
+        if (Foe.length) {
+            creep.travelTo(Foe[0], {
+                maxRooms: 1
+            });
+        } else {
+            creep.travelTo(closeFoe, {
+                maxRooms: 1
+            });
+        }
+
+        return true;
+    } else {
+        return false;
+    }
+}
+
+function targetAttacker(a, b) {
+    if (a.getActiveBodyparts(ATTACK) > b.getActiveBodyparts(ATTACK))
+        return -1;
+    if (a.getActiveBodyparts(ATTACK) < b.getActiveBodyparts(ATTACK))
+        return 1;
+    return 0;
+}
+
+function targetHeal(a, b) {
+    if (a.getActiveBodyparts(HEAL) > b.getActiveBodyparts(HEAL))
+        return -1;
+    if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
+        return 1;
+    return 0;
+}
+
+function SKCompare(a, b) {
+    if (a.ticksToSpawn < b.ticksToSpawn)
+        return -1;
+    if (a.ticksToSpawn > b.ticksToSpawn)
+        return 1;
+    return 0;
+}
+
+function repairCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
+
+module.exports = creep_farMining;
