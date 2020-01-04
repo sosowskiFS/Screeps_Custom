@@ -183,7 +183,7 @@ module.exports.loop = function() {
     }
 
     //Check for timed out far mining flags
-    if (Game.time % 250 == 0 && !didFlagLoop) {
+    if (Game.time % 250 == 0) {
         for (let TF in Game.flags) {
             if (Game.flags[TF].name && Game.flags[TF].name.includes(';')) {
                 let splitList = Game.flags[TF].name.split(';');
