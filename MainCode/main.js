@@ -182,6 +182,22 @@ module.exports.loop = function() {
         }
     }
 
+    //Check for timed out far mining flags
+    if (Game.time % 250 == 0 && !didFlagLoop) {
+        for (let TF in Game.flags) {
+            if (Game.flags[TF].name && Game.flags[TF].name.includes(';')) {
+                let splitList = Game.flags[TF].name.split(';');
+                if (splitList.length > 1) {
+                    let timeToCheck = splitList[1];
+                    if (Game.time >= parseInt(timeToCheck)) {
+                        Game.flags[TF].pos.createFlag(splitList[0]);
+                        Game.flags[TF].remove();
+                    }
+                }
+            }
+        }
+    }
+
     /*if (Game.time % 250 == 0) {
         //Reset Terminal Counts
         for (var z in Memory.TerminalCollection) {
@@ -388,37 +404,12 @@ module.exports.loop = function() {
         Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] = 0;
     }
 
-    //Only do the mining flag check once.
-    var didFlagLoop = false;
-
     for (const i in Game.spawns) {
         var thisRoom = Game.spawns[i].room;
         if (thisRoom.controller.owner) {
             var controllerLevel = thisRoom.controller.level;
 
             if (Memory.RoomsRun.indexOf(thisRoom.name) < 0) {
-                //Check for timed out far mining flags
-                //1/4 - Previous check didn't work when room not visible. Loop here makes it indipendent of target room.
-                if (Game.time % 250 == 0 && !didFlagLoop) {
-                    for (let TF in Game.flags) {
-                        if (Game.flags[TF].name && Game.flags[TF].name.includes(';')) {
-                            let splitList = Game.flags[TF].name.split(';');
-                            if (splitList.length > 1) {
-                                let timeToCheck = splitList[1];
-                                if (Game.time >= parseInt(timeToCheck)) {
-                                    //Create flag in room I own, move flag to room I don't own.
-                                    //(API doesn't seem to allow creating flags in rooms you can't see)
-                                    let miningFlagRoom = Game.flags[TF].name.split('FarMining')[0];
-                                    thisRoom.createFlag(Game.flags[TF].pos.x, Game.flags[TF].pos.y, splitList[0]);
-                                    Game.flags[splitList[0]].setPosition(new RoomPosition(Game.flags[TF].pos.x, Game.flags[TF].pos.y, miningFlagRoom));
-                                    Game.flags[TF].remove();
-                                }
-                            }
-                        }
-                    }
-                    didFlagLoop = true;
-                }
-
                 //Gimme some pie graphs
                 let roomVis = new RoomVisual(thisRoom.name);
 
