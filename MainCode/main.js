@@ -410,7 +410,7 @@ module.exports.loop = function() {
                                     //(API doesn't seem to allow creating flags in rooms you can't see)
                                     let miningFlagRoom = Game.flags[TF].name.split('FarMining')[0];
                                     thisRoom.createFlag(Game.flags[TF].pos.x, Game.flags[TF].pos.y, splitList[0]);
-                                    Game.flags[splitList[0]].SetPosition(new RoomPosition(Game.flags[TF].pos.x, Game.flags[TF].pos.y, miningFlagRoom));
+                                    Game.flags[splitList[0]].setPosition(new RoomPosition(Game.flags[TF].pos.x, Game.flags[TF].pos.y, miningFlagRoom));
                                     Game.flags[TF].remove();
                                 }
                             }
