@@ -350,14 +350,14 @@ var creep_farMining = {
                     Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 40, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
                     });
-                    closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+                    closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && (eCreep.owner.username != "Source Keeper" || eCreep.hits < eCreep.hitsMax))
                     });
                 } else {
                     Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 40, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
-                    closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+                    closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
                     if (creep.room.controller && creep.room.controller.reservation && creep.room.controller.reservation.username == 'Invader') {

@@ -65,7 +65,7 @@ var creep_assattacker = {
                 }
             }
 
-            let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+            let closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "KamiKatze")
             });
 
