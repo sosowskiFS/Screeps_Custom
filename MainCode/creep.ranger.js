@@ -167,13 +167,11 @@ var creep_ranger = {
 function determineThreat(theseCreeps, creep) {
     if (theseCreeps) {
         theseCreeps.forEach(function(thisCreep) {
-            if (creep.pos.getRangeTo(thisCreep) <= 3) {
-                thisCreep.body.forEach(function(thisPart) {
-                    if (thisPart.type == ATTACK) {
-                        return true;
-                    }
-                });
-            }           
+            thisCreep.body.forEach(function(thisPart) {
+                if (thisPart.type == ATTACK) {
+                    return true;
+                }
+            });
         });
     }
     return false;
