@@ -381,9 +381,12 @@ var creep_farMining = {
                 } else if (Foe.length) {
                     let rangeToFoe = creep.pos.getRangeTo(closeFoe);
                     let rangedParts = 0;
+                    let attackParts = 0;
                     creep.body.forEach(function(thisPart) {
                         if (thisPart.type == RANGED_ATTACK) {
                             rangedParts = rangedParts + 1;
+                        } else if (thisPart.type == ATTACK) {
+                            attackParts = attackParts + 1;
                         }
                     });
 
@@ -411,11 +414,20 @@ var creep_farMining = {
                         }
                     }
 
-                    if (rangeToFoe <= 2 && rangedParts > 10) {
+                    //Loop through everything nearby and determine if you need to run
+                    let thisThreat = undefined;
+                    for (let thisFoe in Foe) {
+                        thisThreat = determineThreat(thisCreep, myself, attackParts)
+                        if (thisThreat) {
+                            break;
+                        }
+                    }
+                    if (thisThreat) {
                         //Back up
-                        creep.travelTo(closeFoe, {
+                        creep.travelTo(thisThreat, {
                             maxRooms: 1,
-                            range: 3
+                            range: 3,
+                            movingTarget: true
                         }, true);
                     } else {
                         creep.travelTo(closeFoe, {
@@ -423,7 +435,7 @@ var creep_farMining = {
                             movingTarget: true
                         });
                     }
-                  
+
                 } else if (eCores) {
                     let attackResult = creep.attack(eCores);
                     creep.rangedAttack(eCores);
@@ -1025,6 +1037,21 @@ function repairCompare(a, b) {
     if (a.hits > b.hits)
         return 1;
     return 0;
+}
+
+function determineThreat(thisCreep, myself, attackParts) {
+    let foeAttack = 0;
+    if (myself.pos.getRangeTo(thisCreep) <= 2) {
+        thisCreep.body.forEach(function(thisPart) {
+            if (thisPart.type == ATTACK) {
+                foeAttack = foeAttack + 1;
+            }
+        });
+        if (foeAttack >= attackParts) {
+            return thisCreep;
+        }
+    }
+    return undefined;
 }
 
 module.exports = creep_farMining;
