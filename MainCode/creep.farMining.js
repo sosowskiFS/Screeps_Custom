@@ -397,8 +397,8 @@ var creep_farMining = {
                     //Loop through everything nearby and determine if you need to run
                     let thisThreat = undefined;
                     for (let thisFoe in Foe) {
-                        thisThreat = determineThreat(thisFoe, creep, attackParts)
-                        if (thisThreat) {
+                        if(determineThreat(thisFoe, creep, attackParts)) {
+                            thisThreat = thisFoe;
                             break;
                         }
                     }
@@ -1053,10 +1053,10 @@ function determineThreat(thisCreep, myself, attackParts) {
             }
         });
         if (foeAttack >= attackParts) {
-            return thisCreep;
+            return true;
         }
     }
-    return undefined;
+    return false;
 }
 
 module.exports = creep_farMining;
