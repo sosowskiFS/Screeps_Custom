@@ -397,8 +397,8 @@ var creep_farMining = {
                     //Loop through everything nearby and determine if you need to run
                     let thisThreat = undefined;
                     for (let thisFoe in Foe) {
-                        if(determineThreat(thisFoe, creep, attackParts)) {
-                            thisThreat = thisFoe;
+                        if(determineThreat(Foe[thisFoe], creep, attackParts)) {
+                            thisThreat = Foe[thisFoe];
                             break;
                         }
                     }
