@@ -1050,7 +1050,7 @@ function determineThreat(thisCreep, myself, attackParts) {
                 foeAttack = foeAttack + 1;
             }
         });
-        if (foeAttack >= attackParts) {
+        if (foeAttack > attackParts) {
             return true;
         }
     }
