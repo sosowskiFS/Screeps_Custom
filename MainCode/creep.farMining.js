@@ -1046,7 +1046,7 @@ function repairCompare(a, b) {
 
 function determineThreat(thisCreep, myself, attackParts) {
     let foeAttack = 0;
-    if (myself.pos.getRangeTo(thisCreep) <= 2) {
+    if (myself.pos.getRangeTo(thisCreep) <= 3) {
         thisCreep.body.forEach(function(thisPart) {
             if (thisPart.type == ATTACK) {
                 foeAttack = foeAttack + 1;
