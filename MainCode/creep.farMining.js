@@ -393,11 +393,38 @@ var creep_farMining = {
                     creep.say("\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
                     let closeRangeResult = "";
                     let attackResult = creep.attack(closeFoe);
-                    if (Foe.length >= 2) {
-                        creep.rangedMassAttack();
-                    } else {
-                        closeRangeResult = creep.rangedAttack(closeFoe);
+
+                    //Loop through everything nearby and determine if you need to run
+                    let thisThreat = undefined;
+                    for (let thisFoe in Foe) {
+                        thisThreat = determineThreat(thisCreep, myself, attackParts)
+                        if (thisThreat) {
+                            break;
+                        }
                     }
+                    
+                    if (thisThreat) {
+                        //Back up
+                        creep.travelTo(thisThreat, {
+                            maxRooms: 1,
+                            range: 3,
+                            movingTarget: true
+                        }, true);
+
+                        closeRangeResult = creep.rangedAttack(closeFoe);
+                    } else {
+                        creep.travelTo(closeFoe, {
+                            maxRooms: 1,
+                            movingTarget: true
+                        });
+
+                        if (Foe.length >= 2) {
+                            creep.rangedMassAttack();
+                        } else {
+                            closeRangeResult = creep.rangedAttack(closeFoe);
+                        }
+                    }
+
                     if (attackResult != OK) {
                         if (creep.hits < creep.hitsMax) {
                             creep.heal(creep);
@@ -412,28 +439,6 @@ var creep_farMining = {
                                 creep.heal(hurtAlly[0]);
                             }
                         }
-                    }
-
-                    //Loop through everything nearby and determine if you need to run
-                    let thisThreat = undefined;
-                    for (let thisFoe in Foe) {
-                        thisThreat = determineThreat(thisCreep, myself, attackParts)
-                        if (thisThreat) {
-                            break;
-                        }
-                    }
-                    if (thisThreat) {
-                        //Back up
-                        creep.travelTo(thisThreat, {
-                            maxRooms: 1,
-                            range: 3,
-                            movingTarget: true
-                        }, true);
-                    } else {
-                        creep.travelTo(closeFoe, {
-                            maxRooms: 1,
-                            movingTarget: true
-                        });
                     }
 
                 } else if (eCores) {
