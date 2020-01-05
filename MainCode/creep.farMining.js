@@ -407,15 +407,13 @@ var creep_farMining = {
                         //Back up
                         creep.travelTo(thisThreat, {
                             maxRooms: 1,
-                            range: 3,
-                            movingTarget: true
+                            range: 3
                         }, true);
 
                         closeRangeResult = creep.rangedAttack(closeFoe);
                     } else {
                         creep.travelTo(closeFoe, {
-                            maxRooms: 1,
-                            movingTarget: true
+                            maxRooms: 1
                         });
 
                         if (Foe.length >= 2) {
