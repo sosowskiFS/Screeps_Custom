@@ -195,6 +195,10 @@ module.exports.loop = function() {
                             Game.flags[TF].remove();
                         } catch(error) {
                             //Despite .pos not being reliant on seeing the room, this still wants to act up?
+                            //Call for a guard if haven't already
+                            if (Memory.FarRoomsUnderAttack.indexOf(Game.flags[TF].pos.roomName) == -1) {
+					            Memory.FarRoomsUnderAttack.push(Game.flags[TF].pos.roomName);
+					        }
                             Game.notify('Could not create flag ' + splitList[0] + '.');
                         }
                         
