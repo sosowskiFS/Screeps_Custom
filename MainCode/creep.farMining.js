@@ -25,10 +25,13 @@ var creep_farMining = {
                         })
                     }
                 } else {
-                    if (creep.reserveController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                    let reserveResult = creep.reserveController(creep.room.controller);
+                    if (reserveResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.controller, {
                             ignoreRoads: true
                         });
+                    } else if (reserveResult == ERR_INVALID_TARGET) {
+                        creep.attackController(creep.room.controller);
                     } else {
                         if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
                             creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
