@@ -552,7 +552,7 @@ module.exports.loop = function() {
                 }
 
                 //Get list of Sources
-                if (Game.time % 5000 == 0 || !Memory.sourceList[thisRoom.name]) {
+                if (!Memory.sourceList[thisRoom.name]) {
                     Memory.sourceList[thisRoom.name] = [];
                     var roomSources = thisRoom.find(FIND_SOURCES);
                     var reverseFlag = false;
@@ -563,7 +563,7 @@ module.exports.loop = function() {
                                 Memory.sourceList[thisRoom.name].push(roomSources[sourceCounter].id)
                             }
                             //If there is no storage unit nearby, this should not be #1
-                            var nearContainers = roomSources[sourceCounter].pos.findInRange(FIND_MY_STRUCTURES, 3, {
+                            var nearContainers = roomSources[sourceCounter].pos.findInRange(FIND_MY_STRUCTURES, 2, {
                                 filter: {
                                     structureType: STRUCTURE_STORAGE
                                 }
