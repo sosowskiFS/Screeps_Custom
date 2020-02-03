@@ -18,7 +18,7 @@ var creep_ranger = {
             creep.memory.priority = 'rangerNearDeath';
         }
 
-        var closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+        var closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
@@ -152,12 +152,24 @@ var creep_ranger = {
                 }
             }
 
-            if (meleeThreat.length && determineThreat(meleeThreat[0], creep)) {
-                //Dodge away from foe
-                creep.travelTo(closeFoe, {
-                    range: 4
-                }, true);
+            let thisThreat = undefined;
+            if (meleeThreat.length) {
+                for (let thisFoe in meleeThreat) {
+                    if(determineThreat(meleeThreat[thisFoe])) {
+                        thisThreat = meleeThreat[thisFoe];
+                        break;
+                    }
+                }
+                
+                if (thisThreat) {
+                    //Dodge away from foe
+                    creep.travelTo(thisThreat, {
+                        range: 3,
+                        maxRooms: 1
+                    }, true);
+                } 
             }
+            
         }
 
         //Only works with no attack parts
@@ -175,16 +187,12 @@ function targetAttacker(a, b) {
     return 0;
 }
 
-function determineThreat(theseCreeps, creep) {
-    if (theseCreeps) {
-        theseCreeps.forEach(function(thisCreep) {
-            thisCreep.body.forEach(function(thisPart) {
-                if (thisPart.type == ATTACK) {
-                    return true;
-                }
-            });
-        });
-    }
+function determineThreat(thisCreep) {
+    thisCreep.body.forEach(function(thisPart) {
+        if (thisPart.type == ATTACK) {
+            return true;
+        }
+    });
     return false;
 }
 

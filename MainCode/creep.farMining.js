@@ -350,14 +350,14 @@ var creep_farMining = {
                 var closeFoe = undefined;
                 let eCores = undefined;
                 if (Game.flags[creep.room.name + "SKRoom"]) {
-                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 40, {
+                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
                     });
                     closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && (eCreep.owner.username != "Source Keeper" || eCreep.hits < eCreep.hitsMax))
                     });
                 } else {
-                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 40, {
+                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
                     closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
@@ -381,8 +381,7 @@ var creep_farMining = {
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);
                     }
-                } else if (Foe.length) {
-                    let rangeToFoe = creep.pos.getRangeTo(closeFoe);
+                } else if (closeFoe) {
                     let rangedParts = 0;
                     let attackParts = 0;
                     creep.body.forEach(function(thisPart) {
@@ -397,12 +396,14 @@ var creep_farMining = {
                     let closeRangeResult = "";
                     let attackResult = creep.attack(closeFoe);
 
-                    //Loop through everything nearby and determine if you need to run
+                    //Loop through melee threats to determine if you need to run
                     let thisThreat = undefined;
-                    for (let thisFoe in Foe) {
-                        if(determineThreat(Foe[thisFoe], creep, attackParts)) {
-                            thisThreat = Foe[thisFoe];
-                            break;
+                    if (Foe.length) {
+                        for (let thisFoe in Foe) {
+                            if(determineThreat(Foe[thisFoe], creep, attackParts)) {
+                                thisThreat = Foe[thisFoe];
+                                break;
+                            }
                         }
                     }
 
