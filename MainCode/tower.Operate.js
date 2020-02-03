@@ -65,7 +65,7 @@ var tower_Operate = {
                     //Calculate flat tower damage
                     let flatDamage = 0;
                     for (let thisTower in allTowers) {
-                        let thisRange = thisTower.pos.getRangeTo(allHostiles[thisHostile]);
+                        let thisRange = allTowers[thisTower].pos.getRangeTo(allHostiles[thisHostile]);
                         if (thisRange <= 5) {
                             flatDamage += TOWER_POWER_ATTACK;
                         } else if (thisRange >= 20) {
