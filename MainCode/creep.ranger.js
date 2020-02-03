@@ -26,6 +26,10 @@ var creep_ranger = {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
 
+        if (meleeThreat.length) {
+            meleeThreat.sort(targetAttacker);
+        }
+
         if (creep.memory.destination == creep.pos.roomName) {
             //In target room
             if (Game.time % 2 == 0) {
@@ -77,8 +81,7 @@ var creep_ranger = {
                 creep.travelTo(closeFoe, {
                     ignoreRoads: true,
                     maxRooms: 1,
-                    allowSK: true,
-                    movingTarget: true
+                    allowSK: true
                 });
             } else {
                 let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
@@ -149,7 +152,7 @@ var creep_ranger = {
                 }
             }
 
-            if (determineThreat(meleeThreat, creep)) {
+            if (meleeThreat.length && determineThreat(meleeThreat[0], creep)) {
                 //Dodge away from foe
                 creep.travelTo(closeFoe, {
                     range: 4
@@ -163,6 +166,14 @@ var creep_ranger = {
     }
 
 };
+
+function targetAttacker(a, b) {
+    if (a.getActiveBodyparts(ATTACK) > b.getActiveBodyparts(ATTACK))
+        return -1;
+    if (a.getActiveBodyparts(ATTACK) < b.getActiveBodyparts(ATTACK))
+        return 1;
+    return 0;
+}
 
 function determineThreat(theseCreeps, creep) {
     if (theseCreeps) {
