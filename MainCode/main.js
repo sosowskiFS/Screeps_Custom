@@ -341,14 +341,13 @@ module.exports.loop = function() {
                             }
                         }
                     }
-
                     controlRamparts(RampartDirection, towers[y]);
 
                     alreadySearched.push(towers[y].room.name);
                 }
                 tower_Operate.run(towers[y], Memory.attackDuration, y);
             }
-        }
+        }     
     }
 
     //Reset mineral flag totals before going into loop

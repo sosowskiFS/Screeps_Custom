@@ -41,30 +41,115 @@ var tower_Operate = {
             //Memory.roomCreeps[thisRoom.name];
             //Only if no salvager flag
             let didHeal = false
-            let ignoreRangeFlag = false;
             let salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
+            let hostileCount = 1;
 
-            let shootRandom = false;
+            let defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
+
             let closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
             if (!closestHostile) {
-                closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
+                //Find new target to shoot at.
+                let allHostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
                     filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
-                shootRandom = true;
-            }
-            let hostileCount = tower.room.find(FIND_HOSTILE_CREEPS, {
-                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-            });
+                let allTowers = tower.room.find(FIND_STRUCTURES, {
+                    filter: (structure) => (structure.structureType = STRUCTURE_TOWER)
+                });
+                hostileCount = allHostiles.length;
 
-            if (Memory.roomCreeps[thisRoom.name]) {
-                let defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
-                if (defenders.length) {
-                    ignoreRangeFlag = true;
+                let damageRecord = 0;
+                let targetToShoot = undefined;
+
+                for (let thisHostile in allHostiles) {
+                    //Shoot at whatever target you can do the most damage to
+                    //Calculate flat tower damage
+                    let flatDamage = 0;
+                    for (let thisTower in allTowers) {
+                        let thisRange = thisTower.pos.getRangeTo(thisHostile);
+                        if (thisRange <= 5) {
+                            flatDamage += TOWER_POWER_ATTACK;
+                        } else if (thisRange >= 20) {
+                            flatDamage += TOWER_POWER_ATTACK - (TOWER_FALLOFF * TOWER_POWER_ATTACK);
+                        } else {
+                            //Midrange calculation
+                            flatDamage += TOWER_POWER_ATTACK - (((thisRange - 5) * (TOWER_FALLOFF / 15)) * TOWER_POWER_ATTACK)
+                        }
+                    }
+
+                    //Add in potential defender damage
+                    for (let thisDefender in defenders) {
+                        thisDefender.body.forEach(function(thisPart) {
+                            if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
+                                flatDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
+                            } else if (thisPart.type == RANGED_ATTACK) {
+                                flatDamage += RANGED_ATTACK_POWER
+                            }
+                        });
+                    }
+
+                    //Subtract target's TOUGH & HEAL damage soak
+                    let damageReduction = 0;
+                    let boostedTough = undefined;
+
+                    thisHostile.body.forEach(function(thisPart) {
+                        if (thisPart.type == TOUGH && thisPart.boost) {
+                            boostedTough = thisPart.boost;
+                        } else if (thisPart.type == HEAL && thisPart.boost) {
+                            damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
+                        } else if (thisPart.type == HEAL) {
+                            damageReduction += HEAL_POWER
+                        }
+                    });
+                    //Look for healer creeps within 3 spaces of target creep for further subtractions
+                    let nearbyFriendos = thisHostile.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    });
+                    for (let thisFriendo in nearbyFriendos) {
+                        let friendRange = thisHostile.pos.getRangeTo(thisFriendo);
+                        thisFriendo.body.forEach(function(thisPart) {
+                            if (thisPart.type == HEAL && thisPart.boost) {
+                                if (friendRange == 1) {
+                                    damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
+                                } else {
+                                    damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
+                                }                             
+                            } else if (thisPart.type == HEAL) {
+                                if (friendRange == 1) {
+                                    damageReduction += HEAL_POWER
+                                } else {
+                                    damageReduction += RANGED_HEAL_POWER
+                                }   
+                            }
+                        });
+                    }
+
+                    //Factor in damage reduction from Tough parts
+                    if (boostedTough) {
+                        flatTowerDamage = flatTowerDamage * BOOSTS['tough'][boostedTough]['damage']
+                    }
+
+                    //Display the calculated damage total under the target
+                    let dColor = 'green';
+                    if ((flatTowerDamage - damageReduction) <= 0) {
+                        dColor = 'red';
+                    }
+                    new RoomVisual(thisRoom.name).text((flatTowerDamage - damageReduction).toString(), thisHostile.pos.x, thisHostile.pos.y, {color: dColor, font: 0.8}); 
+
+                    //Determine if this beats the best
+                    if ((flatTowerDamage - damageReduction) > damageRecord) {
+                        damageRecord = (flatTowerDamage - damageReduction);
+                        targetToShoot = thisHostile;
+                    }
+                }
+
+                //if targetToShoot is defined, a valid target you can damage was found.
+                if (targetToShoot) {
+                    closestHostile = targetToShoot;
                 }
             }
 
             //Heal only if the target isn't taking damage
-            if (closestHostile.hits > (closestHostile.hitsMax - 500) && Memory.roomCreeps[thisRoom.name]) {
+            if (Memory.roomCreeps[thisRoom.name] && (!closestHostile || closestHostile.hits > (closestHostile.hitsMax - 500))) {
                 if (Game.flags[thisRoom.name + "RoomOperator"]) {
                     powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
                     if (powerCreep && powerCreep.hits < powerCreep.hitsMax) {
@@ -84,18 +169,13 @@ var tower_Operate = {
 
             if (!didHeal) {
                 if (salvagerPos >= 0) {
-                    //Verify that it's still not worth the time           
-                    if (!determineCreepThreat(closestHostile, hostileCount.length)) {
-                        ignoreRangeFlag = false;
-                    } else {
+                    //Verify that it's still not worth the time
+                    //RETUNE - this could possibly spawn defenders if a big enough invader wave attacks
+                    if (!closestHostile || determineCreepThreat(closestHostile, hostileCount.length)) {
                         //BAD TIMES
                         Memory.roomsPrepSalvager.splice(salvagerPos, 1);
                         salvagerPos = -1;
                     }
-                }
-
-                if (closestHostile.owner.username == 'Invader' || thisRoom.controller.safeMode) {
-                    ignoreRangeFlag = true;
                 }
 
                 if (closestHostile) {
@@ -104,42 +184,15 @@ var tower_Operate = {
                         Memory.LastNotification = Game.time.toString() + ' : ' + closestHostile.owner.username + ' is tresspassing in ' + thisRoom.name
                     }
                     Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
-                    if (shootRandom) {
-                        var randomTarget = tower.room.find(FIND_HOSTILE_CREEPS);
-                        if (randomTarget.length) {
-                            //if (tower.room.controller.level >= 7 || thisRoom.controller.safeMode) {
-                            if (tower.room.controller.level >= 7) {
-                                tower.attack(randomTarget[Math.floor(Math.random() * randomTarget.length)]);
-                            } else {
-                                let range = tower.pos.getRangeTo(closestHostile);
-                                if (range <= 10 || ignoreRangeFlag) {
-                                    tower.attack(closestHostile);
-                                }
-                            }
+
+                    if (tower.room.controller.level < 7) {                      
+                        tower.attack(closestHostile);
+                        if (range <= 5 && closestHostile.owner.username != 'Invader') {
+                            //Too close for comfort
+                            tower.room.controller.activateSafeMode();
                         }
                     } else {
-                        //if (tower.room.controller.level < 7 && !thisRoom.controller.safeMode) {
-                        if (tower.room.controller.level < 7) {
-                            let range = tower.pos.getRangeTo(closestHostile);
-                            if (range <= 10 || ignoreRangeFlag) {
-                                tower.attack(closestHostile);
-                            }
-                            if (range <= 5 && closestHostile.owner.username != 'Invader') {
-                                //Too close for comfort
-                                tower.room.controller.activateSafeMode();
-                            }
-                        } else {
-                            tower.attack(closestHostile);
-                        }
-                    }
-                    //Keep target for defenders to lock on
-                } else if (tower.energy > (tower.energyCapacity * 0.5)) {
-                    //Save 50% of the tower's energy to use on repelling attackers
-                    var closestDamagedCreep = tower.pos.findClosestByRange(FIND_MY_CREEPS, {
-                        filter: (creep) => creep.hits < creep.hitsMax - 50
-                    });
-                    if (closestDamagedCreep) {
-                        tower.heal(closestDamagedCreep);
+                        tower.attack(closestHostile);
                     }
                 }
             }
