@@ -125,19 +125,19 @@ var tower_Operate = {
 
                     //Factor in damage reduction from Tough parts
                     if (boostedTough) {
-                        flatTowerDamage = flatTowerDamage * BOOSTS['tough'][boostedTough]['damage']
+                        flatDamage = flatDamage * BOOSTS['tough'][boostedTough]['damage']
                     }
 
                     //Display the calculated damage total under the target
                     let dColor = 'green';
-                    if ((flatTowerDamage - damageReduction) <= 0) {
+                    if ((flatDamage - damageReduction) <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatTowerDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, {color: dColor, font: 0.8}); 
+                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, {color: dColor, font: 0.8}); 
 
                     //Determine if this beats the best
-                    if ((flatTowerDamage - damageReduction) > damageRecord) {
-                        damageRecord = (flatTowerDamage - damageReduction);
+                    if ((flatDamage - damageReduction) > damageRecord) {
+                        damageRecord = (flatDamage - damageReduction);
                         targetToShoot = allHostiles[thisHostile];
                     }
                 }
