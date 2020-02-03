@@ -65,7 +65,7 @@ var tower_Operate = {
                     //Calculate flat tower damage
                     let flatDamage = 0;
                     for (let thisTower in allTowers) {
-                        let thisRange = thisTower.pos.getRangeTo(thisHostile);
+                        let thisRange = thisTower.pos.getRangeTo(allHostiles[thisHostile]);
                         if (thisRange <= 5) {
                             flatDamage += TOWER_POWER_ATTACK;
                         } else if (thisRange >= 20) {
@@ -78,7 +78,7 @@ var tower_Operate = {
 
                     //Add in potential defender damage
                     for (let thisDefender in defenders) {
-                        thisDefender.body.forEach(function(thisPart) {
+                        defenders[thisDefender].body.forEach(function(thisPart) {
                             if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
                                 flatDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
                             } else if (thisPart.type == RANGED_ATTACK) {
@@ -91,7 +91,7 @@ var tower_Operate = {
                     let damageReduction = 0;
                     let boostedTough = undefined;
 
-                    thisHostile.body.forEach(function(thisPart) {
+                    allHostiles[thisHostile].body.forEach(function(thisPart) {
                         if (thisPart.type == TOUGH && thisPart.boost) {
                             boostedTough = thisPart.boost;
                         } else if (thisPart.type == HEAL && thisPart.boost) {
@@ -101,12 +101,12 @@ var tower_Operate = {
                         }
                     });
                     //Look for healer creeps within 3 spaces of target creep for further subtractions
-                    let nearbyFriendos = thisHostile.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                    let nearbyFriendos = allHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
                     for (let thisFriendo in nearbyFriendos) {
-                        let friendRange = thisHostile.pos.getRangeTo(thisFriendo);
-                        thisFriendo.body.forEach(function(thisPart) {
+                        let friendRange = allHostiles[thisHostile].pos.getRangeTo(nearbyFriendos[thisFriendo]);
+                        nearbyFriendos[thisFriendo].body.forEach(function(thisPart) {
                             if (thisPart.type == HEAL && thisPart.boost) {
                                 if (friendRange == 1) {
                                     damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
@@ -133,12 +133,12 @@ var tower_Operate = {
                     if ((flatTowerDamage - damageReduction) <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatTowerDamage - damageReduction).toString(), thisHostile.pos.x, thisHostile.pos.y, {color: dColor, font: 0.8}); 
+                    new RoomVisual(thisRoom.name).text((flatTowerDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, {color: dColor, font: 0.8}); 
 
                     //Determine if this beats the best
                     if ((flatTowerDamage - damageReduction) > damageRecord) {
                         damageRecord = (flatTowerDamage - damageReduction);
-                        targetToShoot = thisHostile;
+                        targetToShoot = allHostiles[thisHostile];
                     }
                 }
 
