@@ -53,7 +53,7 @@ var tower_Operate = {
                     filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
                 let allTowers = tower.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType = STRUCTURE_TOWER)
+                    filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
                 });
                 hostileCount = allHostiles.length;
 
@@ -72,7 +72,7 @@ var tower_Operate = {
                             flatDamage += TOWER_POWER_ATTACK - (TOWER_FALLOFF * TOWER_POWER_ATTACK);
                         } else {
                             //Midrange calculation
-                            flatDamage += TOWER_POWER_ATTACK - (((thisRange - 5) * (TOWER_FALLOFF / 15)) * TOWER_POWER_ATTACK)
+                            flatDamage += Math.round(TOWER_POWER_ATTACK - (((thisRange - 5) * (TOWER_FALLOFF / 15)) * TOWER_POWER_ATTACK))
                         }
                     }
 
