@@ -458,6 +458,7 @@ var spawn_BuildCreeps5 = {
                             jobSpecific: 'storageMiner',
                             ignoreTravel: false,
                             atSpot: false,
+                            minePower: 2 * HARVEST_POWER,
                             deathWarn: _.size([MOVE, WORK, WORK, CARRY]) * 4,
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name
@@ -668,14 +669,17 @@ var spawn_BuildCreeps5 = {
             if (prioritizedRole != '') {
                 if (prioritizedRole == 'miner') {
                     Memory.isSpawning = true;
-                    let minerConfig = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, CARRY];
+                    let minePower = 5 * HARVEST_POWER;
+                    let minerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY];
                     if (Game.flags[thisRoom.name + "RoomOperator"]) {
                         //Level 5 source boost config
+                        minePower = 14 * HARVEST_POWER;
                         minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY];
                     }
                     let configCost = calculateConfigCost(minerConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
                         //Took severe damage, assume cap of 300
+                        minePower = 2 * HARVEST_POWER;
                         minerConfig = [CARRY, WORK, WORK, MOVE];
                         configCost = 300
                     }
@@ -692,6 +696,7 @@ var spawn_BuildCreeps5 = {
                                     deathWarn: _.size(minerConfig) * 6,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name,
+                                    minePower: minePower,
                                     ignoreTravel: false,
                                     atSpot: false
                                 }
@@ -706,6 +711,7 @@ var spawn_BuildCreeps5 = {
                                     deathWarn: _.size(minerConfig) * 5,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name,
+                                    minePower: minePower,
                                     ignoreTravel: false,
                                     atSpot: false
                                 }

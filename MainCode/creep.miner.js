@@ -2,6 +2,17 @@ var creep_miner = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        //TEMP - For setting current creep memory after uploading change.
+        /*if (!creep.memory.minePower) {
+            let totalWork = 0
+            eCreep.body.forEach(function(thisPart) {
+                if (thisPart.type = WORK) {
+                    totalWork++;
+                }
+            });
+            creep.memory.minePower = totalWork * HARVEST_POWER;
+        }*/
+
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'minerNearDeath') {
             creep.memory.priority = 'minerNearDeath';
             creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
@@ -31,7 +42,7 @@ var creep_miner = {
                 creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
             }
 
-            if (creep.carry.energy >= 40) {
+            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) <= creep.memory.minePower) {
                 let storageTarget = Game.getObjectById(creep.memory.linkSource);
                 if (creep.memory.jobSpecific == 'upgradeMiner') {
                     let storageTarget2 = undefined;
