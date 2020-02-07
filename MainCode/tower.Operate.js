@@ -10,15 +10,16 @@ var tower_Operate = {
             Memory.towerNeedEnergy[thisRoom.name] = [];
         }
         if (!Memory.towerPickedTarget[thisRoom.name] || Game.time % 5 == 0) {
-            if (Memory.towerPickedTarget[thisRoom.name]) {
+            /*if (Memory.towerPickedTarget[thisRoom.name]) {
                 let thisHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
                 if (thisHostile && thisHostile.hits > (thisHostile.hitsMax - 500)) {
                     Memory.towerPickedTarget[thisRoom.name] = '';
                 }
             } else {
                 Memory.towerPickedTarget[thisRoom.name] = '';
-            }
+            }*/
 
+            Memory.towerPickedTarget[thisRoom.name] = '';
         }
 
         var checkDelay;
