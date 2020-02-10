@@ -608,7 +608,7 @@ var creep_labWorker = {
                             if (freeRoom <= 5000) {terminalLimit = 3000;}
                             else if (freeRoom <= 50000) {terminalLimit = 20000;}                
                         }
-                        if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit && NotOverLimit(creep.room.terminal)) {
+                        if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit && NotOverLimit(creep.room.terminal) && thisFactory.store[RESOURCE_ENERGY] >= 200) {
                             creep.memory.structureTarget = creep.room.terminal.id;
                             creep.memory.direction = 'Withdraw';
                             creep.memory.mineralToMove = roomMineral;
