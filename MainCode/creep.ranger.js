@@ -3,6 +3,7 @@ var creep_ranger = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (creep.memory.previousRoom != creep.room.name) {
+            //Reset pathfinding memory so a more relevant path gets calculated here.
             creep.memory.previousRoom = creep.room.name;
             creep.memory._trav = undefined;
         }
@@ -14,6 +15,11 @@ var creep_ranger = {
             flagName = 'PowerGuard'
         }
 
+        if (flagName == 'PowerGuard' && !Game.flags[creep.memory.homeRoom + "PowerGather"] && Game.flags[creep.memory.homeRoom + "PowerGuard"]) {
+            //Gathering disabled, no need to maintain position
+            Game.flags[creep.memory.homeRoom + "PowerGuard"].remove();
+        }
+
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'rangerNearDeath') {
             creep.memory.priority = 'rangerNearDeath';
         }
@@ -21,14 +27,6 @@ var creep_ranger = {
         var closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
-
-        var meleeThreat = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-        });
-
-        if (meleeThreat.length) {
-            meleeThreat.sort(targetAttacker);
-        }
 
         if (creep.memory.destination == creep.pos.roomName) {
             //In target room
@@ -78,11 +76,40 @@ var creep_ranger = {
                     stuckValue: 2
                 })
             } else if (closeFoe) {
-                creep.travelTo(closeFoe, {
-                    ignoreRoads: true,
-                    maxRooms: 1,
-                    allowSK: true
+                //Dodge melee threats, else aggressively pursue.
+                let meleeThreat = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
+
+                let thisThreat = undefined;
+                if (meleeThreat.length) {
+                    for (let thisFoe in meleeThreat) {
+                        if(determineThreat(meleeThreat[thisFoe])) {
+                            thisThreat = meleeThreat[thisFoe];
+                            break;
+                        }
+                    }
+                    
+                    if (thisThreat) {
+                        //Dodge away from foe
+                        creep.travelTo(thisThreat, {
+                            maxRooms: 1,
+                            range: 3                     
+                        }, true);
+                    } else {
+                        creep.travelTo(closeFoe, {
+                            ignoreRoads: true,
+                            maxRooms: 1,
+                            allowSK: true
+                        });
+                    }
+                } else {
+                    creep.travelTo(closeFoe, {
+                        ignoreRoads: true,
+                        maxRooms: 1,
+                        allowSK: true
+                    });
+                }                
             } else {
                 let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                     filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_TERMINAL)
@@ -151,25 +178,6 @@ var creep_ranger = {
                     creep.rangedMassAttack();
                 }
             }
-
-            let thisThreat = undefined;
-            if (meleeThreat.length) {
-                for (let thisFoe in meleeThreat) {
-                    if(determineThreat(meleeThreat[thisFoe])) {
-                        thisThreat = meleeThreat[thisFoe];
-                        break;
-                    }
-                }
-                
-                if (thisThreat) {
-                    //Dodge away from foe
-                    creep.travelTo(thisThreat, {
-                        range: 3,
-                        maxRooms: 1
-                    }, true);
-                } 
-            }
-            
         }
 
         //Only works with no attack parts

@@ -356,22 +356,20 @@ var creep_farMining = {
                     closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && (eCreep.owner.username != "Source Keeper" || eCreep.hits < eCreep.hitsMax))
                     });
-                } else {
-                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                    });
+                } else {        
                     closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
+                    if (closeFoe) {
+                        Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                        });
+                    }
                     if (creep.room.controller && creep.room.controller.reservation && creep.room.controller.reservation.username == 'Invader') {
                         eCores = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                             filter: (eStruct) => (!Memory.whiteList.includes(eStruct.owner.username))
                         })
                     }
-                }
-
-                if (Foe.length) {
-                    Foe.sort(targetAttacker);
                 }
 
                 if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
