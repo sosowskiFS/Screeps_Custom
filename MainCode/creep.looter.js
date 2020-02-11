@@ -21,7 +21,17 @@ var creep_looter = {
         } else {
             if (_.sum(creep.carry) <= creep.carryCapacity - 100) {
                 //In far room, loot container
-                if (creep.room.storage && creep.room.storage.owner.username != "Montblanc") {
+                //Check for ruins first
+                let ruins = creep.pos.findClosestByRange(FIND_RUINS, {
+                    filter: (thisRuin) => (thisRuin.store.getUsedCapacity() > 0)
+                });
+                if (ruins) {
+                    if (creep.withdraw(ruins, Object.keys(ruins.store)[0]) == ERR_NOT_IN_RANGE) {
+                        creep.travelTo(ruins, {
+                            maxRooms: 1
+                        });
+                    }
+                } else if (creep.room.storage && creep.room.storage.owner.username != "Montblanc") {
                     if (_.sum(creep.room.storage.store) <= 0) {
                         if (creep.room.terminal && _.sum(creep.room.terminal.store > 0)) {
                             if (Object.keys(creep.room.terminal).length > 1) {
