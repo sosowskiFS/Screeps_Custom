@@ -35,11 +35,11 @@ var creep_looter = {
                     if (_.sum(creep.room.storage.store) <= 0) {
                         if (creep.room.terminal && _.sum(creep.room.terminal.store > 0)) {
                             if (Object.keys(creep.room.terminal).length > 1) {
-                                if (creep.withdraw(creep.room.terminal, Object.keys(thisContainer.store)[1]) == ERR_NOT_IN_RANGE) {
+                                if (creep.withdraw(creep.room.terminal, Object.keys(creep.room.terminal.store)[1]) == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(creep.room.terminal);
                                 }
                             } else {
-                                if (creep.withdraw(creep.room.terminal, Object.keys(thisContainer.store)[0]) == ERR_NOT_IN_RANGE) {
+                                if (creep.withdraw(creep.room.terminal, Object.keys(creep.room.terminal.store)[0]) == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(creep.room.terminal);
                                 }
                             }
