@@ -65,9 +65,12 @@ var creep_farMining = {
                                     Game.flags[creep.memory.targetFlag].remove();
                                 }
                                 creep.memory.storing = true;
-                            } else if (creep.harvest(thisMineral) == ERR_NOT_IN_RANGE) {
+                            } else {
                                 creep.travelTo(thisMineral);
-                            }
+                                if (thisMineral.cooldown <= 0) {
+                                    creep.harvest(thisMineral);
+                                }
+                            } 
                         } else {
                             //Target isn't visible, go to room
                             creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
