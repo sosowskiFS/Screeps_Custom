@@ -222,7 +222,8 @@ var market_buyers = {
                 }
             }*/
 
-            var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST, RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER];
+            var sellMinerals = [RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM, RESOURCE_KEANIUM, RESOURCE_ZYNTHIUM, RESOURCE_CATALYST, RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
+            var noStoreMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
 
             var sellEnergyCap = 30000;
             var keepAmount = 20000;
@@ -236,8 +237,8 @@ var market_buyers = {
             }
             if (!hasSent && TerminalEnergy >= sellEnergyCap && (Game.time % 1000 == 0 || panicSell)) {
                 for (var y in sellMinerals) {
-                    if (sellMinerals[y] == RESOURCE_UTRIUM_BAR || sellMinerals[y] == RESOURCE_LEMERGIUM_BAR || sellMinerals[y] == RESOURCE_ZYNTHIUM_BAR || sellMinerals[y] == RESOURCE_KEANIUM_BAR || sellMinerals[y] == RESOURCE_OXIDANT || sellMinerals[y] == RESOURCE_REDUCTANT || sellMinerals[y] == RESOURCE_PURIFIER) {
-                        //Not storing compressed materials for now
+                    if (noStoreMinerals.indexOf(sellMinerals[y]) > -1) {
+                        //Not storing compressed/economic materials for now
                         keepAmount = 0;
                     }
                     let mineralInTerminal = thisTerminal.store[sellMinerals[y]] - keepAmount;

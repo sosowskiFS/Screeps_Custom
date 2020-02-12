@@ -19,16 +19,11 @@ var creep_farMinerSK = require('creep.farMinerSK');
 var creep_combat = require('creep.combat');
 var creep_claimer = require('creep.claimer');
 var creep_vandal = require('creep.vandal');
-var creep_constructor = require('creep.constructor');
-var creep_trump = require('creep.trump');
-var creep_Kebab = require('creep.removeKebab');
 var creep_Helper = require('creep.helper');
-var creep_towerDrainer = require('creep.towerDrainer');
 var creep_looter = require('creep.looter');
 var creep_assattacker = require('creep.assattacker');
 var creep_asshealer = require('creep.asshealer');
 var creep_assranger = require('creep.assranger');
-var creep_distractor = require('creep.distractor');
 var creep_powerAttack = require('creep.powerAttack');
 var creep_powerHeal = require('creep.powerHeal');
 var creep_powerCollect = require('creep.powerCollect');
@@ -1055,9 +1050,9 @@ module.exports.loop = function() {
                     Memory.creepInQue.splice(queSpawnIndex - 3, 4);
                 }
 
-                if (Game.flags["SignThis"] && Game.flags["SignThis"].pos.roomName == Game.spawns[i].pos.roomName) {
+                /*if (Game.flags["SignThis"] && Game.flags["SignThis"].pos.roomName == Game.spawns[i].pos.roomName) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'vandalize', '', energyIndex, '', '');
-                }
+                }*/
 
                 if (Game.flags[thisRoom.name + "ClaimThis"]) {
                     if (Game.flags["UseDefinedRoute"]) {
@@ -1065,19 +1060,6 @@ module.exports.loop = function() {
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'claim', Game.flags[thisRoom.name + "ClaimThis"].pos.roomName, energyIndex);
                     }
-                }
-
-                if (Game.flags[thisRoom.name + "BuildThis"]) {
-                    //var sitesOnTile = Game.flags[thisRoom.name + "BuildThis"].pos.lookFor(LOOK_CONSTRUCTION_SITES);
-                    //if (sitesOnTile.length) {
-                    if (Game.flags["UseDefinedRoute"]) {
-                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags[thisRoom.name + "BuildThis"].pos.roomName, 'E30N40');
-                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName, 'E30N39;E30N40;E28N40;E28N43;E27N43');
-                    } else {
-                        //spawn_BuildInstruction.run(Game.spawns[i], 'construct', sitesOnTile[0].id, energyIndex, Game.flags[thisRoom.name + "BuildThis"].pos.roomName);
-                        spawn_BuildInstruction.run(Game.spawns[i], 'construct', '', energyIndex, Game.flags["BuildThis"].pos.roomName);
-                    }
-                    //}
                 }
 
                 if (Game.flags[thisRoom.name + "RunningAssault"]) {
@@ -1098,6 +1080,14 @@ module.exports.loop = function() {
                     }
                 }
 
+                if (Game.flags[thisRoom.name + "SendHelper"]) {
+                    if (Game.flags["UseDefinedRoute"]) {
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E50N24;E51N23');
+                    } else {
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex);
+                    }
+                }
+
                 if (Game.flags[thisRoom.name + "Ranger"]) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'ranger', Game.flags[thisRoom.name + "Ranger"].pos.roomName, energyIndex, '', '')
                 }
@@ -1108,22 +1098,6 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "PowerGuard"]) {
                     spawn_BuildInstruction.run(Game.spawns[i], 'PowerGuard', Game.flags[thisRoom.name + "PowerGuard"].pos.roomName, energyIndex, '', '')
-                }
-
-                if (Game.flags[thisRoom.name + "SendHelper"]) {
-                    if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E50N24;E51N23');
-                    } else {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex);
-                    }
-                }
-
-                if (Game.flags[thisRoom.name + "Distract"]) {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'distract', Game.flags[thisRoom.name + "Distract"].pos.roomName, energyIndex, '', Game.flags[thisRoom.name + "Distract"].name);
-                }
-
-                if (Game.flags["RemoveKebab"] && thisRoom.name == 'E39N37') {
-                    spawn_BuildInstruction.run(Game.spawns[i], 'removeKebab', Game.flags["RemoveKebab"].pos.roomName, energyIndex, '', 'E32N47;E31N47');
                 }
 
                 if (Game.flags[thisRoom.name + "PowerGather"]) {
@@ -1390,15 +1364,6 @@ module.exports.loop = function() {
                 case 'claimer':
                     creep_claimer.run(creep);
                     break;
-                case 'TowerDrainer':
-                    creep_towerDrainer.run(creep);
-                    break;
-                case 'constructor':
-                    creep_constructor.run(creep);
-                    break;
-                case 'removeKebab':
-                    creep_Kebab.run(creep);
-                    break;
                 case 'looter':
                     creep_looter.run(creep);
                     break;
@@ -1410,9 +1375,6 @@ module.exports.loop = function() {
                     break;
                 case 'defender':
                     creep_combat.run(creep);
-                    break;
-                case 'trump':
-                    creep_trump.run(creep);
                     break;
                 case 'assattacker':
                 case 'assattackerNearDeath':
@@ -1426,9 +1388,6 @@ module.exports.loop = function() {
                 case 'asshealerNearDeath':
                 case 'targetlessHealer':
                     creep_asshealer.run(creep);
-                    break;
-                case 'distractor':
-                    creep_distractor.run(creep);
                     break;
                 case 'powerAttack':
                 case 'powerAttackNearDeath':
