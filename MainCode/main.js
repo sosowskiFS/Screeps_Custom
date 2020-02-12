@@ -940,13 +940,44 @@ module.exports.loop = function() {
 
                 //Handle Observers
                 if (Memory.postObserveTick && Memory.powerCheckList[thisRoom.name] && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
-                    //Search observed room for power bank
+                    
                     if (Game.rooms[Memory.powerCheckList[thisRoom.name][0]]) {
-                        var powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
+                        //Search observed room for power bank
+                        let powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
                             filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.ticksToDecay >= 4500)
                         });
                         if (powerbanks.length) {
                             Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(powerbanks[0].pos.x, powerbanks[0].pos.y, thisRoom.name + "PowerGather");
+                        }
+
+                        //Search observed room for resource deposit
+                        let rDeposits = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_DEPOSITS, {
+                            filter: (eStruct) => (eStruct.lastCooldown < 75)
+                        });
+                        if (rDeposits.length) {
+                            //Check to make sure a MineralMiner flag doesn't already exist here.
+                            let check1 = false;
+                            let check2 = false;
+                            let check3 = false;
+                            if (Game.flags[thisRoom.name + "FarMineral"] && Game.flags[thisRoom.name + "FarMineral"].pos.roomName == rDeposits[0].pos.roomName) {
+                                check1 = true;
+                            }
+                            if (Game.flags[thisRoom.name + "FarMineral2"] && Game.flags[thisRoom.name + "FarMineral2"].pos.roomName == rDeposits[0].pos.roomName) {
+                                check2 = true;
+                            }
+                            if (Game.flags[thisRoom.name + "FarMineral3"] && Game.flags[thisRoom.name + "FarMineral3"].pos.roomName == rDeposits[0].pos.roomName) {
+                                check3 = true;
+                            }
+                            if (!check1 && !check2 && !check3) {
+                                //No flag in this room, create one.
+                                if (!Game.flags[thisRoom.name + "FarMineral"]) {
+                                    Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral");
+                                } else if (!Game.flags[thisRoom.name + "FarMineral2"]) {
+                                    Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral2");
+                                } else if (!Game.flags[thisRoom.name + "FarMineral3"]) {
+                                    Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral3");
+                                }
+                            }
                         }
                     }
 
@@ -1082,7 +1113,7 @@ module.exports.loop = function() {
 
                 if (Game.flags[thisRoom.name + "SendHelper"]) {
                     if (Game.flags["UseDefinedRoute"]) {
-                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E50N24;E51N23');
+                        spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex, '', 'E18N43;E18N45;E18N46;E19N47;E17N47');
                     } else {
                         spawn_BuildInstruction.run(Game.spawns[i], 'helper', Game.flags[thisRoom.name + "SendHelper"].pos.roomName, energyIndex);
                     }
