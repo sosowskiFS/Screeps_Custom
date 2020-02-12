@@ -59,7 +59,7 @@ var creep_farMining = {
                     if (creep.memory.mineralTarget) {
                         let thisMineral = Game.getObjectById(creep.memory.mineralTarget);
                         if (thisMineral) {
-                            if (thisMineral.lastCooldown >= 75) {
+                            if (thisMineral.lastCooldown >= 28) {
                                 //Too much time to spend on harvesting this
                                 if (Game.flags[creep.memory.targetFlag]) {
                                     Game.flags[creep.memory.targetFlag].remove();

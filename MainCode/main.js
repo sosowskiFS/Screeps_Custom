@@ -952,7 +952,7 @@ module.exports.loop = function() {
 
                         //Search observed room for resource deposit
                         let rDeposits = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_DEPOSITS, {
-                            filter: (eStruct) => (eStruct.lastCooldown < 75)
+                            filter: (eStruct) => (eStruct.lastCooldown < 28)
                         });
                         if (rDeposits.length) {
                             //Check to make sure a MineralMiner flag doesn't already exist here.
