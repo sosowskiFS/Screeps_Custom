@@ -44,6 +44,10 @@ var creep_farMining = {
 
                 break;
             case 'farMineralMiner':
+                if (creep.store.getCapacity() <= 0) {
+                    //Too damaged, can't carry anything. suicide.
+                    creep.suicide();
+                }
                 if ((creep.store.getFreeCapacity() <= 0 || (creep.store.getUsedCapacity() > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
                     creep.memory.storing = true;
                 } else if (creep.store.getUsedCapacity == 0 && creep.memory.storing) {
