@@ -50,7 +50,7 @@ var creep_farMining = {
                 }
                 if ((creep.store.getFreeCapacity() <= 0 || (creep.store.getUsedCapacity() > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
                     creep.memory.storing = true;
-                } else if (creep.store.getUsedCapacity == 0 && creep.memory.storing) {
+                } else if (creep.store.getUsedCapacity() == 0 && creep.memory.storing) {
                     creep.memory.storing = false;
                 }
 
