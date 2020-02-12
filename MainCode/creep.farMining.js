@@ -74,10 +74,15 @@ var creep_farMining = {
                         }
                     } else if (creep.room.name == creep.memory.destination) {
                         //Find mineral target
-                        var mineralLocations = creep.room.find(FIND_DEPOSITS);
+                        let mineralLocations = creep.room.find(FIND_DEPOSITS);
                         if (mineralLocations.length) {
                             creep.memory.mineralTarget = mineralLocations[0].id;
                             creep.travelTo(mineralLocations[0]);
+                        } else {
+                            //No mineral anymore, delete flag.
+                            if (Game.flags[creep.memory.targetFlag]) {
+                                Game.flags[creep.memory.targetFlag].remove();
+                            }
                         }
                     } else {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
