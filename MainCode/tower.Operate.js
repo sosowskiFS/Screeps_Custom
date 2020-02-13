@@ -187,14 +187,12 @@ var tower_Operate = {
                     Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
 
                     if (tower.room.controller.level < 7) {                      
-                        tower.attack(closestHostile);
-                        if (range <= 5 && closestHostile.owner.username != 'Invader') {
+                        if (tower.pos.getRangeTo(closestHostile) <= 5 && closestHostile.owner.username != 'Invader') {
                             //Too close for comfort
                             tower.room.controller.activateSafeMode();
                         }
-                    } else {
-                        tower.attack(closestHostile);
                     }
+                    tower.attack(closestHostile);
                 }
             }
         } else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % checkDelay == 0)) {
