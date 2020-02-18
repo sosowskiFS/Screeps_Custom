@@ -954,7 +954,9 @@ module.exports.loop = function() {
                         let rDeposits = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_DEPOSITS, {
                             filter: (eStruct) => (eStruct.lastCooldown < 28)
                         });
-                        if (rDeposits.length) {
+                        //Check to make sure terminal isn't overflowing with this type of mat
+                        //(CAP : 5,000)
+                        if (rDeposits.length && thisRoom.terminal && (!thisRoom.terminal.store[rDeposits[0].depositType] || (thisRoom.terminal.store[rDeposits[0].depositType] && thisRoom.terminal.store[rDeposits[0].depositType] < 5000))) {                         
                             //Check to make sure a MineralMiner flag doesn't already exist here.
                             let check1 = false;
                             let check2 = false;
