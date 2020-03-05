@@ -80,11 +80,13 @@ var tower_Operate = {
                     //Add in potential defender damage
                     for (let thisDefender in defenders) {
                         defenders[thisDefender].body.forEach(function(thisPart) {
-                            if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
-                                flatDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
-                            } else if (thisPart.type == RANGED_ATTACK) {
-                                flatDamage += RANGED_ATTACK_POWER
-                            }
+                            if (thisPart.hits > 0) {
+                                if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
+                                    flatDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
+                                } else if (thisPart.type == RANGED_ATTACK) {
+                                    flatDamage += RANGED_ATTACK_POWER
+                                }
+                            }                  
                         });
                     }
 
@@ -93,13 +95,15 @@ var tower_Operate = {
                     let boostedTough = undefined;
 
                     allHostiles[thisHostile].body.forEach(function(thisPart) {
-                        if (thisPart.type == TOUGH && thisPart.boost) {
-                            boostedTough = thisPart.boost;
-                        } else if (thisPart.type == HEAL && thisPart.boost) {
-                            damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
-                        } else if (thisPart.type == HEAL) {
-                            damageReduction += HEAL_POWER
-                        }
+                        if (thisPart.hits > 0) {
+                            if (thisPart.type == TOUGH && thisPart.boost) {
+                                boostedTough = thisPart.boost;
+                            } else if (thisPart.type == HEAL && thisPart.boost) {
+                                damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
+                            } else if (thisPart.type == HEAL) {
+                                damageReduction += HEAL_POWER
+                            }
+                        }          
                     });
                     //Look for healer creeps within 3 spaces of target creep for further subtractions
                     let nearbyFriendos = allHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
@@ -108,19 +112,21 @@ var tower_Operate = {
                     for (let thisFriendo in nearbyFriendos) {
                         let friendRange = allHostiles[thisHostile].pos.getRangeTo(nearbyFriendos[thisFriendo]);
                         nearbyFriendos[thisFriendo].body.forEach(function(thisPart) {
-                            if (thisPart.type == HEAL && thisPart.boost) {
-                                if (friendRange == 1) {
-                                    damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
-                                } else {
-                                    damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
-                                }                             
-                            } else if (thisPart.type == HEAL) {
-                                if (friendRange == 1) {
-                                    damageReduction += HEAL_POWER
-                                } else {
-                                    damageReduction += RANGED_HEAL_POWER
-                                }   
-                            }
+                            if (thisPart.hits > 0) {
+                                if (thisPart.type == HEAL && thisPart.boost) {
+                                    if (friendRange == 1) {
+                                        damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
+                                    } else {
+                                        damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
+                                    }                             
+                                } else if (thisPart.type == HEAL) {
+                                    if (friendRange == 1) {
+                                        damageReduction += HEAL_POWER
+                                    } else {
+                                        damageReduction += RANGED_HEAL_POWER
+                                    }   
+                                }
+                            }                    
                         });
                     }
 
