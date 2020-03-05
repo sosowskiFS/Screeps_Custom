@@ -61,6 +61,20 @@ var tower_Operate = {
                 let damageRecord = 0;
                 let targetToShoot = undefined;
 
+                let defenderDamage = 0;
+                //Calculate potential defender damage
+                for (let thisDefender in defenders) {
+                    defenders[thisDefender].body.forEach(function(thisPart) {
+                        if (thisPart.hits > 0) {
+                            if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
+                                defenderDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
+                            } else if (thisPart.type == RANGED_ATTACK) {
+                                defenderDamage += RANGED_ATTACK_POWER
+                            }
+                        }                  
+                    });
+                }
+
                 for (let thisHostile in allHostiles) {
                     //Shoot at whatever target you can do the most damage to
                     //Calculate flat tower damage
@@ -78,17 +92,7 @@ var tower_Operate = {
                     }
 
                     //Add in potential defender damage
-                    for (let thisDefender in defenders) {
-                        defenders[thisDefender].body.forEach(function(thisPart) {
-                            if (thisPart.hits > 0) {
-                                if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
-                                    flatDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
-                                } else if (thisPart.type == RANGED_ATTACK) {
-                                    flatDamage += RANGED_ATTACK_POWER
-                                }
-                            }                  
-                        });
-                    }
+                    flatDamage += defenderDamage;
 
                     //Subtract target's TOUGH & HEAL damage soak
                     let damageReduction = 0;
