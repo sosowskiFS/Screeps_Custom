@@ -163,9 +163,12 @@ module.exports.loop = function() {
     }
 
     //Clean up crappy construction sites
+    //--Only clears roads.
     if (Game.flags["RemoveSites"]) {
         for (var s in Game.constructionSites) {
-            Game.constructionSites[s].remove();
+        	if (Game.constructionSites[s].structureType == STRUCTURE_ROAD) {
+        		Game.constructionSites[s].remove();
+        	}    
         }
         Game.flags["RemoveSites"].remove();
     }
@@ -732,9 +735,11 @@ module.exports.loop = function() {
                 if ((Game.time + 1) % 10000 == 0) {
                     //Clear construction sites a tick before so adding sites will actually work
                     if (!Game.flags["DoNotClear"]) {
-                        for (var s in Game.constructionSites) {
-                            Game.constructionSites[s].remove();
-                        }
+				        for (var s in Game.constructionSites) {
+				        	if (Game.constructionSites[s].structureType == STRUCTURE_ROAD) {
+				        		Game.constructionSites[s].remove();
+				        	}    
+				        }
                     }
                 }
                 if (Game.time % 10000 == 0) {
