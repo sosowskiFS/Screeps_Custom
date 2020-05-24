@@ -1069,13 +1069,6 @@ module.exports.loop = function() {
                 delay = 3;
             }
 
-            //Remove a creep in que possibly locking up other spawns in the event of a room level decrease
-            if (!Game.spawns[i].isActive() && Memory.creepInQue.indexOf(Game.spawns[i].name) >= 0) {
-            	//Clear creep from que array
-                var queSpawnIndex = Memory.creepInQue.indexOf(Game.spawns[i].name);
-                Memory.creepInQue.splice(queSpawnIndex - 3, 4);
-            }
-
             if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && Game.spawns[i].isActive() && !Game.spawns[i].spawning) {
                 //build routines that perform on the same tick assume the same energy level even after the first spawn used the energy
                 //Set energy level into memory per room, wipe memory when done with tick.

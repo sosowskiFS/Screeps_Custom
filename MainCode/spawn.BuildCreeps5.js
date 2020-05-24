@@ -593,12 +593,25 @@ var spawn_BuildCreeps5 = {
             let roomTarget = '';
             let farSource = '';
 
+            let purgeIDs = [];
             var queLength = Memory.creepInQue.length;
-            for (var i = 0; i < queLength; i++) {
+            for (var i = 0; i < queLength; i += 4) {
                 if (Memory.creepInQue[i] == thisRoom.name) {
-                    blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
-                    blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
+                    //Check if spawn still exists/is active. If not, ignore
+                    if (!Game.spawns[Memory.creepInQue[i + 3]]) {
+                        purgeIDs.push(i);
+                    } else if (!Game.spawns[Memory.creepInQue[i + 3]].isActive()) {
+                        purgeIDs.push(i);
+                    } else {
+                        blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
+                        blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
+                    }               
                 }
+            }
+
+            if (purgeIDs.length > 0){
+                //Only remove one at a time, removing one index is going to skew other indicies
+                Memory.creepInQue.splice(purgeIDs[0], 4);
             }
 
             if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !Game.flags[thisRoom.name + "RoomOperator"]) {
