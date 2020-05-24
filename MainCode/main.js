@@ -1069,7 +1069,7 @@ module.exports.loop = function() {
                 delay = 3;
             }
 
-            if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && !Game.spawns[i].spawning) {
+            if (Game.time % delay == 0 && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0 && Game.spawns[i].isActive() && !Game.spawns[i].spawning) {
                 //build routines that perform on the same tick assume the same energy level even after the first spawn used the energy
                 //Set energy level into memory per room, wipe memory when done with tick.
                 //Have build rountines check memory to get the current room energy level after builds
