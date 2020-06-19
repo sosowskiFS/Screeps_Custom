@@ -70,6 +70,11 @@ module.exports.loop = function() {
         }
     }
 
+    //Keep subscription active
+    if (!Game.cpu.unlocked) {
+    	Game.cpu.unlock()
+    }
+
     //Set defaults on various memory values
     if (Game.time % 10000 == 0 || Game.flags["CheckMemory"]) {
         memCheck();
@@ -1498,6 +1503,11 @@ module.exports.loop = function() {
                     break;
             }
         }
+    }
+
+    //If there's more than enough bucket, generate a Pixel
+    if (Game.cpu.bucket >= 9000) {
+    	Game.cpu.generatePixel();
     }
 
     //Creep - overall
