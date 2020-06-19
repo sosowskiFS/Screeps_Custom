@@ -41,7 +41,12 @@ var creep_farMiner = {
         	}
         } else {
         	if (Game.time >= creep.memory.nextReservationCheck) {
-        		if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
+                if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner != "Montblanc") {
+                    //Someone has taken control of this room, remove flag.
+                    if (Game.flags[creep.memory.targetFlag]) {
+                        Game.flags[creep.memory.targetFlag].remove();
+                    }
+                } else if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
         			if (creep.room.controller.reservation.username == 'Invader') {
                 		//Get guards in to clear core
                 		if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
