@@ -1304,13 +1304,13 @@ module.exports.loop = function() {
     Memory.roomCreeps = new Object();
 
     if (Game.time % 50 == 0) {
-        //Periodically look for purchasable tokens
-        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == SUBSCRIPTION_TOKEN && order.type == ORDER_SELL && order.price <= Game.market.credits);
+        //Periodically look for purchasable CPU unlocks
+        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_SELL && order.price <= Game.market.credits);
         if (FilteredOrders.length > 0) {
             FilteredOrders.sort(orderPriceCompareBuying);
             if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
-                Game.notify('A subscription token was purchased for ' + FilteredOrders[0].price + ' credits');
-                Memory.LastNotification = Game.time.toString() + ' : A subscription token was purchased for ' + FilteredOrders[0].price + ' credits'
+                Game.notify('A CPU unlock token was purchased for ' + FilteredOrders[0].price + ' credits');
+                Memory.LastNotification = Game.time.toString() + ' : A CPU unlock token was purchased for ' + FilteredOrders[0].price + ' credits'
             }
         }
     }
