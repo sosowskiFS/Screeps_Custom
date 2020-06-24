@@ -77,7 +77,9 @@ var creep_farMining = {
                         }
                     } else if (creep.room.name == creep.memory.destination) {
                         //Find mineral target
-                        let mineralLocations = creep.room.find(FIND_DEPOSITS);
+                        let mineralLocations = creep.room.find(FIND_DEPOSITS, {
+                            filter: (eStruct) => (eStruct.lastCooldown < 28)
+                        });
                         if (mineralLocations.length) {
                             creep.memory.mineralTarget = mineralLocations[0].id;
                             creep.travelTo(mineralLocations[0]);
