@@ -1313,6 +1313,19 @@ module.exports.loop = function() {
                 Memory.LastNotification = Game.time.toString() + ' : A CPU unlock token was purchased for ' + FilteredOrders[0].price + ' credits'
             }
         }
+
+        //Sell Pixels
+        if (Game.resources[PIXEL] >= 500) {
+        	let PixelOrders = Game.market.getAllOrders(order => order.resourceType == PIXEL && order.type == ORDER_BUY);
+        	if (PixelOrders.length > 0) {
+        	    PixelOrders.sort(orderSellCompare);
+        	    let sellAmount = Game.resources[PIXEL];
+        	    if (sellAmount > PixelOrders[0].amount) {
+        	    	sellAmount = PixelOrders[0].amount;
+        	    }
+        	    Game.market.deal(PixelOrders[0].id, sellAmount)
+        	}
+        }
     }
 
     //Globally controlls all creeps in all rooms
@@ -2193,6 +2206,14 @@ function hiHitCompare(a, b) {
     if (a.hits < b.hits)
         return 1;
     if (a.hits > b.hits)
+        return -1;
+    return 0;
+}
+
+function orderSellCompare(a, b) {
+    if (a.price < b.price)
+        return 1;
+    if (a.price > b.price)
         return -1;
     return 0;
 }
