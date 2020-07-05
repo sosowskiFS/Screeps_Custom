@@ -1315,7 +1315,7 @@ module.exports.loop = function() {
         }
 
         //Sell Pixels
-        if (Game.resources[PIXEL] >= 500) {
+        if (Game.resources[PIXEL] >= 100) {
         	let PixelOrders = Game.market.getAllOrders(order => order.resourceType == PIXEL && order.type == ORDER_BUY);
         	if (PixelOrders.length > 0) {
         	    PixelOrders.sort(orderSellCompare);
