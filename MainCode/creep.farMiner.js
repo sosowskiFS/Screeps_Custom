@@ -47,8 +47,8 @@ var creep_farMiner = {
                         Game.flags[creep.memory.targetFlag].remove();
                     }
                 } else if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
-        			if (creep.room.controller.reservation.username == 'Invader') {
-                		//Get guards in to clear core
+        			if (creep.room.controller.reservation.username != 'Montblanc') {
+                		//Get guards in to clear invader core/hostiles
                 		if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
                 			Memory.FarRoomsUnderAttack.push(creep.room.name);
                 		}
