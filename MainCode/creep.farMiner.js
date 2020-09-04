@@ -52,7 +52,8 @@ var creep_farMiner = {
                 		if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
                 			Memory.FarRoomsUnderAttack.push(creep.room.name);
                 		}
-                		Memory.FarClaimerNeeded[creep.room.name] = false;
+                		Memory.FarClaimerNeeded[creep.room.name] = true;
+                        creep.memory.nextReservationCheck = Game.time + 50;
                 	} else if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
                 		Memory.FarClaimerNeeded[creep.room.name] = true;
                 		creep.memory.nextReservationCheck = Game.time + 50;
