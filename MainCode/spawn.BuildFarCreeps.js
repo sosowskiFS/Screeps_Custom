@@ -668,7 +668,7 @@ function getClaimerBuild(energyCap) {
         thisConfig.push(CLAIM);
         thisConfig.push(MOVE);
         energyCap = energyCap - ConfigCost;
-        if (thisConfig.length >= 8) {
+        if (thisConfig.length >= 16) {
             break;
         }
     }
