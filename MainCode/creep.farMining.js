@@ -39,6 +39,19 @@ var creep_farMining = {
                             creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
                         }
                     }
+
+                    let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+			            filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+			        })
+			        if (talkingCreeps.length) {
+			            let coords = talkingCreeps[0].saying.split(";");
+			            if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+			                //Standing in the way of a creep
+			                let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+			                creep.move(thisDirection);
+			                creep.say("\uD83D\uDCA6", true);
+			            }
+			        }
                 }
                 //}
 
