@@ -14,18 +14,20 @@ var creep_work5 = {
         switch (creep.memory.priority) {
             case 'mule':
             case 'muleNearDeath':
-            if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
-                creep.memory.priority = 'muleNearDeath';
-            }
-
-            if (_.sum(creep.carry) <= 15) {
-                creep.memory.structureTarget = undefined;
-                let storageTarget = creep.room.storage;
-                if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
-                    storageTarget = creep.room.terminal;
+                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
+                    creep.memory.priority = 'muleNearDeath';
                 }
-                if (storageTarget) {
-                    if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
+
+                if (_.sum(creep.carry) <= 15) {
+                    creep.memory.structureTarget = undefined;
+                    let storageTarget = creep.room.storage;
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                        storageTarget = creep.room.terminal;
+                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        storageTarget = creep.room.terminal;
+                    }
+                    if (storageTarget) {
+                        if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
                             //Get from container
                             if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(storageTarget, {
@@ -115,7 +117,7 @@ var creep_work5 = {
                                     creep.memory.priority = 'repair';
                                     creep.memory.previousPriority = 'mule';
                                     Memory.repairTarget[creep.room.name] = undefined;
-                                }                                              
+                                }
                             }
                         } else {
                             creep.memory.structureTarget = undefined;
@@ -197,7 +199,7 @@ var creep_work5 = {
                                         terminalTarget = undefined;
                                     }
                                 }
-                                
+
                                 if (!terminalTarget) {
                                     //Store in factory
                                     let factoryTarget = undefined;
@@ -235,83 +237,83 @@ var creep_work5 = {
                                                 creep.memory.structureTarget = undefined;
                                             }
                                         } else {
-                                        //Build
-                                        targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
-                                        if (targets2) {
-                                            creep.memory.structureTarget = targets2.id;
-                                            let buildResult = creep.build(targets2)
-                                            if (buildResult == ERR_NOT_IN_RANGE) {
-                                                creep.travelTo(targets2, {
-                                                    maxRooms: 1
-                                                });
-                                            } else if (buildResult == ERR_NO_BODYPART) {
-                                                creep.suicide();
-                                            } else if (targets2.structureType == STRUCTURE_RAMPART && buildResult == OK) {
-                                                //Change job to repair, reset room repair target.
-                                                creep.memory.priority = 'repair';
-                                                creep.memory.previousPriority = 'mule';
-                                                Memory.repairTarget[creep.room.name] = undefined;
-                                            }
-                                        } else {
-                                            //Upgrade
-                                            if (creep.room.controller.level == 8) {
-                                                //Check for nearby link and fill it if possible.
-                                                if (Memory.linkList[creep.room.name].length > 1) {
-                                                    var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
-                                                    if (upgraderLink && upgraderLink.energy < 200) {
-                                                        creep.memory.structureTarget = upgraderLink.id;
-                                                        if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                            creep.travelTo(upgraderLink, {
+                                            //Build
+                                            targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                                            if (targets2) {
+                                                creep.memory.structureTarget = targets2.id;
+                                                let buildResult = creep.build(targets2)
+                                                if (buildResult == ERR_NOT_IN_RANGE) {
+                                                    creep.travelTo(targets2, {
+                                                        maxRooms: 1
+                                                    });
+                                                } else if (buildResult == ERR_NO_BODYPART) {
+                                                    creep.suicide();
+                                                } else if (targets2.structureType == STRUCTURE_RAMPART && buildResult == OK) {
+                                                    //Change job to repair, reset room repair target.
+                                                    creep.memory.priority = 'repair';
+                                                    creep.memory.previousPriority = 'mule';
+                                                    Memory.repairTarget[creep.room.name] = undefined;
+                                                }
+                                            } else {
+                                                //Upgrade
+                                                if (creep.room.controller.level == 8) {
+                                                    //Check for nearby link and fill it if possible.
+                                                    if (Memory.linkList[creep.room.name].length > 1) {
+                                                        var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+                                                        if (upgraderLink && upgraderLink.energy < 200) {
+                                                            creep.memory.structureTarget = upgraderLink.id;
+                                                            if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                                                creep.travelTo(upgraderLink, {
+                                                                    maxRooms: 1
+                                                                });
+                                                            }
+                                                        } else {
+                                                            //Turn into a repair worker temporarily
+                                                            creep.memory.priority = 'repair';
+                                                            creep.memory.previousPriority = 'mule';
+                                                        }
+                                                    }
+                                                } else {
+                                                    creep.memory.structureTarget = creep.room.controller.id;
+                                                    if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+                                                        if (Game.flags[creep.room.name + "Controller"]) {
+                                                            creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                                                                maxRooms: 1
+                                                            });
+                                                        } else {
+                                                            creep.travelTo(creep.room.controller, {
                                                                 maxRooms: 1
                                                             });
                                                         }
-                                                    } else {
-                                                        //Turn into a repair worker temporarily
-                                                        creep.memory.priority = 'repair';
-                                                        creep.memory.previousPriority = 'mule';
+                                                    } else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
+                                                        creep.suicide();
                                                     }
                                                 }
-                                            } else {
-                                                creep.memory.structureTarget = creep.room.controller.id;
-                                                if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                                                    if (Game.flags[creep.room.name + "Controller"]) {
-                                                        creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                                                            maxRooms: 1
-                                                        });
-                                                    } else {
-                                                        creep.travelTo(creep.room.controller, {
-                                                            maxRooms: 1
-                                                        });
-                                                    }
-                                                } else if (creep.upgradeController(creep.room.controller) == ERR_NO_BODYPART) {
-                                                    creep.suicide();
-                                                }
-                                            }
-                                        } //targets2
-                                    } //FactoryTarget
-                                } //TerminalTarget
-                            } //targets
-                        } //structureTarget
-                    } //carry energy check
-                } //storage target check
-            } //carry check
-            break;
+                                            } //targets2
+                                        } //FactoryTarget
+                                    } //TerminalTarget
+                                } //targets
+                            } //structureTarget
+                        } //carry energy check
+                    } //storage target check
+                } //carry check
+                break;
             case 'distributor':
             case 'distributorNearDeath':
-            if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
-                creep.memory.priority = 'distributorNearDeath';
-            }
-
-            if (creep.memory.previousPriority == 'labWorker' && Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
-                DoResourceCheck(creep);
-            }
-
-            if (_.sum(creep.carry) <= 0) {
-                if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed) {
-                    creep.memory.priority = 'labWorker';
-                    break;
+                if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
+                    creep.memory.priority = 'distributorNearDeath';
                 }
-                creep.memory.structureTarget = undefined;
+
+                if (creep.memory.previousPriority == 'labWorker' && Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
+                    DoResourceCheck(creep);
+                }
+
+                if (_.sum(creep.carry) <= 0) {
+                    if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed) {
+                        creep.memory.priority = 'labWorker';
+                        break;
+                    }
+                    creep.memory.structureTarget = undefined;
                     //Get from storage
                     //Check 4th link first just in case
                     var linkTarget = undefined;
@@ -326,7 +328,9 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                            storageTarget = creep.room.terminal;
+                        } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                             storageTarget = creep.room.terminal;
                         }
                         if (storageTarget) {
@@ -434,7 +438,9 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                            storageTarget = creep.room.terminal;
+                        } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                             storageTarget = creep.room.terminal;
                         }
                         if (storageTarget) {
@@ -469,8 +475,8 @@ var creep_work5 = {
                     }
                 }
                 break;
-                case 'mineralMiner':
-                case 'mineralMinerNearDeath':
+            case 'mineralMiner':
+            case 'mineralMinerNearDeath':
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'mineralMinerNearDeath') {
                     creep.memory.priority = 'mineralMinerNearDeath';
                 }
@@ -522,34 +528,34 @@ var creep_work5 = {
                     }
                 }
                 break;
-            }
         }
-    };
-
-    module.exports = creep_work5;
-
-    function repairCompare(a, b) {
-        if (a.hits < b.hits)
-            return -1;
-        if (a.hits > b.hits)
-            return 1;
-        return 0;
     }
+};
 
-    function orderPriceCompareBuying(a, b) {
-        if (a.price < b.price)
-            return -1;
-        if (a.price > b.price)
-            return 1;
-        return 0;
-    }
+module.exports = creep_work5;
 
-    function DoResourceCheck(creep) {
-        creep.memory.nextResourceCheck = Game.time + 50;
-        if (creep.memory.resourceChecks < 15) {
-            var lab4 = Game.getObjectById(creep.memory.lab4);
-            var lab5 = Game.getObjectById(creep.memory.lab5);
-            if (creep.room.terminal && creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
+function repairCompare(a, b) {
+    if (a.hits < b.hits)
+        return -1;
+    if (a.hits > b.hits)
+        return 1;
+    return 0;
+}
+
+function orderPriceCompareBuying(a, b) {
+    if (a.price < b.price)
+        return -1;
+    if (a.price > b.price)
+        return 1;
+    return 0;
+}
+
+function DoResourceCheck(creep) {
+    creep.memory.nextResourceCheck = Game.time + 50;
+    if (creep.memory.resourceChecks < 15) {
+        var lab4 = Game.getObjectById(creep.memory.lab4);
+        var lab5 = Game.getObjectById(creep.memory.lab5);
+        if (creep.room.terminal && creep.room.terminal.store[creep.memory.mineral6] >= 40000) {
             //Immediately swap flags
             creep.memory.resourceChecks = 15;
             if (creep.memory.mineral5 == RESOURCE_CATALYST && creep.memory.mineral6 != RESOURCE_CATALYZED_GHODIUM_ACID) {
@@ -572,12 +578,12 @@ var creep_work5 = {
                                     targetPrice = thisOrder.Price
                                 } else {
                                     targetPrice = targetPrice - 0.001
-                                }   
+                                }
                             }
                             //Regardless of everything, never dip below 1.
                             if (targetPrice < 0.5) {
                                 targetPrice = 0.5
-                            }  
+                            }
                             Game.market.changeOrderPrice(foundOrder, targetPrice);
                             Game.market.extendOrder(foundOrder, creep.room.terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
                         } else {
@@ -620,7 +626,7 @@ var creep_work5 = {
                         //Regardless of everything, never dip below 1.
                         if (targetPrice < 0.5) {
                             targetPrice = 0.5
-                        } 
+                        }
                         Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
                     }
                 }

@@ -42,7 +42,7 @@ var creep_baseOp = {
             if (creep.memory.jobFocus) {
                 NotifyString += " JOB FOCUS:" + creep.memory.jobFocus
             }
-            NotifyString += " ON TICK:" + Game.time;          
+            NotifyString += " ON TICK:" + Game.time;
             Game.notify(NotifyString);
             creep.memory = undefined;
             creep.memory.priority = 'baseOp';
@@ -176,7 +176,9 @@ var creep_baseOp = {
                     }
                 } else {
                     var storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 33000) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                        storageTarget = creep.room.terminal;
+                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                         storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
@@ -254,7 +256,7 @@ var creep_baseOp = {
                     //Shouldn't have gotten here in the first place
                     creep.memory.jobFocus = undefined;
                     creep.memory.structureTarget = undefined;
-                }            
+                }
             } else {
                 var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
                 if (pSpawn) {
@@ -293,7 +295,9 @@ var creep_baseOp = {
                     }
                 } else {
                     var storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 33000) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                        storageTarget = creep.room.terminal;
+                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                         storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
@@ -483,7 +487,7 @@ var creep_baseOp = {
                         maxRooms: 1
                     }, true);
                 }
-            } 
+            }
         }
     }
 };
@@ -505,7 +509,7 @@ function setupCreepMemory(creep) {
         creep.memory.sources = Memory.sourceList[creep.room.name];
         creep.memory.empoweredSources = [Game.time, Game.time];
     }
-    
+
     if (!creep.memory.spawnList || Game.time % 10000 == 0) {
         creep.memory.spawnList = [];
         creep.memory.empoweredSpawns = [];
