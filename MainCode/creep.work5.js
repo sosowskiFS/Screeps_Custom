@@ -21,7 +21,7 @@ var creep_work5 = {
                 if (_.sum(creep.carry) <= 15) {
                     creep.memory.structureTarget = undefined;
                     let storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
                         storageTarget = creep.room.terminal;
                     } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                         storageTarget = creep.room.terminal;
@@ -328,7 +328,7 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
                             storageTarget = creep.room.terminal;
                         } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                             storageTarget = creep.room.terminal;
@@ -438,7 +438,7 @@ var creep_work5 = {
                         }
                     } else {
                         var storageTarget = creep.room.storage;
-                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 50000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
                             storageTarget = creep.room.terminal;
                         } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                             storageTarget = creep.room.terminal;

@@ -811,13 +811,13 @@ module.exports.loop = function() {
                 }
 
                 if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage) {
-                    if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < 250000) {
+                    if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < 250000 && thisRoom.terminal.store[RESOURCE_ENERGY] < 50000) {
                         if (thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
                             Memory.energyNeedRooms.unshift(thisRoom.name);
                         } else {
                             Memory.energyNeedRooms.push(thisRoom.name);
                         }                       
-                    } else if (Memory.energyNeedRooms.indexOf(thisRoom.name) != -1 && thisRoom.storage.store[RESOURCE_ENERGY] >= 255000) {
+                    } else if (Memory.energyNeedRooms.indexOf(thisRoom.name) != -1 && (thisRoom.storage.store[RESOURCE_ENERGY] >= 255000 || thisRoom.terminal.store[RESOURCE_ENERGY] >= 50000)) {
                         let tempIndex = Memory.energyNeedRooms.indexOf(thisRoom.name);
                         Memory.energyNeedRooms.splice(tempIndex, 1);
                     }
