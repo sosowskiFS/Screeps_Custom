@@ -190,7 +190,7 @@ var creep_farMining = {
                     }
                     if (creep.room.controller && creep.room.controller.reservation && creep.room.controller.reservation.username == 'Invader') {
                         eCores = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                            filter: (eStruct) => (!Memory.whiteList.includes(eStruct.owner.username))
+                            filter: (eStruct) => (eStruct.owner.username == 'Invader')
                         })
                     }
                 }
