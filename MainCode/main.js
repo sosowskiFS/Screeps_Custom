@@ -441,7 +441,7 @@ module.exports.loop = function() {
                             Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
                         }
                     }
-                    Game.map.visual.text("ENG : " + Math.round(thisRoom.storage.store[RESOURCE_ENERGY]).toString(), new RoomPosition(1, 1, thisRoom.name), { color: getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.store.getCapacity(), true), backgroundColor: '#000000' })
+                    Game.map.visual.text("\u{26A1}" + formatNumber(Math.round(thisRoom.storage.store[RESOURCE_ENERGY])), new RoomPosition(1, 1, thisRoom.name), { color: '#FFFFFF', backgroundColor: '#000000' })
                 }
 
                 //Get non-suppliers off the supplier spot
@@ -694,7 +694,7 @@ module.exports.loop = function() {
                     }
                 }
                 if (Memory.nukerList[thisRoom.name]) {
-                    Game.map.visual.circle(new RoomPosition(25, 25, thisRoom.name), { fill: 'transparent', radius: NUKE_RANGE * 50, stroke: '#ff0000' });
+                    Game.map.visual.circle(new RoomPosition(25, 25, thisRoom.name), { fill: 'transparent', radius: NUKE_RANGE * 50, stroke: '#ff0000', opacity: 0.2});
                 }
 
                 //Get list of factories
