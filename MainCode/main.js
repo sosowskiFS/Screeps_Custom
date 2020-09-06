@@ -72,7 +72,7 @@ module.exports.loop = function() {
 
     //Keep subscription active
     if (!Game.cpu.unlocked) {
-    	Game.cpu.unlock()
+        Game.cpu.unlock()
     }
 
     //Set defaults on various memory values
@@ -171,9 +171,9 @@ module.exports.loop = function() {
     //--Only clears roads.
     if (Game.flags["RemoveSites"]) {
         for (var s in Game.constructionSites) {
-        	if (Game.constructionSites[s].structureType == STRUCTURE_ROAD) {
-        		Game.constructionSites[s].remove();
-        	}    
+            if (Game.constructionSites[s].structureType == STRUCTURE_ROAD) {
+                Game.constructionSites[s].remove();
+            }
         }
         Game.flags["RemoveSites"].remove();
     }
@@ -196,15 +196,15 @@ module.exports.loop = function() {
                         try {
                             Game.flags[TF].pos.createFlag(splitList[0]);
                             Game.flags[TF].remove();
-                        } catch(error) {
+                        } catch (error) {
                             //Despite .pos not being reliant on seeing the room, this still wants to act up?
                             //Call for a guard if haven't already
                             if (Memory.FarRoomsUnderAttack.indexOf(Game.flags[TF].pos.roomName) == -1) {
-					            Memory.FarRoomsUnderAttack.push(Game.flags[TF].pos.roomName);
-					        }
+                                Memory.FarRoomsUnderAttack.push(Game.flags[TF].pos.roomName);
+                            }
                             Game.notify('Could not create flag ' + splitList[0] + '.');
                         }
-                        
+
                     }
                 }
             }
@@ -350,7 +350,7 @@ module.exports.loop = function() {
                 }
                 tower_Operate.run(towers[y], Memory.attackDuration, y);
             }
-        }     
+        }
     }
 
     //Reset mineral flag totals before going into loop
@@ -426,19 +426,22 @@ module.exports.loop = function() {
                 let roomVis = new RoomVisual(thisRoom.name);
 
                 //Controller Progress + Storage Amount + CPU Average
-                if (thisRoom.controller.level < 8) {
-                    drawPie(roomVis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 3.5);
-                    if (thisRoom.storage) {
+                if (thisRoom.storage) {
+                    if (thisRoom.controller.level < 8) {
+                        drawPie(roomVis, Math.round(thisRoom.controller.progress), thisRoom.controller.progressTotal, 'RCL ' + thisRoom.controller.level, getColourByPercentage(thisRoom.controller.progress / thisRoom.controller.progressTotal, true), 2, 3.5);
+                        if (thisRoom.storage) {
+                            drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.store.getCapacity(), 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.store.getCapacity(), true), 2, 2.5);
+                            if (thisRoom.storage.store[RESOURCE_ENERGY] <= 40000) {
+                                Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
+                            }
+                        }
+                    } else if (thisRoom.storage) {
                         drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.store.getCapacity(), 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.store.getCapacity(), true), 2, 2.5);
                         if (thisRoom.storage.store[RESOURCE_ENERGY] <= 40000) {
                             Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
                         }
                     }
-                } else if (thisRoom.storage) {
-                    drawPie(roomVis, Math.round(thisRoom.storage.store[RESOURCE_ENERGY]), thisRoom.storage.store.getCapacity(), 'Energy', getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.store.getCapacity(), true), 2, 2.5);
-                    if (thisRoom.storage.store[RESOURCE_ENERGY] <= 40000) {
-                        Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + ' Energy levels are critically low!'
-                    }
+                    Game.map.visual.text("ENG : " + Math.round(thisRoom.storage.store[RESOURCE_ENERGY]).toString(), new RoomPosition(1, 1, thisRoom.name), { color: getColourByPercentage(thisRoom.storage.store[RESOURCE_ENERGY] / thisRoom.storage.store.getCapacity(), true), backgroundColor: '#000000' })
                 }
 
                 //Get non-suppliers off the supplier spot
@@ -690,6 +693,9 @@ module.exports.loop = function() {
                         Memory.nukerList[thisRoom.name].push(theseNukes[0].id);
                     }
                 }
+                if (Memory.nukerList[thisRoom.name]) {
+                    Game.map.visual.circle(new RoomPosition(25, 25, thisRoom.name), { fill: 'transparent', radius: NUKE_RANGE * 50, stroke: '#ff0000' });
+                }
 
                 //Get list of factories
                 if (Game.time % 5000 == 0 || !Memory.factoryList[thisRoom.name]) {
@@ -740,11 +746,11 @@ module.exports.loop = function() {
                 if ((Game.time + 1) % 10000 == 0) {
                     //Clear construction sites a tick before so adding sites will actually work
                     if (!Game.flags["DoNotClear"]) {
-				        for (var s in Game.constructionSites) {
-				        	if (Game.constructionSites[s].structureType == STRUCTURE_ROAD) {
-				        		Game.constructionSites[s].remove();
-				        	}    
-				        }
+                        for (var s in Game.constructionSites) {
+                            if (Game.constructionSites[s].structureType == STRUCTURE_ROAD) {
+                                Game.constructionSites[s].remove();
+                            }
+                        }
                     }
                 }
                 if (Game.time % 10000 == 0) {
@@ -816,7 +822,7 @@ module.exports.loop = function() {
                             Memory.energyNeedRooms.unshift(thisRoom.name);
                         } else {
                             Memory.energyNeedRooms.push(thisRoom.name);
-                        }                       
+                        }
                     } else if (Memory.energyNeedRooms.indexOf(thisRoom.name) != -1 && (thisRoom.storage.store[RESOURCE_ENERGY] >= 255000 || thisRoom.terminal.store[RESOURCE_ENERGY] >= 50000)) {
                         let tempIndex = Memory.energyNeedRooms.indexOf(thisRoom.name);
                         Memory.energyNeedRooms.splice(tempIndex, 1);
@@ -954,7 +960,7 @@ module.exports.loop = function() {
 
                 //Handle Observers
                 if (Memory.postObserveTick && Memory.powerCheckList[thisRoom.name] && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
-                    
+
                     if (Game.rooms[Memory.powerCheckList[thisRoom.name][0]]) {
                         //Search observed room for power bank
                         let powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
@@ -970,7 +976,7 @@ module.exports.loop = function() {
                         });
                         //Check to make sure terminal isn't overflowing with this type of mat
                         //(CAP : 5,000)
-                        if (rDeposits.length && thisRoom.terminal && (!thisRoom.terminal.store[rDeposits[0].depositType] || (thisRoom.terminal.store[rDeposits[0].depositType] && thisRoom.terminal.store[rDeposits[0].depositType] < 5000))) {                         
+                        if (rDeposits.length && thisRoom.terminal && (!thisRoom.terminal.store[rDeposits[0].depositType] || (thisRoom.terminal.store[rDeposits[0].depositType] && thisRoom.terminal.store[rDeposits[0].depositType] < 5000))) {
                             //Check to make sure a MineralMiner flag doesn't already exist here.
                             let check1 = false;
                             let check2 = false;
@@ -1320,15 +1326,15 @@ module.exports.loop = function() {
 
         //Sell Pixels
         if (Game.resources[PIXEL] >= 100) {
-        	let PixelOrders = Game.market.getAllOrders(order => order.resourceType == PIXEL && order.type == ORDER_BUY);
-        	if (PixelOrders.length > 0) {
-        	    PixelOrders.sort(orderSellCompare);
-        	    let sellAmount = Game.resources[PIXEL];
-        	    if (sellAmount > PixelOrders[0].amount) {
-        	    	sellAmount = PixelOrders[0].amount;
-        	    }
-        	    Game.market.deal(PixelOrders[0].id, sellAmount)
-        	}
+            let PixelOrders = Game.market.getAllOrders(order => order.resourceType == PIXEL && order.type == ORDER_BUY);
+            if (PixelOrders.length > 0) {
+                PixelOrders.sort(orderSellCompare);
+                let sellAmount = Game.resources[PIXEL];
+                if (sellAmount > PixelOrders[0].amount) {
+                    sellAmount = PixelOrders[0].amount;
+                }
+                Game.market.deal(PixelOrders[0].id, sellAmount)
+            }
         }
     }
 
@@ -1524,7 +1530,7 @@ module.exports.loop = function() {
 
     //If there's more than enough bucket, generate a Pixel
     if (Game.cpu.bucket >= 9000) {
-    	Game.cpu.generatePixel();
+        Game.cpu.generatePixel();
     }
 
     //Creep - overall
