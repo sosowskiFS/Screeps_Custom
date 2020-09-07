@@ -340,7 +340,7 @@ var creep_work5 = {
                         });
                         if (groundItems.length > 0) {
                             if (creep.pickup(groundItems[0]) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(groundTarget, {
+                                creep.travelTo(groundItems[0], {
                                     ignoreRoads: true
                                 });
                                 creep.memory.groundEnergy = groundItems[0].id;
