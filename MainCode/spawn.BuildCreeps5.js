@@ -617,7 +617,11 @@ var spawn_BuildCreeps5 = {
             if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !Game.flags[thisRoom.name + "RoomOperator"]) {
                 prioritizedRole = 'mule';
                 storageID = thisRoom.storage.id;
-                connectedLink = strLinks[1];
+                if (strLinks.length >= 4) {
+                    connectedLink = strLinks[3];
+                } else {
+                    connectedLink = undefined;
+                }            
                 creepSource = strTerminal;
             } else if (miners.length < minerMax) {
                 switch (storageMiners.length) {

@@ -20,27 +20,39 @@ var creep_work5 = {
 
                 if (_.sum(creep.carry) <= 15) {
                     creep.memory.structureTarget = undefined;
-                    let storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
-                        storageTarget = creep.room.terminal;
-                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
-                        storageTarget = creep.room.terminal;
+                    let linkTarget = undefined;
+                    if (creep.memory.linkSource) {
+                        linkTarget = Game.getObjectById(creep.memory.linkSource)
                     }
-                    if (storageTarget) {
-                        if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
-                            //Get from container
-                            if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(storageTarget, {
-                                    maxRooms: 1
-                                });
-                            }
-                        } else {
-                            var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
-                            if (spawnTarget) {
-                                if (!creep.pos.isNearTo(spawnTarget)) {
-                                    creep.travelTo(spawnTarget, {
+                    if (linkTarget && linkTarget.energy >= 200) {
+                        if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(linkTarget, {
+                                ignoreRoads: true
+                            });
+                        }
+                    } else {                   
+                        let storageTarget = creep.room.storage;
+                        if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                            storageTarget = creep.room.terminal;
+                        } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                            storageTarget = creep.room.terminal;
+                        }
+                        if (storageTarget) {
+                            if (storageTarget.store[RESOURCE_ENERGY] >= 50) {
+                                //Get from container
+                                if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(storageTarget, {
                                         maxRooms: 1
                                     });
+                                }
+                            } else {
+                                var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
+                                if (spawnTarget) {
+                                    if (!creep.pos.isNearTo(spawnTarget)) {
+                                        creep.travelTo(spawnTarget, {
+                                            maxRooms: 1
+                                        });
+                                    }
                                 }
                             }
                         }
