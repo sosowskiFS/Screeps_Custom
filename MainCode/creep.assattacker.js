@@ -68,6 +68,9 @@ var creep_assattacker = {
             let closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "KamiKatze")
             });
+            let closePFoe = creep.pos.findClosestByPath(FIND_HOSTILE_POWER_CREEPS, {
+                filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "KamiKatze")
+            });
 
             let otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (mCreep) => ((mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer" || mCreep.memory.priority == "asshealerNearDeath") && mCreep.memory.attackerID == creep.id)
@@ -364,6 +367,12 @@ var creep_assattacker = {
                                             maxRooms: 1,
                                             allowSK: true
                                         });
+                                    } else if (closePFoe && creep.attack(closePFoe) != ERR_NO_BODYPART) {
+                                    	creep.moveTo(closePFoe, {
+                                            ignoreRoads: true,
+                                            maxRooms: 1,
+                                            allowSK: true
+                                        });
                                     } else if (targetFlag) {
                                         targetFlag.remove();
                                     }
@@ -519,6 +528,27 @@ var creep_assattacker = {
                 } else {
                     creep.rangedAttack(closeFoe);
                     creep.attack(closeFoe);
+                }
+            }
+            if (closePFoe) {
+            	var lookResult = closePFoe.pos.lookFor(LOOK_STRUCTURES);
+                let inRampart = false;
+                if (lookResult.length) {
+                    for (let d = 0; d < lookResult.length; d++) {
+                        if (lookResult[d].structureType == STRUCTURE_RAMPART) {
+                            inRampart = true;
+                            break;
+                        }
+                    }
+                    if (inRampart) {
+                        creep.rangedMassAttack();
+                    } else {
+                        creep.rangedAttack(closePFoe);
+                        creep.attack(closePFoe);
+                    }
+                } else {
+                    creep.rangedAttack(closePFoe);
+                    creep.attack(closePFoe);
                 }
             }
         } else {
