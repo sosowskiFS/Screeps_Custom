@@ -255,16 +255,19 @@ module.exports.loop = function() {
                     Memory.roomCreeps[towers[y].room.name] = towers[y].room.find(FIND_MY_CREEPS);
                     var RampartDirection = ""
                     //Check for hostiles in this room
-                    var hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
+                    let hostiles = towers[y].room.find(FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                     });
-                    if (hostiles.length > 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
+                    let pHostiles = towers[y].room.find(FIND_HOSTILE_POWER_CREEPS, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    });
+                    if ((hostiles.length > 0 || pHostiles.length > 0) && Memory.roomsUnderAttack.indexOf(towers[y].room.name) === -1) {
                         Memory.roomsUnderAttack.push(towers[y].room.name);
                         //RampartDirection = "Closed";
                         if (!determineCreepThreat(hostiles[0], hostiles.length)) {
                             Memory.roomsPrepSalvager.push(towers[y].room.name);
                         }
-                    } else if (hostiles.length == 0 && Memory.roomsUnderAttack.indexOf(towers[y].room.name) != -1) {
+                    } else if ((hostiles.length == 0 && pHostiles.length == 0) && Memory.roomsUnderAttack.indexOf(towers[y].room.name) != -1) {
                         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(towers[y].room.name);
                         var salvagerPos = Memory.roomsPrepSalvager.indexOf(towers[y].room.name);
                         var nukes = towers[y].room.find(FIND_NUKES);
@@ -306,7 +309,7 @@ module.exports.loop = function() {
                         }
                     }
 
-                    if (hostiles.length > 0) {
+                    if (hostiles.length > 0 || pHostiles.length > 0) {
                         //Loop through hostiles, close ramparts within 5 radius
                         //Set ramparts to public, re-seal every tick
                         //controlRamparts("Open", towers[y]); 
@@ -330,6 +333,22 @@ module.exports.loop = function() {
                                     Memory.ClosedRampartList[towers[y].room.name].push(nearbyRamparts[p].id);
                                 }
                                 LockedThisTick.push(nearbyRamparts[p].id);
+                            }
+                        }
+                        for (let t = 0; t < pHostiles.length; t++) {
+                            let nearbyRamparts = pHostiles[t].pos.findInRange(FIND_MY_STRUCTURES, 4, {
+                                filter: {
+                                    structureType: STRUCTURE_RAMPART
+                                }
+                            })
+                            for (let g = 0; g < nearbyRamparts.length; g++) {
+                                if (nearbyRamparts[g].isPublic) {
+                                    nearbyRamparts[g].setPublic(false);
+                                }
+                                if (Memory.ClosedRampartList[towers[y].room.name].indexOf(nearbyRamparts[g].id) == -1) {
+                                    Memory.ClosedRampartList[towers[y].room.name].push(nearbyRamparts[g].id);
+                                }
+                                LockedThisTick.push(nearbyRamparts[g].id);
                             }
                         }
                         //Compare ramparts locked this tick with previously locked ramparts

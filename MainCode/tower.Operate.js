@@ -53,10 +53,19 @@ var tower_Operate = {
                 let allHostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
                     filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
+                let pHostiles = towers[y].room.find(FIND_HOSTILE_POWER_CREEPS, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                });
                 let allTowers = tower.room.find(FIND_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
                 });
-                hostileCount = allHostiles.length;
+                hostileCount = 0
+                if (allHostiles.length) {
+                    hostileCount += allHostiles.length;
+                }
+                if (pHostiles.length) {
+                    hostileCount += pHostiles.length;
+                }
 
                 let damageRecord = 0;
                 let targetToShoot = undefined;
@@ -142,6 +151,64 @@ var tower_Operate = {
                     //Display the calculated damage total under the target
                     let dColor = 'green';
                     if ((flatDamage - damageReduction) <= 0) {
+                        dColor = 'red';
+                    }
+                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, {color: dColor, font: 0.8}); 
+
+                    //Determine if this beats the best
+                    if ((flatDamage - damageReduction) > damageRecord) {
+                        damageRecord = (flatDamage - damageReduction);
+                        targetToShoot = allHostiles[thisHostile];
+                    }
+                }
+
+                for (let thisHostile in pHostiles) {
+                    //Shoot at whatever target you can do the most damage to
+                    //Calculate flat tower damage
+                    let flatDamage = 0;
+                    for (let thisTower in allTowers) {
+                        let thisRange = allTowers[thisTower].pos.getRangeTo(pHostiles[thisHostile]);
+                        if (thisRange <= 5) {
+                            flatDamage += TOWER_POWER_ATTACK;
+                        } else if (thisRange >= 20) {
+                            flatDamage += TOWER_POWER_ATTACK - (TOWER_FALLOFF * TOWER_POWER_ATTACK);
+                        } else {
+                            //Midrange calculation
+                            flatDamage += Math.round(TOWER_POWER_ATTACK - (((thisRange - 5) * (TOWER_FALLOFF / 15)) * TOWER_POWER_ATTACK))
+                        }
+                    }
+
+                    //Add in potential defender damage
+                    flatDamage += defenderDamage;
+
+                    //Look for healer creeps within 3 spaces of target creep for further subtractions
+                    let nearbyFriendos = pHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    });
+                    for (let thisFriendo in nearbyFriendos) {
+                        let friendRange = pHostiles[thisHostile].pos.getRangeTo(nearbyFriendos[thisFriendo]);
+                        nearbyFriendos[thisFriendo].body.forEach(function(thisPart) {
+                            if (thisPart.hits > 0) {
+                                if (thisPart.type == HEAL && thisPart.boost) {
+                                    if (friendRange == 1) {
+                                        damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
+                                    } else {
+                                        damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
+                                    }                             
+                                } else if (thisPart.type == HEAL) {
+                                    if (friendRange == 1) {
+                                        damageReduction += HEAL_POWER
+                                    } else {
+                                        damageReduction += RANGED_HEAL_POWER
+                                    }   
+                                }
+                            }                    
+                        });
+                    }
+
+                    //Display the calculated damage total under the target
+                    let dColor = 'green';
+                    if (flatDamage <= 0) {
                         dColor = 'red';
                     }
                     new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, {color: dColor, font: 0.8}); 
