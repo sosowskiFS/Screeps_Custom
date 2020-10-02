@@ -53,7 +53,7 @@ var tower_Operate = {
                 let allHostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
                     filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
-                let pHostiles = towers[y].room.find(FIND_HOSTILE_POWER_CREEPS, {
+                let pHostiles = tower.room.find(FIND_HOSTILE_POWER_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
                 let allTowers = tower.room.find(FIND_STRUCTURES, {
