@@ -534,45 +534,50 @@ var creep_work5 = {
                     //Nothing left to do
                     creep.suicide();
                 } else if (Game.time >= creep.memory.nextMine) {
-                    let harvestResult = creep.harvest(thisMineral);
-                    if (harvestResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(thisMineral);
-                        if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
-                            creep.memory.travelDistance = creep.memory._trav.path.length;
-                            creep.memory.deathWarn = ((creep.memory.travelDistance * 2) + _.size(creep.body) * 3) + 15;
-                        }
-                    } else if (harvestResult == OK) {
-                        creep.memory.nextMine = Game.time + 6;
-                        if (!creep.memory.storageUnit) {
-                            let containers = thisMineral.pos.findInRange(FIND_STRUCTURES, 1, {
-                                filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                            });
-                            if (containers.length) {
-                                if (creep.pos != containers[0].pos) {
-                                    creep.travelTo(containers[0]);
-                                } else {
-                                    creep.memory.onPoint = true;
-                                }
-                                creep.memory.storageUnit = containers[0].id;
-                            } else {
-                                let sites = thisMineral.pos.findInRange(FIND_CONSTRUCTION_SITES, 1)
-                                if (!sites.length) {
-                                    //Create new container
-                                    creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
-                                }
-                            }
-                        } else if (!creep.memory.onPoint) {
-                            let thisContainer = Game.getObjectById(creep.memory.storageUnit);
-                            if (thisContainer && creep.pos != thisContainer.pos) {
-                                creep.travelTo(thisContainer);
-                            } else if (thisContainer && creep.pos == thisContainer.pos) {
-                                creep.memory.onPoint = true;
-                            } else {
-                                creep.memory.storageUnit = undefined;
-                                creep.memory.onPoint = false;
-                            }
-                        }
-                    }
+                	if (creep.memory.storageUnit && Game.getObjectById(creep.memory.storageUnit) && Game.getObjectById(creep.memory.storageUnit).store.getFreeCapacity < 40) {
+                		//skip and wait until room is made
+                		creep.say("\u2716\uFE0F", false);
+                	} else {
+                		let harvestResult = creep.harvest(thisMineral);
+	                    if (harvestResult == ERR_NOT_IN_RANGE) {
+	                        creep.travelTo(thisMineral);
+	                        if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
+	                            creep.memory.travelDistance = creep.memory._trav.path.length;
+	                            creep.memory.deathWarn = ((creep.memory.travelDistance * 2) + _.size(creep.body) * 3) + 15;
+	                        }
+	                    } else if (harvestResult == OK) {
+	                        creep.memory.nextMine = Game.time + 6;
+	                        if (!creep.memory.storageUnit) {
+	                            let containers = thisMineral.pos.findInRange(FIND_STRUCTURES, 1, {
+	                                filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+	                            });
+	                            if (containers.length) {
+	                                if (creep.pos != containers[0].pos) {
+	                                    creep.travelTo(containers[0]);
+	                                } else {
+	                                    creep.memory.onPoint = true;
+	                                }
+	                                creep.memory.storageUnit = containers[0].id;
+	                            } else {
+	                                let sites = thisMineral.pos.findInRange(FIND_CONSTRUCTION_SITES, 1)
+	                                if (!sites.length) {
+	                                    //Create new container
+	                                    creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
+	                                }
+	                            }
+	                        } else if (!creep.memory.onPoint) {
+	                            let thisContainer = Game.getObjectById(creep.memory.storageUnit);
+	                            if (thisContainer && creep.pos != thisContainer.pos) {
+	                                creep.travelTo(thisContainer);
+	                            } else if (thisContainer && creep.pos == thisContainer.pos) {
+	                                creep.memory.onPoint = true;
+	                            } else {
+	                                creep.memory.storageUnit = undefined;
+	                                creep.memory.onPoint = false;
+	                            }
+	                        }
+	                    }
+                	}              
                 }
                 break;
         }
