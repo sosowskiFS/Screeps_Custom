@@ -534,7 +534,7 @@ var creep_work5 = {
                     //Nothing left to do
                     creep.suicide();
                 } else if (Game.time >= creep.memory.nextMine) {
-                	if (creep.memory.storageUnit && Game.getObjectById(creep.memory.storageUnit) && Game.getObjectById(creep.memory.storageUnit).store.getFreeCapacity < 40) {
+                	if (creep.memory.storageUnit && Game.getObjectById(creep.memory.storageUnit) && Game.getObjectById(creep.memory.storageUnit).store.getFreeCapacity() < 40) {
                 		//skip and wait until room is made
                 		creep.say("\u2716\uFE0F", false);
                 	} else {
