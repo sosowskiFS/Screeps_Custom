@@ -226,7 +226,7 @@ var market_buyers = {
             var noStoreMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
 
             var sellEnergyCap = 30000;
-            var keepAmount = 20000;
+            var keepAmount = 50000;
             var MaxSaleAmount = 30000;
             let panicSell = false
             if (thisTerminal.store.getFreeCapacity() <= 5000) {
