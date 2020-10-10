@@ -6,20 +6,20 @@ var creep_looter = {
             //YER DED TO ME
             creep.suicide();
         }
-        if (creep.room.name != creep.memory.destination && _.sum(creep.carry) <= creep.carryCapacity - 100) {
+        if (creep.room.name != creep.memory.destination && creep.store.getFreeCapacity() >= 100) {
             if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].storage) {
                 creep.travelTo(Game.rooms[creep.memory.destination].storage);
             } else {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
             }
-        } else if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) > creep.carryCapacity - 100) {
+        } else if (creep.room.name != creep.memory.homeRoom && creep.store.getFreeCapacity() < 100) {
             if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
                 creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
             } else {
                 creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
             }
         } else {
-            if (_.sum(creep.carry) <= creep.carryCapacity - 100) {
+            if (creep.store.getFreeCapacity() >= 100) {
                 //In far room, loot container
                 //Check for ruins first
                 let ruins = creep.pos.findClosestByRange(FIND_RUINS, {
