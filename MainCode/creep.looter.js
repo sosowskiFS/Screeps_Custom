@@ -54,7 +54,12 @@ var creep_looter = {
                             creep.suicide();
                         }
                     } else {
-                        let withdrawResult = creep.withdraw(creep.room.storage, RESOURCE_ENERGY);
+                    	let withdrawResult = undefined;
+                    	if (Object.keys(creep.room.terminal).length > 1) {
+                    		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1])
+                    	} else {
+                    		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[0])
+                    	}
                         if (withdrawResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(creep.room.storage);
                         } else if (withdrawResult == OK) {
