@@ -55,7 +55,7 @@ var creep_looter = {
                         }
                     } else {
                     	let withdrawResult = undefined;
-                    	if (Object.keys(creep.room.terminal).length > 1) {
+                    	if (Object.keys(creep.room.storage).length > 1) {
                     		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1])
                     	} else {
                     		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[0])
