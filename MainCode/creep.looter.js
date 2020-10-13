@@ -34,7 +34,7 @@ var creep_looter = {
                 } else if (creep.room.storage && creep.room.storage.owner.username != "Montblanc") {
                     if (creep.room.storage.store.getUsedCapacity() == 0) {
                         if (creep.room.terminal && creep.room.terminal.store.getUsedCapacity() > 0) {
-                            if (Object.keys(creep.room.terminal).length > 1) {
+                            if (Object.keys(creep.room.terminal.store).length > 1) {
                                 if (creep.withdraw(creep.room.terminal, Object.keys(creep.room.terminal.store)[1]) == ERR_NOT_IN_RANGE) {
                                     creep.travelTo(creep.room.terminal);
                                 }
@@ -55,7 +55,7 @@ var creep_looter = {
                         }
                     } else {
                     	let withdrawResult = undefined;
-                    	if (Object.keys(creep.room.storage).length > 1) {
+                    	if (Object.keys(creep.room.storage.store).length > 1) {
                     		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[1])
                     	} else {
                     		withdrawResult = creep.withdraw(creep.room.storage, Object.keys(creep.room.storage.store)[0])
@@ -71,7 +71,7 @@ var creep_looter = {
                         }
                     }
                 } else if (creep.room.terminal && creep.room.terminal.owner.username != "Montblanc" && creep.room.terminal.store.getUsedCapacity() > 0) {
-                    if (Object.keys(creep.room.terminal).length > 1) {
+                    if (Object.keys(creep.room.terminal.store).length > 1) {
                         if (creep.withdraw(creep.room.terminal, Object.keys(creep.room.terminal.store)[1]) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(creep.room.terminal);
                         }
@@ -94,10 +94,10 @@ var creep_looter = {
                 //In home room, drop off energy
                 if (creep.room.storage) {
                     let transferResult = undefined;
-                    if (Object.keys(creep.carry).length > 1) {
-                        transferResult = creep.transfer(creep.room.storage, Object.keys(creep.carry)[1])
+                    if (Object.keys(creep.store).length > 1) {
+                        transferResult = creep.transfer(creep.room.storage, Object.keys(creep.store)[1])
                     } else {
-                        transferResult = creep.transfer(creep.room.storage, Object.keys(creep.carry)[0])
+                        transferResult = creep.transfer(creep.room.storage, Object.keys(creep.store)[0])
                     }
                     if (transferResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage);
