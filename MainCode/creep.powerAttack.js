@@ -6,6 +6,10 @@ var creep_powerAttack = {
             //You are not required
             creep.suicide();
         } else {
+        	if (!creep.memory.disabledNotify) {
+                    creep.notifyWhenAttacked(false);
+                    creep.memory.disabledNotify = true;
+                }
             if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'powerAttackNearDeath') {
                 creep.memory.priority = 'powerAttackNearDeath';
             }
