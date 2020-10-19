@@ -328,7 +328,7 @@ var spawn_BuildCreeps5 = {
                 repairMax = 0;
             } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 100000) {
                 repairMax = 0;
-            } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 900000) {
+            } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 700000) {
                 repairMax = 2;
             }
             if (Game.flags[thisRoom.name + "RoomOperator"]) {
@@ -346,7 +346,7 @@ var spawn_BuildCreeps5 = {
                     //Something's fucked
                     repairMax = 0;
                     upgraderMax = 0;
-                } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 900000) {
+                } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 700000) {
                     repairMax = 4;
                 }
 
@@ -362,10 +362,8 @@ var spawn_BuildCreeps5 = {
                 //muleMax++;
             }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
-                //Add another mule for resource management
-                if (thisRoom.controller.level != 8) {
-                    upgraderMax++;
-                }
+                //Add another mule for resource management               
+                upgraderMax++;
                 muleMax++;
             }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 375000) {
@@ -374,12 +372,7 @@ var spawn_BuildCreeps5 = {
             }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 525000) {
                 //HOW MUCH MUST I CRANK IT UP?
-                if (thisRoom.controller.level != 8) {
-                    upgraderMax = upgraderMax + 2;
-                } else {
-                    repairMax++;
-                    muleMax++;
-                }
+                upgraderMax = upgraderMax + 2;
             }
 
             if (storageMiners.length == 0 && upgradeMiners.length > 0 && thisRoom.storage.store[RESOURCE_ENERGY] <= 3000) {
