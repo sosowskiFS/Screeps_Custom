@@ -24,7 +24,7 @@ var creep_work5 = {
                     if (creep.memory.linkSource) {
                         linkTarget = Game.getObjectById(creep.memory.linkSource)
                     }
-                    if (linkTarget && linkTarget.energy >= 200) {
+                    if (linkTarget && linkTarget.energy >= 600) {
                         if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(linkTarget, {
                                 ignoreRoads: true
@@ -366,7 +366,7 @@ var creep_work5 = {
                         if (creep.memory.linkSource) {
                             linkTarget = Game.getObjectById(creep.memory.linkSource)
                         }
-                        if (linkTarget && linkTarget.energy >= 200) {
+                        if (linkTarget && linkTarget.energy >= 600) {
                             if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(linkTarget, {
                                     ignoreRoads: true
@@ -479,7 +479,7 @@ var creep_work5 = {
                     if (creep.memory.linkSource) {
                         linkTarget = Game.getObjectById(creep.memory.linkSource)
                     }
-                    if (linkTarget && linkTarget.energy >= 200) {
+                    if (linkTarget && linkTarget.energy >= 600) {
                         if (creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(linkTarget);
                         }
