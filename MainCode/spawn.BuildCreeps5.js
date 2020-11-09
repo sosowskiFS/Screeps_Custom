@@ -648,7 +648,9 @@ var spawn_BuildCreeps5 = {
             } else if (mules.length < muleMax && !blockedRole.includes('mule')) {
                 prioritizedRole = 'mule';
                 storageID = thisRoom.storage.id;
-                connectedLink = strLinks[1];
+                if (strLinks.length >= 4) {
+                    connectedLink = strLinks[3];
+                }
                 creepSource = strTerminal;
             } else if (upgraders.length < upgraderMax && !blockedRole.includes('upgrader')) {
                 prioritizedRole = 'upgrader';
