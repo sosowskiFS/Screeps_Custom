@@ -27,6 +27,19 @@ var creep_ranger = {
         var closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
         });
+        //If nearest unit is in a rampart, ignore it.
+        if (closeFoe) {
+            let lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
+            let inRampart = false;
+            if (lookResult.length) {
+                for (let d = 0; d < lookResult.length; d++) {
+                    if (lookResult[d].structureType == STRUCTURE_RAMPART) {
+                        closeFoe = undefined;
+                        break;
+                    }
+                }
+            }
+        }
 
         if (creep.memory.destination == creep.pos.roomName) {
             //In target room
@@ -84,17 +97,17 @@ var creep_ranger = {
                 let thisThreat = undefined;
                 if (meleeThreat.length) {
                     for (let thisFoe in meleeThreat) {
-                        if(determineThreat(meleeThreat[thisFoe])) {
+                        if (determineThreat(meleeThreat[thisFoe])) {
                             thisThreat = meleeThreat[thisFoe];
                             break;
                         }
                     }
-                    
+
                     if (thisThreat) {
                         //Dodge away from foe
                         creep.travelTo(thisThreat, {
                             maxRooms: 1,
-                            range: 3                     
+                            range: 3
                         }, true);
                     } else {
                         creep.travelTo(closeFoe, {
@@ -109,7 +122,7 @@ var creep_ranger = {
                         maxRooms: 1,
                         allowSK: true
                     });
-                }                
+                }
             } else {
                 let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
                     filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_STORAGE)
