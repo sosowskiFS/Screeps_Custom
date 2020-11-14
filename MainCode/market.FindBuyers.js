@@ -222,27 +222,28 @@ var market_buyers = {
                 }
             }*/
 
-            //var sellMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON, RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM];
-            var sellMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
+            var sellMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON, RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM];
+            //var sellMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
             var noStoreMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
 
             var sellEnergyCap = 30000;
-            var keepAmount = 50000;
             var MaxSaleAmount = 30000;
             let panicSell = false
             if (thisTerminal.store.getFreeCapacity() <= 5000) {
                 sellEnergyCap = 10000;
-                keepAmount = 5000;
                 MaxSaleAmount = TerminalEnergy + 5000;
                 panicSell = true;
             }
             if (!hasSent && TerminalEnergy >= sellEnergyCap && (Game.time % 1000 == 0 || panicSell)) {
                 for (var y in sellMinerals) {
-                    if (noStoreMinerals.indexOf(sellMinerals[y]) > -1) {
-                        //Not storing compressed/economic materials for now
-                        keepAmount = 0;
+                    if (noStoreMinerals.indexOf(sellMinerals[y]) == -1) {
+                        //This is a base mineral
+                        if (Memory.mineralTotals[sellMinerals[y]] < 75000) {
+                        	//Not a lot stockpiled, skip the sell
+                        	continue;
+                        }
                     }
-                    let mineralInTerminal = thisTerminal.store[sellMinerals[y]] - keepAmount;
+                    let mineralInTerminal = thisTerminal.store[sellMinerals[y]];
                     if (mineralInTerminal > 100) {
                         if (mineralInTerminal > MaxSaleAmount) {
                             mineralInTerminal = MaxSaleAmount;
