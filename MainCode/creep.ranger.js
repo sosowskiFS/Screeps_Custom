@@ -39,20 +39,7 @@ var creep_ranger = {
                     }
                 }
             }
-            let rangedParts = 0;
-            let eHealParts = 0;
-            //Special - if creep's ranged attack does not outnumber target's heal, ignore.
-            creep.body.forEach(function(thisPart) {
-                if (thisPart.type == RANGED_ATTACK) {
-                    rangedParts = rangedParts + 1;
-                } 
-            });
-            closeFoe.body.forEach(function(thisPart) {
-                if (thisPart.type == HEAL) {
-                    eHealParts = eHealParts + 1;
-                } 
-            });
-            if (eHealParts > rangedParts) {
+            if (closeFoe.name.includes("TANK")) {
             	closeFoe = undefined;
             }
         }
