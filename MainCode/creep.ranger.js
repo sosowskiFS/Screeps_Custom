@@ -54,7 +54,6 @@ var creep_ranger = {
             });
             if (eHealParts > rangedParts) {
             	closeFoe = undefined;
-            	break;
             }
         }
 
