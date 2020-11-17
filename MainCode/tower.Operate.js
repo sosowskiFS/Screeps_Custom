@@ -54,7 +54,7 @@ var tower_Operate = {
                     filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
                 let pHostiles = tower.room.find(FIND_HOSTILE_POWER_CREEPS, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
                 });
                 let allTowers = tower.room.find(FIND_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
@@ -80,7 +80,7 @@ var tower_Operate = {
                             } else if (thisPart.type == RANGED_ATTACK) {
                                 defenderDamage += RANGED_ATTACK_POWER
                             }
-                        }                  
+                        }
                     });
                 }
 
@@ -90,14 +90,21 @@ var tower_Operate = {
                     let flatDamage = 0;
                     for (let thisTower in allTowers) {
                         let thisRange = allTowers[thisTower].pos.getRangeTo(allHostiles[thisHostile]);
-                        if (thisRange <= 5) {
-                            flatDamage += TOWER_POWER_ATTACK;
-                        } else if (thisRange >= 20) {
-                            flatDamage += TOWER_POWER_ATTACK - (TOWER_FALLOFF * TOWER_POWER_ATTACK);
-                        } else {
-                            //Midrange calculation
-                            flatDamage += Math.round(TOWER_POWER_ATTACK - (((thisRange - 5) * (TOWER_FALLOFF / 15)) * TOWER_POWER_ATTACK))
+                        let thisTowerDamage = TOWER_POWER_ATTACK;
+                        if (thisRange > TOWER_OPTIMAL_RANGE) {
+                            if (thisRange > TOWER_FALLOFF_RANGE) {
+                                thisRange = TOWER_FALLOFF_RANGE;
+                            }
+                            thisTowerDamage -= thisTowerDamage * TOWER_FALLOFF * (thisRange - TOWER_OPTIMAL_RANGE) / (TOWER_FALLOFF_RANGE - TOWER_OPTIMAL_RANGE);
                         }
+                        if (thisTower.effects) {
+                            for (let thisPower in thisTower.effects) {
+                                if (thisPower.effect == PWR_OPERATE_TOWER || thisPower.effect == PWR_DISRUPT_TOWER) {
+                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
+                                }
+                            }
+                        }
+                        flatDamage += Math.floor(thisTowerDamage);
                     }
 
                     //Add in potential defender damage
@@ -116,7 +123,7 @@ var tower_Operate = {
                             } else if (thisPart.type == HEAL) {
                                 damageReduction += HEAL_POWER
                             }
-                        }          
+                        }
                     });
                     //Look for healer creeps within 3 spaces of target creep for further subtractions
                     let nearbyFriendos = allHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
@@ -131,15 +138,15 @@ var tower_Operate = {
                                         damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
                                     } else {
                                         damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
-                                    }                             
+                                    }
                                 } else if (thisPart.type == HEAL) {
                                     if (friendRange == 1) {
                                         damageReduction += HEAL_POWER
                                     } else {
                                         damageReduction += RANGED_HEAL_POWER
-                                    }   
+                                    }
                                 }
-                            }                    
+                            }
                         });
                     }
 
@@ -153,7 +160,7 @@ var tower_Operate = {
                     if ((flatDamage - damageReduction) <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, {color: dColor, font: 0.8}); 
+                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.8 });
 
                     //Determine if this beats the best
                     if ((flatDamage - damageReduction) > damageRecord) {
@@ -168,14 +175,21 @@ var tower_Operate = {
                     let flatDamage = 0;
                     for (let thisTower in allTowers) {
                         let thisRange = allTowers[thisTower].pos.getRangeTo(pHostiles[thisHostile]);
-                        if (thisRange <= 5) {
-                            flatDamage += TOWER_POWER_ATTACK;
-                        } else if (thisRange >= 20) {
-                            flatDamage += TOWER_POWER_ATTACK - (TOWER_FALLOFF * TOWER_POWER_ATTACK);
-                        } else {
-                            //Midrange calculation
-                            flatDamage += Math.round(TOWER_POWER_ATTACK - (((thisRange - 5) * (TOWER_FALLOFF / 15)) * TOWER_POWER_ATTACK))
+                        let thisTowerDamage = TOWER_POWER_ATTACK;
+                        if (thisRange > TOWER_OPTIMAL_RANGE) {
+                            if (thisRange > TOWER_FALLOFF_RANGE) {
+                                thisRange = TOWER_FALLOFF_RANGE;
+                            }
+                            thisTowerDamage -= thisTowerDamage * TOWER_FALLOFF * (thisRange - TOWER_OPTIMAL_RANGE) / (TOWER_FALLOFF_RANGE - TOWER_OPTIMAL_RANGE);
                         }
+                        if (thisTower.effects) {
+                            for (let thisPower in thisTower.effects) {
+                                if (thisPower.effect == PWR_OPERATE_TOWER || thisPower.effect == PWR_DISRUPT_TOWER) {
+                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
+                                }
+                            }
+                        }
+                        flatDamage += Math.floor(thisTowerDamage);
                     }
 
                     //Add in potential defender damage
@@ -194,15 +208,15 @@ var tower_Operate = {
                                         damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
                                     } else {
                                         damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
-                                    }                             
+                                    }
                                 } else if (thisPart.type == HEAL) {
                                     if (friendRange == 1) {
                                         damageReduction += HEAL_POWER
                                     } else {
                                         damageReduction += RANGED_HEAL_POWER
-                                    }   
+                                    }
                                 }
-                            }                    
+                            }
                         });
                     }
 
@@ -211,7 +225,7 @@ var tower_Operate = {
                     if (flatDamage <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, {color: dColor, font: 0.8}); 
+                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.8 });
 
                     //Determine if this beats the best
                     if ((flatDamage - damageReduction) > damageRecord) {
@@ -263,7 +277,7 @@ var tower_Operate = {
                     }
                     Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
 
-                    if (tower.room.controller.level < 7) {                      
+                    if (tower.room.controller.level < 7) {
                         if (tower.pos.getRangeTo(closestHostile) <= 5 && closestHostile.owner.username != 'Invader') {
                             //Too close for comfort
                             tower.room.controller.activateSafeMode();
