@@ -1334,9 +1334,9 @@ module.exports.loop = function() {
 
     if (Game.time % 50 == 0) {
         //Periodically look for purchasable CPU unlocks
-        //var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_SELL && order.price <= Game.market.credits);
+        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_SELL && order.price <= Game.market.credits);
         //Temp - Buy access keys.
-        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == ACCESS_KEY && order.type == ORDER_SELL && order.price <= Game.market.credits);
+        //var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == ACCESS_KEY && order.type == ORDER_SELL && order.price <= Game.market.credits);
         if (FilteredOrders.length > 0) {
             FilteredOrders.sort(orderPriceCompareBuying);
             if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
