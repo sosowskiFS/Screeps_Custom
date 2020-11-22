@@ -463,17 +463,6 @@ module.exports.loop = function() {
                     Game.map.visual.text("\u{26A1}" + formatNumber(Math.round(thisRoom.storage.store[RESOURCE_ENERGY])), new RoomPosition(1, 1, thisRoom.name), { color: '#FFFFFF', backgroundColor: '#000000' })
                 }
 
-                //Get non-suppliers off the supplier spot
-                if (Game.flags[thisRoom.name + "Supply"]) {
-                    var creepCheck = Game.flags[thisRoom.name + "Supply"].pos.lookFor(LOOK_CREEPS);
-                    if (thisRoom.controller.level >= 6 && creepCheck.length && creepCheck[0].owner.username == "Montblanc" && creepCheck[0].memory.priority != "supplier") {
-                        //Get the fuck off!
-                        if (creepCheck[0].memory.priority != "supplierNearDeath") {
-                            creepCheck[0].travelTo(thisRoom.controller);
-                        }
-                    }
-                }
-
                 //Get list of Links
                 if (Game.time % 1500 == 0 || !Memory.linkList[thisRoom.name]) {
                     Memory.linkList[thisRoom.name] = [];
