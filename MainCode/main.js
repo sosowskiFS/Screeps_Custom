@@ -702,7 +702,7 @@ module.exports.loop = function() {
                     }
                 }
                 if (Memory.nukerList[thisRoom.name]) {
-                    Game.map.visual.circle(new RoomPosition(25, 25, thisRoom.name), { fill: 'transparent', radius: NUKE_RANGE * 50, stroke: '#ff0000', opacity: 0.2});
+                    Game.map.visual.circle(new RoomPosition(25, 25, thisRoom.name), { fill: 'transparent', radius: NUKE_RANGE * 50, stroke: '#ff0000', opacity: 0.2 });
                 }
 
                 //Get list of factories
@@ -1322,15 +1322,41 @@ module.exports.loop = function() {
     Memory.roomCreeps = new Object();
 
     if (Game.time % 50 == 0) {
-        //Periodically look for purchasable CPU unlocks
-        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_SELL && order.price <= Game.market.credits);
-        //Temp - Buy access keys.
-        //var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == ACCESS_KEY && order.type == ORDER_SELL && order.price <= Game.market.credits);
-        if (FilteredOrders.length > 0) {
-            FilteredOrders.sort(orderPriceCompareBuying);
-            if (Game.market.deal(FilteredOrders[0].id, 1) == OK) {
-                Game.notify('A CPU unlock token was purchased for ' + FilteredOrders[0].price + ' credits');
-                Memory.LastNotification = Game.time.toString() + ' : A CPU unlock token was purchased for ' + FilteredOrders[0].price + ' credits'
+        //Periodically place buy orders for CPU unlocks
+        //Check for existing order, ignore orders that have already been filled.
+        let existingOrder = _.findKey(Game.market.orders, {
+            resourceType: CPU_UNLOCK,
+            type: "buy",
+            remainingAmount: 1
+        });
+        let existingPrice = undefined;
+        if (existingOrder) {
+            existingPrice = Game.market.orders[existingOrder].price;
+        }
+        //Look for highest buy order, ignoring existing order.
+        let comparableOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_BUY);
+        let targetPrice = 0;
+        if (comparableOrders.length > 0) {
+            comparableOrders.sort(orderSellCompare);
+            targetPrice = comparableOrders[0].price;
+            if (existingOrder && existingPrice < targetPrice) {
+                //Current offer is lower, raise it.
+                //Determine if this is affordable
+                targetPrice += 100
+                if (Game.market.credits >= (targetPrice - existingPrice) * 0.05) {
+                	Game.market.changeOrderPrice(existingOrder, targetPrice);
+                }                   
+            } else if (!existingOrder) {
+            	//Determine if you can afford to compete
+            	if (Game.market.credits >= ((targetPrice + 100) * 0.05)) {
+            		//Create new order better than highest comparable one
+	            	Game.market.createOrder({
+	            		type: ORDER_BUY,
+	            		resourceType: CPU_UNLOCK,
+	            		price: targetPrice + 100,
+	            		totalAmount: 1
+	            	})
+            	}     	
             }
         }
 
@@ -2239,6 +2265,15 @@ function orderSellCompare(a, b) {
         return -1;
     return 0;
 }
+
+function orderBuyCompare(a, b) {
+    if (a.price < b.price)
+        return -1;
+    if (a.price > b.price)
+        return 1;
+    return 0;
+}
+
 
 function determineCreepThreat(eCreep, totalHostiles) {
     if ((eCreep.owner.username == 'Invader' || eCreep.name.indexOf('Drainer') >= 0) || (eCreep.hitsMax <= 1000 && totalHostiles <= 1)) {
