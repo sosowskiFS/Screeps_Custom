@@ -1348,7 +1348,8 @@ module.exports.loop = function() {
                 }                   
             } else if (!existingOrder) {
             	//Determine if you can afford to compete
-            	if (Game.market.credits >= ((targetPrice + 100) * 0.05)) {
+            	targetPrice += 100;
+            	if (Game.market.credits >= (targetPrice * 0.05) + targetPrice) {
             		//Create new order better than highest comparable one
 	            	Game.market.createOrder({
 	            		type: ORDER_BUY,
