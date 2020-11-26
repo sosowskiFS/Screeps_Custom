@@ -1342,19 +1342,19 @@ module.exports.loop = function() {
             if (existingOrder && existingPrice < targetPrice) {
                 //Current offer is lower, raise it.
                 //Determine if this is affordable
-                targetPrice += 100
+                targetPrice += 0.001
                 if (Game.market.credits >= (targetPrice - existingPrice) * 0.05) {
                 	Game.market.changeOrderPrice(existingOrder, targetPrice);
                 }                   
             } else if (!existingOrder) {
             	//Determine if you can afford to compete
-            	targetPrice += 100;
+            	targetPrice += 0.001;
             	if (Game.market.credits >= (targetPrice * 0.05) + targetPrice) {
             		//Create new order better than highest comparable one
 	            	Game.market.createOrder({
 	            		type: ORDER_BUY,
 	            		resourceType: CPU_UNLOCK,
-	            		price: targetPrice + 100,
+	            		price: targetPrice + 0.001,
 	            		totalAmount: 1
 	            	})
             	}     	
