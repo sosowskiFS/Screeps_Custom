@@ -1339,7 +1339,7 @@ module.exports.loop = function() {
         if (comparableOrders.length > 0) {
             comparableOrders.sort(orderSellCompare);
             targetPrice = comparableOrders[0].price;
-            if (existingOrder && existingPrice < targetPrice) {
+            if (existingOrder && existingPrice <= targetPrice) {
                 //Current offer is lower, raise it.
                 //Determine if this is affordable
                 targetPrice += 0.001
