@@ -1344,20 +1344,20 @@ module.exports.loop = function() {
                 //Determine if this is affordable
                 targetPrice += 0.001
                 if (Game.market.credits >= (targetPrice - existingPrice) * 0.05) {
-                	Game.market.changeOrderPrice(existingOrder, targetPrice);
-                }                   
+                    Game.market.changeOrderPrice(existingOrder, targetPrice);
+                }
             } else if (!existingOrder) {
-            	//Determine if you can afford to compete
-            	targetPrice += 0.001;
-            	if (Game.market.credits >= (targetPrice * 0.05) + targetPrice) {
-            		//Create new order better than highest comparable one
-	            	Game.market.createOrder({
-	            		type: ORDER_BUY,
-	            		resourceType: CPU_UNLOCK,
-	            		price: targetPrice + 0.001,
-	            		totalAmount: 1
-	            	})
-            	}     	
+                //Determine if you can afford to compete
+                targetPrice += 0.001;
+                if (Game.market.credits >= (targetPrice * 0.05) + targetPrice) {
+                    //Create new order better than highest comparable one
+                    Game.market.createOrder({
+                        type: ORDER_BUY,
+                        resourceType: CPU_UNLOCK,
+                        price: targetPrice + 0.001,
+                        totalAmount: 1
+                    })
+                }
             }
         }
 
@@ -1749,12 +1749,36 @@ function memCheck() {
     if (!Memory.roomsUnderAttack) {
         Memory.roomsUnderAttack = [];
         console.log('roomsUnderAttack Defaulted');
+    } else {
+        //Clean out unclaimed rooms
+        let uAttackPos = -1;
+        Memory.roomsUnderAttack.forEach(function(thisRoom) {
+            if (!Game.rooms[thisRoom]) {
+                uAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom);
+                return;
+            }
+        });
+        if (uAttackPos > -1) {
+        	Memory.roomsUnderAttack.splice(uAttackPos, 1);
+        }
     }
     if (!Memory.SKRoomsUnderAttack) {
         Memory.SKRoomsUnderAttack = [];
     }
     if (!Memory.FarRoomsUnderAttack) {
         Memory.FarRoomsUnderAttack = [];
+    } else {
+        //Clean out unused rooms
+        let uAttackPos = -1;
+        Memory.FarRoomsUnderAttack.forEach(function(thisRoom) {
+            if (!Game.rooms[thisRoom]) {
+                uAttackPos = Memory.FarRoomsUnderAttack.indexOf(thisRoom);
+                return;
+            }
+        });
+        if (uAttackPos > -1) {
+        	Memory.FarRoomsUnderAttack.splice(uAttackPos, 1);
+        }
     }
     if (!Memory.roomsPrepSalvager) {
         Memory.roomsPrepSalvager = [];
@@ -1762,7 +1786,20 @@ function memCheck() {
     }
     if (!Memory.RoomsAt5) {
         Memory.RoomsAt5 = [];
+    } else {
+    	//Clean out unused rooms
+        let uRoomPos = -1;
+        Memory.RoomsAt5.forEach(function(thisRoom) {
+            if (!Game.rooms[thisRoom]) {
+                uRoomPos = Memory.RoomsAt5.indexOf(thisRoom);
+                return;
+            }
+        });
+        if (uRoomPos > -1) {
+        	Memory.RoomsAt5.splice(uRoomPos, 1);
+        }
     }
+
     if (!Memory.hasFired) {
         Memory.hasFired = [];
     }
@@ -1824,7 +1861,20 @@ function memCheck() {
     }*/
     if (!Memory.FarClaimerNeeded) {
         Memory.FarClaimerNeeded = new Object();
+    } else {
+    	//Clean out unused rooms
+        let uRoomPos = -1;
+        Memory.FarClaimerNeeded.forEach(function(thisRoom) {
+            if (!Game.rooms[thisRoom]) {
+                uRoomPos = Memory.FarClaimerNeeded.indexOf(thisRoom);
+                return;
+            }
+        });
+        if (uRoomPos > -1) {
+        	Memory.FarClaimerNeeded.splice(uRoomPos, 1);
+        }
     }
+
     if (!Memory.FarGuardNeeded) {
         Memory.FarGuardNeeded = new Object();
     }
@@ -1836,7 +1886,20 @@ function memCheck() {
     }
     if (!Memory.sourceList) {
         Memory.sourceList = new Object();
+    } else {
+    	//Clean out unused rooms
+        let uRoomPos = -1;
+        Memory.sourceList.forEach(function(thisRoom) {
+            if (!Game.rooms[thisRoom]) {
+                uRoomPos = Memory.sourceList.indexOf(thisRoom);
+                return;
+            }
+        });
+        if (uRoomPos > -1) {
+        	Memory.sourceList.splice(uRoomPos, 1);
+        }
     }
+
     if (!Memory.linkList) {
         Memory.linkList = new Object();
     }
