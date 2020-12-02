@@ -114,6 +114,8 @@ var creep_farMiner = {
             	thisUnit = Game.getObjectById(creep.memory.storageUnit);
             }
 
+            let doNotHarvest = false;
+
             if (thisUnit) {
             	if (thisUnit.hits < thisUnit.hitsMax) {
             		creep.repair(thisUnit);
@@ -124,11 +126,15 @@ var creep_farMiner = {
             	} else {
             		creep.memory.onContainer = true;
             	}
+            	if (creep.store.getFreeCapacity() <= 0 && thisUnit.store.getFreeCapacity() <= 0) {
+            		doNotHarvest = true;
+            	}
             }
 
-
             if (mineTarget) {
-            	if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
+            	if (!doNotHarvest && creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
+            		creep.travelTo(Game.flags[creep.memory.targetFlag]);
+            	} else if (doNotHarvest && !creep.memory.onContainer) {
             		creep.travelTo(Game.flags[creep.memory.targetFlag]);
             	}
             } else {
