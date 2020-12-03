@@ -1324,14 +1324,14 @@ module.exports.loop = function() {
     if (Game.time % 50 == 0) {
         //Periodically place buy orders for CPU unlocks
         //Check for existing order, ignore orders that have already been filled.
-        let existingOrder = _.findKey(Game.market.orders, function(thisOrder) {
-            return thisOrder.resourceType == CPU_UNLOCK && thisOrder.type == "buy" && thisOrder.remainingAmount >= 1
+        let existingOrder = _.findKey(Game.market.orders, {
+            resourceType: CPU_UNLOCK,
+            type: "buy",
+            remainingAmount: 1
         });
         let existingPrice = undefined;
-        let existingAmount = undefined;
         if (existingOrder) {
             existingPrice = Game.market.orders[existingOrder].price;
-            existingAmount = Game.market.orders[existingOrder].remainingAmount;
         }
         //Look for highest buy order, ignoring existing order.
         let comparableOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_BUY);
@@ -1345,17 +1345,7 @@ module.exports.loop = function() {
                 targetPrice += 0.001
                 if (Game.market.credits >= (targetPrice - existingPrice) * 0.05) {
                 	Game.market.changeOrderPrice(existingOrder, targetPrice);
-                }
-
-                //Determine if more order quantity can be added
-                if (Game.market.credits >= (targetPrice * (existingAmount + 1) * 0.05)) {
-                    Game.market.extendOrder(existingOrder, 1);
                 }                   
-            } else if (existingOrder) {
-                //Determine if more order quantity can be added
-                if (Game.market.credits >= (targetPrice * (existingAmount + 1) * 0.05)) {
-                    Game.market.extendOrder(existingOrder, 1);
-                }  
             } else if (!existingOrder) {
             	//Determine if you can afford to compete
             	targetPrice += 0.001;
