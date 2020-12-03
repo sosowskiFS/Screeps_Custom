@@ -1324,10 +1324,8 @@ module.exports.loop = function() {
     if (Game.time % 50 == 0) {
         //Periodically place buy orders for CPU unlocks
         //Check for existing order, ignore orders that have already been filled.
-        let existingOrder = _.findKey(Game.market.orders, {
-            resourceType: CPU_UNLOCK,
-            type: "buy",
-            remainingAmount: 1
+        let existingOrder = _.findKey(Game.market.orders, function(thisOrder) {
+            return thisOrder.resourceType == CPU_UNLOCK && thisOrder.type == "buy" && thisOrder.remainingAmount >= 1
         });
         let existingPrice = undefined;
         if (existingOrder) {
