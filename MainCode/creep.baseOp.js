@@ -6,13 +6,12 @@ var creep_baseOp = {
             setupCreepMemory(creep);
         }
         //Resource generation
-        var totalOps = creep.carry[RESOURCE_OPS];
+        let totalOps = creep.carry[RESOURCE_OPS];
         if (!totalOps) {
             totalOps = 0;
         }
-        if (totalOps < 600 && creep.memory.cooldowns.GENERATE_OPS <= Game.time) {
+        if (totalOps < 600 && creep.powers[PWR_GENERATE_OPS] && creep.powers[PWR_GENERATE_OPS].cooldown <= 0) {
             if (creep.usePower(PWR_GENERATE_OPS) == OK) {
-                creep.memory.cooldowns.GENERATE_OPS = Game.time + 50;
                 totalOps = totalOps + 6;
             }
         }
@@ -22,7 +21,6 @@ var creep_baseOp = {
         //LIMITED ACTIONS (Due to Ops expenses)
         //When under attack - OPERATE_TOWER/OPERATE_SPAWN
         //When RunningAssault flag exists - OPERATE_SPAWN
-        //if creep.memory.cooldowns.OPERATE_SPAWN <= Game.time && totalOps >= 100 && checkForSpawnNeed(creep)
 
         if (!creep.memory.jobFocus) {
             //Try to find work that needs doing
@@ -30,22 +28,6 @@ var creep_baseOp = {
             if (creep.memory.jobFocus) {
                 creep.memory.structureTarget = undefined;
             }
-        }
-
-        if (creep.ticksToLive <= 2) {
-            //Not going to make it, reset memory and remove flag
-            if (Game.flags[creep.room.name + "RoomOperator"]) {
-                Game.rooms[creep.room.name + "RoomOperator"].remove();
-            }
-            let NotifyString = creep.name + " is dying, attempting to remove flags.";
-            NotifyString += " CURRENT ROOM:" + creep.room.name;
-            if (creep.memory.jobFocus) {
-                NotifyString += " JOB FOCUS:" + creep.memory.jobFocus
-            }
-            NotifyString += " ON TICK:" + Game.time;
-            Game.notify(NotifyString);
-            creep.memory = undefined;
-            creep.memory.priority = 'baseOp';
         }
 
         //Main work loop
@@ -70,7 +52,6 @@ var creep_baseOp = {
                     maxRooms: 1
                 });
             } else if (useResult == OK) {
-                creep.memory.cooldowns.OPERATE_EXTENSION = Game.time + 50;
                 totalOps = totalOps - 2;
                 creep.memory.jobFocus = undefined;
             }
@@ -85,8 +66,6 @@ var creep_baseOp = {
                         maxRooms: 1
                     });
                 } else if (useResult == OK) {
-                    creep.memory.cooldowns.OPERATE_SPAWN = Game.time + 300;
-                    updateSpawnBoost(creep);
                     creep.memory.jobFocus = undefined;
                 }
             } else {
@@ -103,21 +82,13 @@ var creep_baseOp = {
                         maxRooms: 1
                     });
                 } else if (useResult == OK) {
-                    creep.memory.cooldowns.OPERATE_TOWER = Game.time + 10;
-                    updateTowerBoost(creep);
                     creep.memory.jobFocus = undefined;
                 }
             } else {
                 creep.memory.jobFocus = undefined;
             }
         } else if (creep.memory.jobFocus == 'REGEN_SOURCE') {
-            var targetSource;
-            if (creep.memory.empoweredSources[0] <= Game.time) {
-                targetSource = Game.getObjectById(creep.memory.sources[0]);
-            } else {
-                targetSource = Game.getObjectById(creep.memory.sources[1]);
-            }
-
+            var targetSource = getNeededSource(creep);
             var useResult = creep.usePower(PWR_REGEN_SOURCE, targetSource);
             if (useResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(targetSource, {
@@ -126,12 +97,6 @@ var creep_baseOp = {
                     maxRooms: 1
                 });
             } else if (useResult == OK) {
-                creep.memory.cooldowns.REGEN_SOURCE = Game.time + 100;
-                if (targetSource.id == creep.memory.sources[0]) {
-                    creep.memory.empoweredSources[0] = Game.time + 300;
-                } else {
-                    creep.memory.empoweredSources[1] = Game.time + 300;
-                }
                 creep.memory.jobFocus = undefined;
             }
         } else if (creep.memory.jobFocus == 'OPERATE_LAB') {
@@ -145,8 +110,6 @@ var creep_baseOp = {
                         maxRooms: 1
                     });
                 } else if (useResult == OK) {
-                    creep.memory.cooldowns.OPERATE_LAB = Game.time + 50;
-                    updateLabBoost(creep);
                     creep.memory.jobFocus = undefined;
                 }
             } else {
@@ -493,26 +456,8 @@ var creep_baseOp = {
 };
 
 function setupCreepMemory(creep) {
-    if (!creep.memory.cooldowns) {
-        var cooldownObject = {};
-        cooldownObject.GENERATE_OPS = Game.time;
-        cooldownObject.OPERATE_SPAWN = Game.time;
-        cooldownObject.OPERATE_TOWER = Game.time;
-        cooldownObject.OPERATE_LAB = Game.time;
-        cooldownObject.OPERATE_EXTENSION = Game.time;
-        cooldownObject.REGEN_SOURCE = Game.time;
-        creep.memory.cooldowns = cooldownObject;
-    }
-
-
-    if (!creep.memory.sources) {
-        creep.memory.sources = Memory.sourceList[creep.room.name];
-        creep.memory.empoweredSources = [Game.time, Game.time];
-    }
-
     if (!creep.memory.spawnList || Game.time % 10000 == 0) {
         creep.memory.spawnList = [];
-        creep.memory.empoweredSpawns = [];
         var roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
             filter: {
                 structureType: STRUCTURE_SPAWN
@@ -520,13 +465,11 @@ function setupCreepMemory(creep) {
         });
         for (var thisSpawn in roomSpawns) {
             creep.memory.spawnList.push(roomSpawns[thisSpawn].id);
-            creep.memory.empoweredSpawns.push(Game.time);
         }
     }
 
     if (!creep.memory.towerList || Game.time % 10000 == 0) {
         creep.memory.towerList = [];
-        creep.memory.empoweredTowers = [];
         var roomTowers = creep.room.find(FIND_MY_STRUCTURES, {
             filter: {
                 structureType: STRUCTURE_TOWER
@@ -534,15 +477,8 @@ function setupCreepMemory(creep) {
         });
         for (var thisTower in roomTowers) {
             creep.memory.towerList.push(roomTowers[thisTower].id);
-            creep.memory.empoweredTowers.push(Game.time);
         }
     }
-
-    if (!creep.memory.empoweredLabs) {
-        //Can ignore first 3 labs, never set to run reactions
-        creep.memory.empoweredLabs = [Game.time, Game.time, Game.time, Game.time, Game.time]
-    }
-
 
     if (!Game.flags[creep.room.name + "RoomOperator"]) {
         Game.rooms[creep.room.name].createFlag(46, 2, creep.room.name + "RoomOperator");
@@ -556,21 +492,43 @@ function setupCreepMemory(creep) {
         creep.memory.homeRoom = creep.pos.roomName;
     }
 
+    //Cleanup for removed memory
+    /*if (creep.memory.cooldowns) {
+        creep.memory.cooldowns = undefined;
+    }
+    if (creep.memory.sources) {
+        creep.memory.sources = undefined;
+    }
+    if (creep.memory.empoweredSources) {
+        creep.memory.empoweredSources = undefined;
+    }
+    if (creep.memory.empoweredSpawns) {
+        creep.memory.empoweredSpawns = undefined;
+    }
+    if (creep.memory.empoweredLabs) {
+        creep.memory.empoweredLabs = undefined;
+    }
+    if (creep.memory.empoweredTowers) {
+        creep.memory.empoweredTowers = undefined;
+    }
+    */
+
     creep.memory.jobFocus = undefined;
 
     creep.memory.initialSetup = true;
 }
 
 function findNeededWork(creep, totalOps) {
-    if (creep.memory.cooldowns.OPERATE_EXTENSION <= Game.time && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < (creep.room.energyCapacityAvailable - 900)) {
+
+    if (creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].cooldown <= 0 && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < (creep.room.energyCapacityAvailable - 900)) {
         return 'OPERATE_EXTENSION';
-    } else if ((Game.flags[creep.room.name + "RunningAssault"] || totalOps >= 600) && totalOps >= 100 && creep.memory.cooldowns.OPERATE_SPAWN <= Game.time && checkForSpawnNeed(creep)) {
+    } else if (creep.powers[PWR_OPERATE_SPAWN] && (Game.flags[creep.room.name + "RunningAssault"] || totalOps >= 600) && totalOps >= 100 && creep.powers[PWR_OPERATE_SPAWN].cooldown <= 0 && getNeededSpawn(creep)) {
         return 'OPERATE_SPAWN';
-    } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1 && creep.memory.cooldowns.OPERATE_TOWER <= Game.time && totalOps >= 10 && checkForTowerNeed(creep)) {
+    } else if (creep.powers[PWR_OPERATE_TOWER] && Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1 && creep.powers[PWR_OPERATE_TOWER].cooldown <= 0 && totalOps >= 10 && getNeededTower(creep)) {
         return 'OPERATE_TOWER'
-    } else if (creep.memory.cooldowns.REGEN_SOURCE <= Game.time && (creep.memory.empoweredSources[0] - 15 <= Game.time || creep.memory.empoweredSources[1] - 15 <= Game.time)) {
+    } else if (creep.powers[PWR_REGEN_SOURCE] && creep.powers[PWR_REGEN_SOURCE].cooldown <= 0 && getNeededSource(creep)) {
         return 'REGEN_SOURCE';
-    } else if (!Game.flags[creep.room.name + "WarBoosts"] && creep.memory.cooldowns.OPERATE_LAB <= Game.time && totalOps >= 10 && checkForLabNeed(creep)) {
+    } else if (creep.powers[PWR_OPERATE_LAB] && !Game.flags[creep.room.name + "WarBoosts"] && creep.powers[PWR_OPERATE_LAB].cooldown <= 0 && getNeededLab(creep)) {
         return 'OPERATE_LAB';
     } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'FILL_SPAWNS';
@@ -585,100 +543,104 @@ function findNeededWork(creep, totalOps) {
     return undefined;
 }
 
-function checkForTowerNeed(creep) {
-    for (var thisTower in creep.memory.empoweredTowers) {
-        if (creep.memory.empoweredTowers[thisTower] <= Game.time) {
-            return true;
+function getNeededSource(creep) {
+    for (let sourceID in Memory.sourceList[creep.room.name]) {
+        let thisSource = Game.getObjectById(sourceID)
+        if (thisSource && thisSource.effects) {
+            let foundPower = false;
+            for (let thisPower in thisSource.effects) {
+                if (thisPower.effect == PWR_REGEN_SOURCE && thisPower.ticksRemaining > 15) {
+                    //No Need
+                    foundPower = true;
+                }
+            }
+            if (!foundPower) {
+                return thisSource;
+            }
+        } else if (thisSource && !thisSource.effects) {
+            return thisSource;
         }
     }
-    return false;
+    return undefined;
 }
 
 function getNeededTower(creep) {
-    towerIndex = 0;
-    for (var thisTower in creep.memory.empoweredTowers) {
-        if (creep.memory.empoweredTowers[thisTower] <= Game.time) {
-            var thisTower = Game.getObjectById(creep.memory.towerList[towerIndex]);
-            if (thisTower) {
+    for (let towerID in creep.memory.towerList) {
+        let thisTower = Game.getObjectById(towerID)
+        if (thisTower && thisTower.effects) {
+            let foundPower = false;
+            for (let thisPower in thisTower.effects) {
+                if (thisPower.effect == PWR_OPERATE_TOWER && thisPower.ticksRemaining > 0) {
+                    //No Need
+                    foundPower = true;
+                }
+            }
+            if (!foundPower) {
                 return thisTower;
             }
+        } else if (thisTower && !thisTower.effects) {
+            return thisTower;
         }
-        towerIndex++;
     }
     return undefined;
-}
-
-function checkForLabNeed(creep) {
-    for (var thisLab in creep.memory.empoweredLabs) {
-        if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
-            return true;
-        }
-    }
-    return false;
 }
 
 function getNeededLab(creep) {
-    var labIndex = 5;
-    for (var thisLab in creep.memory.empoweredLabs) {
-        if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
-            var thisLab = Game.getObjectById(Memory.labList[creep.room.name][labIndex]);
-            if (thisLab) {
+    //Check to see if the two reagent labs have mats in them
+        //If no, don't bother wasting OPS on boosting nothing
+    if (Memory.labList[creep.room.name][3] && Memory.labList[creep.room.name][4]) {
+        let regLab1 = Game.getObjectById(Memory.labList[creep.room.name][3]);
+        let regLab2 = Game.getObjectById(Memory.labList[creep.room.name][4]);
+        if (!regLab1 || !regLab2) {
+            return undefined;
+        }
+        if (!regLab1.mineralType || !regLab2.mineralType) {
+            return undefined;
+        }
+    }
+    //Can ignore the first 5 labs as they only contain boosts/reagents
+    for (let i = 5; i < 10; i++) {
+        let labID = Memory.labList[creep.room.name][i];
+        if (labID) {
+            let thisLab = Game.getObjectById(labID);
+            if (thisLab && thisLab.effects) {
+                let foundPower = false;
+                for (let thisPower in thisLab.effects) {
+                    if (thisPower.effect == PWR_OPERATE_LAB && thisPower.ticksRemaining > 0) {
+                        //No Need
+                        foundPower = true;
+                    }
+                }
+                if (!foundPower) {
+                    return thisLab;
+                }
+            } else if (thisLab && !thisLab.effects) {
                 return thisLab;
             }
         }
-        labIndex++;
     }
     return undefined;
-}
-
-function updateLabBoost(creep) {
-    for (var thisLab in creep.memory.empoweredLabs) {
-        if (creep.memory.empoweredLabs[thisLab] <= Game.time) {
-            creep.memory.empoweredLabs[thisLab] = Game.time + 1000;
-            break;
-        }
-    }
-}
-
-function updateTowerBoost(creep) {
-    for (var thisTower in creep.memory.empoweredTowers) {
-        if (creep.memory.empoweredTowers[thisTower] <= Game.time) {
-            creep.memory.empoweredTowers[thisTower] = Game.time + 100;
-            break;
-        }
-    }
-}
-
-function checkForSpawnNeed(creep) {
-    for (var thisSpawnCD in creep.memory.empoweredSpawns) {
-        if (creep.memory.empoweredSpawns[thisSpawnCD] <= Game.time) {
-            return true;
-        }
-    }
-    return false;
 }
 
 function getNeededSpawn(creep) {
-    spawnIndex = 0;
-    for (var thisSpawn in creep.memory.empoweredSpawns) {
-        if (creep.memory.empoweredSpawns[thisSpawn] <= Game.time) {
-            var thisSpawn = Game.getObjectById(creep.memory.spawnList[spawnIndex]);
-            if (thisSpawn) {
+    for (let spawnID in creep.memory.spawnList) {
+        let thisSpawn = Game.getObjectById(spawnID)
+        if (thisSpawn && thisSpawn.effects) {
+            let foundPower = false;
+            for (let thisPower in thisSpawn.effects) {
+                if (thisPower.effect == PWR_OPERATE_SPAWN && thisPower.ticksRemaining > 0) {
+                    //No Need
+                    foundPower = true;
+                }
+            }
+            if (!foundPower) {
                 return thisSpawn;
             }
+        } else if (thisSpawn && !thisSpawn.effects) {
+            return thisSpawn;
         }
-        spawnIndex++;
     }
     return undefined;
-}
-
-function updateSpawnBoost(creep) {
-    for (var thisSpawn in creep.memory.empoweredSpawns) {
-        if (creep.memory.empoweredSpawns[thisSpawn] <= Game.time) {
-            creep.memory.empoweredSpawns[thisSpawn] = Game.time + 1000;
-            break;
-        }
-    }
 }
 
 module.exports = creep_baseOp;
