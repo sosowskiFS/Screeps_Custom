@@ -28,10 +28,6 @@ var spawn_BuildCreeps5 = {
             upSupplierMax = 0;
             repairMax = 0;
         }
-        let scraperMax = 0;
-        if (thisRoom.controller.level < 7) {
-            scraperMax = 1;
-        }
         let supplierMax = 1;
         let distributorMax = 1;
         let labWorkerMax = 0;
@@ -293,6 +289,10 @@ var spawn_BuildCreeps5 = {
         }
         let strSources = Memory.sourceList[thisRoom.name];
         let strLinks = Memory.linkList[thisRoom.name];
+        let scraperMax = 0;
+        if (strLinks.length < 4) {
+            scraperMax = 1;
+        }
         let strMineral = Memory.mineralList[thisRoom.name];
         let strTerminal = "";
         if (thisRoom.terminal) {
