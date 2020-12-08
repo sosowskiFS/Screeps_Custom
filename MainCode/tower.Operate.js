@@ -99,8 +99,8 @@ var tower_Operate = {
                         }
                         if (thisTower.effects) {
                             for (let thisPower in thisTower.effects) {
-                                if (thisPower.effect == PWR_OPERATE_TOWER || thisPower.effect == PWR_DISRUPT_TOWER) {
-                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
+                                if (thisTower.effects[thisPower].effect == PWR_OPERATE_TOWER || thisTower.effects[thisPower].effect == PWR_DISRUPT_TOWER) {
+                                    thisTowerDamage *= POWER_INFO[thisTower.effects[thisPower].effect].effect[thisTower.effects[thisPower].level - 1];
                                 }
                             }
                         }
@@ -184,8 +184,8 @@ var tower_Operate = {
                         }
                         if (thisTower.effects) {
                             for (let thisPower in thisTower.effects) {
-                                if (thisPower.effect == PWR_OPERATE_TOWER || thisPower.effect == PWR_DISRUPT_TOWER) {
-                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
+                                if (thisTower.effects[thisPower].effect == PWR_OPERATE_TOWER || thisTower.effects[thisPower].effect == PWR_DISRUPT_TOWER) {
+                                    thisTowerDamage *= POWER_INFO[thisTower.effects[thisPower].effect].effect[thisTower.effects[thisPower].level - 1];
                                 }
                             }
                         }

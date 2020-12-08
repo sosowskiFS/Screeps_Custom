@@ -549,7 +549,7 @@ function getNeededSource(creep) {
         if (thisSource && thisSource.effects) {
             let foundPower = false;
             for (let thisPower in thisSource.effects) {
-                if (thisPower.effect == PWR_REGEN_SOURCE && thisPower.ticksRemaining > 15) {
+                if (thisSource.effects[thisPower].effect == PWR_REGEN_SOURCE && thisSource.effects[thisPower].ticksRemaining > 15) {
                     //No Need
                     foundPower = true;
                 }
@@ -570,7 +570,7 @@ function getNeededTower(creep) {
         if (thisTower && thisTower.effects) {
             let foundPower = false;
             for (let thisPower in thisTower.effects) {
-                if (thisPower.effect == PWR_OPERATE_TOWER && thisPower.ticksRemaining > 0) {
+                if (thisTower.effects[thisPower].effect == PWR_OPERATE_TOWER && thisTower.effects[thisPower].ticksRemaining > 0) {
                     //No Need
                     foundPower = true;
                 }
@@ -606,7 +606,7 @@ function getNeededLab(creep) {
             if (thisLab && thisLab.effects) {
                 let foundPower = false;
                 for (let thisPower in thisLab.effects) {
-                    if (thisPower.effect == PWR_OPERATE_LAB && thisPower.ticksRemaining > 0) {
+                    if (thisLab.effects[thisPower].effect == PWR_OPERATE_LAB && thisLab.effects[thisPower].ticksRemaining > 0) {
                         //No Need
                         foundPower = true;
                     }
@@ -628,7 +628,7 @@ function getNeededSpawn(creep) {
         if (thisSpawn && thisSpawn.effects) {
             let foundPower = false;
             for (let thisPower in thisSpawn.effects) {
-                if (thisPower.effect == PWR_OPERATE_SPAWN && thisPower.ticksRemaining > 0) {
+                if (thisSpawn.effects[thisPower].effect == PWR_OPERATE_SPAWN && thisSpawn.effects[thisPower].ticksRemaining > 0) {
                     //No Need
                     foundPower = true;
                 }
