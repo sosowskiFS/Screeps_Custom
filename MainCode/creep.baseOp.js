@@ -524,11 +524,11 @@ function findNeededWork(creep, totalOps) {
         return 'OPERATE_EXTENSION';
     } else if (creep.powers[PWR_OPERATE_SPAWN] && (Game.flags[creep.room.name + "RunningAssault"] || totalOps >= 600) && totalOps >= 100 && creep.powers[PWR_OPERATE_SPAWN].cooldown <= 0 && getNeededSpawn(creep)) {
         return 'OPERATE_SPAWN';
-    } else if (creep.powers[PWR_OPERATE_TOWER] && Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1 && creep.powers[PWR_OPERATE_TOWER].cooldown <= 0 && totalOps >= 10 && getNeededTower(creep)) {
+    } else if (creep.powers[PWR_OPERATE_TOWER] && Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1 && creep.powers[PWR_OPERATE_TOWER].cooldown <= 0 && totalOps >= POWER_INFO[PWR_OPERATE_TOWER].ops && getNeededTower(creep)) {
         return 'OPERATE_TOWER'
     } else if (creep.powers[PWR_REGEN_SOURCE] && creep.powers[PWR_REGEN_SOURCE].cooldown <= 0 && getNeededSource(creep)) {
         return 'REGEN_SOURCE';
-    } else if (creep.powers[PWR_OPERATE_LAB] && !Game.flags[creep.room.name + "WarBoosts"] && creep.powers[PWR_OPERATE_LAB].cooldown <= 0 && getNeededLab(creep)) {
+    } else if (creep.powers[PWR_OPERATE_LAB] && totalOps >= POWER_INFO[PWR_OPERATE_LAB].ops && !Game.flags[creep.room.name + "WarBoosts"] && creep.powers[PWR_OPERATE_LAB].cooldown <= 0 && getNeededLab(creep)) {
         return 'OPERATE_LAB';
     } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'FILL_SPAWNS';
