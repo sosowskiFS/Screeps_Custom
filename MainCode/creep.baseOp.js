@@ -545,7 +545,7 @@ function findNeededWork(creep, totalOps) {
 
 function getNeededSource(creep) {
     for (let sourceID in Memory.sourceList[creep.room.name]) {
-        let thisSource = Game.getObjectById(sourceID)
+        let thisSource = Game.getObjectById(Memory.sourceList[creep.room.name][sourceID])
         if (thisSource && thisSource.effects) {
             let foundPower = false;
             for (let thisPower in thisSource.effects) {
