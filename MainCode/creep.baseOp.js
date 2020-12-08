@@ -520,7 +520,7 @@ function setupCreepMemory(creep) {
 
 function findNeededWork(creep, totalOps) {
 
-    if (creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].cooldown <= 0 && totalOps >= 2 && creep.room.storage && creep.room.energyAvailable < (creep.room.energyCapacityAvailable - 900)) {
+    if (creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].cooldown <= 0 && totalOps >= POWER_INFO[PWR_OPERATE_EXTENSION].ops  && creep.room.storage && creep.room.energyAvailable < (creep.room.energyCapacityAvailable - 900)) {
         return 'OPERATE_EXTENSION';
     } else if (creep.powers[PWR_OPERATE_SPAWN] && (Game.flags[creep.room.name + "RunningAssault"] || totalOps >= 600) && totalOps >= 100 && creep.powers[PWR_OPERATE_SPAWN].cooldown <= 0 && getNeededSpawn(creep)) {
         return 'OPERATE_SPAWN';
