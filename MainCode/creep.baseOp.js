@@ -566,7 +566,7 @@ function getNeededSource(creep) {
 
 function getNeededTower(creep) {
     for (let towerID in creep.memory.towerList) {
-        let thisTower = Game.getObjectById(towerID)
+        let thisTower = Game.getObjectById(creep.memory.towerList[towerID])
         if (thisTower && thisTower.effects) {
             let foundPower = false;
             for (let thisPower in thisTower.effects) {
@@ -624,7 +624,7 @@ function getNeededLab(creep) {
 
 function getNeededSpawn(creep) {
     for (let spawnID in creep.memory.spawnList) {
-        let thisSpawn = Game.getObjectById(spawnID)
+        let thisSpawn = Game.getObjectById(creep.memory.spawnList[spawnID])
         if (thisSpawn && thisSpawn.effects) {
             let foundPower = false;
             for (let thisPower in thisSpawn.effects) {
