@@ -1328,36 +1328,47 @@ module.exports.loop = function() {
             return thisOrder.resourceType == CPU_UNLOCK && thisOrder.type == "buy" && thisOrder.remainingAmount >= 1
         });
         let existingPrice = undefined;
+        let didDeal = false;
         if (existingOrder) {
             existingPrice = Game.market.orders[existingOrder].price;
-        }
-        //Look for highest buy order, ignoring existing order.
-        let comparableOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_BUY);
-        let targetPrice = 0;
-        if (comparableOrders.length > 0) {
-            comparableOrders.sort(orderSellCompare);
-            targetPrice = comparableOrders[0].price;
-            if (existingOrder && existingPrice <= targetPrice) {
-                //Current offer is lower, raise it.
-                //Determine if this is affordable
-                targetPrice += 0.001
-                if (Game.market.credits >= (targetPrice - existingPrice) * 0.05) {
-                	Game.market.changeOrderPrice(existingOrder, targetPrice);
-                }                   
-            } else if (!existingOrder) {
-            	//Determine if you can afford to compete
-            	targetPrice += 0.001;
-            	if (Game.market.credits >= (targetPrice * 0.05) + targetPrice) {
-            		//Create new order better than highest comparable one
-	            	Game.market.createOrder({
-	            		type: ORDER_BUY,
-	            		resourceType: CPU_UNLOCK,
-	            		price: targetPrice + 0.001,
-	            		totalAmount: 1
-	            	})
-            	}     	
+
+            let sellOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_SELL && order.price <= existingPrice);
+            //Something is lower than our current offer
+            if (sellOrders.length) {
+                sellOrders.sort(orderBuyCompare);
+                Game.market.deal(sellOrders[0].id, 1);
+                didDeal = true;
             }
         }
+        if (!didDeal){
+            //Look for highest buy order, ignoring existing order.
+            let comparableOrders = Game.market.getAllOrders(order => order.resourceType == CPU_UNLOCK && order.type == ORDER_BUY);
+            let targetPrice = 0;
+            if (comparableOrders.length > 0) {
+                comparableOrders.sort(orderSellCompare);
+                targetPrice = comparableOrders[0].price;
+                if (existingOrder && existingPrice <= targetPrice) {
+                    //Current offer is lower, raise it.
+                    //Determine if this is affordable
+                    targetPrice += 0.001
+                    if (Game.market.credits >= (targetPrice - existingPrice) * 0.05) {
+                        Game.market.changeOrderPrice(existingOrder, targetPrice);
+                    }                   
+                } else if (!existingOrder) {
+                    //Determine if you can afford to compete
+                    targetPrice += 0.001;
+                    if (Game.market.credits >= (targetPrice * 0.05) + targetPrice) {
+                        //Create new order better than highest comparable one
+                        Game.market.createOrder({
+                            type: ORDER_BUY,
+                            resourceType: CPU_UNLOCK,
+                            price: targetPrice + 0.001,
+                            totalAmount: 1
+                        })
+                    }       
+                }
+            }
+        }   
 
         //Sell Pixels
         if (Game.resources[PIXEL] >= 100) {
