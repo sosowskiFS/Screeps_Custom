@@ -127,7 +127,7 @@ var tower_Operate = {
                     });
                     //Look for healer creeps within 3 spaces of target creep for further subtractions
                     let nearbyFriendos = allHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.id != allHostiles[thisHostile].id)
                     });
                     for (let thisFriendo in nearbyFriendos) {
                         let friendRange = allHostiles[thisHostile].pos.getRangeTo(nearbyFriendos[thisFriendo]);

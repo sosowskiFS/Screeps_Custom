@@ -63,11 +63,11 @@ var creep_powerAttack = {
                             Game.rooms[creep.room.name].createFlag(25, 25, creep.memory.homeRoom + "PowerCollect");
                         }
                         //750 = attack per hit
-                        if (creep.memory.deathWarn > 0 && (thisBank.hits / 750) <= creep.ticksToLive + 50) {
+                        /*if (creep.memory.deathWarn > 0 && (thisBank.hits / 750) <= creep.ticksToLive + 50) {
                         	//Don't deathwarn. May be able to destroy it now.
                         	creep.memory.deathWarn = 0;
                         	creep.memory.priority = 'powerAttack';
-                        }
+                        }*/
                     } else {
                         //Cannot find bank, abort
                         Game.flags[creep.memory.homeRoom + "PowerGather"].remove();
