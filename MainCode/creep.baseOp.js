@@ -238,6 +238,22 @@ var creep_baseOp = {
                     creep.memory.structureTarget = undefined;
                 }
             }
+        } else if (creep.memory.jobFocus == 'OPERATE_POWER') {       
+            var targetPower = getNeededPower(creep);
+            if (targetPower) {
+                var useResult = creep.usePower(PWR_OPERATE_POWER, targetPower);
+                if (useResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(targetPower, {
+                        range: 2,
+                        ignoreRoads: true,
+                        maxRooms: 1
+                    });
+                } else if (useResult == OK) {
+                    creep.memory.jobFocus = undefined;
+                }
+            } else {
+                creep.memory.jobFocus = undefined;
+            }
         } else {
             //Busywork
             if (!creep.carry[RESOURCE_ENERGY]) {
