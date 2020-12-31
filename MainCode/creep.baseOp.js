@@ -139,10 +139,10 @@ var creep_baseOp = {
                     }
                 } else {
                     var storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 150000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
                         storageTarget = creep.room.terminal;
-                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] >= 150000) {
-                        storageTarget = creep.room.storage;
+                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
                         let withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY, neededAmount)
@@ -238,22 +238,6 @@ var creep_baseOp = {
                     creep.memory.structureTarget = undefined;
                 }
             }
-        } else if (creep.memory.jobFocus == 'OPERATE_POWER') {       
-            var targetPower = getNeededPower(creep);
-            if (targetPower) {
-                var useResult = creep.usePower(PWR_OPERATE_POWER, targetPower);
-                if (useResult == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(targetPower, {
-                        range: 2,
-                        ignoreRoads: true,
-                        maxRooms: 1
-                    });
-                } else if (useResult == OK) {
-                    creep.memory.jobFocus = undefined;
-                }
-            } else {
-                creep.memory.jobFocus = undefined;
-            }
         } else {
             //Busywork
             if (!creep.carry[RESOURCE_ENERGY]) {
@@ -274,10 +258,10 @@ var creep_baseOp = {
                     }
                 } else {
                     var storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 150000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
+                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
                         storageTarget = creep.room.terminal;
-                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] >= 150000) {
-                        storageTarget = creep.room.storage;
+                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+                        storageTarget = creep.room.terminal;
                     }
                     if (storageTarget) {
                         let withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY, neededAmount)
@@ -314,10 +298,10 @@ var creep_baseOp = {
                     if (creep.room.terminal) {
                         let targetEnergy = 0;
                         if (creep.room.storage) {
-                            if (creep.room.storage.store[RESOURCE_ENERGY] >= 150000) {
+                            if (creep.room.storage.store[RESOURCE_ENERGY] >= 275000) {
                                 targetEnergy = 60000;
-                            } else if (creep.room.storage.store[RESOURCE_ENERGY] < 140000) {
-                                targetEnergy = 0;
+                            } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
+                                targetEnergy = 30000;
                             }
                         }
                         if (creep.room.terminal.store[RESOURCE_ENERGY] < targetEnergy && creep.room.terminal.store.getFreeCapacity() > 5000) {
@@ -546,10 +530,8 @@ function findNeededWork(creep, totalOps) {
         return 'REGEN_SOURCE';
     } else if (creep.powers[PWR_OPERATE_LAB] && totalOps >= POWER_INFO[PWR_OPERATE_LAB].ops && !Game.flags[creep.room.name + "WarBoosts"] && creep.powers[PWR_OPERATE_LAB].cooldown <= 0 && getNeededLab(creep)) {
         return 'OPERATE_LAB';
-    } else if (creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].level >= 5 && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+    } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'FILL_SPAWNS';
-    } else if (creep.powers[PWR_OPERATE_POWER] && creep.room.storage && creep.room.storage.store[RESOURCE_POWER] && creep.room.storage.store[RESOURCE_POWER] >= 100 && creep.powers[PWR_OPERATE_POWER].cooldown <= 0 && totalOps >= POWER_INFO[PWR_OPERATE_POWER].ops && getNeededPower(creep)) {
-        return 'OPERATE_POWER';
     }
 
     if (creep.room.storage.store[RESOURCE_POWER] && creep.room.storage.store[RESOURCE_POWER] >= 100 && Memory.powerSpawnList[creep.room.name] && _.sum(creep.carry) <= creep.carryCapacity - 100) {
@@ -561,34 +543,9 @@ function findNeededWork(creep, totalOps) {
     return undefined;
 }
 
-function getNeededPower(creep) {
-    if (!Memory.powerSpawnList[creep.room.name]) {
-        return undefined;
-    }
-    let powerSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0])
-    if (!powerSpawn) {
-        return undefined;
-    } else if (powerSpawn.effects) {
-        for (let thisPower in powerSpawn.effects) {
-            if (powerSpawn.effects[thisPower].effect == PWR_OPERATE_POWER) {
-                return undefined;
-            }
-        }
-        return powerSpawn;
-    } else {
-        return powerSpawn;
-    }
-    return undefined;
-}
-
 function getNeededSource(creep) {
-    let sourceNum = 0;
     for (let sourceID in Memory.sourceList[creep.room.name]) {
-        if (sourceNum >= 1 && Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1) {
-            //Under attack, do not leave base.
-            continue;
-        }
-        let thisSource = Game.getObjectById(Memory.sourceList[creep.room.name][sourceID])        
+        let thisSource = Game.getObjectById(Memory.sourceList[creep.room.name][sourceID])
         if (thisSource && thisSource.effects) {
             let foundPower = false;
             for (let thisPower in thisSource.effects) {
@@ -603,7 +560,6 @@ function getNeededSource(creep) {
         } else if (thisSource && !thisSource.effects) {
             return thisSource;
         }
-        sourceNum += 1;
     }
     return undefined;
 }
