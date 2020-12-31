@@ -461,6 +461,9 @@ module.exports.loop = function() {
                         }
                     }
                     Game.map.visual.text("\u{26A1}" + formatNumber(Math.round(thisRoom.storage.store[RESOURCE_ENERGY])), new RoomPosition(1, 1, thisRoom.name), { color: '#FFFFFF', backgroundColor: '#000000' })
+                    if (thisRoom.storage.store[RESOURCE_POWER]) {
+                       Game.map.visual.text("\u{2622}" + formatNumber(Math.round(thisRoom.storage.store[RESOURCE_POWER])), new RoomPosition(49, 49, thisRoom.name), { color: '#FFFFFF', backgroundColor: '#000000' }) 
+                    }
                 }
 
                 //Get list of Links
