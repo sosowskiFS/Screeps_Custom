@@ -530,22 +530,49 @@ function findNeededWork(creep, totalOps) {
         return 'REGEN_SOURCE';
     } else if (creep.powers[PWR_OPERATE_LAB] && totalOps >= POWER_INFO[PWR_OPERATE_LAB].ops && !Game.flags[creep.room.name + "WarBoosts"] && creep.powers[PWR_OPERATE_LAB].cooldown <= 0 && getNeededLab(creep)) {
         return 'OPERATE_LAB';
-    } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
+    } else if (creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].level >= 5 && creep.room.energyAvailable < creep.room.energyCapacityAvailable) {
         return 'FILL_SPAWNS';
+    } else if (creep.powers[PWR_OPERATE_POWER] && creep.room.storage && creep.room.storage.store[RESOURCE_POWER] && creep.room.storage.store[RESOURCE_POWER] >= 100 && creep.powers[PWR_OPERATE_POWER].cooldown <= 0 && totalOps >= POWER_INFO[PWR_OPERATE_POWER].ops && getNeededPower(creep)) {
+        return 'OPERATE_POWER';
     }
 
     if (creep.room.storage.store[RESOURCE_POWER] && creep.room.storage.store[RESOURCE_POWER] >= 100 && Memory.powerSpawnList[creep.room.name] && _.sum(creep.carry) <= creep.carryCapacity - 100) {
         var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
-        if (powerSpawnTarget && powerSpawnTarget.power == 0) {
+        if (powerSpawnTarget && powerSpawnTarget.power <= 5) {
             return 'FILL_POWER';
         }
     }
     return undefined;
 }
 
+function getNeededPower(creep) {
+    if (!Memory.powerSpawnList[creep.room.name]) {
+        return undefined;
+    }
+    let powerSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0])
+    if (!powerSpawn) {
+        return undefined;
+    } else if (powerSpawn.effects) {
+        for (let thisPower in powerSpawn.effects) {
+            if (powerSpawn.effects[thisPower].effect == PWR_OPERATE_POWER) {
+                return undefined;
+            }
+        }
+        return powerSpawn;
+    } else {
+        return powerSpawn;
+    }
+    return undefined;
+}
+
 function getNeededSource(creep) {
+    let sourceNum = 0;
     for (let sourceID in Memory.sourceList[creep.room.name]) {
-        let thisSource = Game.getObjectById(Memory.sourceList[creep.room.name][sourceID])
+        if (sourceNum >= 1 && Memory.roomsUnderAttack.indexOf(creep.room.name) != -1 && Memory.roomsPrepSalvager.indexOf(creep.room.name) == -1) {
+            //Under attack, do not leave base.
+            continue;
+        }
+        let thisSource = Game.getObjectById(Memory.sourceList[creep.room.name][sourceID])        
         if (thisSource && thisSource.effects) {
             let foundPower = false;
             for (let thisPower in thisSource.effects) {
@@ -560,6 +587,7 @@ function getNeededSource(creep) {
         } else if (thisSource && !thisSource.effects) {
             return thisSource;
         }
+        sourceNum += 1;
     }
     return undefined;
 }
