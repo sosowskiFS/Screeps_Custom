@@ -41,6 +41,9 @@ var Traveler = require('traveler');
 var bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
 
+//Base Generator
+var tool_generateBase = require('tool.generateBase');
+
 //Towers
 var tower_Operate = require('tower.Operate');
 
@@ -109,6 +112,10 @@ module.exports.loop = function() {
         if (Game.flags["DAttackFlags"]) {
             Game.flags["DAttackFlags"].remove();
         }
+    }
+
+    if (Game.flags["TestBaseGeneration"]) {
+        tool_generateBase.run(Game.flags["TestBaseGeneration"].room);
     }
 
     if (Game.flags["RemoveMineralFlags"]) {
