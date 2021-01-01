@@ -17,6 +17,7 @@ var tool_generateBase = {
         	//Find open space diagonal from source
         		//If multiple, check all for best layout. (probably rare)
         	let sourceCoords = [roomSources[thisSource].pos.x, roomSources[thisSource].pos.y];
+        	console.log('--- SOURCE:' + roomSources[thisSource].id + ' ---')
         	let validDiagonals = [];
 			//Pos 7
 			if (terrain.get(sourceCoords[0] - 1, sourceCoords[1] - 1) != TERRAIN_MASK_WALL) {
@@ -39,13 +40,15 @@ var tool_generateBase = {
 				//No valid diagonals, not suitable
 				continue;
 			}
+			
+			console.log('Passed Diagonal Check.')
 
 			//Determine if 5x5 space is available from diagonals, with found space at bottom corner
 			let badDiagonals = [];
 			for(let thisDirection in validDiagonals) {
 				let xMinMax = [];
 				let yMinMax = [];
-				switch (thisDirection) {
+				switch (validDiagonals[thisDirection]) {
 					case 7:
 						xMinMax = [sourceCoords[0] - 5, sourceCoords[0] - 1];
 						yMinMax = [sourceCoords[1] - 5, sourceCoords[1] - 1];
@@ -64,7 +67,8 @@ var tool_generateBase = {
 						break;
 				}
 				if (!xMinMax.length) {
-					badDiagonals.push(thisDirection);
+					badDiagonals.push(validDiagonals[thisDirection]);
+					console.log('did not set xMinMax in first test')
 					continue;
 				}
 
@@ -79,7 +83,8 @@ var tool_generateBase = {
 					yMinMax[1] <= 1 || 
 					yMinMax[1] >= 48 
 				) {
-					badDiagonals.push(thisDirection);
+				    console.log('5x5 is too close to room border')
+					badDiagonals.push(validDiagonals[thisDirection]);
 					continue;
 				}
 
@@ -94,14 +99,16 @@ var tool_generateBase = {
 				}
 
 				if (!validSpace) {
-					badDiagonals.push(thisDirection);
+				    console.log('Not all tiles in 5x5 space are free')
+					badDiagonals.push(validDiagonals[thisDirection]);
 					continue;
 				}
 			}
 
 			//Splice out bad directions
 			for (let thisDirection in badDiagonals) {
-				let badPos = validDiagonals.indexOf(thisDirection);
+			    console.log(badDiagonals[thisDirection]);
+				let badPos = validDiagonals.indexOf(badDiagonals[thisDirection]);
 				if (badPos >= 0) {
 					validDiagonals.splice(badPos, 1);
 				}
@@ -109,6 +116,7 @@ var tool_generateBase = {
 
 			if (!validDiagonals.length) {
 				//No valid diagonals, not suitable
+				console.log('No valid directions here, quitting.')
 				continue;
 			}
 
@@ -117,12 +125,12 @@ var tool_generateBase = {
 				//If 11x11 area is intersected by room borders, mark this as not valid.
 			let mostSpace = 0;
 			let bestDiagonal = undefined;
-			let bestCenter = undefined;;
+			let bestCenter = undefined;
 			for(let thisDirection in validDiagonals) {
 				let centerPoint = []
 				let xMinMax = [];
 				let yMinMax = [];
-				switch (thisDirection) {
+				switch (validDiagonals[thisDirection]) {
 					case 7:
 						centerPoint = [sourceCoords[0] - 3, sourceCoords[1] - 3]
 						break;
@@ -150,6 +158,7 @@ var tool_generateBase = {
 					yMinMax[1] <= 1 || 
 					yMinMax[1] >= 48 
 				) {
+				    console.log('11x11 area overlaps map edge')
 					continue;
 				}
 
@@ -164,7 +173,7 @@ var tool_generateBase = {
 				}
 
 				if (freeSpace > mostSpace) {
-					bestDiagonal = thisDirection;
+					bestDiagonal = validDiagonals[thisDirection];
 					bestCenter = centerPoint;
 					mostSpace = freeSpace;
 				}
@@ -180,6 +189,11 @@ var tool_generateBase = {
 		        bestFreeSpace = mostSpace;
 			}
         }
+        
+        console.log('Best location determined.')
+        console.log(bestCenterCoords[0] + ',' + bestCenterCoords[1]);
+        console.log('Direction ' + bestDirection);
+        console.log('Most Space ' + bestFreeSpace);
 
         //(Above step is fully completed)
 
@@ -314,14 +328,19 @@ var tool_generateBase = {
 								break;
 						}
 					} else if (flipFlop) {
-						//Extention/Rampart
-						thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_EXTENSION)
-						thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_RAMPART)
+						//Extention/Rampart				
+						if (terrain.get(thisCursor[0] + x, thisCursor[1] + y) != TERRAIN_MASK_WALL) {
+							thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_EXTENSION)
+							thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_RAMPART)
+						}
 					} else {
 						//Road/Rampart
-						thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_ROAD)
-						thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_RAMPART)
+						if (terrain.get(thisCursor[0] + x, thisCursor[1] + y) != TERRAIN_MASK_WALL) {
+							thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_ROAD)
+							thisRoom.createConstructionSite(thisCursor[0] + x, thisCursor[1] + y, STRUCTURE_RAMPART)
+						}
 					}
+					flipFlop = !flipFlop;
 				}
 			}
         }
