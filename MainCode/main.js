@@ -76,6 +76,10 @@ module.exports.loop = function() {
     //Keep subscription active
     if (!Game.cpu.unlocked) {
         Game.cpu.unlock()
+
+        let today = new Date();
+		let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() + ' | ' + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+		Game.notify('CPU Token Used. ' + date);
     }
 
     //Set defaults on various memory values
