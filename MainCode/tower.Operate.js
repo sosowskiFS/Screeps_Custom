@@ -70,20 +70,8 @@ var tower_Operate = {
                 let damageRecord = 0;
                 let targetToShoot = undefined;
 
-                let defenderDamage = 0;
+                
                 //Calculate potential defender damage
-                for (let thisDefender in defenders) {
-                    defenders[thisDefender].body.forEach(function(thisPart) {
-                        if (thisPart.hits > 0) {
-                            if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
-                                defenderDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
-                            } else if (thisPart.type == RANGED_ATTACK) {
-                                defenderDamage += RANGED_ATTACK_POWER
-                            }
-                        }
-                    });
-                }
-
                 for (let thisHostile in allHostiles) {
                     //Shoot at whatever target you can do the most damage to
                     //Calculate flat tower damage
@@ -100,7 +88,7 @@ var tower_Operate = {
                         if (thisTower.effects) {
                             for (let thisPower in thisTower.effects) {
                                 if (thisTower.effects[thisPower].effect == PWR_OPERATE_TOWER || thisTower.effects[thisPower].effect == PWR_DISRUPT_TOWER) {
-                                    thisTowerDamage *= POWER_INFO[thisTower.effects[thisPower].effect].effect[thisTower.effects[thisPower].level - 1];
+                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
                                 }
                             }
                         }
@@ -108,52 +96,69 @@ var tower_Operate = {
                     }
 
                     //Add in potential defender damage
+                    let defenderDamage = 0;             
+                    for (let thisDefender in defenders) {
+                        if (defenders[thisDefender].pos.inRangeTo(allHostiles[thisHostile], 3)) {
+                            defenders[thisDefender].body.forEach(function(thisPart) {
+                                if (thisPart.hits > 0) {
+                                    if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
+                                        defenderDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
+                                    } else if (thisPart.type == RANGED_ATTACK) {
+                                        defenderDamage += RANGED_ATTACK_POWER
+                                    }
+                                }
+                            });
+                        }                      
+                    }
                     flatDamage += defenderDamage;
 
                     //Subtract target's TOUGH & HEAL damage soak
                     let damageReduction = 0;
                     let boostedTough = undefined;
 
-                    allHostiles[thisHostile].body.forEach(function(thisPart) {
-                        if (thisPart.hits > 0) {
-                            if (thisPart.type == TOUGH && thisPart.boost) {
-                                boostedTough = thisPart.boost;
-                            } else if (thisPart.type == HEAL && thisPart.boost) {
-                                damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
-                            } else if (thisPart.type == HEAL) {
-                                damageReduction += HEAL_POWER
-                            }
-                        }
-                    });
-                    //Look for healer creeps within 3 spaces of target creep for further subtractions
-                    let nearbyFriendos = allHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.id != allHostiles[thisHostile].id)
-                    });
-                    for (let thisFriendo in nearbyFriendos) {
-                        let friendRange = allHostiles[thisHostile].pos.getRangeTo(nearbyFriendos[thisFriendo]);
-                        nearbyFriendos[thisFriendo].body.forEach(function(thisPart) {
+                    if (!thisRoom.controller.safeMode) {
+                        allHostiles[thisHostile].body.forEach(function(thisPart) {
                             if (thisPart.hits > 0) {
-                                if (thisPart.type == HEAL && thisPart.boost) {
-                                    if (friendRange == 1) {
-                                        damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
-                                    } else {
-                                        damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
-                                    }
+                                if (thisPart.type == TOUGH && thisPart.boost) {
+                                    boostedTough = thisPart.boost;
+                                } else if (thisPart.type == HEAL && thisPart.boost) {
+                                    damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
                                 } else if (thisPart.type == HEAL) {
-                                    if (friendRange == 1) {
-                                        damageReduction += HEAL_POWER
-                                    } else {
-                                        damageReduction += RANGED_HEAL_POWER
-                                    }
+                                    damageReduction += HEAL_POWER
                                 }
                             }
                         });
-                    }
+                        //Look for healer creeps within 3 spaces of target creep for further subtractions
+                        let nearbyFriendos = allHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.id != allHostiles[thisHostile].id)
+                        });
+                        for (let thisFriendo in nearbyFriendos) {
+                            let friendRange = allHostiles[thisHostile].pos.getRangeTo(nearbyFriendos[thisFriendo]);
+                            nearbyFriendos[thisFriendo].body.forEach(function(thisPart) {
+                                if (thisPart.hits > 0) {
+                                    if (thisPart.type == HEAL && thisPart.boost) {
+                                        if (friendRange == 1) {
+                                            damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
+                                        } else {
+                                            damageReduction += RANGED_HEAL_POWER * BOOSTS['heal'][thisPart.boost]['rangedHeal']
+                                        }
+                                    } else if (thisPart.type == HEAL) {
+                                        if (friendRange == 1) {
+                                            damageReduction += HEAL_POWER
+                                        } else {
+                                            damageReduction += RANGED_HEAL_POWER
+                                        }
+                                    }
+                                }
+                            });
+                        }
 
-                    //Factor in damage reduction from Tough parts
-                    if (boostedTough) {
-                        flatDamage = flatDamage * BOOSTS['tough'][boostedTough]['damage']
+                        //Factor in damage reduction from Tough parts
+                        if (boostedTough) {
+                            flatDamage = flatDamage * BOOSTS['tough'][boostedTough]['damage']
+                        }
                     }
+                    
 
                     //Display the calculated damage total under the target
                     let dColor = 'green';
@@ -185,7 +190,7 @@ var tower_Operate = {
                         if (thisTower.effects) {
                             for (let thisPower in thisTower.effects) {
                                 if (thisTower.effects[thisPower].effect == PWR_OPERATE_TOWER || thisTower.effects[thisPower].effect == PWR_DISRUPT_TOWER) {
-                                    thisTowerDamage *= POWER_INFO[thisTower.effects[thisPower].effect].effect[thisTower.effects[thisPower].level - 1];
+                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
                                 }
                             }
                         }
@@ -193,6 +198,20 @@ var tower_Operate = {
                     }
 
                     //Add in potential defender damage
+                    let defenderDamage = 0;             
+                    for (let thisDefender in defenders) {
+                        if (defenders[thisDefender].pos.inRangeTo(allHostiles[thisHostile], 3)) {
+                            defenders[thisDefender].body.forEach(function(thisPart) {
+                                if (thisPart.hits > 0) {
+                                    if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
+                                        defenderDamage += RANGED_ATTACK_POWER * BOOSTS['ranged_attack'][thisPart.boost]['rangedAttack']
+                                    } else if (thisPart.type == RANGED_ATTACK) {
+                                        defenderDamage += RANGED_ATTACK_POWER
+                                    }
+                                }
+                            });
+                        }                      
+                    }
                     flatDamage += defenderDamage;
 
                     //Look for healer creeps within 3 spaces of target creep for further subtractions
@@ -300,6 +319,24 @@ var tower_Operate = {
                 } else {
                     //Bad target, let main handle reassignment
                     Memory.repairTarget[tower.room.name] = undefined;
+                }
+            }
+        } else {
+            //Check for damaged creeps & repair
+            let didHeal = false;
+            if (Game.flags[thisRoom.name + "RoomOperator"]) {
+                powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
+                if (powerCreep && powerCreep.hits < powerCreep.hitsMax) {
+                    tower.heal(powerCreep);
+                    didHeal = true;
+                }
+            }
+            let allCreeps = Memory.roomCreeps[thisRoom.name];
+            if (allCreeps.length && !didHeal) {
+                allCreeps.sort(healCompare);
+                if (allCreeps[0].hits < allCreeps[0].hitsMax) {
+                    tower.heal(allCreeps[0]);
+                    didHeal = true;
                 }
             }
         }
