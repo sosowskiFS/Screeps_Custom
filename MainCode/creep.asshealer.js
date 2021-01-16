@@ -92,7 +92,7 @@ var creep_asshealer = {
         } else {
             let targetAttacker = Game.getObjectById(creep.memory.attackerID);
             if (targetAttacker) {
-                if (targetAttacker.memory.priority == 'assattackerNearDeath' && creep.memory.priority != 'asshealerNearDeath') {
+                if ((targetAttacker.memory.priority == 'assattackerNearDeath' || targetAttacker.memory.priority == 'assrangerNearDeath') && creep.memory.priority != 'asshealerNearDeath') {
                     creep.memory.priority = 'asshealerNearDeath';
                 }
                 let thisPortal = undefined;
@@ -198,6 +198,20 @@ var creep_asshealer = {
                         }
                     }
                 }
+
+                if (targetAttacker.memory.priority == 'assrangerNearDeath') {
+                    let closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    });
+                    if (closeFoe) {
+                        if (closeRange <= 3 && determineThreat(closeFoe)) {
+                            //Back away from melee part creeps
+                            creep.travelTo(closeFoe, {
+                                range: 4
+                            }, true);
+                        }
+                    }
+                }
             } else {
                 creep.memory.UnassignDelay++;
                 if (creep.memory.UnassignDelay > 50) {
@@ -228,7 +242,7 @@ var creep_asshealer = {
                     }
                     creep.memory.attackerID = newTarget[0].id;
                 }
-            }
+            }           
         }
     }
 
@@ -240,6 +254,15 @@ function healCompare(a, b) {
     if (a.hits > b.hits)
         return 1;
     return 0;
+}
+
+function determineThreat(thisCreep) {
+    thisCreep.body.forEach(function(thisPart) {
+        if (thisPart.type == ATTACK) {
+            return true;
+        }
+    });
+    return false;
 }
 
 module.exports = creep_asshealer;
