@@ -108,7 +108,11 @@ var creep_combat = {
                 if (massAttackFlag) {
                     creep.rangedMassAttack();
                 } else {
-                    creep.rangedAttack(closeFoe);
+                    if (rangeToFoe <= 1) {
+                        creep.rangedMassAttack();
+                    } else {
+                        creep.rangedAttack(closeFoe);
+                    }              
                 }
                 creep.say("\uFF08\u0E07\u03A6 \u0414 \u03A6\uFF09\u0E07", true);
                 creep.memory.waitingTimer = 0;
@@ -127,6 +131,13 @@ var creep_combat = {
                 creep.rangedMassAttack();
             }
         } else {
+            let homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+            if (homeSpawn) {
+                creep.travelTo(homeSpawn, {
+                    maxRooms: 1,
+                    range: 2
+                })
+            }
             //Move out of the way
             let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
