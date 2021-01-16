@@ -248,7 +248,7 @@ function targetAttacker(a, b) {
 
 function determineThreat(thisCreep) {
     thisCreep.body.forEach(function(thisPart) {
-        if (thisCreep.body[thisPart].type == ATTACK) {
+        if (thisPart.type == ATTACK) {
             return true;
         }
     });
