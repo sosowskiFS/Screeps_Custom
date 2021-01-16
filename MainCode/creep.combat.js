@@ -8,6 +8,9 @@ var creep_combat = {
         if (creep.hits < creep.hitsMax) {
             creep.heal(creep);
         }
+       	if (!creep.memory.waitingTimer) {
+            creep.memory.waitingTimer = 0
+        }
 
         if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
             //Move towards Foe, stop at rampart
@@ -73,9 +76,6 @@ var creep_combat = {
                     creep.memory.needBoost = false;
                 }
             } else if (closeFoe) {
-                if (!creep.memory.waitingTimer) {
-                    creep.memory.waitingTimer = 0
-                }
                 var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
                 if (lookResult.length && creep.memory.waitingTimer < 2000) {
                     for (let y = 0; y < lookResult.length; y++) {
