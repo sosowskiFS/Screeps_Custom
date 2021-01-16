@@ -131,13 +131,16 @@ var creep_combat = {
                 creep.rangedMassAttack();
             }
         } else {
-            let homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
-            if (homeSpawn) {
-                creep.travelTo(homeSpawn, {
-                    maxRooms: 1,
-                    range: 2
-                })
-            }
+        	creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
+        	if (creep.memory.waitingTimer >= 10) {
+        		let homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
+	            if (homeSpawn) {
+	                creep.travelTo(homeSpawn, {
+	                    maxRooms: 1,
+	                    range: 2
+	                })
+	            }
+        	}            
             //Move out of the way
             let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
