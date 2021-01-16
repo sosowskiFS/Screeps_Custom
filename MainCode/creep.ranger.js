@@ -146,14 +146,12 @@ var creep_ranger = {
                         }
                     }
                     if (!hasRampart) {
-                        if (healerIsGood) {
-                            creep.travelTo(allStruct[thisStruct], {
-                                ignoreRoads: true,
-                                maxRooms: 1,
-                                stuckValue: 2,
-                                allowSK: true
-                            });
-                        }
+                        creep.travelTo(allStruct[thisStruct], {
+                            ignoreRoads: true,
+                            maxRooms: 1,
+                            stuckValue: 2,
+                            allowSK: true
+                        });
                         creep.dismantle(allStruct[thisStruct]);
                         creep.attack(allStruct[thisStruct]);
                         creep.rangedAttack(allStruct[thisStruct]);
