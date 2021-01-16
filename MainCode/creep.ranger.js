@@ -127,21 +127,58 @@ var creep_ranger = {
                     });
                 }
             } else {
-                let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+            	//Find structures that don't have a rampart on them
+                let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
                     filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_STORAGE)
                 });
-                if (eStructures) {
-                    creep.travelTo(eStructures, {
-                        ignoreRoads: true,
-                        maxRooms: 1,
-                        stuckValue: 2,
-                        allowSK: true
-                    });
-                    creep.attack(eStructures);
-                    creep.rangedAttack(eStructures);
-                } else if (Game.flags[creep.memory.homeRoom + flagName]) {
-                    creep.travelTo(Game.flags[creep.memory.homeRoom + flagName]);
+                let targetFound = false;
+                if (allStruct.length) {
+                    //Sort based on distance.
+                    allStruct.sort(distCompare(creep));
                 }
+                for (let thisStruct in allStruct) {
+                    let found = allStruct[thisStruct].pos.lookFor(LOOK_STRUCTURES);
+                    let hasRampart = false;
+                    for (var building in found) {
+                        if (found[building].structureType == STRUCTURE_RAMPART) {
+                            hasRampart = true;
+                            break;
+                        }
+                    }
+                    if (!hasRampart) {
+                        if (healerIsGood) {
+                            creep.travelTo(allStruct[thisStruct], {
+                                ignoreRoads: true,
+                                maxRooms: 1,
+                                stuckValue: 2,
+                                allowSK: true
+                            });
+                        }
+                        creep.dismantle(allStruct[thisStruct]);
+                        creep.attack(allStruct[thisStruct]);
+                        creep.rangedAttack(allStruct[thisStruct]);
+                        targetFound = true;
+                        break;
+                    }
+                }
+
+                if (!targetFound) {
+                	let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                    	filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_STORAGE)
+	                });
+	                if (eStructures) {
+	                    creep.travelTo(eStructures, {
+	                        ignoreRoads: true,
+	                        maxRooms: 1,
+	                        stuckValue: 2,
+	                        allowSK: true
+	                    });
+	                    creep.attack(eStructures);
+	                    creep.rangedAttack(eStructures);
+	                } else if (Game.flags[creep.memory.homeRoom + flagName]) {
+	                    creep.travelTo(Game.flags[creep.memory.homeRoom + flagName]);
+	                }
+                }               
             }
         } else {
             /*if (creep.memory.destination && !creep.memory.usedPortal) {
@@ -218,6 +255,18 @@ function determineThreat(thisCreep) {
         }
     });
     return false;
+}
+
+function distCompare(creep) {
+    return function(a, b) {
+        let aRange = a.pos.getRangeTo(creep);
+        let bRange = b.pos.getRangeTo(creep);
+        if (aRange < bRange)
+            return -1;
+        if (aRange > bRange)
+            return 1;
+        return 0;
+    }
 }
 
 module.exports = creep_ranger;
