@@ -250,7 +250,7 @@ let targetFound = false;
                                             maxRooms: 1,
                                             stuckValue: 2,
                                             allowSK: true,
-                                            range: 3
+                                            range: 1
                                         });
                                     }
                                     if (creep.rangedAttack(eSpawns) == ERR_NOT_IN_RANGE) {
@@ -261,7 +261,7 @@ let targetFound = false;
                                         //targetFlag.remove();
                                     }
                                     let eStructures = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
+                                        filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_STORAGE && structure.structureType != STRUCTURE_TERMINAL)
                                     });
                                     if (eStructures) {
                                         if (healerIsGood) {
@@ -270,7 +270,7 @@ let targetFound = false;
                                                 maxRooms: 1,
                                                 stuckValue: 2,
                                                 allowSK: true,
-                                                range: 3
+                                                range: 1
                                             });
                                         }
                                         creep.rangedMassAttack();
