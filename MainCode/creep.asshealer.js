@@ -258,7 +258,7 @@ function healCompare(a, b) {
 
 function determineThreat(thisCreep) {
     thisCreep.body.forEach(function(thisPart) {
-        if (thisPart.type == ATTACK) {
+        if (thisCreep.body[thisPart].type == ATTACK) {
             return true;
         }
     });
