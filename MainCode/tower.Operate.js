@@ -165,7 +165,7 @@ var tower_Operate = {
                     if ((flatDamage - damageReduction) <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.8 });
+                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
 
                     //Determine if this beats the best
                     if ((flatDamage - damageReduction) > damageRecord) {
@@ -244,7 +244,7 @@ var tower_Operate = {
                     if (flatDamage <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.8 });
+                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
 
                     //Determine if this beats the best
                     if ((flatDamage - damageReduction) > damageRecord) {
