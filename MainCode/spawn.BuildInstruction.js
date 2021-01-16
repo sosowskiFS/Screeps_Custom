@@ -165,8 +165,8 @@ var spawn_BuildInstruction = {
                                 });
                                 Memory.isSpawning = true;
                                 console.log('FUCK. SHIT. UP. ' + spawn.room.name);
-                                /*if (Game.flags[spawn.room.name + "RangedStyle"]) {
-                                    Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "DisassembleStyle");
+                                if (Game.flags[spawn.room.name + "RangedStyle"]) {
+                                    Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "MeleeStyle");
                                     Game.flags[spawn.room.name + "RangedStyle"].remove();
                                 } else if (Game.flags[spawn.room.name + "DisassembleStyle"]) {
                                     Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "MeleeStyle");
@@ -174,7 +174,7 @@ var spawn_BuildInstruction = {
                                 } else if (Game.flags[spawn.room.name + "MeleeStyle"]) {
                                     Game.rooms[spawn.room.name].createFlag(2, 20, spawn.room.name + "RangedStyle");
                                     Game.flags[spawn.room.name + "MeleeStyle"].remove();
-                                }*/
+                                }
                             }
                         }
                     } else {
@@ -248,7 +248,7 @@ var spawn_BuildInstruction = {
                         rangerConfig = [RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, HEAL];
                     }
                     if (spawn.room.energyCapacityAvailable >= 4450) {
-                        rangerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL, HEAL, HEAL, HEAL, HEAL, HEAL];
+                        rangerConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,RANGED_ATTACK,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL,HEAL];
                     }
                     let configCost = calculateConfigCost(rangerConfig);
                     if (params2 != '') {
