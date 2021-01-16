@@ -77,14 +77,14 @@ var creep_combat = {
                     creep.memory.waitingTimer = 0
                 }
                 var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
-                if (lookResult.length && creep.memory.waitingTimer < 500) {
+                if (lookResult.length && creep.memory.waitingTimer < 2000) {
                     for (let y = 0; y < lookResult.length; y++) {
                         if (lookResult[y].structureType == STRUCTURE_RAMPART) {
                             rFound = true;
                             if (rangeToFoe <= 3) {
                                 creep.memory.waitingTimer = 0;
                             } else if (lookResult[y].isPublic == true) {
-                                creep.memory.waitingTimer = creep.memory.waitingTimer + 20;
+                                creep.memory.waitingTimer = creep.memory.waitingTimer + 10;
                             } else {
                                 creep.memory.waitingTimer = creep.memory.waitingTimer + 1;
                             }
