@@ -101,7 +101,7 @@ var creep_combat = {
                         });
                     } else if (rangeToFoe > 1) {
                     	//Scan area around self, if target is in a similar direction to a rampart, move to that rampart
-                    	let moveDir = moveWithinRamparts(getDirectionTo(closeFoe), creep, closeFoe);
+                    	let moveDir = moveWithinRamparts(creep.pos.getDirectionTo(closeFoe), creep, closeFoe);
                     	if (moveDir) {
                     		creep.move(moveDir);
                     	}
@@ -249,7 +249,7 @@ function moveWithinRamparts(targetDir, creep, closeFoe) {
             }
         }
         if (!rFound) {
-        	badDir.push[i];
+        	badDir.push(i);
         	continue;
         }
     }
