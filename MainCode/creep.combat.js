@@ -77,7 +77,11 @@ var creep_combat = {
                 }
             } else if (closeFoe) {
                 var lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
-                if (lookResult.length && creep.memory.waitingTimer < 2000) {
+                let timer = 2000;
+                if (Foe.length <= 1) {
+                	timer = 250;
+                }
+                if (lookResult.length && creep.memory.waitingTimer < timer) {
                     for (let y = 0; y < lookResult.length; y++) {
                         if (lookResult[y].structureType == STRUCTURE_RAMPART) {
                             rFound = true;
