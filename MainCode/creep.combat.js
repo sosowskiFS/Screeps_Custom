@@ -99,6 +99,12 @@ var creep_combat = {
                         creep.travelTo(closeFoe, {
                             maxRooms: 1
                         });
+                    } else if (rangeToFoe > 1) {
+                    	//Scan area around self, if target is in a similar direction to a rampart, move to that rampart
+                    	let moveDir = moveWithinRamparts(getDirectionTo(closeFoe), creep, closeFoe);
+                    	if (moveDir) {
+                    		creep.move(moveDir);
+                    	}
                     }
                 } else {
                     creep.memory.waitingTimer = 0;
@@ -168,6 +174,111 @@ function targetOther(a, b) {
     if (a.getActiveBodyparts(HEAL) < b.getActiveBodyparts(HEAL))
         return -1;
     return 0;
+}
+
+function moveWithinRamparts(targetDir, creep, closeFoe) {
+    /*
+		TOP: 1,
+	    TOP_RIGHT: 2,
+	    RIGHT: 3,
+	    BOTTOM_RIGHT: 4,
+	    BOTTOM: 5,
+	    BOTTOM_LEFT: 6,
+	    LEFT: 7,
+	    TOP_LEFT: 8 
+    */
+    let checkDirections = [];
+    let coordMods = [];
+    switch (targetDir) {
+    	case TOP:
+    		checkDirections = [TOP_LEFT, TOP, TOP_RIGHT];
+    		coordMods = [[-1, -1], [0, -1], [1, -1]];
+    		break;
+    	case TOP_RIGHT:
+    		checkDirections = [TOP, TOP_RIGHT, RIGHT];
+    		coordMods = [[0, -1], [1, -1], [1, 0]];
+    		break;
+    	case RIGHT:
+    		checkDirections = [TOP_RIGHT, RIGHT, BOTTOM_RIGHT];
+    		coordMods = [[1, -1], [1, 0], [1, 1]];
+    		break;
+    	case BOTTOM_RIGHT:
+    		checkDirections = [RIGHT, BOTTOM_RIGHT, BOTTOM];
+    		coordMods = [[1, 0], [1, 1], [0, 1]];
+    		break;
+    	case BOTTOM:
+    		checkDirections = [BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT];
+    		coordMods = [[1, 1], [0, 1], [-1, 1]];
+    		break;
+    	case BOTTOM_LEFT:
+    		checkDirections = [BOTTOM, BOTTOM_LEFT, LEFT];
+    		coordMods = [[0, 1], [-1, 1], [-1, 0]];
+    		break;
+    	case LEFT:
+    		checkDirections = [BOTTOM_LEFT, LEFT, TOP_LEFT];
+    		coordMods = [[-1, 1], [-1, 0], [-1, -1]];
+    		break;
+    	case TOP_LEFT:
+    		checkDirections = [LEFT, TOP_LEFT, TOP];
+    		coordMods = [[-1, 0], [-1, -1], [0, -1]];
+    		break;
+    }
+    //Step 2 - determine which directions have ramparts
+    //let lookResult = creep.pos.lookFor(LOOK_STRUCTURES);
+    let badDir = [];
+    for (let i = 0; i <= 2; i++) {
+    	//sanity check
+    	if (creep.pos.x + coordMods[i][0] >= 49 || creep.pos.x + coordMods[i][0] <= 0) {
+    		badDir.push[i];
+    		continue;
+    	}
+    	if (creep.pos.y + coordMods[i][1] >= 49 || creep.pos.y + coordMods[i][1] <= 0) {
+    		badDir.push[i];
+    		continue;
+    	}
+
+    	let thisPos = new RoomPosition(creep.pos.x + coordMods[i][0], creep.pos.y + coordMods[i][1], creep.room.name);
+    	let lookResult = thisPos.lookFor(LOOK_STRUCTURES);
+    	let rFound = false;
+        if (lookResult.length) {
+            for (let y = 0; y < lookResult.length; y++) {
+                if (lookResult[y].structureType == STRUCTURE_RAMPART) {
+                    rFound = true;
+                    break;
+                }
+            }
+        }
+        if (!rFound) {
+        	badDir.push[i];
+        	continue;
+        }
+    }
+
+    if (badDir.length) {
+    	badDir.reverse();
+    	for (let q = 0; q < badDir.length; q++) {
+    		checkDirections.splice(badDir[q], 1);
+    		coordMods.splice(badDir[q], 1);
+    	}
+    }
+
+    //Step 3 - If more than one result, determine which direction is closer to target
+    if (!checkDirections.length) {
+    	return undefined;
+    }
+
+    let bestDir = undefined;
+    let bestDist = 99;
+    for (let l = 0; l < checkDirections.length; l++) {
+    	let thisPos = new RoomPosition(creep.pos.x + coordMods[l][0], creep.pos.y + coordMods[l][1], creep.room.name);
+    	let thisDist = thisPos.getRangeTo(closeFoe);
+    	if (thisDist < bestDist) {
+    		bestDist = thisDist;
+    		bestDir = checkDirections[l];
+    	}
+    }
+
+    return bestDir;
 }
 
 module.exports = creep_combat;
