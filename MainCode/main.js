@@ -74,13 +74,14 @@ module.exports.loop = function() {
     }
 
     //Keep subscription active
-    let currentTime = new Date;
-    if ((Game.cpu.unlockedTime - 600000) <= currentTime.valueOf()) {
-        Game.cpu.unlock()
-
-        let today = new Date();
-		let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() + ' | ' + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-		Game.notify('CPU Token Used. ' + date);
+    if (Game.shard.name == 'shard2') {
+    	let today = new Date();
+	    if ((Game.cpu.unlockedTime - 600000) <= today.valueOf()) {
+	        Game.cpu.unlock()
+	      
+			let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() + ' | ' + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+			Game.notify('CPU Token Used. ' + date);
+	    }
     }
 
     //Set defaults on various memory values
