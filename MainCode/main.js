@@ -74,7 +74,8 @@ module.exports.loop = function() {
     }
 
     //Keep subscription active
-    if (!Game.cpu.unlocked) {
+    let currentTime = new Date;
+    if ((Game.cpu.unlockedTime - 600000) >= currentTime.valueOf()) {
         Game.cpu.unlock()
 
         let today = new Date();
