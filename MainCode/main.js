@@ -477,6 +477,12 @@ module.exports.loop = function() {
                     if (thisRoom.storage.store[RESOURCE_POWER]) {
                        Game.map.visual.text("\u{2622}" + formatNumber(Math.round(thisRoom.storage.store[RESOURCE_POWER])), new RoomPosition(49, 49, thisRoom.name), { color: '#FFFFFF', backgroundColor: '#000000' }) 
                     }
+                    if (Memory.repairTarget[thisRoom.name]) {
+                    	let damagedStructure = Game.getObjectById(Memory.repairTarget[thisRoom.name]);
+            			if (damagedStructure && damagedStructure.structureType != STRUCTURE_CONTAINER) {
+            				Game.map.visual.text("\u{1F6E1}" + formatNumber(Math.round(damagedStructure.hits)), new RoomPosition(1, 49, thisRoom.name), { color: '#FFFFFF', backgroundColor: '#000000' })           				
+            			}
+                    }
                 }
 
                 //Get list of Links
