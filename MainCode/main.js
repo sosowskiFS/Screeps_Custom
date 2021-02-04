@@ -989,19 +989,27 @@ module.exports.loop = function() {
                 }
 
                 //Handle Observers
-                if (Memory.postObserveTick && Memory.powerCheckList[thisRoom.name] && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"]) {
-
-                    if (Game.rooms[Memory.powerCheckList[thisRoom.name][0]]) {
-                        //Search observed room for power bank
-                        let powerbanks = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_STRUCTURES, {
-                            filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.ticksToDecay >= 4500)
-                        });
-                        if (powerbanks.length) {
-                            Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(powerbanks[0].pos.x, powerbanks[0].pos.y, thisRoom.name + "PowerGather");
+                if (Memory.postObserveTick) {
+                    if (Game.rooms[Memory.observationPointers[thisRoom.name][2]]) {
+                        if (Game.flags[thisRoom.name + "PowerGather"] && Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName]) {
+                            var powerbanks = Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName].find(FIND_STRUCTURES, {
+                                filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK)
+                            });
+                            if (!powerbanks.length) {
+                                Game.flags[thisRoom.name + "PowerGather"].remove();
+                            }
+                        } else {
+                            //Search observed room for power bank
+                            let powerbanks = Game.rooms[Memory.observationPointers[thisRoom.name][2]].find(FIND_STRUCTURES, {
+                                filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.ticksToDecay >= 4500)
+                            });
+                            if (powerbanks.length) {
+                                Game.rooms[Memory.observationPointers[thisRoom.name][2]].createFlag(powerbanks[0].pos.x, powerbanks[0].pos.y, thisRoom.name + "PowerGather");
+                            }
                         }
 
                         //Search observed room for resource deposit
-                        let rDeposits = Game.rooms[Memory.powerCheckList[thisRoom.name][0]].find(FIND_DEPOSITS, {
+                        let rDeposits = Game.rooms[Memory.observationPointers[thisRoom.name][2]].find(FIND_DEPOSITS, {
                             filter: (eStruct) => (eStruct.lastCooldown < 28)
                         });
                         //Check to make sure terminal isn't overflowing with this type of mat
@@ -1023,43 +1031,42 @@ module.exports.loop = function() {
                             if (!check1 && !check2 && !check3) {
                                 //No flag in this room, create one.
                                 if (!Game.flags[thisRoom.name + "FarMineral"]) {
-                                    Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral");
+                                    Game.rooms[Memory.observationPointers[thisRoom.name][2]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral");
                                 } else if (!Game.flags[thisRoom.name + "FarMineral2"]) {
-                                    Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral2");
+                                    Game.rooms[Memory.observationPointers[thisRoom.name][2]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral2");
                                 } else if (!Game.flags[thisRoom.name + "FarMineral3"]) {
-                                    Game.rooms[Memory.powerCheckList[thisRoom.name][0]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral3");
+                                    Game.rooms[Memory.observationPointers[thisRoom.name][2]].createFlag(rDeposits[0].pos.x, rDeposits[0].pos.y, thisRoom.name + "FarMineral3");
                                 }
                             }
                         }
                     }
-
-                    //Move searched room to the back of the list
-                    Memory.powerCheckList[thisRoom.name].push(Memory.powerCheckList[thisRoom.name].shift());
-                } else if (Game.flags[thisRoom.name + "PowerGather"] && Memory.postObserveTick) {
-                    //Monitor existing flag and cancel if power bank doesn't exist anymore
-                    if (Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName]) {
-                        var powerbanks = Game.rooms[Game.flags[thisRoom.name + "PowerGather"].pos.roomName].find(FIND_STRUCTURES, {
-                            filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK)
-                        });
-                        if (!powerbanks.length) {
-                            Game.flags[thisRoom.name + "PowerGather"].remove();
+                    
+                    //Update pointer
+                    let xPointer = Memory.observationPointers[thisRoom.name][0]
+                    let yPointer = Memory.observationPointers[thisRoom.name][1]
+                    if (xPointer >= 2) {
+                        if (yPointer >= 2) {
+                            yPointer = -2
+                        } else {
+                            yPointer += 1;
                         }
+
+                        xPointer = -2;
+                    } else {
+                        xPointer += 1;
                     }
+
+                    Memory.observationPointers[thisRoom.name] = [xPointer, yPointer, getRoomAtOffset(xPointer, yPointer, thisRoom.name)]
                 }
 
-                if (Game.time % 50 == 0 && Memory.powerCheckList[thisRoom.name] && Memory.observerList[thisRoom.name].length >= 1 && Memory.powerCheckList[thisRoom.name].length > 0 && !Game.flags[thisRoom.name + "PowerGather"] && thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] < 50000)) {
+                if (!Memory.observationPointers[thisRoom.name]) {
+                    Memory.observationPointers[thisRoom.name] = [-2, -2, getRoomAtOffset(-2, -2, thisRoom.name)]
+                }
+
+                if (Game.time % 20 == 0 && Memory.observationPointers[thisRoom.name] && Memory.observerList[thisRoom.name].length >= 1) {
                     var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
                     if (thisObserver) {
-                        thisObserver.observeRoom(Memory.powerCheckList[thisRoom.name][0]);
-                        if (!Memory.postObserveTick) {
-                            Memory.postObserveTick = true;
-                        }
-                    }
-                } else if (Game.time % 50 == 0 && Game.flags[thisRoom.name + "PowerGather"] && Memory.observerList[thisRoom.name].length >= 1) {
-                    //Monitor existing flag and cancel if power bank doesn't exist anymore
-                    var thisObserver = Game.getObjectById(Memory.observerList[thisRoom.name][0]);
-                    if (thisObserver) {
-                        thisObserver.observeRoom(Game.flags[thisRoom.name + "PowerGather"].pos.roomName);
+                        thisObserver.observeRoom(Memory.observationPointers[thisRoom.name][2]);
                         if (!Memory.postObserveTick) {
                             Memory.postObserveTick = true;
                         }
@@ -1880,48 +1887,7 @@ function memCheck() {
     if (!Memory.powerSpawnList) {
         Memory.powerSpawnList = new Object();
     }
-    Memory.powerCheckList = new Object();
-    Memory.powerCheckList["E89N86"] = ["E90N87", "E90N86", "E90N85", "E90N88"];
-    Memory.powerCheckList["E89N83"] = ["E90N84", "E90N83", "E90N82"];
-    Memory.powerCheckList["E85N89"] = ["E84N90", "E85N90", "E86N90"];
-    Memory.powerCheckList["E88N75"] = ["E90N74", "E90N75", "E90N76"];
-    Memory.powerCheckList["E86N68"] = ["E85N70"];
-    Memory.powerCheckList["E81N79"] = ["E82N80", "E81N80", "E80N80", "E80N79", "E80N78"];
-    Memory.powerCheckList["E74N81"] = ["E73N80", "E74N80", "E75N80"];
-    Memory.powerCheckList["E88N88"] = ["E89N90", "E90N90", "E90N89"];
-    Memory.powerCheckList["E38N46"] = ["E40N47", "E40N46", "E40N45"];
-    Memory.powerCheckList["E21N58"] = ["E20N59", "E20N58", "E20N57"];
-    Memory.powerCheckList["E44N41"] = ["E42N40", "E43N40", "E44N40", "E45N40", "E46N40"];
-    Memory.powerCheckList["E37N39"] = ["E38N40", "E37N40", "E36N40", "E35N40"];
-    Memory.powerCheckList["E32N39"] = ["E31N40", "E32N40", "E33N40", "E30N39"];
-    Memory.powerCheckList["E22N42"] = ["E20N42", "E22N40"];
-    Memory.powerCheckList["E39N37"] = ["E40N38", "E40N37", "E40N36"];
-    Memory.powerCheckList["E39N34"] = ["E40N35", "E40N34", "E40N33"];
-    Memory.powerCheckList["E32N33"] = ["E30N33"];
-    Memory.powerCheckList["E18N26"] = ["E20N27", "E20N26", "E20N25"];
-    Memory.powerCheckList["E13N22"] = ["E12N20", "E13N20", "E14N20"];
-    Memory.powerCheckList["W35S28"] = ["W36S30", "W35S30", "W34S30"];
-    Memory.powerCheckList["W41S24"] = ["W40S23", "W40S24", "W40S25"];
-    Memory.powerCheckList["E8N14"] = ["E10N15", "E10N14", "E10N13"];
-    Memory.powerCheckList["E3N12"] = ["E2N10", "E3N10", "E4N10"];
-    Memory.powerCheckList["E23N28"] = ["E21N30", "E22N30", "E23N30", "E24N30"];
-    Memory.powerCheckList["E26N32"] = ["E25N30", "E26N30", "E27N30"];
-    Memory.powerCheckList["E18N22"] = ["E17N20", "E18N20", "E19N20"];
-    Memory.powerCheckList["E25N38"] = ["E24N40", "E25N40"];
-    Memory.powerCheckList["E12N11"] = ["E11N10", "E12N10", "E13N10", "E14N10", "E15N10"];
-    Memory.powerCheckList["E5N8"] = ["E5N10", "E6N10"];
-    Memory.powerCheckList["E27N18"] = ["E25N20", "E26N20", "E27N20", "E28N20"];
-    Memory.powerCheckList["E17N41"] = ["E15N40", "E16N40", "E17N40", "E18N40"];
-    Memory.powerCheckList["E29N43"] = ["E30N45", "E30N44", "E30N43", "E30N42", "E30N41"];
-    Memory.powerCheckList["E51N31"] = ["E50N31", "E50N32", "E50N30", "E51N30"];
-    Memory.powerCheckList["E49N33"] = ["E50N35", "E50N34", "E50N33"];
-    Memory.powerCheckList["E48N27"] = ["E50N27", "E50N26"];
-    Memory.powerCheckList["E57N39"] = ["E56N40", "E57N40", "E58N40"];
-    Memory.powerCheckList["E51N23"] = ["E50N24", "E50N23", "E50N22"];
-    Memory.powerCheckList["E42N31"] = ["E42N30", "E43N30", "E44N30"];
-    Memory.powerCheckList["W2N11"] = ["W4N10", "W3N10", "W2N10", "W1N10", "W0N10"];
-    Memory.powerCheckList["E1N16"] = ["E0N17", "E0N16", "E0N15"];
-    Memory.powerCheckList["E11N23"] = ["E10N23", "E10N22", "E10N21"];
+    Memory.observationPointers = new Object();
 
     if (!Memory.observerList) {
         Memory.observerList = new Object();
@@ -2320,4 +2286,47 @@ function determineCreepThreat(eCreep, totalHostiles) {
         //unboosted threat, not a problem.
         return false;
     }
+}
+
+function getRoomAtOffset(xOffset, yOffset, roomName) {
+    //Returns the name of the room that is x,y away from the submitted origin room name
+
+    //Get origin room coordinates in numerical format
+    let xx = parseInt(roomName.substr(1), 10);
+    let verticalPos = 2;
+    if (xx >= 100) {
+        verticalPos = 4;
+    } else if (xx >= 10) {
+        verticalPos = 3;
+    }
+    let yy = parseInt(roomName.substr(verticalPos + 1), 10);
+    let horizontalDir = roomName.charAt(0);
+    let verticalDir = roomName.charAt(verticalPos);
+    if (horizontalDir === 'W' || horizontalDir === 'w') {
+        xx = -xx - 1;
+    }
+    if (verticalDir === 'N' || verticalDir === 'n') {
+        yy = -yy - 1;
+    }
+
+    //Apply offset
+    xx = xx + xOffset
+    yy = yy + yOffset
+
+    //Convert coordinates back to room name format
+    let xName = ''
+    let yName = ''
+    if (xx >= 0) {
+        xName = "E" + xx.toString()
+    } else {
+        xName = "W" + (-xx - 1).toString()
+    }
+
+    if (yy >= 0) {
+        yName = "S" + yy.toString()
+    } else {
+        yName = "N" + (-yy - 1).toString()
+    }
+
+    return xName + yName;
 }
