@@ -1039,24 +1039,25 @@ module.exports.loop = function() {
                                 }
                             }
                         }
-                    }
-                    
-                    //Update pointer
-                    let xPointer = Memory.observationPointers[thisRoom.name][0]
-                    let yPointer = Memory.observationPointers[thisRoom.name][1]
-                    if (xPointer >= 2) {
-                        if (yPointer >= 2) {
-                            yPointer = -2
+
+                        //Update pointer
+                        let xPointer = Memory.observationPointers[thisRoom.name][0]
+                        let yPointer = Memory.observationPointers[thisRoom.name][1]
+                        if (xPointer >= 2) {
+                            if (yPointer >= 2) {
+                                yPointer = -2
+                            } else {
+                                yPointer += 1;
+                            }
+
+                            xPointer = -2;
                         } else {
-                            yPointer += 1;
+                            xPointer += 1;
                         }
 
-                        xPointer = -2;
-                    } else {
-                        xPointer += 1;
-                    }
+                        Memory.observationPointers[thisRoom.name] = [xPointer, yPointer, getRoomAtOffset(xPointer, yPointer, thisRoom.name)]
+                    }                   
 
-                    Memory.observationPointers[thisRoom.name] = [xPointer, yPointer, getRoomAtOffset(xPointer, yPointer, thisRoom.name)]
                 }
 
                 if (!Memory.observationPointers[thisRoom.name]) {
@@ -1333,7 +1334,7 @@ module.exports.loop = function() {
     }
 
     //Clear observe tick, rooms have been checked.
-    if (Memory.postObserveTick && Game.time % 50 != 0) {
+    if (Memory.postObserveTick && Game.time % 20 != 0) {
         Memory.postObserveTick = false;
     }
 
