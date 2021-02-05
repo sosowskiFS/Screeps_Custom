@@ -987,6 +987,10 @@ module.exports.loop = function() {
                         }
                     }
                 }
+               
+                if (!Memory.observationPointers[thisRoom.name]) {
+                    Memory.observationPointers[thisRoom.name] = [-2, -2, getRoomAtOffset(-2, -2, thisRoom.name)]
+                }
 
                 //Handle Observers
                 if (Memory.postObserveTick) {
@@ -1058,10 +1062,6 @@ module.exports.loop = function() {
                         Memory.observationPointers[thisRoom.name] = [xPointer, yPointer, getRoomAtOffset(xPointer, yPointer, thisRoom.name)]
                     }                   
 
-                }
-
-                if (!Memory.observationPointers[thisRoom.name]) {
-                    Memory.observationPointers[thisRoom.name] = [-2, -2, getRoomAtOffset(-2, -2, thisRoom.name)]
                 }
 
                 if (Game.time % 20 == 0 && Memory.observationPointers[thisRoom.name] && Memory.observerList[thisRoom.name].length >= 1) {
