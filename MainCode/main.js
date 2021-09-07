@@ -1004,6 +1004,7 @@ module.exports.loop = function() {
                             }
                         } else {
                             //Search observed room for power bank
+                            if (thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] <= 200000))
                             let powerbanks = Game.rooms[Memory.observationPointers[thisRoom.name][2]].find(FIND_STRUCTURES, {
                                 filter: (eStruct) => (eStruct.structureType == STRUCTURE_POWER_BANK && eStruct.ticksToDecay >= 4500)
                             });
