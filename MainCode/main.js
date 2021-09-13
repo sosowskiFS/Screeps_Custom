@@ -1077,7 +1077,7 @@ module.exports.loop = function() {
                 }
 
                 //Update advanced script rooms
-                if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1 && (thisRoom.storage && Memory.linkList[thisRoom.name].length == 2)) {
+                if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1 && (thisRoom.storage && Memory.linkList[thisRoom.name].length >= 2)) {
                     Memory.RoomsAt5.push(thisRoom.name)
                 } else if ((!thisRoom.storage || Memory.linkList[thisRoom.name].length < 2 || thisRoom.controller.level < 5) && Memory.RoomsAt5.indexOf(thisRoom.name) != -1) {
                     //This room shouldn't be on this list
