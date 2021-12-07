@@ -552,9 +552,9 @@ function findNeededWork(creep, totalOps) {
         return 'OPERATE_POWER';
     }
 
-    if (creep.room.storage.store[RESOURCE_POWER] && creep.room.storage.store[RESOURCE_POWER] >= 100 && Memory.powerSpawnList[creep.room.name] && _.sum(creep.carry) <= creep.carryCapacity - 100) {
+    if (creep.room.storage.store[RESOURCE_POWER] && creep.room.storage.store[RESOURCE_POWER] >= 100 && Memory.powerSpawnList[creep.room.name] && creep.store.getFreeCapacity() >= 100) {
         var powerSpawnTarget = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
-        if (powerSpawnTarget && powerSpawnTarget.power <= 5) {
+        if (powerSpawnTarget && (powerSpawnTarget.store[RESOURCE_POWER] <= 5) {
             return 'FILL_POWER';
         }
     }
