@@ -247,12 +247,13 @@ function targetAttacker(a, b) {
 }
 
 function determineThreat(thisCreep) {
+    let found = false;
     thisCreep.body.forEach(function(thisPart) {
         if (thisPart.type == ATTACK) {
-            return true;
+            found = true;
         }
     });
-    return false;
+    return found;
 }
 
 function distCompare(creep) {
