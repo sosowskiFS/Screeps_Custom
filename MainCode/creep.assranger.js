@@ -484,21 +484,23 @@ function distCompare(creep) {
 }
 
 function determineThreat(thisCreep) {
+	let found = false;
     thisCreep.body.forEach(function(thisPart) {
         if (thisPart.type == ATTACK) {
-            return true;
+            found = true;
         }
     });
-    return false;
+    return found;
 }
 
 function boostCheck(thisCreep) {
+	let found = false;
 	thisCreep.body.forEach(function(thisPart) {
 		if (thisPart.type == TOUGH && thisPart.boost) {
-			return true;
+			found = true;
 		}
 	});
-	return false;
+	return found;
 }
 
 module.exports = creep_assranger;
