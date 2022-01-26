@@ -58,7 +58,7 @@ var creep_assranger = {
                 }
             }
 
-            let closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
+            let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
             });
 
@@ -420,6 +420,7 @@ let targetFound = false;
                 let lookResult = closeFoe.pos.lookFor(LOOK_STRUCTURES);
                 let inRampart = false;
                 let closeRange = creep.pos.getRangeTo(closeFoe);
+                let toughBoosted = boostCheck(closeFoe);
                 if (lookResult.length) {
                     for (let d = 0; d < lookResult.length; d++) {
                         if (lookResult[d].structureType == STRUCTURE_RAMPART) {
@@ -428,10 +429,10 @@ let targetFound = false;
                         }
                     }
                     //Don't bother shooting if foe is in rampart
-                    if (!inRampart) {
+                    if (!inRampart && !toughBoosted) {
                         creep.rangedAttack(closeFoe);
                     }
-                } else {
+                } else if (!toughBoosted){
                     if (closeRange == 1) {
                         creep.rangedMassAttack();
                     } else {
@@ -489,6 +490,15 @@ function determineThreat(thisCreep) {
         }
     });
     return false;
+}
+
+function boostCheck(thisCreep) {
+	thisCreep.body.forEach(function(thisPart) {
+		if (thisPart.type == TOUGH && thisPart.boost) {
+			return true;
+		}
+	});
+	return false;
 }
 
 module.exports = creep_assranger;
