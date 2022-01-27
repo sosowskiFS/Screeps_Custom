@@ -8,10 +8,14 @@ var spawn_BuildInstruction = {
                         //Claimer with defined path
                         var creepPath = params2.split(";");
                         if (creepPath.length) {
-                            let configCost = calculateConfigCost([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]);
+                        	let tConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM];
+                        	if (Memory.CurrentRoomEnergy[energyIndex] >= 2650) {
+                        		tConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM];
+                            }
+                            let configCost = calculateConfigCost(tConfig);         
                             if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                                 Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                                spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], 'claimer_' + spawn.name + '_' + Game.time, {
+                                spawn.spawnCreep(tConfig, 'claimer_' + spawn.name + '_' + Game.time, {
                                     memory: {
                                         priority: 'claimer',
                                         destination: params,
@@ -21,16 +25,17 @@ var spawn_BuildInstruction = {
                                 });
                                 Memory.isSpawning = true;
                                 console.log('Claim executed from ' + spawn.room.name);
-                                if (Game.flags[spawn.room.name + "ClaimThis"]) {
-                                    Game.flags[spawn.room.name + "ClaimThis"].remove();
-                                }
                             }
                         }
                     } else {
-                        let configCost = calculateConfigCost([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM]);
+                        let tConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM];
+                        	if (Memory.CurrentRoomEnergy[energyIndex] >= 2650) {
+                        		tConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM];
+                            }
+                        let configCost = calculateConfigCost(tConfig); 
                         if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                             Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                            spawn.spawnCreep([MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM], 'claimer_' + spawn.name + '_' + Game.time, {
+                            spawn.spawnCreep(tConfig, 'claimer_' + spawn.name + '_' + Game.time, {
                                 memory: {
                                     priority: 'claimer',
                                     homeRoom: spawn.room.name,
@@ -39,9 +44,6 @@ var spawn_BuildInstruction = {
                             });
                             Memory.isSpawning = true;
                             console.log('Claim executed from ' + spawn.room.name);
-                            if (Game.flags[spawn.room.name + "ClaimThis"]) {
-                                Game.flags[spawn.room.name + "ClaimThis"].remove();
-                            }
                         }
                     }
                 }

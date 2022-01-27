@@ -54,6 +54,10 @@ var creep_claimer = {
 	                    offRoad: true
 	                });
 	            } else if (creep.attackController(creep.room.controller) == OK) {
+                    if (Game.flags[creep.memory.homeRoom + "ClaimThis"]) {
+                        Game.flags[creep.memory.homeRoom + "ClaimThis"].pos.createFlag(creep.memory.homeRoom + "ClaimThis;" + (Game.time + 925).toString());
+                        Game.flags[creep.memory.homeRoom + "ClaimThis"].remove();
+                    }
 	                Memory.claimSpawn = false;
 	                creep.suicide();
 	            }
@@ -64,6 +68,9 @@ var creep_claimer = {
 	                    offRoad: true
 	                });
 	            } else if (creep.claimController(creep.room.controller) == OK) {
+                    if (Game.flags[creep.memory.homeRoom + "ClaimThis"]) {
+                        Game.flags[creep.memory.homeRoom + "ClaimThis"].remove();
+                    }
 	                Memory.claimSpawn = false;
 	                creep.suicide();
 	            }
