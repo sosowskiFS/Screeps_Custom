@@ -46,15 +46,28 @@ var creep_claimer = {
                 }
             }
         } else {
-            if (creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                creep.travelTo(creep.room.controller, {
-                    ignoreRoads: true,
-                    offRoad: true
-                });
-            } else if (creep.claimController(creep.room.controller) == OK) {
-                Memory.claimSpawn = false;
-                creep.suicide();
-            }
+        	if (creep.room.controller.owner != undefined) {
+        		//Here to attack
+        		if (creep.attackController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+	                creep.travelTo(creep.room.controller, {
+	                    ignoreRoads: true,
+	                    offRoad: true
+	                });
+	            } else if (creep.attackController(creep.room.controller) == OK) {
+	                Memory.claimSpawn = false;
+	                creep.suicide();
+	            }
+        	} else {
+        		if (creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+	                creep.travelTo(creep.room.controller, {
+	                    ignoreRoads: true,
+	                    offRoad: true
+	                });
+	            } else if (creep.claimController(creep.room.controller) == OK) {
+	                Memory.claimSpawn = false;
+	                creep.suicide();
+	            }
+        	}           
         }
     }
 };
