@@ -122,7 +122,23 @@ module.exports.loop = function() {
 
     if (Game.flags["TestBaseGeneration"]) {
         tool_generateBase.run(Game.flags["TestBaseGeneration"].room);
+		Game.flags["TestBaseGeneration"].remove();
     }
+	
+	if (Game.flags["AddAutobuildRoom"]) {	
+		if (Memory.autoBuildRooms.indexOf(Game.flags["AddAutobuildRoom"].room.name) == -1) {
+			Memory.autoBuildRooms.push(Game.flags["AddAutobuildRoom"].room.name)
+		}
+		Game.flags["AddAutobuildRoom"].remove();
+	}
+
+	if (Game.flags["RemoveAutobuildRoom"]) {	
+		if (Memory.autoBuildRooms.indexOf(Game.flags["RemoveAutobuildRoom"].room.name) != -1) {
+			var thisRoomIndex = Memory.autoBuildRooms.indexOf(Game.flags["RemoveAutobuildRoom"].room.name)
+			Memory.autoBuildRooms.splice(thisRoomIndex, 1);
+		}
+		Game.flags["RemoveAutobuildRoom"].remove();
+	} 	
 
     if (Game.flags["RemoveMineralFlags"]) {
         //Clear all production flags for replacing
@@ -1106,6 +1122,14 @@ module.exports.loop = function() {
                         }
                     }
                 }
+				
+				//Re-run building autogeneration
+				if ( (Game.time % 10000 == 0 && Memory.autoBuildRooms[thisRoom.name]) || Game.flags["ForceBaseGeneration"] ){
+					if (Game.flags["ForceBaseGeneration"]) {
+						Game.flags["ForceBaseGeneration"].remove();
+					}
+					tool_generateBase.run(thisRoom);
+				}
 
                 //if (Game.flags[thisRoom.name + "FarGuard"]) {
                 //Memory.FarGuardNeeded[thisRoom.name] = true;
@@ -1820,6 +1844,9 @@ function memCheck() {
     if (!Memory.scoutedMiningRooms) {
         Memory.scoutedMiningRooms = [];
     }
+	if (!Memory.autoBuildRooms) {
+		Memory.autoBuildRooms = [];
+	}
     //Boolean
     if (Memory.warMode == null) {
         Memory.warMode = false;
