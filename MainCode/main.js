@@ -1124,7 +1124,7 @@ module.exports.loop = function() {
                 }
 				
 				//Re-run building autogeneration
-				if ( (Game.time % 10000 == 0 && Memory.autoBuildRooms[thisRoom.name]) || Game.flags["ForceBaseGeneration"] ){
+				if ( (Game.time % 10000 == 0 || Game.flags["ForceBaseGeneration"]) && Memory.autoBuildRooms.indexOf(thisRoom.name) > -1 ){
 					if (Game.flags["ForceBaseGeneration"]) {
 						Game.flags["ForceBaseGeneration"].remove();
 					}
