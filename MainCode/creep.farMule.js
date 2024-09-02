@@ -107,7 +107,7 @@ let creep_farMule = {
                             //Assume ok, do road search back to home
                             if (creep.memory.didRoadSearch == false && creep.memory.storageSource) {
                                 let storageUnit = Game.getObjectById(creep.memory.storageSource)
-                                if ((thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
+                                if (storageUnit && (thisContainer && creep.pos.isNearTo(thisContainer)) || creep.pos.x == 0 || creep.pos.x == 49 || creep.pos.y == 0 || creep.pos.y == 49) {
                                     roadSearchTarget = storageUnit.pos;
                                 } else {
                                     creep.memory.didRoadSearch = true;
