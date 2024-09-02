@@ -2043,6 +2043,16 @@ function memCheck() {
         Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ACID] = 0;
         Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] = 0;
     }
+	
+	if (!Memory.genBestDirection) { 
+        Memory.genBestDirection = new Object();
+    }
+    if (!Memory.genBestCenterCoords) {
+        Memory.genBestCenterCoords = new Object();
+    }
+    if (!Memory.genBestSourceID) {
+        Memory.genBestSourceID = new Object();
+    }
 }
 
 function orderPriceCompare(a, b) {
