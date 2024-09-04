@@ -603,7 +603,7 @@ module.exports.loop = function() {
                 }
 
                 //Get list of Sources
-                if (!Memory.sourceList[thisRoom.name]) {
+                if (!Memory.sourceList[thisRoom.name] || Game.time % 1000 == 0) {
                     Memory.sourceList[thisRoom.name] = [];
                     var roomSources = thisRoom.find(FIND_SOURCES);
                     var reverseFlag = false;
