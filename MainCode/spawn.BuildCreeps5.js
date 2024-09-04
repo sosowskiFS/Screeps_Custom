@@ -1,5 +1,5 @@
 var spawn_BuildCreeps5 = {
-    run: function(spawn, thisRoom, RoomCreeps, energyIndex) {
+    run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
         let miners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source
         let upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
         let storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
@@ -46,7 +46,7 @@ var spawn_BuildCreeps5 = {
             //Unique : OH/G
             //T1 : UH/LO/ZH/GH/ZK/ZO/LH/UL/GO/KO - 10
             //T2 : GHO2/KHO2/ZHO2/ZH2O/UH2O/LH2O/LHO2/GH2O - 8
-            //T3 : XGHO2/XKHO2/XZHO2/XZH2O/XUH2O/XLH2O/XLHO2/XGH2O - 8 
+            //T3 : XGHO2/XKHO2/XZHO2/XZH2O/XUH2O/XLH2O/XLHO2/XGH2O - 8
 
             //Most Frequent (2 SETS PER GROUPING)
             //XGHO2/XGH2O/XUH2O
@@ -300,7 +300,9 @@ var spawn_BuildCreeps5 = {
         }
         let strExtractor = Memory.extractorList[thisRoom.name];
         let readyForMineral = false;
-        if (strExtractor[0] && thisRoom.terminal && strMineral[0] && thisRoom.terminal.store.getFreeCapacity() > 25000) {
+        let mineralType = Game.getObjectById(strMineral[0]).mineralType;
+
+        if (strExtractor[0] && thisRoom.terminal && strMineral[0] && (!thisRoom.terminal.store[mineralType] || thisRoom.terminal.store[mineralType] <= 10000)) {
             readyForMineral = true;
         }
 
@@ -308,6 +310,8 @@ var spawn_BuildCreeps5 = {
             upgraderMax--;
         }
 
+        let pNeedDist = false;
+        let regenPower = 0;
 
         if (thisRoom.controller.level == 8) {
             //Minimize staffing
@@ -337,10 +341,26 @@ var spawn_BuildCreeps5 = {
                 distributorMax = 0;
                 muleMax = 0;
                 repairMax = 2;
+                for (let pName in Game.powerCreeps) {
+                    if (Game.powerCreeps[pName].memory.homeRoom && Game.powerCreeps[pName].memory.homeRoom == thisRoom.name) {
+                        //Found power creep, check abilities and adjust
+                        let thisPCreep = Game.powerCreeps[pName]
+                            //Check extention fill capacity
+                            if (!thisPCreep.powers[PWR_OPERATE_EXTENSION] || (thisPCreep.powers[PWR_OPERATE_EXTENSION] && thisPCreep.powers[PWR_OPERATE_EXTENSION].level < 5)) {
+                                pNeedDist = true;
+                                distributorMax = 1;
+                            }
+                            //Check regen source strength
+                            if (thisPCreep.powers[PWR_REGEN_SOURCE]) {
+                                regenPower = thisPCreep.powers[PWR_REGEN_SOURCE].level
+                            }
+                            break;
+                    }
+                }
                 //labWorkerMax = 0;
                 if (Game.flags[thisRoom.name + "RunningAssault"]) {
-                	//To aid with lab refilling
-                	distributorMax = 1;
+                    //To aid with lab refilling
+                    distributorMax = 1;
                 }
                 if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 50000) {
                     //Something's fucked
@@ -362,7 +382,7 @@ var spawn_BuildCreeps5 = {
                 //muleMax++;
             }
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
-                //Add another mule for resource management               
+                //Add another mule for resource management
                 upgraderMax++;
                 muleMax++;
             }
@@ -380,7 +400,7 @@ var spawn_BuildCreeps5 = {
                 upgradeMiners[0].drop(RESOURCE_ENERGY);
                 upgradeMiners[0].memory.jobSpecific = 'storageMiner';
                 upgradeMiners[0].memory.linkSource = thisRoom.storage.id
-                upgradeMiners[0].memory.mineSource = strSources[0];
+                    upgradeMiners[0].memory.mineSource = strSources[0];
                 upgradeMiners[0].memory.ignoreTravel = false;
                 upgradeMiners[0].memory.atSpot = false;
                 upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
@@ -398,10 +418,13 @@ var spawn_BuildCreeps5 = {
             repairMax = 3;
             upSupplierMax = 0;
             supplierMax = 1;
-            distributorMax = 1;
             if (Game.flags[thisRoom.name + "RoomOperator"]) {
                 //The RoomOperator is robust enough to make up for multiple roles
-                distributorMax = 0;
+                if (pNeedDist) {
+                    distributorMax = 1;
+                } else {
+                    distributorMax = 0;
+                }
                 muleMax = 0;
             }
         }
@@ -413,7 +436,20 @@ var spawn_BuildCreeps5 = {
             repairMax = 0;
         }
 
-        let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
+        //Returns [upgraderMax, upgraderConfig]
+        let upgraderResults = GetUpgraderConfig(upgraderMax, thisRoom.energyCapacityAvailable, thisRoom.controller.level)
+            upgraderMax = upgraderResults[0]
+            let upgraderConfig = upgraderResults[1]
+            let bareMinConfig = [MOVE, WORK, WORK, CARRY];
+        let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+        let supplierDirection = [];
+        //Determine if this spawn is next to the supply flag, and if so, restrict spawn directions
+        if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
+            let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
+            //Remove direction from buildDirections, add it to supplierDirection
+            buildDirections.splice(buildDirections.indexOf(targetDir), 1);
+            supplierDirection.push(targetDir)
+        }
 
         if (RoomCreeps.length <= 1) {
             if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
@@ -433,7 +469,8 @@ var spawn_BuildCreeps5 = {
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name,
                             linkSource: connectedLink
-                        }
+                        },
+                        directions: buildDirections
                     });
                     Memory.isSpawning = true;
                 }
@@ -455,25 +492,26 @@ var spawn_BuildCreeps5 = {
                             deathWarn: _.size([MOVE, WORK, WORK, CARRY]) * 4,
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name
-                        }
+                        },
+                        directions: buildDirections
                     });
                     Memory.isSpawning = true;
                 }
             }
-        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 4) {
+        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 6) {
             let Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
             let blockedRole = ''
-            let queLength = Memory.creepInQue.length;
+                let queLength = Memory.creepInQue.length;
             for (var i = 0; i < queLength; i++) {
                 if (Memory.creepInQue[i] == thisRoom.name) {
                     blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
                 }
             }
 
-            if (suppliers.length < supplierMax && !blockedRole.includes('supplier')) {
+            if (suppliers.length < supplierMax && !blockedRole.includes('supplier') && supplierDirection.length > 0) {
                 Memory.isSpawning = true;
                 let supplierConfig = [MOVE, CARRY, CARRY, CARRY];
                 let configCost = calculateConfigCost(supplierConfig);
@@ -486,7 +524,8 @@ var spawn_BuildCreeps5 = {
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name,
                             atSpot: false
-                        }
+                        },
+                        directions: supplierDirection
                     });
                     Memory.creepInQue.push(thisRoom.name, 'supplier', '', spawn.name);
                 }
@@ -509,7 +548,7 @@ var spawn_BuildCreeps5 = {
                 //var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
                 var remainingEnergy = thisRoom.energyCapacityAvailable;
                 var buildTotal = 0
-                var thisBuildAmount = 650;
+                    var thisBuildAmount = 650;
                 while ((remainingEnergy / thisBuildAmount) >= 1) {
                     //switch (ChosenPriority) {
                     //case 'melee':
@@ -565,10 +604,11 @@ var spawn_BuildCreeps5 = {
                             priority: 'defender',
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name
-                        }
+                        },
+                        directions: buildDirections
                     });
                     Memory.isSpawning = true;
-                }            
+                }
             } else {
                 //Lock out spawning other units until max defenders
                 Memory.isSpawning = true;
@@ -598,11 +638,11 @@ var spawn_BuildCreeps5 = {
                     } else {
                         blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
                         blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
-                    }               
+                    }
                 }
             }
 
-            if (purgeIDs.length > 0){
+            if (purgeIDs.length > 0) {
                 //Only remove one at a time, removing one index is going to skew other indicies
                 Memory.creepInQue.splice(purgeIDs[0], 4);
             }
@@ -614,11 +654,11 @@ var spawn_BuildCreeps5 = {
                     connectedLink = strLinks[3];
                 } else {
                     connectedLink = undefined;
-                }            
+                }
                 creepSource = strTerminal;
             } else if (miners.length < minerMax) {
                 switch (storageMiners.length) {
-                    case 0:
+                case 0:
                     if (!blockedSubRole.includes('storageMiner')) {
                         prioritizedRole = 'miner';
                         creepSource = strSources[0];
@@ -626,7 +666,7 @@ var spawn_BuildCreeps5 = {
                         jobSpecificPri = 'storageMiner';
                     }
                     break;
-                    case 1:
+                case 1:
                     if (!blockedSubRole.includes('upgradeMiner')) {
                         prioritizedRole = 'miner';
                         creepSource = strSources[1];
@@ -643,7 +683,7 @@ var spawn_BuildCreeps5 = {
                 if (strLinks.length >= 4) {
                     connectedLink = strLinks[3];
                 }
-            } else if (suppliers.length < supplierMax && !blockedRole.includes('supplier')) {
+            } else if (suppliers.length < supplierMax && !blockedRole.includes('supplier') && supplierDirection.length > 0) {
                 prioritizedRole = 'supplier';
             } else if (mules.length < muleMax && !blockedRole.includes('mule')) {
                 prioritizedRole = 'mule';
@@ -683,10 +723,30 @@ var spawn_BuildCreeps5 = {
                     Memory.isSpawning = true;
                     let minePower = 5 * HARVEST_POWER;
                     let minerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY];
-                    if (Game.flags[thisRoom.name + "RoomOperator"]) {
-                        //Level 5 source boost config
-                        minePower = 14 * HARVEST_POWER;
-                        minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY];
+                    if (Game.flags[thisRoom.name + "RoomOperator"] && regenPower > 0) {
+                        //source totals per level (300ticks) - 4000, 5000, 6000, 7000, 8000
+                        switch (regenPower) {
+                        case 1:
+                            minerConfig = [MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
+                            minePower = 7 * HARVEST_POWER;
+                            break;
+                        case 2:
+                            minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY];
+                            minePower = 9 * HARVEST_POWER;
+                            break;
+                        case 3:
+                            minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY];
+                            minePower = 10 * HARVEST_POWER;
+                            break;
+                        case 4:
+                            minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY];
+                            minePower = 12 * HARVEST_POWER;
+                            break;
+                        case 5:
+                            minePower = 14 * HARVEST_POWER;
+                            minerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY];
+                            break;
+                        }
                     }
                     let configCost = calculateConfigCost(minerConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
@@ -711,7 +771,8 @@ var spawn_BuildCreeps5 = {
                                     minePower: minePower,
                                     ignoreTravel: false,
                                     atSpot: false
-                                }
+                                },
+                                directions: buildDirections
                             });
                         } else {
                             spawn.spawnCreep(minerConfig, 'miner_' + spawn.name + '_' + Game.time, {
@@ -726,7 +787,8 @@ var spawn_BuildCreeps5 = {
                                     minePower: minePower,
                                     ignoreTravel: false,
                                     atSpot: false
-                                }
+                                },
+                                directions: buildDirections
                             });
                         }
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
@@ -757,23 +819,13 @@ var spawn_BuildCreeps5 = {
                                 deathWarn: _.size(muleConfig) * 4,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'upgrader') {
                     Memory.isSpawning = true;
-                    let upgraderConfig = [CARRY, WORK, WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE];
-                    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 265000 && thisRoom.energyCapacityAvailable >= 2300 && thisRoom.controller.level != 8) {
-                        upgraderConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-                    } else if (thisRoom.energyCapacityAvailable >= 1550) {
-                        if (thisRoom.controller.level == 8) {
-                            upgraderConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
-                        } else {
-                            upgraderConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY];
-                        }
-                    }
-
                     let configCost = calculateConfigCost(upgraderConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
                         //Took severe damage, assume cap of 300
@@ -790,14 +842,17 @@ var spawn_BuildCreeps5 = {
                                 deathWarn: _.size(upgraderConfig) * 6,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'upSupplier') {
                     Memory.isSpawning = true;
                     let upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-
+                    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 265000 && thisRoom.energyCapacityAvailable >= 2500 && thisRoom.controller.level != 8) {
+                        upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    }
                     let configCost = calculateConfigCost(upSupplierConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -809,7 +864,8 @@ var spawn_BuildCreeps5 = {
                                 deathWarn: _.size(upSupplierConfig) * 5,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
@@ -832,7 +888,8 @@ var spawn_BuildCreeps5 = {
                                 deathWarn: _.size(repairConfig) * 4,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
@@ -849,7 +906,8 @@ var spawn_BuildCreeps5 = {
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name,
                                 atSpot: false
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
@@ -877,7 +935,8 @@ var spawn_BuildCreeps5 = {
                                     deathWarn: _.size(distributorConfig) * 4,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name
-                                }
+                                },
+                                directions: buildDirections
                             });
                         } else {
                             spawn.spawnCreep(distributorConfig, 'distribute_' + spawn.name + '_' + Game.time, {
@@ -886,7 +945,8 @@ var spawn_BuildCreeps5 = {
                                     deathWarn: _.size(distributorConfig) * 4,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name
-                                }
+                                },
+                                directions: buildDirections
                             });
                         }
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
@@ -910,7 +970,8 @@ var spawn_BuildCreeps5 = {
                                 nextMine: 0,
                                 deathWarn: _.size(mineralMinerConfig) * 4,
                                 onPoint: false
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
@@ -960,144 +1021,150 @@ var spawn_BuildCreeps5 = {
                                     deathWarn: _.size(labWorkerConfig) * 4,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name
-                                }
+                                },
+                                directions: buildDirections
                             });
-} else if (Memory.labList[thisRoom.name].length >= 9) {
-    spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
-        memory: {
-            priority: prioritizedRole,
-            terminalID: storageID,
-            mineral1: min1,
-            lab1: Memory.labList[thisRoom.name][0],
-            mineral2: min2,
-            lab2: Memory.labList[thisRoom.name][1],
-            mineral3: min3,
-            lab3: Memory.labList[thisRoom.name][2],
-            mineral4: min4,
-            lab4: Memory.labList[thisRoom.name][3],
-            mineral5: min5,
-            lab5: Memory.labList[thisRoom.name][4],
-            mineral6: min6,
-            lab6: Memory.labList[thisRoom.name][5],
-            mineral7: min6,
-            lab7: Memory.labList[thisRoom.name][6],
-            mineral8: min6,
-            lab8: Memory.labList[thisRoom.name][7],
-            mineral9: min6,
-            lab9: Memory.labList[thisRoom.name][8],
-            factory: factoryID,
-            primaryFlag: primaryFlag,
-            backupFlag: backupFlag,
-            isMoving: false,
-            movingOtherMineral: false,
-            movingOtherMineral2: false,
-            resourceChecks: 0,
-            deathWarn: _.size(labWorkerConfig) * 4,
-            fromSpawn: spawn.id,
-            homeRoom: thisRoom.name
-        }
-    });
-} else if (Memory.labList[thisRoom.name].length >= 6) {
-    spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
-        memory: {
-            priority: prioritizedRole,
-            terminalID: storageID,
-            mineral1: min1,
-            lab1: Memory.labList[thisRoom.name][0],
-            mineral2: min2,
-            lab2: Memory.labList[thisRoom.name][1],
-            mineral3: min3,
-            lab3: Memory.labList[thisRoom.name][2],
-            mineral4: min4,
-            lab4: Memory.labList[thisRoom.name][3],
-            mineral5: min5,
-            lab5: Memory.labList[thisRoom.name][4],
-            mineral6: min6,
-            lab6: Memory.labList[thisRoom.name][5],
-            factory: factoryID,
-            primaryFlag: primaryFlag,
-            backupFlag: backupFlag,
-            isMoving: false,
-            movingOtherMineral: false,
-            movingOtherMineral2: false,
-            resourceChecks: 0,
-            deathWarn: _.size(labWorkerConfig) * 4,
-            fromSpawn: spawn.id,
-            homeRoom: thisRoom.name
-        }
-    });
-} else {
-    spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
-        memory: {
-            priority: prioritizedRole,
-            terminalID: storageID,
-            mineral1: min1,
-            lab1: Memory.labList[thisRoom.name][0],
-            mineral2: min2,
-            lab2: Memory.labList[thisRoom.name][1],
-            mineral3: min3,
-            lab3: Memory.labList[thisRoom.name][2],
-            factory: factoryID,
-            primaryFlag: primaryFlag,
-            backupFlag: backupFlag,
-            isMoving: false,
-            movingOtherMineral: false,
-            movingOtherMineral2: false,
-            resourceChecks: 0,
-            deathWarn: _.size(labWorkerConfig) * 4,
-            fromSpawn: spawn.id,
-            homeRoom: thisRoom.name
-        }
-    });
-}
-Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-}
-} else if (prioritizedRole == 'scraper') {
-    Memory.isSpawning = true;
-    let scraperConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-    let configCost = calculateConfigCost(scraperConfig);
-    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
-        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-        spawn.spawnCreep(scraperConfig, 'scraper_' + spawn.name + '_' + Game.time, {
-            memory: {
-                priority: prioritizedRole,
-                linkID: connectedLink,
-                targetResource: undefined,
-                fromSpawn: spawn.id,
-                homeRoom: thisRoom.name
+                        } else if (Memory.labList[thisRoom.name].length >= 9) {
+                            spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
+                                memory: {
+                                    priority: prioritizedRole,
+                                    terminalID: storageID,
+                                    mineral1: min1,
+                                    lab1: Memory.labList[thisRoom.name][0],
+                                    mineral2: min2,
+                                    lab2: Memory.labList[thisRoom.name][1],
+                                    mineral3: min3,
+                                    lab3: Memory.labList[thisRoom.name][2],
+                                    mineral4: min4,
+                                    lab4: Memory.labList[thisRoom.name][3],
+                                    mineral5: min5,
+                                    lab5: Memory.labList[thisRoom.name][4],
+                                    mineral6: min6,
+                                    lab6: Memory.labList[thisRoom.name][5],
+                                    mineral7: min6,
+                                    lab7: Memory.labList[thisRoom.name][6],
+                                    mineral8: min6,
+                                    lab8: Memory.labList[thisRoom.name][7],
+                                    mineral9: min6,
+                                    lab9: Memory.labList[thisRoom.name][8],
+                                    factory: factoryID,
+                                    primaryFlag: primaryFlag,
+                                    backupFlag: backupFlag,
+                                    isMoving: false,
+                                    movingOtherMineral: false,
+                                    movingOtherMineral2: false,
+                                    resourceChecks: 0,
+                                    deathWarn: _.size(labWorkerConfig) * 4,
+                                    fromSpawn: spawn.id,
+                                    homeRoom: thisRoom.name
+                                },
+                                directions: buildDirections
+                            });
+                        } else if (Memory.labList[thisRoom.name].length >= 6) {
+                            spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
+                                memory: {
+                                    priority: prioritizedRole,
+                                    terminalID: storageID,
+                                    mineral1: min1,
+                                    lab1: Memory.labList[thisRoom.name][0],
+                                    mineral2: min2,
+                                    lab2: Memory.labList[thisRoom.name][1],
+                                    mineral3: min3,
+                                    lab3: Memory.labList[thisRoom.name][2],
+                                    mineral4: min4,
+                                    lab4: Memory.labList[thisRoom.name][3],
+                                    mineral5: min5,
+                                    lab5: Memory.labList[thisRoom.name][4],
+                                    mineral6: min6,
+                                    lab6: Memory.labList[thisRoom.name][5],
+                                    factory: factoryID,
+                                    primaryFlag: primaryFlag,
+                                    backupFlag: backupFlag,
+                                    isMoving: false,
+                                    movingOtherMineral: false,
+                                    movingOtherMineral2: false,
+                                    resourceChecks: 0,
+                                    deathWarn: _.size(labWorkerConfig) * 4,
+                                    fromSpawn: spawn.id,
+                                    homeRoom: thisRoom.name
+                                },
+                                directions: buildDirections
+                            });
+                        } else {
+                            spawn.spawnCreep(labWorkerConfig, 'labWorker_' + spawn.name + '_' + Game.time, {
+                                memory: {
+                                    priority: prioritizedRole,
+                                    terminalID: storageID,
+                                    mineral1: min1,
+                                    lab1: Memory.labList[thisRoom.name][0],
+                                    mineral2: min2,
+                                    lab2: Memory.labList[thisRoom.name][1],
+                                    mineral3: min3,
+                                    lab3: Memory.labList[thisRoom.name][2],
+                                    factory: factoryID,
+                                    primaryFlag: primaryFlag,
+                                    backupFlag: backupFlag,
+                                    isMoving: false,
+                                    movingOtherMineral: false,
+                                    movingOtherMineral2: false,
+                                    resourceChecks: 0,
+                                    deathWarn: _.size(labWorkerConfig) * 4,
+                                    fromSpawn: spawn.id,
+                                    homeRoom: thisRoom.name
+                                },
+                                directions: buildDirections
+                            });
+                        }
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+                    }
+                } else if (prioritizedRole == 'scraper') {
+                    Memory.isSpawning = true;
+                    let scraperConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    let configCost = calculateConfigCost(scraperConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(scraperConfig, 'scraper_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                linkID: connectedLink,
+                                targetResource: undefined,
+                                fromSpawn: spawn.id,
+                                homeRoom: thisRoom.name
+                            },
+                            directions: buildDirections
+                        });
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+                    }
+                } else if (prioritizedRole == 'salvager') {
+                    Memory.isSpawning = true;
+                    let configCost = calculateConfigCost([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE], 'salvager_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                deathWarn: _.size([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]) * 6,
+                                storageTarget: thisRoom.storage.id,
+                                homeRoom: thisRoom.name
+                            },
+                            directions: buildDirections
+                        });
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
+                    }
+                }
             }
-        });
-        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-    }
-} else if (prioritizedRole == 'salvager') {
-    Memory.isSpawning = true;
-    let configCost = calculateConfigCost([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]);
-    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
-        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-        spawn.spawnCreep([MOVE, MOVE, MOVE, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY], 'salvager_' + spawn.name + '_' + Game.time, {
-            memory: {
-                priority: prioritizedRole,
-                deathWarn: _.size([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE]) * 6,
-                storageTarget: thisRoom.storage.id,
-                homeRoom: thisRoom.name
-            }
-        });
-        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
-    }
-}
-}
-} else if (mules.length == 0 && !Game.flags[thisRoom.name + "RoomOperator"]) {
-    var blockedRole = '';
-    var blockedSubRole = '';
+        } else if (mules.length == 0 && !Game.flags[thisRoom.name + "RoomOperator"]) {
+            var blockedRole = '';
+            var blockedSubRole = '';
 
-    var queLength = Memory.creepInQue.length;
-    for (var i = 0; i < queLength; i++) {
-        if (Memory.creepInQue[i] == thisRoom.name) {
-            blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
-            blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
-        }
-    }
-    if (!blockedRole.includes('mule')) {
+            var queLength = Memory.creepInQue.length;
+            for (var i = 0; i < queLength; i++) {
+                if (Memory.creepInQue[i] == thisRoom.name) {
+                    blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
+                    blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
+                }
+            }
+            if (!blockedRole.includes('mule')) {
                 //Spawn a crappy mule
                 Memory.isSpawning = true;
                 let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
@@ -1112,7 +1179,8 @@ Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.nam
                             deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
                             fromSpawn: spawn.id,
                             homeRoom: thisRoom.name
-                        }
+                        },
+                        directions: buildDirections
                     });
                     Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
                 }
@@ -1127,6 +1195,38 @@ function calculateConfigCost(bodyConfig) {
         totalCost = totalCost + BODYPART_COST[thisPart];
     }
     return totalCost;
+}
+
+function GetUpgraderConfig(upgraderMax, energyCap, cLevel) {
+	if (energyCap >= 1550 && cLevel >= 8) {
+		return [1, [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY]]
+	}
+
+	if (energyCap < (BODYPART_COST[MOVE] *3) + BODYPART_COST[CARRY] + (BODYPART_COST[WORK] * 12)) {
+		return [1, [MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY]]
+	}
+
+	//1 Standard upgrader - 12 WORK
+	let thisConfig = [MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY];
+    let configCost = (BODYPART_COST[WORK] * 12) + (BODYPART_COST[MOVE] * 3);
+    energyCap = energyCap - ((BODYPART_COST[MOVE] *3) + BODYPART_COST[CARRY] + (BODYPART_COST[WORK] * 12));
+
+    let configLength = 16;
+    while ((energyCap / configCost) >= 1 && configLength < 46 && upgraderMax > 0) {
+        thisConfig.push(WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK,WORK);
+        thisConfig.push(MOVE,MOVE,MOVE);
+        energyCap = energyCap - configCost
+        configLength += 15
+        upgraderMax -= 1;
+    }
+
+    thisConfig.sort();
+
+    if (upgraderMax == 0) {
+    	upgraderMax = 1;
+    }
+
+    return [upgraderMax, thisConfig];
 }
 
 module.exports = spawn_BuildCreeps5;
