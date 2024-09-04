@@ -911,7 +911,7 @@ var spawn_BuildCreeps5 = {
                                 homeRoom: thisRoom.name,
                                 atSpot: false
                             },
-                            directions: buildDirections
+                            directions: supplierDirection
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
