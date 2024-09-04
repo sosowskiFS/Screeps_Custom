@@ -442,14 +442,18 @@ var spawn_BuildCreeps5 = {
             let upgraderConfig = upgraderResults[1]
             let bareMinConfig = [MOVE, WORK, WORK, CARRY];
         let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
-        let supplierDirection = [];
-        //Determine if this spawn is next to the supply flag, and if so, restrict spawn directions
-        if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
-            let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
-            //Remove direction from buildDirections, add it to supplierDirection
-            buildDirections.splice(buildDirections.indexOf(targetDir), 1);
-            supplierDirection.push(targetDir)
-        }
+        let supplierDirection = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+		if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1) {
+			supplierDirection = [];
+			//Determine if this spawn is next to the supply flag, and if so, restrict spawn directions
+			if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
+				let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
+				//Remove direction from buildDirections, add it to supplierDirection
+				buildDirections.splice(buildDirections.indexOf(targetDir), 1);
+				supplierDirection.push(targetDir)
+			}
+		}
+
 
         if (RoomCreeps.length <= 1) {
             if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500) {
