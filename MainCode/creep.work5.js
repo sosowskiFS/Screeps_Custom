@@ -332,7 +332,7 @@ var creep_work5 = {
                     if (creep.memory.groundEnergy) {
                         let groundTarget = Game.getObjectById(creep.memory.groundEnergy)
                         if (groundTarget) {
-                            if (creep.pickup(target) == ERR_NOT_IN_RANGE) {
+                            if (creep.pickup(groundTarget) == ERR_NOT_IN_RANGE && groundTarget.amount >= 100) {
                                 creep.travelTo(groundTarget, {
                                     ignoreRoads: true
                                 });
@@ -346,8 +346,8 @@ var creep_work5 = {
                     }
                     if (!locatedTarget && Memory.roomsUnderAttack.indexOf(creep.room.name) === -1) {
                         let groundItems = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 10, {
-                            filter: {
-                                resourceType: RESOURCE_ENERGY
+                            filter: (thisResource) => {
+                                return (thisResource.resourceType == RESOURCE_ENERGY && thisResource.amount >= 100);
                             }
                         });
                         if (groundItems.length > 0) {
@@ -679,7 +679,7 @@ function DoResourceCheck(creep) {
                         if (targetPrice < 0.5) {
                             targetPrice = 0.5
                         }
-                        Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
+                        //Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, creep.room.terminal.store[creep.memory.mineral6], creep.room.name);
                     }
                 }
             }
