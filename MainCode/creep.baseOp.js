@@ -632,6 +632,11 @@ function getNeededTower(creep) {
 function getNeededLab(creep) {
     //Check to see if the two reagent labs have mats in them
         //If no, don't bother wasting OPS on boosting nothing
+	if (!Memory.labList[creep.room.name]) {
+		//how did you escape
+		return undefined;
+	}
+	
     if (Memory.labList[creep.room.name][3] && Memory.labList[creep.room.name][4]) {
         let regLab1 = Game.getObjectById(Memory.labList[creep.room.name][3]);
         let regLab2 = Game.getObjectById(Memory.labList[creep.room.name][4]);
