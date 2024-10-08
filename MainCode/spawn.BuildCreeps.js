@@ -22,6 +22,18 @@ var spawn_BuildCreeps = {
         let assignedSlot2 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
+		let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+        let supplierDirection = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+		if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1) {
+			supplierDirection = [];
+			//Determine if this spawn is next to the supply flag, and if so, restrict spawn directions
+			if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
+				let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
+				//Remove direction from buildDirections, add it to supplierDirection
+				buildDirections.splice(buildDirections.indexOf(targetDir), 1);
+				supplierDirection.push(targetDir)
+			}
+		}
 
         if (strSources.length == 1) {
             harvesterMax = 1;
@@ -61,7 +73,8 @@ var spawn_BuildCreeps = {
                         priority: 'harvester',
                         sourceLocation: strSources[0],
                         homeRoom: thisRoom.name
-                    }
+                    },
+					directions: buildDirections
                 });
             }
 
@@ -131,7 +144,8 @@ var spawn_BuildCreeps = {
                         priority: 'defender',
                         fromSpawn: spawn.id,
                         homeRoom: thisRoom.name
-                    }
+                    },
+					directions: buildDirections
                 });
                 Memory.isSpawning = true;
         } else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
@@ -174,7 +188,8 @@ var spawn_BuildCreeps = {
                         homeRoom: thisRoom.name,
                         deathWarn: _.size(bestWorker) * 6,
                         structureTarget: undefined
-                    }
+                    },
+					directions: buildDirections
                 });
             }
             Memory.isSpawning = true;

@@ -145,6 +145,15 @@ module.exports.loop = function() {
         RemoveMineralFlags();
         Game.flags["RemoveMineralFlags"].remove();
     }
+	
+	if (Game.flags["WipeRoomBuildings"]) {
+		//Delete all of this room's controlled structures (for autobuild purposes)
+		var allStruct = Game.flags["WipeRoomBuildings"].room.find(FIND_MY_STRUCTURES);
+        for (var n = 0; n < allStruct.length; n++) {
+			allStruct[n].destroy();
+        }
+		Game.flags["WipeRoomBuildings"].remove();
+	}
 
     if (Game.flags["SpawnOperator"]) {
         for (let pName in Game.powerCreeps) {
