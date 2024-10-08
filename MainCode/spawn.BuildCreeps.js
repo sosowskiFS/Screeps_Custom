@@ -180,17 +180,32 @@ var spawn_BuildCreeps = {
             let configCost = calculateConfigCost(bestWorker);
             if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                 Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                spawn.spawnCreep(bestWorker, prioritizedRole + '_' + spawn.name + '_' + Game.time, {
-                    memory: {
-                        priority: prioritizedRole,
-                        fromSpawn: spawn.id,
-                        sourceLocation: creepSourceID,
-                        homeRoom: thisRoom.name,
-                        deathWarn: _.size(bestWorker) * 6,
-                        structureTarget: undefined
-                    },
-					directions: buildDirections
-                });
+				if (prioritizedRole == 'supplier') {
+					spawn.spawnCreep(bestWorker, prioritizedRole + '_' + spawn.name + '_' + Game.time, {
+						memory: {
+							priority: prioritizedRole,
+							fromSpawn: spawn.id,
+							sourceLocation: creepSourceID,
+							homeRoom: thisRoom.name,
+							deathWarn: _.size(bestWorker) * 6,
+							structureTarget: undefined
+						},
+						directions: supplierDirection
+					});
+				} else {
+					spawn.spawnCreep(bestWorker, prioritizedRole + '_' + spawn.name + '_' + Game.time, {
+						memory: {
+							priority: prioritizedRole,
+							fromSpawn: spawn.id,
+							sourceLocation: creepSourceID,
+							homeRoom: thisRoom.name,
+							deathWarn: _.size(bestWorker) * 6,
+							structureTarget: undefined
+						},
+						directions: buildDirections
+					});
+				}
+                
             }
             Memory.isSpawning = true;
         }
