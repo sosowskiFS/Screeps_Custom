@@ -300,9 +300,17 @@ var spawn_BuildCreeps5 = {
         }
         let strExtractor = Memory.extractorList[thisRoom.name];
         let readyForMineral = false;
-        let mineralType = Game.getObjectById(strMineral[0]).mineralType;
+        let mineralType = '';
+        
+        // Safely get mineral type with null checks
+        if (strMineral && strMineral.length > 0) {
+            let mineralObj = Game.getObjectById(strMineral[0]);
+            if (mineralObj) {
+                mineralType = mineralObj.mineralType;
+            }
+        }
 
-        if (strExtractor[0] && thisRoom.terminal && strMineral[0] && (!thisRoom.terminal.store[mineralType] || thisRoom.terminal.store[mineralType] <= 10000)) {
+        if (strExtractor && strExtractor.length > 0 && thisRoom.terminal && strMineral && strMineral.length > 0 && mineralType && (!thisRoom.terminal.store[mineralType] || thisRoom.terminal.store[mineralType] <= 10000)) {
             readyForMineral = true;
         }
 
@@ -408,7 +416,10 @@ var spawn_BuildCreeps5 = {
             }
         }
 
-        let roomMineral = Game.getObjectById(strMineral[0]);
+        let roomMineral = null;
+        if (strMineral && strMineral.length > 0) {
+            roomMineral = Game.getObjectById(strMineral[0]);
+        }
 
         if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode) {
             //Custom limits for beseiged rooms
@@ -442,17 +453,21 @@ var spawn_BuildCreeps5 = {
             let upgraderConfig = upgraderResults[1]
             let bareMinConfig = [MOVE, WORK, WORK, CARRY];
         let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
-        let supplierDirection = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
-		if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1) {
-			supplierDirection = [];
-			//Determine if this spawn is next to the supply flag, and if so, restrict spawn directions
-			if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
-				let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
-				//Remove direction from buildDirections, add it to supplierDirection
-				buildDirections.splice(buildDirections.indexOf(targetDir), 1);
-				supplierDirection.push(targetDir)
-			}
-		}
+        let supplierDirection = [];
+        
+        // Check if this spawn should build suppliers (next to Supply flag)
+        if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
+            let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
+            // For autobuild rooms, restrict directions more strictly
+            if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1) {
+                buildDirections.splice(buildDirections.indexOf(targetDir), 1);
+            }
+            supplierDirection.push(targetDir);
+        }
+        // For non-autobuild rooms, allow any spawn to build suppliers if Supply flag exists
+        else if (Game.flags[thisRoom.name + "Supply"] && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
+            supplierDirection = buildDirections; // Use all available directions
+        }
 
 
         if (!RoomCreeps || RoomCreeps.length <= 1) {
@@ -507,11 +522,11 @@ var spawn_BuildCreeps5 = {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
-            let blockedRole = ''
-                let queLength = Memory.creepInQue.length;
-            for (var i = 0; i < queLength; i++) {
-                if (Memory.creepInQue[i] == thisRoom.name) {
-                    blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
+            let blockedRole = '';
+            // Check what roles are blocked by looking through the queue for this room
+            for (let i = 0; i < Memory.creepInQue.length; i += 4) {
+                if (Memory.creepInQue[i] === thisRoom.name) {
+                    blockedRole += ' ' + Memory.creepInQue[i + 1];
                 }
             }
 
@@ -618,7 +633,7 @@ var spawn_BuildCreeps5 = {
                 Memory.isSpawning = true;
             }
         }
-        if (!Memory.isSpawning && (miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax || salvagers.length < salvagerMax) || (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
+        if (!Memory.isSpawning && (miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax || salvagers.length < salvagerMax) || (roomMineral && roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
             let prioritizedRole = '';
             let creepSource = '';
             let connectedLink = '';
@@ -634,10 +649,8 @@ var spawn_BuildCreeps5 = {
             var queLength = Memory.creepInQue.length;
             for (var i = 0; i < queLength; i += 4) {
                 if (Memory.creepInQue[i] == thisRoom.name) {
-                    //Check if spawn still exists/is active. If not, ignore
-                    if (!Game.spawns[Memory.creepInQue[i + 3]]) {
-                        purgeIDs.push(i);
-                    } else if (!Game.spawns[Memory.creepInQue[i + 3]].isActive()) {
+                    //Check if spawn still exists/is active. If not, mark for removal
+                    if (!Game.spawns[Memory.creepInQue[i + 3]] || !Game.spawns[Memory.creepInQue[i + 3]].isActive()) {
                         purgeIDs.push(i);
                     } else {
                         blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
@@ -646,9 +659,9 @@ var spawn_BuildCreeps5 = {
                 }
             }
 
-            if (purgeIDs.length > 0) {
-                //Only remove one at a time, removing one index is going to skew other indicies
-                Memory.creepInQue.splice(purgeIDs[0], 4);
+            // Remove all invalid entries (iterate backwards to avoid index shifting issues)
+            for (let j = purgeIDs.length - 1; j >= 0; j--) {
+                Memory.creepInQue.splice(purgeIDs[j], 4);
             }
 
             if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !Game.flags[thisRoom.name + "RoomOperator"]) {
@@ -675,7 +688,7 @@ var spawn_BuildCreeps5 = {
                         prioritizedRole = 'miner';
                         creepSource = strSources[1];
                         connectedLink = strLinks[0];
-                        if (strLinks.length >= 4) {
+                        if (strLinks.length >= 3) {
                             backupLink = strLinks[2];
                         }
                         jobSpecificPri = 'upgradeMiner';
@@ -689,6 +702,9 @@ var spawn_BuildCreeps5 = {
                 }
             } else if (suppliers.length < supplierMax && !blockedRole.includes('supplier') && supplierDirection.length > 0) {
                 prioritizedRole = 'supplier';
+                if (Game.time % 50 === 0) {
+                    console.log(`${thisRoom.name} - ${spawn.name}: Prioritizing supplier - Current: ${suppliers.length}/${supplierMax}, Not blocked: ${!blockedRole.includes('supplier')}, Has direction: ${supplierDirection.length > 0}`);
+                }
             } else if (mules.length < muleMax && !blockedRole.includes('mule')) {
                 prioritizedRole = 'mule';
                 storageID = thisRoom.storage.id;
@@ -707,7 +723,7 @@ var spawn_BuildCreeps5 = {
             } else if (repairers.length < repairMax && !blockedRole.includes('repair')) {
                 prioritizedRole = 'repair';
                 storageID = thisRoom.storage.id;
-            } else if (roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner') && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 50000) {
+            } else if (roomMineral && roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral && !blockedRole.includes('mineralMiner') && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 50000) {
                 prioritizedRole = 'mineralMiner';
                 storageID = strTerminal;
                 creepSource = strMineral[0];
@@ -1161,11 +1177,11 @@ var spawn_BuildCreeps5 = {
             var blockedRole = '';
             var blockedSubRole = '';
 
-            var queLength = Memory.creepInQue.length;
-            for (var i = 0; i < queLength; i++) {
-                if (Memory.creepInQue[i] == thisRoom.name) {
-                    blockedRole = blockedRole + ' ' + Memory.creepInQue[i + 1];
-                    blockedSubRole = blockedSubRole + ' ' + Memory.creepInQue[i + 2];
+            // Check what roles are blocked by looking through the queue for this room
+            for (let i = 0; i < Memory.creepInQue.length; i += 4) {
+                if (Memory.creepInQue[i] === thisRoom.name) {
+                    blockedRole += ' ' + Memory.creepInQue[i + 1];
+                    blockedSubRole += ' ' + Memory.creepInQue[i + 2];
                 }
             }
             if (!blockedRole.includes('mule')) {

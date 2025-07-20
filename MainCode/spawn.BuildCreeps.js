@@ -22,18 +22,27 @@ var spawn_BuildCreeps = {
         let assignedSlot2 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
-		let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
-        let supplierDirection = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
-		if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1) {
-			supplierDirection = [];
-			//Determine if this spawn is next to the supply flag, and if so, restrict spawn directions
-			if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
-				let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
-				//Remove direction from buildDirections, add it to supplierDirection
-				buildDirections.splice(buildDirections.indexOf(targetDir), 1);
-				supplierDirection.push(targetDir)
-			}
-		}
+        let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+        let supplierDirection = [];
+        
+        // Check if this spawn should build suppliers (next to Supply flag)
+        if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
+            let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
+            // For autobuild rooms, restrict directions more strictly
+            if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1) {
+                buildDirections.splice(buildDirections.indexOf(targetDir), 1);
+            }
+            supplierDirection.push(targetDir);
+        }
+        // For non-autobuild rooms, allow any spawn to build suppliers if Supply flag exists
+        else if (Game.flags[thisRoom.name + "Supply"] && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
+            supplierDirection = buildDirections; // Use all available directions
+        }
+        
+        // Debug logging for supplier spawning
+        if (Game.time % 50 === 0 && supplierMax > 0) {
+            console.log(`${thisRoom.name} - ${spawn.name}: [BuildCreeps] Supplier debug - Current: ${suppliers.length}/${supplierMax}, Supply flag exists: ${!!Game.flags[thisRoom.name + "Supply"]}, Near spawn: ${Game.flags[thisRoom.name + "Supply"] ? Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn) : false}, Direction array length: ${supplierDirection.length}, Is autobuild: ${Memory.autoBuildRooms.indexOf(thisRoom.name) > -1}`);
+        }
 
         if (strSources.length == 1) {
             harvesterMax = 1;
@@ -50,6 +59,11 @@ var spawn_BuildCreeps = {
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 20000) {
                 upgraderMax++;
             }
+        }
+        
+        // Ensure suppliers are enabled if Supply flag exists
+        if (Game.flags[thisRoom.name + "Supply"] && supplierMax === 0) {
+            supplierMax = 1;
         }
 
         if (Game.flags[thisRoom.name + "upFocus"]) {
@@ -166,9 +180,9 @@ var spawn_BuildCreeps = {
                 }
 
                 bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesters.length);
-            } else if (suppliers.length < supplierMax) {
+            } else if (suppliers.length < supplierMax && supplierDirection.length > 0) {
                 prioritizedRole = 'supplier';
-                bestWorker = [MOVE, CARRY, CARRY];
+                bestWorker = [MOVE, CARRY, CARRY, CARRY];
             } else if (upgraders.length < upgraderMax) {
                 prioritizedRole = 'upgrader';
             } else if (builders.length < builderMax) {

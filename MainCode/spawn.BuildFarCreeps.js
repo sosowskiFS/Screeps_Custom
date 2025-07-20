@@ -224,9 +224,25 @@ var spawn_BuildFarCreeps = {
             var healTarget;
 
             var blockedRole = '';
-            if (Memory.creepInQue.indexOf(thisRoom.name) >= 0) {
-                var RoomPointer = Memory.creepInQue.indexOf(thisRoom.name)
-                blockedRole = Memory.creepInQue[RoomPointer + 1];
+            // Check what roles are blocked by looking through the queue for this room
+            for (let i = 0; i < Memory.creepInQue.length; i += 4) {
+                if (Memory.creepInQue[i] === thisRoom.name) {
+                    blockedRole += ' ' + Memory.creepInQue[i + 1];
+                }
+            }
+
+            // Set up build directions, avoiding supplier spot in autobuild rooms
+            let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+            if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1 && Game.flags[thisRoom.name + "Supply"]) {
+                // Find supply flag direction and remove it from available directions
+                let supplyFlag = Game.flags[thisRoom.name + "Supply"];
+                if (supplyFlag.pos.isNearTo(spawn)) {
+                    let supplierDirection = spawn.pos.getDirectionTo(supplyFlag);
+                    let dirIndex = buildDirections.indexOf(supplierDirection);
+                    if (dirIndex > -1) {
+                        buildDirections.splice(dirIndex, 1);
+                    }
+                }
             }
 
             if (Memory.warMode) {
@@ -573,7 +589,8 @@ var spawn_BuildFarCreeps = {
                                 homeRoom: thisRoom.name,
                                 deathWarn: _.size(farClaimerConfig) * 5,
                                 targetFlag: flagName
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.FarClaimerNeeded[Game.flags[flagName].pos.roomName] = false;
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
@@ -592,7 +609,8 @@ var spawn_BuildFarCreeps = {
                                 targetFlag: flagName,
                                 jobSpecific: jobSpecific,
                                 nextReservationCheck: 0
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
@@ -610,7 +628,8 @@ var spawn_BuildFarCreeps = {
                                 fromSpawn: spawn.id,
                                 deathWarn: _.size(farMuleConfig) * 6,
                                 targetFlag: flagName
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
@@ -630,7 +649,8 @@ var spawn_BuildFarCreeps = {
                                 fromSpawn: spawn.id,
                                 deathWarn: _.size(farGuardConfig) * warnMulti,
                                 targetFlag: flagName
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
@@ -648,7 +668,8 @@ var spawn_BuildFarCreeps = {
                                 storageSource: storageID,
                                 deathWarn: _.size(farMinerConfig) * 5,
                                 targetFlag: flagName
-                            }
+                            },
+                            directions: buildDirections
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }

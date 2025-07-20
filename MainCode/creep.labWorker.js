@@ -495,38 +495,40 @@ var creep_labWorker = {
                 }
             }
 
-            if (!foundWork && Memory.mineralList[creep.room.name].length) {
+            if (!foundWork && Memory.mineralList[creep.room.name] && Memory.mineralList[creep.room.name].length) {
                 //Haul from the mineral miner's storage unit
                 let thisMineral = Game.getObjectById(Memory.mineralList[creep.room.name][0]);
-                let nearbyContainer = thisMineral.pos.findInRange(FIND_STRUCTURES, 1, {
-                    filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
-                });
-                if (nearbyContainer.length && _.sum(nearbyContainer[0].store) >= creep.carryCapacity) {
-                    let withdrawResult = "N/A"
-                    for (let i = 0, len = Object.keys(nearbyContainer[0].store).length; i < len; i++) {
-                        if (Object.keys(nearbyContainer[0].store)[i] == RESOURCE_ENERGY) {
-                            if (nearbyContainer[0].store[RESOURCE_ENERGY] >= creep.carryCapacity) {
+                if (thisMineral) {
+                    let nearbyContainer = thisMineral.pos.findInRange(FIND_STRUCTURES, 1, {
+                        filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                    });
+                    if (nearbyContainer.length && _.sum(nearbyContainer[0].store) >= creep.carryCapacity) {
+                        let withdrawResult = "N/A"
+                        for (let i = 0, len = Object.keys(nearbyContainer[0].store).length; i < len; i++) {
+                            if (Object.keys(nearbyContainer[0].store)[i] == RESOURCE_ENERGY) {
+                                if (nearbyContainer[0].store[RESOURCE_ENERGY] >= creep.carryCapacity) {
+                                    withdrawResult = creep.withdraw(nearbyContainer[0], Object.keys(nearbyContainer[0].store)[i]);
+                                    break;
+                                }
+                            } else {
                                 withdrawResult = creep.withdraw(nearbyContainer[0], Object.keys(nearbyContainer[0].store)[i]);
                                 break;
                             }
-                        } else {
-                            withdrawResult = creep.withdraw(nearbyContainer[0], Object.keys(nearbyContainer[0].store)[i]);
-                            break;
                         }
-                    }
-                    if (withdrawResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(nearbyContainer[0], {
-                            maxRooms: 1,
-                            ignoreRoads: true
-                        });
-                        foundWork = true;
-                    } else if (withdrawResult != ERR_NOT_IN_RANGE && withdrawResult != "N/A") {
-                        creep.travelTo(creep.room.terminal, {
-                            maxRooms: 1,
-                            ignoreRoads: true
-                        });
-                        creep.memory.movingOtherMineral = true;
-                        foundWork = true;
+                        if (withdrawResult == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(nearbyContainer[0], {
+                                maxRooms: 1,
+                                ignoreRoads: true
+                            });
+                            foundWork = true;
+                        } else if (withdrawResult != ERR_NOT_IN_RANGE && withdrawResult != "N/A") {
+                            creep.travelTo(creep.room.terminal, {
+                                maxRooms: 1,
+                                ignoreRoads: true
+                            });
+                            creep.memory.movingOtherMineral = true;
+                            foundWork = true;
+                        }
                     }
                 }
             }
@@ -601,20 +603,29 @@ var creep_labWorker = {
                         foundWork = true;
                     } else {
                         //Scan terminal for basic resources, if they exceed 20,000 (or 3,000 if too full), move them into the factory for processing
-                        let roomMineral = Game.getObjectById(Memory.mineralList[creep.room.name][0]).mineralType;
-                        let terminalLimit = 40000;
-                        if (creep.room.terminal) {
-                            let freeRoom = creep.room.terminal.store.getFreeCapacity();
-                            if (freeRoom <= 5000) {terminalLimit = 3000;}
-                            else if (freeRoom <= 50000) {terminalLimit = 20000;}                
+                        let roomMineral = '';
+                        if (Memory.mineralList[creep.room.name] && Memory.mineralList[creep.room.name].length > 0) {
+                            let mineralObj = Game.getObjectById(Memory.mineralList[creep.room.name][0]);
+                            if (mineralObj) {
+                                roomMineral = mineralObj.mineralType;
+                            }
                         }
-                        if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit && NotOverLimit(creep.room.terminal) && thisFactory.store[RESOURCE_ENERGY] >= 200) {
-                            creep.memory.structureTarget = creep.room.terminal.id;
-                            creep.memory.direction = 'Withdraw';
-                            creep.memory.mineralToMove = roomMineral;
-                            creep.memory.movingOtherMineral = true;
-                            creep.memory.otherMineralTarget = thisFactory.id;
-                            foundWork = true;
+                        
+                        if (roomMineral) {
+                            let terminalLimit = 40000;
+                            if (creep.room.terminal) {
+                                let freeRoom = creep.room.terminal.store.getFreeCapacity();
+                                if (freeRoom <= 5000) {terminalLimit = 3000;}
+                                else if (freeRoom <= 50000) {terminalLimit = 20000;}                
+                            }
+                            if (creep.room.terminal.store[roomMineral] && creep.room.terminal.store[roomMineral] > terminalLimit && NotOverLimit(creep.room.terminal) && thisFactory.store[RESOURCE_ENERGY] >= 200) {
+                                creep.memory.structureTarget = creep.room.terminal.id;
+                                creep.memory.direction = 'Withdraw';
+                                creep.memory.mineralToMove = roomMineral;
+                                creep.memory.movingOtherMineral = true;
+                                creep.memory.otherMineralTarget = thisFactory.id;
+                                foundWork = true;
+                            }
                         }
                     }                   
                 }
