@@ -638,6 +638,11 @@ var creep_labWorker = {
                 creep.memory.hasDistributed = false;
             }
 
+            // Handle terminal overflow by removing excess basic minerals
+            if (!foundWork) {
+                foundWork = handleTerminalOverflow(creep);
+            }
+
             //Determine if this creep needs to move over
             let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
@@ -697,6 +702,66 @@ function NotOverLimit(thisTerminal) {
     } else {
         return true;
     }
+}
+
+function handleTerminalOverflow(creep) {
+    const terminal = creep.room.terminal;
+    if (!terminal) return false;
+    
+    // Check if terminal is nearly full (less than 10k free capacity)
+    const freeCapacity = terminal.store.getFreeCapacity();
+    if (freeCapacity > 10000) return false;
+    
+    // List of basic minerals to remove when terminal is full
+    const basicMinerals = [
+        RESOURCE_HYDROGEN,
+        RESOURCE_OXYGEN, 
+        RESOURCE_UTRIUM,
+        RESOURCE_LEMERGIUM,
+        RESOURCE_KEANIUM,
+        RESOURCE_ZYNTHIUM,
+        RESOURCE_CATALYST
+    ];
+    
+    // If creep is carrying basic minerals, drop them
+    if (_.sum(creep.carry) > 0) {
+        for (let mineral of basicMinerals) {
+            if (creep.carry[mineral]) {
+                creep.drop(mineral);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    // Find basic mineral with highest quantity in terminal
+    let targetMineral = null;
+    let maxAmount = 0;
+    
+    for (let mineral of basicMinerals) {
+        const amount = terminal.store[mineral] || 0;
+        if (amount > maxAmount && amount > 5000) { // Only target if > 5k
+            maxAmount = amount;
+            targetMineral = mineral;
+        }
+    }
+    
+    // Withdraw excess basic mineral from terminal
+    if (targetMineral) {
+        const withdrawResult = creep.withdraw(terminal, targetMineral);
+        if (withdrawResult == ERR_NOT_IN_RANGE) {
+            creep.travelTo(terminal, {
+                maxRooms: 1,
+                ignoreRoads: true
+            });
+        } else if (withdrawResult == OK) {
+            // Set memory to indicate we're cleaning overflow
+            creep.memory.cleaningOverflow = true;
+        }
+        return true;
+    }
+    
+    return false;
 }
 
 module.exports = creep_labWorker;

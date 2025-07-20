@@ -171,6 +171,20 @@ function findNewTarget(creep, creepEnergy, repairRange) {
             } else if (!closestDamagedStructure || closestDamagedStructure.hits == closestDamagedStructure.hitsMax) {
                 Memory.repairTarget[creep.room.name] = undefined;
             }
+        } else {
+            // No repair target found, listen for other creeps needing to move
+            let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+            })
+            if (talkingCreeps.length) {
+                let coords = talkingCreeps[0].saying.split(";");
+                if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                    //Standing in the way of a creep
+                    let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                    creep.move(thisDirection);
+                    creep.say("\uD83D\uDCA6", true);
+                }
+            }
         }
     }
 }
@@ -194,6 +208,20 @@ function moveToNewTarget(creep) {
             }
         } else if (!closestDamagedStructure || closestDamagedStructure.hits == closestDamagedStructure.hitsMax) {
             Memory.repairTarget[creep.room.name] = undefined;
+        }
+    } else {
+        // No repair target found, listen for other creeps needing to move
+        let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+            filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+        })
+        if (talkingCreeps.length) {
+            let coords = talkingCreeps[0].saying.split(";");
+            if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                //Standing in the way of a creep
+                let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                creep.move(thisDirection);
+                creep.say("\uD83D\uDCA6", true);
+            }
         }
     }
 }
