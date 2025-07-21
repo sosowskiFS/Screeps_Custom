@@ -152,10 +152,17 @@ function findNeededWork(creep, totalOps) {
     const workChecks = [
         {
             condition: creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].cooldown <= 0 && 
-                      totalOps >= POWER_INFO[PWR_OPERATE_EXTENSION].ops && 
+                      totalOps >= POWER_INFO[PWR_OPERATE_EXTENSION].ops &&
+                      creep.powers[PWR_OPERATE_EXTENSION].cooldown <= 0 && 
                       room.storage && 
                       room.energyAvailable < (room.energyCapacityAvailable - 900),
             job: 'OPERATE_EXTENSION'
+        },
+        {
+            condition: creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].level >= 5 && 
+                       creep.powers[PWR_OPERATE_EXTENSION].cooldown > 0 && 
+                       room.energyAvailable < room.energyCapacityAvailable,
+            job: 'FILL_SPAWNS'
         },
         {
             condition: creep.powers[PWR_OPERATE_SPAWN] && creep.powers[PWR_OPERATE_SPAWN].cooldown <= 0 && 
@@ -183,11 +190,6 @@ function findNeededWork(creep, totalOps) {
                       !Game.flags[room.name + "WarBoosts"] && 
                       getNeededLab(creep),
             job: 'OPERATE_LAB'
-        },
-        {
-            condition: creep.powers[PWR_OPERATE_EXTENSION] && creep.powers[PWR_OPERATE_EXTENSION].level >= 5 && 
-                      room.energyAvailable < room.energyCapacityAvailable,
-            job: 'FILL_SPAWNS'
         },
         {
             condition: creep.powers[PWR_OPERATE_POWER] && creep.powers[PWR_OPERATE_POWER].cooldown <= 0 && 

@@ -219,6 +219,7 @@ function handleGameFlags() {
 	}
 
     if (spawnOperatorFlag) {
+        let foundOne = false;
         for (let pName in Game.powerCreeps) {
             if (!Game.powerCreeps[pName].shard && Game.powerCreeps[pName].className == POWER_CLASS.OPERATOR) {
                 //This is an unspawned pCreep
@@ -226,13 +227,14 @@ function handleGameFlags() {
                     Game.powerCreeps[pName].spawn(Game.getObjectById(Memory.powerSpawnList[spawnOperatorFlag.room.name][0]));
                     Game.powerCreeps[pName].memory.priority = 'baseOp';
                     spawnOperatorFlag.remove();
+                    foundOne = true;
                 } else {
                     console.log("Error: No power spawn in requested room");
                 }
                 break;
             }
         }
-        if (spawnOperatorFlag) {
+        if (!foundOne) {
             spawnOperatorFlag.remove();
             console.log("Error: No free operators");
         }
