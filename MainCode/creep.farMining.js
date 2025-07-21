@@ -11,49 +11,49 @@ var creep_farMining = {
                     creep.memory.priority = 'farClaimerNearDeath';
                 }
 
-                //var isEvading = evadeAttacker(creep, 4);
+                var isEvading = evadeAttacker(creep, 4);
 
-                //if (!isEvading) {
-                if (creep.room.name != creep.memory.destination) {
-                    if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
-                        creep.travelTo(Game.rooms[creep.memory.destination].controller, {
-                            ignoreRoads: true
-                        });
+                if (!isEvading) {
+                    if (creep.room.name != creep.memory.destination) {
+                        if (Game.rooms[creep.memory.destination] && Game.rooms[creep.memory.destination].controller) {
+                            creep.travelTo(Game.rooms[creep.memory.destination].controller, {
+                                ignoreRoads: true
+                            });
+                        } else {
+                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
+                                ignoreRoads: true
+                            })
+                        }
                     } else {
-                        creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
-                            ignoreRoads: true
+                        let reserveResult = creep.reserveController(creep.room.controller);
+                        if (reserveResult == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(creep.room.controller, {
+                                ignoreRoads: true
+                            });
+                        } else if (reserveResult == ERR_INVALID_TARGET) {
+                            creep.attackController(creep.room.controller);
+                        } else {
+                            if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
+                                creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
+                            } else if (!creep.room.controller.sign) {
+                                creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
+                            }
+                        }
+
+                        let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                            filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
                         })
-                    }
-                } else {
-                    let reserveResult = creep.reserveController(creep.room.controller);
-                    if (reserveResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(creep.room.controller, {
-                            ignoreRoads: true
-                        });
-                    } else if (reserveResult == ERR_INVALID_TARGET) {
-                        creep.attackController(creep.room.controller);
-                    } else {
-                        if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
-                            creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
-                        } else if (!creep.room.controller.sign) {
-                            creep.signController(creep.room.controller, "\u300C\u306B\u3083\u30FC\u300D(^\u30FB\u03C9\u30FB^ )");
+                        if (talkingCreeps.length) {
+                            let coords = talkingCreeps[0].saying.split(";");
+                            if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                                //Standing in the way of a creep
+                                let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                                creep.move(thisDirection);
+                                creep.say("\uD83D\uDCA6", true);
+                            }
                         }
                     }
-
-                    let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-			            filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
-			        })
-			        if (talkingCreeps.length) {
-			            let coords = talkingCreeps[0].saying.split(";");
-			            if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-			                //Standing in the way of a creep
-			                let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-			                creep.move(thisDirection);
-			                creep.say("\uD83D\uDCA6", true);
-			            }
-			        }
                 }
-                //}
 
                 break;
             case 'farMineralMiner':
@@ -574,7 +574,7 @@ function evadeAttacker(creep, evadeRange) {
         creep.travelTo(Foe[0], {
             range: 8
         }, true);
-
+        creep.attack(Foe[0]);
         return true;
     }
 
