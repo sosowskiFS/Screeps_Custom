@@ -354,6 +354,7 @@ function evadeAttacker(creep, evadeRange, roadIgnore) {
             ignoreRoads: roadIgnore,
             range: 8
         }, true);
+        creep.attack(closeFoe);
     } else if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
         let UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
         if (UnderAttackPos >= 0) {

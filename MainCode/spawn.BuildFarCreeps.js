@@ -700,8 +700,8 @@ function getClaimerBuild(energyCap) {
 function getMuleBuild(energyCap, thisRoom) {
     var thisConfig = [CARRY, MOVE, WORK];
     var ConfigCost = (BODYPART_COST[CARRY] * 2) + BODYPART_COST[MOVE];
-    energyCap = energyCap - (BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK]);
-    var partCap = 50;
+    energyCap = energyCap - (BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK] + BODYPART_COST[ATTACK]);
+    var partCap = 49;
     //initial : 1 move, 1 work, 1 carry
     //Add to each loop : 2 carry, 1 move
 
@@ -721,7 +721,8 @@ function getMuleBuild(energyCap, thisRoom) {
         }
     }
 
-    thisConfig.sort();
+    thisConfig.sort(); //sorting like this throws attack first
+    thisConfig.push(ATTACK);
     return thisConfig;
 }
 
