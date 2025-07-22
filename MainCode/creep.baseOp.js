@@ -32,8 +32,14 @@ var creep_baseOp = {
         let jobCompleted = false;
         switch (creep.memory.jobFocus) {
             case 'OPERATE_EXTENSION':
-                if (handlePowerUsage(creep, PWR_OPERATE_EXTENSION, creep.room.storage, 2)) {
-                    totalOps -= 2;
+                if (creep.powers[PWR_OPERATE_EXTENSION].cooldown <= 0) {
+                    if (handlePowerUsage(creep, PWR_OPERATE_EXTENSION, creep.room.storage, 2)) {
+                        totalOps -= 2;
+                        jobCompleted = true;
+                    }
+                } else {
+                    // Power on cooldown, clear job and find new work
+                    creep.memory.jobFocus = undefined;
                     jobCompleted = true;
                 }
                 break;
