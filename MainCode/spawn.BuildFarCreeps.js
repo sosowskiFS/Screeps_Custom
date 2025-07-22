@@ -122,15 +122,15 @@ var spawn_BuildFarCreeps = {
             ];
 
             for (let config of guardConfigs) {
-                const flagName = thisRoom.name + config.flag;
+                const guardFlagName = thisRoom.name + config.flag;
                 const tempFlagName = thisRoom.name + config.temp;
                 if (config.condition && prioritizedRole === '' && 
-                    ((Game.flags[flagName] && Memory.FarRoomsUnderAttack.indexOf(Game.flags[flagName].pos.roomName) != -1) || Game.flags[tempFlagName])) {
+                    ((Game.flags[guardFlagName] && Memory.FarRoomsUnderAttack.indexOf(Game.flags[guardFlagName].pos.roomName) != -1) || Game.flags[tempFlagName])) {
                     const guards = miningOps.farGuards[config.index] || [];
-                    if (guards.length < 1 && Game.flags[flagName] && blockedRole != 'farGuard') {
+                    if (guards.length < 1 && Game.flags[guardFlagName] && blockedRole != 'farGuard') {
                         prioritizedRole = 'farGuard';
-                        roomTarget = Game.flags[flagName].pos.roomName;
-                        flagName = Game.flags[flagName].name;
+                        roomTarget = Game.flags[guardFlagName].pos.roomName;
+                        flagName = Game.flags[guardFlagName].name;
                         break;
                     }
                 }
@@ -154,9 +154,9 @@ var spawn_BuildFarCreeps = {
 
                 for (let config of miningConfigs) {
                     if (config.condition && Game.flags[thisRoom.name + config.flag]) {
-                        const miners = miningOps.farMining[config.index]?.miners || [];
-                        const mules = miningOps.farMining[config.index]?.mules || [];
-                        const claimers = miningOps.farMining[config.index]?.claimers || [];
+                        const miners = (miningOps.farMining[config.index] && miningOps.farMining[config.index].miners) || [];
+                        const mules = (miningOps.farMining[config.index] && miningOps.farMining[config.index].mules) || [];
+                        const claimers = (miningOps.farMining[config.index] && miningOps.farMining[config.index].claimers) || [];
                         
                         if (miners.length < 1 && blockedRole != 'farMiner') {
                             prioritizedRole = 'farMiner';

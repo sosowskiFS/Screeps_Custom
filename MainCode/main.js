@@ -1249,6 +1249,38 @@ function manageRoomStructures(thisRoom) {
         Memory.factoryList[roomName] = [];
     }
     
+    // Manage energy need rooms - check if room needs energy assistance
+    if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage) {
+        if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < 250000 && thisRoom.terminal.store[RESOURCE_ENERGY] < 50000) {
+            if (thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
+                Memory.energyNeedRooms.unshift(thisRoom.name);
+            } else {
+                Memory.energyNeedRooms.push(thisRoom.name);
+            }
+        } else if (Memory.energyNeedRooms.indexOf(thisRoom.name) != -1 && (thisRoom.storage.store[RESOURCE_ENERGY] >= 255000 || thisRoom.terminal.store[RESOURCE_ENERGY] >= 50000)) {
+            let tempIndex = Memory.energyNeedRooms.indexOf(thisRoom.name);
+            Memory.energyNeedRooms.splice(tempIndex, 1);
+        }
+    }
+    
+    // Review market data, sell to buy orders, and catalog mineral stockpiles
+    if (Game.time % 50 == 0 && thisRoom.terminal) {
+        market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
+
+        if (thisRoom.terminal.store.getFreeCapacity() < 5000) {
+            Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + " terminal is overloaded!"
+        }
+
+        var roomMinerals = _.keys(thisRoom.terminal.store);
+        for (let p = 0; p < roomMinerals.length; p++) {
+            if (roomMinerals[p] == RESOURCE_ENERGY || roomMinerals[p] == RESOURCE_POWER) {
+                //Not caring about this
+                continue;
+            }
+            Memory.mineralTotals[roomMinerals[p]] += thisRoom.terminal.store[roomMinerals[p]]
+        }
+    }
+    
     // Update structure lists every 50 ticks or if lists are empty
     if (Game.time % 50 == 0 || Memory.linkList[roomName].length == 0) {
         updateRoomStructureLists(thisRoom);

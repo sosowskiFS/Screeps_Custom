@@ -48,7 +48,13 @@ var creep_baseOp = {
                 }
                 break;
             case 'REGEN_SOURCE':
-                if (handlePowerUsage(creep, PWR_REGEN_SOURCE, getNeededSource(creep), 2)) {
+                if (creep.powers[PWR_REGEN_SOURCE].cooldown <= 0) {
+                    if (handlePowerUsage(creep, PWR_REGEN_SOURCE, getNeededSource(creep), 2)) {
+                        jobCompleted = true;
+                    }
+                } else {
+                    // Power on cooldown, clear job and find new work
+                    creep.memory.jobFocus = undefined;
                     jobCompleted = true;
                 }
                 break;
@@ -504,8 +510,8 @@ function performMaintenanceTasks(creep) {
         () => fillTerminal(creep),
         () => fillStructureType(creep, STRUCTURE_LAB, 'energyCapacity'),
         () => fillStructureType(creep, STRUCTURE_FACTORY, 10000, 'energy'),
-        () => creep.room.controller.level == 8 ? fillHighLevelStructures(creep) : false,
-        () => fillStorage(creep)
+        () => fillStorage(creep),
+        () => creep.room.controller.level == 8 ? fillHighLevelStructures(creep) : false
     ];
     
     for (const task of tasks) {
@@ -587,7 +593,7 @@ function fillStorage(creep) {
     
     const linkTarget = creep.memory.linkSource ? Game.getObjectById(creep.memory.linkSource) : undefined;
     
-    if (linkTarget && linkTarget.energy >= 400) {
+    if ((linkTarget && linkTarget.energy >= 400) || creep.room.storage.store[RESOURCE_ENERGY] < 50000) {
         if (creep.transfer(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
             creep.memory.structureTarget = creep.room.storage.id;
             creep.travelTo(creep.room.storage, { ignoreRoads: true, maxRooms: 1 });
