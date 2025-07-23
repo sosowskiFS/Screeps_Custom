@@ -246,7 +246,7 @@ function getNeededSource(creep) {
         }
         
         const thisSource = Game.getObjectById(Memory.sourceList[creep.room.name][sourceID]);
-        if (thisSource && !hasEffectActive(thisSource, PWR_REGEN_SOURCE, 15)) {
+        if (thisSource && !hasEffectActive(thisSource, PWR_REGEN_SOURCE, 25)) {
             return thisSource;
         }
         sourceNum += 1;
