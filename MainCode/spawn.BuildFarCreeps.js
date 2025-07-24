@@ -211,8 +211,38 @@ var spawn_BuildFarCreeps = {
                 }
             }
 
+            // Check for highway patrol unit (spawn every 2000 ticks and only if energy storage >= 400,000)
+            if (prioritizedRole === '' && Game.time % 2000 === 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 400000) {
+                let patrollers = _.filter(controlledCreeps, (creep) => 
+                    creep.memory.priority == 'highwayPatrol' && 
+                    creep.memory.homeRoom == thisRoom.name
+                );
+                
+                if (patrollers.length < 1 && blockedRole.indexOf('highwayPatrol') === -1) {
+                    prioritizedRole = 'highwayPatrol';
+                    roomTarget = thisRoom.name;
+                }
+            }
+
             if (prioritizedRole != '') {
-                if (prioritizedRole == 'farClaimer') {
+                if (prioritizedRole == 'highwayPatrol') {
+                    let highwayPatrolConfig = getHighwayPatrolBuild(thisRoom.energyCapacityAvailable);
+                    let configCost = calculateConfigCost(highwayPatrolConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(highwayPatrolConfig, 'hwPatrol_' + spawn.name + '_' + Game.time, {
+                            memory: {
+                                priority: prioritizedRole,
+                                homeRoom: thisRoom.name,
+                                fromSpawn: spawn.id,
+                                deathWarn: _.size(highwayPatrolConfig) * 8,
+                                patrolDirection: 0 // Start with first highway direction
+                            },
+                            directions: buildDirections
+                        });
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
+                    }
+                } else if (prioritizedRole == 'farClaimer') {
                     var farClaimerConfig = getClaimerBuild(thisRoom.energyCapacityAvailable);
                     let configCost = calculateConfigCost(farClaimerConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -478,6 +508,28 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
     }
 
     return result;
+}
+
+function getHighwayPatrolBuild(energyCap) {
+    // 2 HEAL, 2 ATTACK, rest RANGED_ATTACK + MOVE
+    var thisConfig = [HEAL, HEAL, ATTACK, ATTACK];
+    var totalCost = BODYPART_COST[HEAL] * 2 + BODYPART_COST[ATTACK] * 2;
+    
+    energyCap = energyCap - totalCost;
+    
+    // Add RANGED_ATTACK and MOVE parts (need equal amounts for no movement penalty)
+    var rangedAttackCost = BODYPART_COST[RANGED_ATTACK] + BODYPART_COST[MOVE];
+    
+    while (energyCap >= rangedAttackCost && thisConfig.length < 48) {
+        thisConfig.push(RANGED_ATTACK);
+        thisConfig.push(MOVE);
+        energyCap = energyCap - rangedAttackCost;
+    }
+    
+    // Sort to group body parts nicely
+    thisConfig.sort();
+    
+    return thisConfig;
 }
 
 module.exports = spawn_BuildFarCreeps;

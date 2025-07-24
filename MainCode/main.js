@@ -31,6 +31,7 @@ var creep_scraper = require('creep.scraper');
 var creep_distantSupplier = require('creep.distantSupplier');
 var creep_ranger = require('creep.ranger');
 var creep_farScout = require('creep.farScout');
+var creep_highwayPatrol = require('creep.highwayPatrol');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -1034,6 +1035,10 @@ function handleCreepOperations() {
                     break;
                 case 'farScout':
                     creep_farScout.run(creep);
+                    break;
+                case 'highwayPatrol':
+                case 'highwayPatrolNearDeath':
+                    creep_highwayPatrol.run(creep);
                     break;
                 default:
                     if (!creep.memory.priority) {
