@@ -698,11 +698,31 @@ function handleSpecificSpawnCommand(spawn, thisRoom, energyIndex, command) {
             }
             break;
         case 'powerCollect':
-            const powerGatherFlag = Game.flags[thisRoom.name + "PowerGather"];
-            if (powerGatherFlag && powerGatherFlag.room) {
-                var powerBanks = powerGatherFlag.pos.lookFor(LOOK_STRUCTURES);
-                if (powerBanks.length) {
-                    extra = Math.ceil(powerBanks[0].power / 1650); // Mule capacity = 1650
+            // PowerCollect flag is in the target room where power needs to be collected
+            if (flag) {
+                targetRoom = flag.pos.roomName;
+                // Look for power bank structures in the same room as the PowerCollect flag
+                if (flag.room) {
+                    var powerBanks = flag.room.find(FIND_STRUCTURES, {
+                        filter: (struct) => struct.structureType === STRUCTURE_POWER_BANK
+                    });
+                    if (powerBanks.length) {
+                        extra = Math.ceil(powerBanks[0].power / 1650); // Mule capacity = 1650
+                    } else {
+                        // No power bank found, look for dropped power resources
+                        var droppedPower = flag.room.find(FIND_DROPPED_RESOURCES, {
+                            filter: (resource) => resource.resourceType === RESOURCE_POWER
+                        });
+                        if (droppedPower.length) {
+                            let totalPower = droppedPower.reduce((sum, drop) => sum + drop.amount, 0);
+                            extra = Math.ceil(totalPower / 1650); // Mule capacity = 1650
+                        } else {
+                            extra = 3; // Default number of collectors
+                        }
+                    }
+                } else {
+                    // No room vision, use default
+                    extra = 3; // Default number of collectors
                 }
             }
             break;
