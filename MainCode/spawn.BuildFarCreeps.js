@@ -21,7 +21,7 @@ var spawn_BuildFarCreeps = {
             // Initialize mining operations data structures
             const miningOps = initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50);
 
-            let farMinerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, ATTACK];
+            let farMinerConfig = [MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, ATTACK];
 
             //760 Points (Level 3)
             let farGuardConfig = [TOUGH, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
