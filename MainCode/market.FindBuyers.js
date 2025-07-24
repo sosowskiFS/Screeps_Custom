@@ -1,209 +1,151 @@
 var market_buyers = {
 
     run: function(thisRoom, thisTerminal, thisMineral) {
-        var TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
+        const TerminalEnergy = thisTerminal.store[RESOURCE_ENERGY];
 
 
-        var neededMinerals = [];
+        const neededMinerals = [];
+        let GH2OPriority = -1;
+        let ForNuker = true;
+        let HydroxidePriority = -1;
 
-        var GH2OPriority = -1;
-        var ForNuker = true;
-        //Always requested minerals for boosts
+        // Always requested minerals for boosts
         if (thisRoom.controller.level >= 6) {
-            neededMinerals.push(RESOURCE_CATALYZED_KEANIUM_ALKALIDE); //Ranged boost, defenders
-            //if (thisRoom.controller.level != 8) {
-            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ACID); //Upgrade boost
+            neededMinerals.push(
+                RESOURCE_CATALYZED_KEANIUM_ALKALIDE, // Ranged boost, defenders
+                RESOURCE_CATALYZED_GHODIUM_ACID,     // Upgrade boost
+                RESOURCE_CATALYZED_LEMERGIUM_ACID    // Repair boost
+            );
             GH2OPriority = 0;
-            neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ACID); //Repair boost
         }
-        if (thisRoom.controller.level == 8) {
+        if (thisRoom.controller.level === 8) {
             neededMinerals.push(RESOURCE_GHODIUM);
-        }
-        var HydroxidePriority = -1;
-        //Check for production flags and request accordingly
-        //Flag room to transfer War Boosts
-        if (Game.flags[thisRoom.name + "WarBoosts"]) {
-            neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYZED_KEANIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYZED_GHODIUM_ALKALIDE);
-        } else if (Game.flags[thisRoom.name + "UHProducer"]) {
-            neededMinerals.push(RESOURCE_UTRIUM);
-            neededMinerals.push(RESOURCE_HYDROGEN);
-        } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
-            neededMinerals.push(RESOURCE_UTRIUM_HYDRIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 0;
-        } else if (Game.flags[thisRoom.name + "OHProducer(3)"] || Game.flags[thisRoom.name + "OHProducer(9)"]) {
-            neededMinerals.push(RESOURCE_OXYGEN);
-            neededMinerals.push(RESOURCE_HYDROGEN);
-        } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
-            neededMinerals.push(RESOURCE_ZYNTHIUM);
-            neededMinerals.push(RESOURCE_KEANIUM);
-        } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
-            neededMinerals.push(RESOURCE_ZYNTHIUM);
-            neededMinerals.push(RESOURCE_OXYGEN);
-        } else if (Game.flags[thisRoom.name + "ZHProducer"]) {
-            neededMinerals.push(RESOURCE_ZYNTHIUM);
-            neededMinerals.push(RESOURCE_HYDROGEN);
-        } else if (Game.flags[thisRoom.name + "LHProducer"]) {
-            neededMinerals.push(RESOURCE_LEMERGIUM);
-            neededMinerals.push(RESOURCE_HYDROGEN);
-        } else if (Game.flags[thisRoom.name + "LHProducer"]) {
-            neededMinerals.push(RESOURCE_LEMERGIUM);
-            neededMinerals.push(RESOURCE_OXYGEN);
-        } else if (Game.flags[thisRoom.name + "ULProducer"]) {
-            neededMinerals.push(RESOURCE_UTRIUM);
-            neededMinerals.push(RESOURCE_LEMERGIUM);
-        } else if (Game.flags[thisRoom.name + "GProducer(4)"] || Game.flags[thisRoom.name + "GProducer(9)"]) {
-            neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE);
-            neededMinerals.push(RESOURCE_ZYNTHIUM_KEANITE);
-        } else if (Game.flags[thisRoom.name + "GHProducer"]) {
-            neededMinerals.push(RESOURCE_GHODIUM);
-            ForNuker = false;
-            neededMinerals.push(RESOURCE_HYDROGEN);
-        } else if (Game.flags[thisRoom.name + "GOProducer"]) {
-            neededMinerals.push(RESOURCE_GHODIUM);
-            ForNuker = false;
-            neededMinerals.push(RESOURCE_OXYGEN);
-        } else if (Game.flags[thisRoom.name + "GHO2Producer"]) {
-            neededMinerals.push(RESOURCE_GHODIUM_OXIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 2;
-        } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
-            neededMinerals.push(RESOURCE_GHODIUM_HYDRIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 0;
-        } else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
-            neededMinerals.push(RESOURCE_LEMERGIUM_HYDRIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 2;
-        } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
-            neededMinerals.push(RESOURCE_ZYNTHIUM_HYDRIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 2;
-        } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
-            neededMinerals.push(RESOURCE_ZYNTHIUM_OXIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 2;
-        } else if (Game.flags[thisRoom.name + "LHO2Producer"]) {
-            neededMinerals.push(RESOURCE_LEMERGIUM_OXIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 2;
-        } else if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
-            neededMinerals.push(RESOURCE_UTRIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
-            neededMinerals.push(RESOURCE_ZYNTHIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
-            neededMinerals.push(RESOURCE_ZYNTHIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
-            neededMinerals.push(RESOURCE_GHODIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "KOProducer"]) {
-            neededMinerals.push(RESOURCE_OXYGEN);
-            neededMinerals.push(RESOURCE_KEANIUM);
-        } else if (Game.flags[thisRoom.name + "KHO2Producer"]) {
-            neededMinerals.push(RESOURCE_KEANIUM_OXIDE);
-            neededMinerals.push(RESOURCE_HYDROXIDE);
-            HydroxidePriority = 2;
-        } else if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
-            neededMinerals.push(RESOURCE_KEANIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
-            neededMinerals.push(RESOURCE_GHODIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
-            neededMinerals.push(RESOURCE_LEMERGIUM_ACID);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
-            neededMinerals.push(RESOURCE_LEMERGIUM_ALKALIDE);
-            neededMinerals.push(RESOURCE_CATALYST);
-        } else if (Game.flags[thisRoom.name + "LOProducer"]) {
-            neededMinerals.push(RESOURCE_LEMERGIUM);
-            neededMinerals.push(RESOURCE_OXYGEN);
         }
 
-        for (var i in neededMinerals) {
-            if (!Memory.mineralNeed[neededMinerals[i]]) {
-                Memory.mineralNeed[neededMinerals[i]] = [];
+        // Mineral production flag mapping
+        const flagMinerals = {
+            "WarBoosts": [RESOURCE_CATALYZED_UTRIUM_ACID, RESOURCE_CATALYZED_KEANIUM_ALKALIDE, 
+                         RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, RESOURCE_CATALYZED_ZYNTHIUM_ACID,
+                         RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, RESOURCE_CATALYZED_GHODIUM_ALKALIDE],
+            "UHProducer": [RESOURCE_UTRIUM, RESOURCE_HYDROGEN],
+            "UH2OProducer": [RESOURCE_UTRIUM_HYDRIDE, RESOURCE_HYDROXIDE],
+            "ZKProducer": [RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM],
+            "ZOProducer": [RESOURCE_ZYNTHIUM, RESOURCE_OXYGEN],
+            "ZHProducer": [RESOURCE_ZYNTHIUM, RESOURCE_HYDROGEN],
+            "LHProducer": [RESOURCE_LEMERGIUM, RESOURCE_HYDROGEN],
+            "LOProducer": [RESOURCE_LEMERGIUM, RESOURCE_OXYGEN],
+            "ULProducer": [RESOURCE_UTRIUM, RESOURCE_LEMERGIUM],
+            "GHProducer": [RESOURCE_GHODIUM, RESOURCE_HYDROGEN],
+            "GOProducer": [RESOURCE_GHODIUM, RESOURCE_OXYGEN],
+            "GHO2Producer": [RESOURCE_GHODIUM_OXIDE, RESOURCE_HYDROXIDE],
+            "GH2OProducer": [RESOURCE_GHODIUM_HYDRIDE, RESOURCE_HYDROXIDE],
+            "LH2OProducer": [RESOURCE_LEMERGIUM_HYDRIDE, RESOURCE_HYDROXIDE],
+            "ZH2OProducer": [RESOURCE_ZYNTHIUM_HYDRIDE, RESOURCE_HYDROXIDE],
+            "ZHO2Producer": [RESOURCE_ZYNTHIUM_OXIDE, RESOURCE_HYDROXIDE],
+            "LHO2Producer": [RESOURCE_LEMERGIUM_OXIDE, RESOURCE_HYDROXIDE],
+            "XUH2OProducer": [RESOURCE_UTRIUM_ACID, RESOURCE_CATALYST],
+            "XZH2OProducer": [RESOURCE_ZYNTHIUM_ACID, RESOURCE_CATALYST],
+            "XZHO2Producer": [RESOURCE_ZYNTHIUM_ALKALIDE, RESOURCE_CATALYST],
+            "XGH2OProducer": [RESOURCE_GHODIUM_ACID, RESOURCE_CATALYST],
+            "KOProducer": [RESOURCE_OXYGEN, RESOURCE_KEANIUM],
+            "KHO2Producer": [RESOURCE_KEANIUM_OXIDE, RESOURCE_HYDROXIDE],
+            "XKHO2Producer": [RESOURCE_KEANIUM_ALKALIDE, RESOURCE_CATALYST],
+            "XGHO2Producer": [RESOURCE_GHODIUM_ALKALIDE, RESOURCE_CATALYST],
+            "XLH2OProducer": [RESOURCE_LEMERGIUM_ACID, RESOURCE_CATALYST],
+            "XLHO2Producer": [RESOURCE_LEMERGIUM_ALKALIDE, RESOURCE_CATALYST]
+        };
+
+        // Check for production flags and request accordingly
+        for (const [flagName, minerals] of Object.entries(flagMinerals)) {
+            if (Game.flags[thisRoom.name + flagName] || 
+                (flagName === "OHProducer" && (Game.flags[thisRoom.name + "OHProducer(3)"] || Game.flags[thisRoom.name + "OHProducer(9)"])) ||
+                (flagName === "GProducer" && (Game.flags[thisRoom.name + "GProducer(4)"] || Game.flags[thisRoom.name + "GProducer(9)"]))) {
+                
+                neededMinerals.push(...minerals);
+                
+                // Set special flags
+                if (flagName === "UH2OProducer" || flagName === "GH2OProducer") {
+                    HydroxidePriority = 0;
+                } else if (flagName.includes("HO2Producer") || flagName.includes("H2OProducer")) {
+                    HydroxidePriority = 2;
+                } else if (flagName === "GHProducer" || flagName === "GOProducer") {
+                    ForNuker = false;
+                }
+                break;
             }
-            var mineralCap = 5000;
-            if (!thisTerminal.store[neededMinerals[i]] || thisTerminal.store[neededMinerals[i]] < mineralCap) {
-                if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) == -1) {
-                    if ((neededMinerals[i] == RESOURCE_CATALYZED_GHODIUM_ACID && GH2OPriority == 0) || (neededMinerals[i] == RESOURCE_HYDROXIDE && HydroxidePriority == 0)) {
-                        Memory.mineralNeed[neededMinerals[i]].splice(0, 0, thisRoom.name);
+        }
+
+        // Handle special cases
+        if (Game.flags[thisRoom.name + "OHProducer(3)"] || Game.flags[thisRoom.name + "OHProducer(9)"]) {
+            neededMinerals.push(RESOURCE_OXYGEN, RESOURCE_HYDROGEN);
+        } else if (Game.flags[thisRoom.name + "GProducer(4)"] || Game.flags[thisRoom.name + "GProducer(9)"]) {
+            neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE, RESOURCE_ZYNTHIUM_KEANITE);
+        }
+
+        // Process mineral needs
+        for (const mineral of neededMinerals) {
+            if (!Memory.mineralNeed[mineral]) {
+                Memory.mineralNeed[mineral] = [];
+            }
+            const mineralCap = 5000;
+            const currentAmount = thisTerminal.store[mineral] || 0;
+            const roomIndex = Memory.mineralNeed[mineral].indexOf(thisRoom.name);
+            
+            if (currentAmount < mineralCap) {
+                if (roomIndex === -1) {
+                    if ((mineral === RESOURCE_CATALYZED_GHODIUM_ACID && GH2OPriority === 0) || 
+                        (mineral === RESOURCE_HYDROXIDE && HydroxidePriority === 0)) {
+                        Memory.mineralNeed[mineral].unshift(thisRoom.name);
                     } else {
-                        Memory.mineralNeed[neededMinerals[i]].push(thisRoom.name);
+                        Memory.mineralNeed[mineral].push(thisRoom.name);
                     }
                 }
-            } else if (Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name) != -1) {
-                var thisRoomIndex = Memory.mineralNeed[neededMinerals[i]].indexOf(thisRoom.name)
-                Memory.mineralNeed[neededMinerals[i]].splice(thisRoomIndex, 1);
+            } else if (roomIndex !== -1) {
+                Memory.mineralNeed[mineral].splice(roomIndex, 1);
             }
         }
 
         if (TerminalEnergy >= 5000) {
-            var currentMineral = Game.getObjectById(thisMineral);
+            const currentMineral = Game.getObjectById(thisMineral);
 
-
-            //Memory.mineralNeed
-
-            //Determine if excess minerals and distribute where needed
-            //Memory.needMin room name
-            //resource
-            var hasSent = false;
-            if (Game.time % 100 == 0) {
-                for (var y in Memory.mineralNeed) {
-                    if (y == RESOURCE_CATALYZED_GHODIUM_ACID && thisRoom.controller.level < 8) {
-                        //No
-                        continue;
+            // Determine if excess minerals and distribute where needed
+            let hasSent = false;
+            if (Game.time % 100 === 0) {
+                for (const mineral in Memory.mineralNeed) {
+                    if (mineral === RESOURCE_CATALYZED_GHODIUM_ACID && thisRoom.controller.level < 8) {
+                        continue; // Skip if room can't use this mineral
                     }
-                    //sendMineral(thisMineral, thisTerminal, targetRoom);
                     if (hasSent) {
                         break;
-                    } else if (Memory.mineralNeed[y].length) {
-                        if (neededMinerals.indexOf(y) != -1) {
-                            if (y == RESOURCE_GHODIUM) {
-                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, ForNuker);
-                            } else {
-                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], true, false);
-                            }
-                        } else {
-                            if (y == RESOURCE_GHODIUM) {
-                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, ForNuker);
-                            } else {
-                                hasSent = sendMineral(y, thisTerminal, Memory.mineralNeed[y][0], false, false);
-                            }
-                        }
+                    } else if (Memory.mineralNeed[mineral].length) {
+                        const isNeeded = neededMinerals.includes(mineral);
+                        const isGhodium = mineral === RESOURCE_GHODIUM;
+                        
+                        hasSent = sendMineral(mineral, thisTerminal, Memory.mineralNeed[mineral][0], isNeeded, isGhodium && ForNuker);
                     }
                 }
             }
 
-            if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length && Memory.energyNeedRooms[0] != thisRoom.name && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 250000) {
-                //Send energy to requesting room
-                let targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal
-                let amountAvailable = TerminalEnergy - 30000;
-                let targetStoreCap = 60000;
+            if (!hasSent && TerminalEnergy >= 50000 && Memory.energyNeedRooms.length && Memory.energyNeedRooms[0] !== thisRoom.name && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 250000) {
+                // Send energy to requesting room
+                const targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal;
+                const amountAvailable = TerminalEnergy - 30000;
+                const targetStoreCap = 60000;
+                
                 if (targetTerminal) {
                     let amountToSend = 30000;
                     if (targetTerminal.store[RESOURCE_ENERGY]) {
                         amountToSend = targetStoreCap - targetTerminal.store[RESOURCE_ENERGY];
                     }
                     if (amountToSend > amountAvailable) {
-                        amountToSend = amountAvailable
+                        amountToSend = amountAvailable;
                     }
-                    if (amountToSend >= 5000 && thisTerminal.send(RESOURCE_ENERGY, amountToSend, Memory.energyNeedRooms[0], thisTerminal.room.name + " has gotchu, fam.") == OK) {
-                        //Game.notify('SUPPLY: ' + thisRoom.name + ' -> ' + Memory.energyNeedRooms[0] + '|' + amountToSend + 'u');
+                    if (amountToSend >= 5000 && thisTerminal.send(RESOURCE_ENERGY, amountToSend, Memory.energyNeedRooms[0], thisTerminal.room.name + " has gotchu, fam.") === OK) {
                         Memory.energyNeedRooms.splice(0, 1);
                         hasSent = true;
                     }
                 } else {
-                    //No terminal, remove this room from the list
+                    // No terminal, remove this room from the list
                     Memory.energyNeedRooms.splice(0, 1);
                 }
             }
@@ -222,59 +164,52 @@ var market_buyers = {
                 }
             }*/
 
-            var sellMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON, RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM];
-            //var sellMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
-            var noStoreMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
+            const sellMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON, RESOURCE_HYDROGEN, RESOURCE_OXYGEN, RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM, RESOURCE_UTRIUM, RESOURCE_LEMERGIUM];
+            const noStoreMinerals = [RESOURCE_UTRIUM_BAR, RESOURCE_LEMERGIUM_BAR, RESOURCE_ZYNTHIUM_BAR, RESOURCE_KEANIUM_BAR, RESOURCE_OXIDANT, RESOURCE_REDUCTANT, RESOURCE_PURIFIER, RESOURCE_MIST, RESOURCE_BIOMASS, RESOURCE_METAL, RESOURCE_SILICON];
 
-            var sellEnergyCap = 30000;
-            var MaxSaleAmount = 30000;
-            let panicSell = false
-            if (thisTerminal.store.getFreeCapacity() <= 5000) {
-                sellEnergyCap = 10000;
-                MaxSaleAmount = TerminalEnergy + 5000;
-                panicSell = true;
-            }
-            if (!hasSent && TerminalEnergy >= sellEnergyCap && (Game.time % 1000 == 0 || panicSell)) {
-                for (var y in sellMinerals) {
-                    if (noStoreMinerals.indexOf(sellMinerals[y]) == -1) {
-                        //This is a base mineral
-                        if (Memory.mineralTotals[sellMinerals[y]] < 75000) {
-                        	//Not a lot stockpiled, skip the sell
-                        	continue;
-                        }
+            const sellEnergyCap = thisTerminal.store.getFreeCapacity() <= 5000 ? 10000 : 30000;
+            const MaxSaleAmount = thisTerminal.store.getFreeCapacity() <= 5000 ? TerminalEnergy + 5000 : 30000;
+            const panicSell = thisTerminal.store.getFreeCapacity() <= 5000;
+            
+            if (!hasSent && TerminalEnergy >= sellEnergyCap && (Game.time % 1000 === 0 || panicSell)) {
+                for (const mineral of sellMinerals) {
+                    if (!noStoreMinerals.includes(mineral) && Memory.mineralTotals[mineral] < 75000) {
+                        continue; // Not a lot stockpiled, skip the sell
                     }
-                    let mineralInTerminal = thisTerminal.store[sellMinerals[y]];
+                    
+                    let mineralInTerminal = thisTerminal.store[mineral];
                     if (mineralInTerminal > 100) {
                         if (mineralInTerminal > MaxSaleAmount) {
                             mineralInTerminal = MaxSaleAmount;
                         }
-                        if (!Memory.PriceList[sellMinerals[y]]) {
-                            //Initalize this memory object
-                            Memory.PriceList[sellMinerals[y]] = 0;
+                        
+                        if (!Memory.PriceList[mineral]) {
+                            Memory.PriceList[mineral] = 0;
                         }
-                        var FilteredOrders = Game.market.getAllOrders(order => order.resourceType == sellMinerals[y] && order.amount >= 100 && order.type == ORDER_BUY && order.price >= Memory.PriceList[sellMinerals[y]] && Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
+                        
+                        const FilteredOrders = Game.market.getAllOrders(order => 
+                            order.resourceType === mineral && 
+                            order.amount >= 100 && 
+                            order.type === ORDER_BUY && 
+                            order.price >= Memory.PriceList[mineral] && 
+                            Game.market.calcTransactionCost(mineralInTerminal, thisRoom.name, order.roomName) <= TerminalEnergy && 
+                            !Memory.ordersFilled.includes(order.id)
+                        );
+                        
                         if (FilteredOrders.length > 0) {
                             FilteredOrders.sort(orderSellCompare);
-                            var tradeAmount = FilteredOrders[0].amount;
-                            if (mineralInTerminal < tradeAmount) {
-                                tradeAmount = mineralInTerminal;
-                            }
-                            if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) == OK) {
-                                //console.log('DEAL: ' + thisRoom.name + '|' + sellMinerals[y] + '|' + tradeAmount + 'u');
-                                Memory.PriceList[sellMinerals[y]] = FilteredOrders[0].price;
-                                if (Memory.ordersFilled.indexOf(FilteredOrders[0].id) == -1) {
+                            const tradeAmount = Math.min(FilteredOrders[0].amount, mineralInTerminal);
+                            
+                            if (Game.market.deal(FilteredOrders[0].id, tradeAmount, thisRoom.name) === OK) {
+                                Memory.PriceList[mineral] = FilteredOrders[0].price;
+                                if (!Memory.ordersFilled.includes(FilteredOrders[0].id)) {
                                     Memory.ordersFilled.push(FilteredOrders[0].id);
                                 }
                                 break;
                             }
-                        } else {
-                            //No orders were found with mineral in the terminal, with MAX ENERGY in the terminal. Drop the price a bit
-                            if (Memory.PriceList[sellMinerals[y]] > 0 && Game.time % 1000 == 0) {
-                                Memory.PriceList[sellMinerals[y]] = Memory.PriceList[sellMinerals[y]] - 0.01;
-                                if (Memory.PriceList[sellMinerals[y]] < 0) {
-                                    Memory.PriceList[sellMinerals[y]] = 0;
-                                }
-                            }
+                        } else if (Memory.PriceList[mineral] > 0 && Game.time % 1000 === 0) {
+                            // No orders found, drop the price a bit
+                            Memory.PriceList[mineral] = Math.max(0, Memory.PriceList[mineral] - 0.01);
                         }
                     }
                 }
@@ -288,58 +223,60 @@ module.exports = market_buyers;
 
 function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit) {
     if (thisTerminal.store[thisMineral] && Game.rooms[targetRoom]) {
-        let targetTerminal = Game.rooms[targetRoom].terminal
+        const targetTerminal = Game.rooms[targetRoom].terminal;
         let amountAvailable = thisTerminal.store[thisMineral];
         let targetStoreCap = 5000;
+        
         if (saveFlag) {
-            if (thisMineral == RESOURCE_GHODIUM || thisMineral == RESOURCE_CATALYZED_KEANIUM_ALKALIDE) {
+            if (thisMineral === RESOURCE_GHODIUM || thisMineral === RESOURCE_CATALYZED_KEANIUM_ALKALIDE) {
                 amountAvailable = thisTerminal.store[thisMineral] - 5000;
             } else {
                 targetStoreCap = 3000;
                 amountAvailable = thisTerminal.store[thisMineral] - 3000;
             }
         }
+        
         if (amountAvailable > 5000) {
             amountAvailable = 5000;
         }
+        
         if (amountAvailable >= 100) {
             if (targetTerminal && !targetTerminal.store[thisMineral]) {
                 if (amountAvailable > targetStoreCap) {
-                    amountAvailable = targetStoreCap
+                    amountAvailable = targetStoreCap;
                 }
-                if (thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
-                    let thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
-                    if (thisRoomIndex != -1) {
+                if (thisTerminal.send(thisMineral, amountAvailable, targetRoom, thisTerminal.room.name + " has gotchu, fam.") === OK) {
+                    const thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                    if (thisRoomIndex !== -1) {
                         Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
                     }
                     return true;
                 }
             } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] < targetStoreCap) {
-                let neededAmount = targetStoreCap - targetTerminal.store[thisMineral]
+                let neededAmount = targetStoreCap - targetTerminal.store[thisMineral];
                 if (neededAmount < 100) {
-                    let thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
-                    if (thisRoomIndex != -1) {
+                    const thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                    if (thisRoomIndex !== -1) {
                         Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
                     }
                     return false;
                 } else {
                     if (amountAvailable < neededAmount) {
-                        neededAmount = amountAvailable
+                        neededAmount = amountAvailable;
                     }
                     if (neededAmount >= 100) {
-                        if (thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.") == OK) {
-                            var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
-                            if (thisRoomIndex != -1) {
+                        if (thisTerminal.send(thisMineral, neededAmount, targetRoom, thisTerminal.room.name + " has gotchu, fam.") === OK) {
+                            const thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                            if (thisRoomIndex !== -1) {
                                 Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
                             }
                             return true;
                         }
                     }
                 }
-
             } else if (targetTerminal && targetTerminal.store[thisMineral] && targetTerminal.store[thisMineral] >= targetStoreCap) {
-                var thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
-                if (thisRoomIndex != -1) {
+                const thisRoomIndex = Memory.mineralNeed[thisMineral].indexOf(targetRoom);
+                if (thisRoomIndex !== -1) {
                     Memory.mineralNeed[thisMineral].splice(thisRoomIndex, 1);
                 }
             }

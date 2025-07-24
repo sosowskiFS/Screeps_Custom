@@ -1300,6 +1300,174 @@ function manageRoomStructures(thisRoom) {
     
     // Manage nuker
     manageNukerOperations(thisRoom);
+    
+    // Find repair target for room
+    if (Game.time % 1000 == 0 || !Memory.repairTarget[thisRoom.name]) {
+        Memory.repairTarget[thisRoom.name] = "";
+        let mostDamagedStructure = thisRoom.find(FIND_STRUCTURES, {
+            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)
+        });
+        if (mostDamagedStructure.length > 0) {
+            mostDamagedStructure.sort(repairCompare);
+            Memory.repairTarget[thisRoom.name] = mostDamagedStructure[0].id;
+            //Cap energy harvesting if room meets certain minimums
+            if (mostDamagedStructure[0].structureType == STRUCTURE_RAMPART) {
+                if (mostDamagedStructure[0].hits >= 50000000 && !Game.flags[thisRoom.name + "50mCap"]) {
+                    if (Game.flags[thisRoom.name + "25mCap"]) {
+                        Game.flags[thisRoom.name + "25mCap"].remove();
+                    }
+                    Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "50mCap");
+                } else if (mostDamagedStructure[0].hits >= 25000000 && !Game.flags[thisRoom.name + "25mCap"] && !Game.flags[thisRoom.name + "50mCap"]) {
+                    Game.rooms[thisRoom.name].createFlag(47, 4, thisRoom.name + "25mCap");
+                }
+                if (mostDamagedStructure[0].hits < 25000000) {
+                    if (Game.flags[thisRoom.name + "25mCap"]) {
+                        Game.flags[thisRoom.name + "25mCap"].remove();
+                    }
+                    if (Game.flags[thisRoom.name + "50mCap"]) {
+                        Game.flags[thisRoom.name + "50mCap"].remove();
+                    }
+                }
+            }
+        }
+    }
+    
+    // Clear road construction sites the tick before rampart checking
+    if ((Game.time + 1) % 10000 == 0 && !Game.flags["DoNotClear"]) {
+        const roadSites = thisRoom.find(FIND_CONSTRUCTION_SITES, {
+            filter: { structureType: STRUCTURE_ROAD }
+        });
+        roadSites.forEach(site => site.remove());
+    }
+    
+    // Check all structures for ramparts, add if missing
+    if (Game.time % 10000 == 0) {
+        let constructionLimitReached = false;
+        
+        // Find structures that need rampart protection based on room level
+        const excludedTypes = thisRoom.controller.level == 8 
+            ? [STRUCTURE_RAMPART, STRUCTURE_WALL, STRUCTURE_CONTROLLER, STRUCTURE_EXTRACTOR, STRUCTURE_CONTAINER]
+            : [STRUCTURE_RAMPART, STRUCTURE_WALL, STRUCTURE_CONTROLLER, STRUCTURE_EXTRACTOR, STRUCTURE_CONTAINER, STRUCTURE_EXTENSION];
+        
+        const structuresNeedingRamparts = thisRoom.find(FIND_MY_STRUCTURES, {
+            filter: (structure) => !excludedTypes.includes(structure.structureType)
+        });
+        
+        // Check each structure for rampart coverage
+        for (const structure of structuresNeedingRamparts) {
+            const structuresAtPos = structure.pos.lookFor(LOOK_STRUCTURES);
+            const hasRampart = structuresAtPos.some(s => s.structureType === STRUCTURE_RAMPART);
+            
+            if (!hasRampart) {
+                const result = thisRoom.createConstructionSite(structure.pos.x, structure.pos.y, STRUCTURE_RAMPART);
+                if (result === ERR_FULL) {
+                    constructionLimitReached = true;
+                    break; // Stop if construction site limit reached
+                } else if (result === OK) {
+                    Memory.LastNotification = `${Game.time} : Rampart generated in ${thisRoom.name}.`;
+                }
+            }
+        }
+        
+        // Generate ramparts around controller (8 adjacent tiles)
+        if (!constructionLimitReached) {
+            const controllerPos = thisRoom.controller.pos;
+            outer: for (let dx = -1; dx <= 1; dx++) {
+                for (let dy = -1; dy <= 1; dy++) {
+                    if (dx === 0 && dy === 0) continue; // Skip controller position itself
+                    
+                    const x = controllerPos.x + dx;
+                    const y = controllerPos.y + dy;
+                    
+                    // Check if position is within room bounds
+                    if (x >= 1 && x <= 48 && y >= 1 && y <= 48) {
+                        const pos = new RoomPosition(x, y, thisRoom.name);
+                        const structuresAtPos = pos.lookFor(LOOK_STRUCTURES);
+                        const hasRampart = structuresAtPos.some(s => s.structureType === STRUCTURE_RAMPART);
+                        const isWall = structuresAtPos.some(s => s.structureType === STRUCTURE_WALL);
+                        
+                        if (!hasRampart && !isWall) {
+                            const result = thisRoom.createConstructionSite(x, y, STRUCTURE_RAMPART);
+                            if (result === ERR_FULL) {
+                                constructionLimitReached = true;
+                                break outer; // Stop if construction site limit reached
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Generate ramparts on road structures
+        if (!constructionLimitReached) {
+            const roadStructures = thisRoom.find(FIND_STRUCTURES, {
+                filter: { structureType: STRUCTURE_ROAD }
+            });
+            
+            for (const road of roadStructures) {
+                const structuresAtPos = road.pos.lookFor(LOOK_STRUCTURES);
+                const hasRampart = structuresAtPos.some(s => s.structureType === STRUCTURE_RAMPART);
+                
+                if (!hasRampart) {
+                    const result = thisRoom.createConstructionSite(road.pos.x, road.pos.y, STRUCTURE_RAMPART);
+                    if (result === ERR_FULL) {
+                        constructionLimitReached = true;
+                        break; // Stop if construction site limit reached
+                    }
+                }
+            }
+        }
+        
+        // Generate roads in empty tiles surrounded by at least 2 extensions
+        if (!constructionLimitReached) {
+            outer: for (let x = 1; x <= 48; x++) {
+                for (let y = 1; y <= 48; y++) {
+                    const pos = new RoomPosition(x, y, thisRoom.name);
+                    const terrain = Game.map.getRoomTerrain(thisRoom.name);
+                    
+                    // Skip if tile is not walkable (wall)
+                    if (terrain.get(x, y) === TERRAIN_MASK_WALL) continue;
+                    
+                    // Check if position already has structures or construction sites
+                    const structuresAtPos = pos.lookFor(LOOK_STRUCTURES);
+                    const constructionSitesAtPos = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                    
+                    // Skip if already has structures or construction sites
+                    if (structuresAtPos.length > 0 || constructionSitesAtPos.length > 0) continue;
+                    
+                    // Count adjacent extensions within range 1
+                    let adjacentExtensions = 0;
+                    for (let dx = -1; dx <= 1; dx++) {
+                        for (let dy = -1; dy <= 1; dy++) {
+                            if (dx === 0 && dy === 0) continue; // Skip center position
+                            
+                            const adjX = x + dx;
+                            const adjY = y + dy;
+                            
+                            // Check bounds
+                            if (adjX >= 1 && adjX <= 48 && adjY >= 1 && adjY <= 48) {
+                                const adjPos = new RoomPosition(adjX, adjY, thisRoom.name);
+                                const adjStructures = adjPos.lookFor(LOOK_STRUCTURES);
+                                
+                                // Count extensions at this adjacent position
+                                const extensionsHere = adjStructures.filter(s => s.structureType === STRUCTURE_EXTENSION);
+                                adjacentExtensions += extensionsHere.length;
+                            }
+                        }
+                    }
+                    
+                    // Generate road if surrounded by at least 2 extensions
+                    if (adjacentExtensions >= 2) {
+                        const result = thisRoom.createConstructionSite(x, y, STRUCTURE_ROAD);
+                        if (result === ERR_FULL) {
+                            constructionLimitReached = true;
+                            break outer; // Stop if construction site limit reached
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 function handleRoomFlags(thisRoom) {
