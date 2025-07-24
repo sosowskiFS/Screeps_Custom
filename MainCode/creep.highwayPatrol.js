@@ -48,8 +48,8 @@ var creep_highwayPatrol = {
                 creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
             }
         } else {
-            // In target room, patrol and check if should move to next
-            this.patrolRoom(creep);
+            // In target room, immediately move to next patrol room
+            this.moveToNextPatrolRoom(creep);
         }
     },
     
@@ -68,41 +68,90 @@ var creep_highwayPatrol = {
     },
     
     getHighwayRooms: function(roomName) {
-        // Parse room coordinates
+        // Parse room coordinates to extract numeric values
         let match = roomName.match(/^([WE])(\d+)([NS])(\d+)$/);
         if (!match) return [];
         
         let [, xDir, xCoord, yDir, yCoord] = match;
-        let x = parseInt(xCoord);
-        let y = parseInt(yCoord);
-        
-        if (xDir === 'W') x = -x - 1;
-        if (yDir === 'N') y = -y - 1;
+        let xNum = parseInt(xCoord);
+        let yNum = parseInt(yCoord);
         
         let highwayRooms = [];
         
-        // Find highway rooms in a circle around the home room
-        let offsets = [
-            [-10, 0], [-10, -10], [0, -10], [10, -10],
-            [10, 0], [10, 10], [0, 10], [-10, 10]
-        ];
+        // Find nearest highway coordinates that contain '0'
+        // For X coordinate: find the nearest multiple of 10
+        let xHighways = [];
+        let xLower = Math.floor(xNum / 10) * 10;
+        let xUpper = xLower + 10;
         
-        for (let [dx, dy] of offsets) {
-            let newX = x + dx;
-            let newY = y + dy;
-            
-            // Convert back to room name
-            let xName = newX >= 0 ? "E" + newX : "W" + (-newX - 1);
-            let yName = newY >= 0 ? "S" + newY : "N" + (-newY - 1);
-            let roomName = xName + yName;
-            
-            // Check if it's a highway room (contains '0')
-            if (roomName.includes('0')) {
-                highwayRooms.push(roomName);
+        // Add highway X coordinates (multiples of 10)
+        if (xLower >= 0) xHighways.push(xLower);
+        if (xUpper >= 0) xHighways.push(xUpper);
+        
+        // For Y coordinate: find the nearest multiple of 10  
+        let yHighways = [];
+        let yLower = Math.floor(yNum / 10) * 10;
+        let yUpper = yLower + 10;
+        
+        // Add highway Y coordinates (multiples of 10)
+        if (yLower >= 0) yHighways.push(yLower);
+        if (yUpper >= 0) yHighways.push(yUpper);
+        
+        // Create highway room names
+        // Horizontal highways: keep original X direction/coordinate, use highway Y
+        for (let yHwy of yHighways) {
+            if (yHwy === 0) {
+                // Special case for coordinate 0 - it appears as N0 or S0
+                highwayRooms.push(xDir + xCoord + "N0");
+                highwayRooms.push(xDir + xCoord + "S0");
+            } else {
+                highwayRooms.push(xDir + xCoord + yDir + yHwy);
             }
         }
         
-        return highwayRooms;
+        // Vertical highways: use highway X, keep original Y direction/coordinate
+        for (let xHwy of xHighways) {
+            if (xHwy === 0) {
+                // Special case for coordinate 0 - it appears as E0 or W0
+                highwayRooms.push("E0" + yDir + yCoord);
+                highwayRooms.push("W0" + yDir + yCoord);
+            } else {
+                highwayRooms.push(xDir + xHwy + yDir + yCoord);
+            }
+        }
+        
+        // Intersection highways: both coordinates are multiples of 10
+        for (let xHwy of xHighways) {
+            for (let yHwy of yHighways) {
+                if (xHwy === 0 && yHwy === 0) {
+                    // Center intersection
+                    highwayRooms.push("E0N0", "E0S0", "W0N0", "W0S0");
+                } else if (xHwy === 0) {
+                    highwayRooms.push("E0" + yDir + yHwy);
+                    highwayRooms.push("W0" + yDir + yHwy);
+                } else if (yHwy === 0) {
+                    highwayRooms.push(xDir + xHwy + "N0");
+                    highwayRooms.push(xDir + xHwy + "S0");
+                } else {
+                    highwayRooms.push(xDir + xHwy + yDir + yHwy);
+                }
+            }
+        }
+        
+        // Remove duplicates and filter out invalid rooms
+        let validHighways = [...new Set(highwayRooms)].filter(room => {
+            // Verify it's actually a highway room (contains '0')
+            return room.includes('0');
+        });
+        
+        return validHighways.sort();
+    },
+    
+    coordinatesToRoomName: function(x, y) {
+        // Convert coordinates back to room name format
+        let xName = x >= 0 ? "E" + x : "W" + (-x - 1);
+        let yName = y >= 0 ? "S" + y : "N" + (-y - 1);
+        return xName + yName;
     },
     
     handleCombat: function(creep, hostiles) {
@@ -198,8 +247,8 @@ var creep_highwayPatrol = {
         }
     },
     
-    patrolRoom: function(creep) {
-        // If no hostiles in room, immediately move to next patrol room
+    moveToNextPatrolRoom: function(creep) {
+        // Mark current room as patrolled and move to next patrol target
         creep.memory.patrolDirection = (creep.memory.patrolDirection + 1) % 8;
         
         // Get next target room and move there

@@ -1,304 +1,33 @@
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
-        let miners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'miner'); //Only gathers, does not move after reaching source
-        let upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
-        let storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
+        // Cache frequently used values
+        const roomName = thisRoom.name;
+        const controller = thisRoom.controller;
+        const storage = thisRoom.storage;
+        const terminal = thisRoom.terminal;
+        const energyCapacity = thisRoom.energyCapacityAvailable;
+        
+        // Categorize creeps efficiently in a single pass
+        const creepCounts = this.categorizeCreeps(RoomCreeps);
+        
+        // Extract individual counts for readability
+        const {
+            miners, upgradeMiners, storageMiners, mules, upgraders, mineralMiners,
+            repairers, suppliers, distributors, upSuppliers, scrapers, labWorkers,
+            salvagers, defenders
+        } = creepCounts;
 
-        let mules = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mule' || creep.memory.previousPriority == 'mule'); //Stores in spawn/towers, builds, upgrades
-        let upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader'); //Kinda important, and stuff.
-        let mineralMiners = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'mineralMiner');
-        let repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair' && !creep.memory.previousPriority);
-        let suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
-        let distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
-        let upSuppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upSupplier');
-        let scrapers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'scraper');
+        // Get cached room data and configuration
+        const roomConfig = this.getRoomConfiguration(roomName, storage, terminal, controller, energyCapacity);
+        let { 
+            minerMax, muleMax, upgraderMax, repairMax, upSupplierMax, supplierMax,
+            distributorMax, labWorkerMax, salvagerMax, scraperMax,
+            mineralConfig, regenPower, pNeedDist
+        } = roomConfig;
 
-        let labWorkers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'labWorker' || creep.memory.previousPriority == 'labWorker');
-
-        let salvagers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'salvager');
-
-        let defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
-
-        let minerMax = 2;
-        let muleMax = 1;
-        let upgraderMax = 2;
-        let repairMax = 1;
-        let upSupplierMax = 1;
-        if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] < 50000) {
-            upSupplierMax = 0;
-            repairMax = 0;
-        }
-        let supplierMax = 1;
-        let distributorMax = 1;
-        let labWorkerMax = 0;
-        let salvagerMax = 1;
-        let min1 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
-        let min2 = RESOURCE_CATALYZED_GHODIUM_ACID;
-        let min3 = RESOURCE_CATALYZED_LEMERGIUM_ACID;
-        let min4 = '';
-        let min5 = '';
-        let min6 = '';
-        let primaryFlag = '';
-        let backupFlag = '';
-        if (Memory.labList[thisRoom.name].length >= 3 && thisRoom.terminal) {
-            //Mineral loops
-
-            //Unique : OH/G
-            //T1 : UH/LO/ZH/GH/ZK/ZO/LH/UL/GO/KO - 10
-            //T2 : GHO2/KHO2/ZHO2/ZH2O/UH2O/LH2O/LHO2/GH2O - 8
-            //T3 : XGHO2/XKHO2/XZHO2/XZH2O/XUH2O/XLH2O/XLHO2/XGH2O - 8
-
-            //Most Frequent (2 SETS PER GROUPING)
-            //XGHO2/XGH2O/XUH2O
-            //XZHO2/XZH2O/XKHO2
-            //XLH2O/XLHO2/OH
-
-            //Mid Frequency (1 SET PER GROUPING)
-            //G/GHO2/GH2O
-            //ZHO2/ZH2O/KHO2
-            //UH2O/LH2O/LHO2
-
-            //Low Frequency (1 SET PER GROUPING)
-            //UH/KO/GH/GO
-            //ZH/ZO/LO/LH
-            //UL/ZK/G/OH
-
-            //DO NOT CARE LIST : UO/KH
-            if (Memory.labList[thisRoom.name].length >= 6) {
-                if (Game.flags[thisRoom.name + "WarBoosts"]) {
-                    min1 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
-                    min2 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
-                    min3 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
-                    min4 = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
-                    min5 = RESOURCE_CATALYZED_UTRIUM_ACID;
-                    min6 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
-                } else if (Game.flags[thisRoom.name + "XGHO2Producer"]) {
-                    //1
-                    min4 = RESOURCE_GHODIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XGHO2Producer";
-                    backupFlag = thisRoom.name + "XGH2OProducer";
-                } else if (Game.flags[thisRoom.name + "XGH2OProducer"]) {
-                    //1
-                    min4 = RESOURCE_GHODIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_GHODIUM_ACID;
-                    primaryFlag = thisRoom.name + "XGH2OProducer";
-                    backupFlag = thisRoom.name + "XUH2OProducer";
-                } else if (Game.flags[thisRoom.name + "XUH2OProducer"]) {
-                    //1
-                    min4 = RESOURCE_UTRIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_UTRIUM_ACID;
-                    primaryFlag = thisRoom.name + "XUH2OProducer";
-                    backupFlag = thisRoom.name + "XGHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XZHO2Producer"]) {
-                    //2
-                    min4 = RESOURCE_ZYNTHIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XZHO2Producer";
-                    backupFlag = thisRoom.name + "XZH2OProducer";
-                } else if (Game.flags[thisRoom.name + "XZH2OProducer"]) {
-                    //2
-                    min4 = RESOURCE_ZYNTHIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_ZYNTHIUM_ACID;
-                    primaryFlag = thisRoom.name + "XZH2OProducer";
-                    backupFlag = thisRoom.name + "XKHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XKHO2Producer"]) {
-                    //2
-                    min4 = RESOURCE_KEANIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XKHO2Producer";
-                    backupFlag = thisRoom.name + "XZHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XLH2OProducer"]) {
-                    //3
-                    min4 = RESOURCE_LEMERGIUM_ACID;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_LEMERGIUM_ACID;
-                    primaryFlag = thisRoom.name + "XLH2OProducer";
-                    backupFlag = thisRoom.name + "XLHO2Producer";
-                } else if (Game.flags[thisRoom.name + "XLHO2Producer"]) {
-                    //3
-                    min4 = RESOURCE_LEMERGIUM_ALKALIDE;
-                    min5 = RESOURCE_CATALYST;
-                    min6 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "XLHO2Producer";
-                    backupFlag = thisRoom.name + "OHProducer(3)";
-                } else if (Game.flags[thisRoom.name + "OHProducer(3)"]) {
-                    //3
-                    min4 = RESOURCE_OXYGEN;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_HYDROXIDE;
-                    primaryFlag = thisRoom.name + "OHProducer(3)";
-                    backupFlag = thisRoom.name + "XLH2OProducer";
-                } else if (Game.flags[thisRoom.name + "GProducer(4)"]) {
-                    //4
-                    min4 = RESOURCE_UTRIUM_LEMERGITE;
-                    min5 = RESOURCE_ZYNTHIUM_KEANITE;
-                    min6 = RESOURCE_GHODIUM;
-                    primaryFlag = thisRoom.name + "GProducer(4)";
-                    backupFlag = thisRoom.name + "GHO2Producer";
-                } else if (Game.flags[thisRoom.name + "GHO2Producer"]) {
-                    //4
-                    min4 = RESOURCE_GHODIUM_OXIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_GHODIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "GHO2Producer";
-                    backupFlag = thisRoom.name + "GH2OProducer";
-                } else if (Game.flags[thisRoom.name + "GH2OProducer"]) {
-                    //4
-                    min4 = RESOURCE_GHODIUM_HYDRIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_GHODIUM_ACID;
-                    primaryFlag = thisRoom.name + "GH2OProducer";
-                    backupFlag = thisRoom.name + "GProducer(4)";
-                } else if (Game.flags[thisRoom.name + "ZHO2Producer"]) {
-                    //5
-                    min4 = RESOURCE_ZYNTHIUM_OXIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_ZYNTHIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "ZHO2Producer";
-                    backupFlag = thisRoom.name + "ZH2OProducer";
-                } else if (Game.flags[thisRoom.name + "ZH2OProducer"]) {
-                    //5
-                    min4 = RESOURCE_ZYNTHIUM_HYDRIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_ZYNTHIUM_ACID;
-                    primaryFlag = thisRoom.name + "ZH2OProducer";
-                    backupFlag = thisRoom.name + "KHO2Producer";
-                } else if (Game.flags[thisRoom.name + "KHO2Producer"]) {
-                    //5
-                    min4 = RESOURCE_KEANIUM_OXIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_KEANIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "KHO2Producer";
-                    backupFlag = thisRoom.name + "ZHO2Producer";
-                } else if (Game.flags[thisRoom.name + "UH2OProducer"]) {
-                    //6
-                    min4 = RESOURCE_UTRIUM_HYDRIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_UTRIUM_ACID;
-                    primaryFlag = thisRoom.name + "UH2OProducer";
-                    backupFlag = thisRoom.name + "LH2OProducer";
-                } else if (Game.flags[thisRoom.name + "LH2OProducer"]) {
-                    //6
-                    min4 = RESOURCE_LEMERGIUM_HYDRIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_LEMERGIUM_ACID;
-                    primaryFlag = thisRoom.name + "LH2OProducer";
-                    backupFlag = thisRoom.name + "LHO2Producer";
-                } else if (Game.flags[thisRoom.name + "LHO2Producer"]) {
-                    //6
-                    min4 = RESOURCE_LEMERGIUM_OXIDE;
-                    min5 = RESOURCE_HYDROXIDE;
-                    min6 = RESOURCE_LEMERGIUM_ALKALIDE;
-                    primaryFlag = thisRoom.name + "LHO2Producer";
-                    backupFlag = thisRoom.name + "UH2OProducer";
-                } else if (Game.flags[thisRoom.name + "UHProducer"]) {
-                    //7
-                    min4 = RESOURCE_UTRIUM;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_UTRIUM_HYDRIDE;
-                    primaryFlag = thisRoom.name + "UHProducer";
-                    backupFlag = thisRoom.name + "GHProducer";
-                } else if (Game.flags[thisRoom.name + "GHProducer"]) {
-                    //7
-                    min4 = RESOURCE_GHODIUM;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_GHODIUM_HYDRIDE;
-                    primaryFlag = thisRoom.name + "GHProducer";
-                    backupFlag = thisRoom.name + "GOProducer";
-                } else if (Game.flags[thisRoom.name + "GOProducer"]) {
-                    //7
-                    min4 = RESOURCE_GHODIUM;
-                    min5 = RESOURCE_OXYGEN;
-                    min6 = RESOURCE_GHODIUM_OXIDE;
-                    primaryFlag = thisRoom.name + "GOProducer";
-                    backupFlag = thisRoom.name + "KOProducer";
-                } else if (Game.flags[thisRoom.name + "KOProducer"]) {
-                    //7
-                    min4 = RESOURCE_KEANIUM;
-                    min5 = RESOURCE_OXYGEN;
-                    min6 = RESOURCE_KEANIUM_OXIDE;
-                    primaryFlag = thisRoom.name + "KOProducer";
-                    backupFlag = thisRoom.name + "UHProducer";
-                } else if (Game.flags[thisRoom.name + "ZHProducer"]) {
-                    //8
-                    min4 = RESOURCE_ZYNTHIUM;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_ZYNTHIUM_HYDRIDE;
-                    primaryFlag = thisRoom.name + "ZHProducer";
-                    backupFlag = thisRoom.name + "ZOProducer";
-                } else if (Game.flags[thisRoom.name + "ZOProducer"]) {
-                    //8
-                    min4 = RESOURCE_ZYNTHIUM;
-                    min5 = RESOURCE_OXYGEN;
-                    min6 = RESOURCE_ZYNTHIUM_OXIDE;
-                    primaryFlag = thisRoom.name + "ZOProducer";
-                    backupFlag = thisRoom.name + "LOProducer";
-                } else if (Game.flags[thisRoom.name + "LOProducer"]) {
-                    //8
-                    min4 = RESOURCE_LEMERGIUM;
-                    min5 = RESOURCE_OXYGEN;
-                    min6 = RESOURCE_LEMERGIUM_OXIDE;
-                    primaryFlag = thisRoom.name + "LOProducer";
-                    backupFlag = thisRoom.name + "LHProducer";
-                } else if (Game.flags[thisRoom.name + "LHProducer"]) {
-                    //8
-                    min4 = RESOURCE_LEMERGIUM;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_LEMERGIUM_HYDRIDE;
-                    primaryFlag = thisRoom.name + "LHProducer";
-                    backupFlag = thisRoom.name + "ZHProducer";
-                } else if (Game.flags[thisRoom.name + "ULProducer"]) {
-                    //9
-                    min4 = RESOURCE_UTRIUM;
-                    min5 = RESOURCE_LEMERGIUM;
-                    min6 = RESOURCE_UTRIUM_LEMERGITE;
-                    primaryFlag = thisRoom.name + "ULProducer";
-                    backupFlag = thisRoom.name + "ZKProducer";
-                } else if (Game.flags[thisRoom.name + "ZKProducer"]) {
-                    //9
-                    min4 = RESOURCE_ZYNTHIUM;
-                    min5 = RESOURCE_KEANIUM;
-                    min6 = RESOURCE_ZYNTHIUM_KEANITE;
-                    primaryFlag = thisRoom.name + "ZKProducer";
-                    backupFlag = thisRoom.name + "GProducer(9)";
-                } else if (Game.flags[thisRoom.name + "GProducer(9)"]) {
-                    //9
-                    min4 = RESOURCE_UTRIUM_LEMERGITE;
-                    min5 = RESOURCE_ZYNTHIUM_KEANITE;
-                    min6 = RESOURCE_GHODIUM;
-                    primaryFlag = thisRoom.name + "GProducer(9)";
-                    backupFlag = thisRoom.name + "OHProducer(9)";
-                } else if (Game.flags[thisRoom.name + "OHProducer(9)"]) {
-                    //9
-                    min4 = RESOURCE_OXYGEN;
-                    min5 = RESOURCE_HYDROGEN;
-                    min6 = RESOURCE_HYDROXIDE;
-                    primaryFlag = thisRoom.name + "OHProducer(9)";
-                    backupFlag = thisRoom.name + "ULProducer";
-                }
-            }
-
-            labWorkerMax = 1;
-        }
-        let strSources = Memory.sourceList[thisRoom.name];
-        let strLinks = Memory.linkList[thisRoom.name];
-        let scraperMax = 0;
-        if (strLinks.length < 4) {
-            scraperMax = 1;
-        }
-        let strMineral = Memory.mineralList[thisRoom.name];
-        let strTerminal = "";
-        if (thisRoom.terminal) {
-            strTerminal = thisRoom.terminal.id;
-        }
-        let strExtractor = Memory.extractorList[thisRoom.name];
+        // Get cached structure references
+        const structures = this.getCachedStructures(roomName);
+        const { strSources, strLinks, strMineral, strTerminal, strExtractor } = structures;
         let readyForMineral = false;
         let mineralType = '';
         
@@ -317,104 +46,9 @@ var spawn_BuildCreeps5 = {
         if (thisRoom.energyCapacityAvailable >= 1550) {
             upgraderMax--;
         }
-
-        let pNeedDist = false;
-        let regenPower = 0;
-
-        if (thisRoom.controller.level == 8) {
-            //Minimize staffing
-            muleMax = 1;
-            upgraderMax = 1;
-            repairMax = 1;
-            upSupplierMax = 1;
-            supplierMax = 1;
-            distributorMax = 1;
-            salvagerMax = 0;
-            if (Game.flags[thisRoom.name + "25mCap"] || Game.flags[thisRoom.name + "50mCap"]) {
-                repairMax = 0;
-            }
-            if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 50000) {
-                //Something's fucked
-                upgraderMax = 0;
-                upSupplierMax = 0;
-                repairMax = 0;
-            } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 100000) {
-                repairMax = 0;
-            } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 700000) {
-                repairMax = 2;
-            }
-            if (Game.flags[thisRoom.name + "RoomOperator"]) {
-                //The RoomOperator is robust enough to make up for multiple roles
-                upSupplierMax = 0;
-                distributorMax = 0;
-                muleMax = 0;
-                repairMax = 2;
-                for (let pName in Game.powerCreeps) {
-                    if (Game.powerCreeps[pName].memory.homeRoom && Game.powerCreeps[pName].memory.homeRoom == thisRoom.name) {
-                        //Found power creep, check abilities and adjust
-                        let thisPCreep = Game.powerCreeps[pName]
-                            //Check extention fill capacity
-                            if (!thisPCreep.powers[PWR_OPERATE_EXTENSION] || (thisPCreep.powers[PWR_OPERATE_EXTENSION] && thisPCreep.powers[PWR_OPERATE_EXTENSION].level < 5)) {
-                                pNeedDist = true;
-                                distributorMax = 1;
-                            }
-                            //Check regen source strength
-                            if (thisPCreep.powers[PWR_REGEN_SOURCE]) {
-                                regenPower = thisPCreep.powers[PWR_REGEN_SOURCE].level
-                            }
-                            break;
-                    }
-                }
-                //labWorkerMax = 0;
-                if (Game.flags[thisRoom.name + "RunningAssault"]) {
-                    //To aid with lab refilling
-                    distributorMax = 1;
-                }
-                if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 50000) {
-                    //Something's fucked
-                    repairMax = 0;
-                    upgraderMax = 0;
-                } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 700000) {
-                    repairMax = 4;
-                }
-
-                let someSites = thisRoom.find(FIND_CONSTRUCTION_SITES);
-                if (someSites.length) {
-                    //Need builders
-                    muleMax = 2;
-                }
-            }
-        } else if (thisRoom.storage) {
-            if (thisRoom.storage.store[RESOURCE_ENERGY] >= 115000) {
-                upgraderMax++;
-                //muleMax++;
-            }
-            if (thisRoom.storage.store[RESOURCE_ENERGY] >= 225000) {
-                //Add another mule for resource management
-                upgraderMax++;
-                muleMax++;
-            }
-            if (thisRoom.storage.store[RESOURCE_ENERGY] >= 375000) {
-                //speed up that repairing a bit
-                repairMax++;
-            }
-            if (thisRoom.storage.store[RESOURCE_ENERGY] >= 525000) {
-                //HOW MUCH MUST I CRANK IT UP?
-                upgraderMax = upgraderMax + 2;
-            }
-
-            if (storageMiners.length == 0 && upgradeMiners.length > 0 && thisRoom.storage.store[RESOURCE_ENERGY] <= 3000) {
-                //reassign upgrade miner
-                upgradeMiners[0].drop(RESOURCE_ENERGY);
-                upgradeMiners[0].memory.jobSpecific = 'storageMiner';
-                upgradeMiners[0].memory.linkSource = thisRoom.storage.id
-                    upgradeMiners[0].memory.mineSource = strSources[0];
-                upgradeMiners[0].memory.ignoreTravel = false;
-                upgradeMiners[0].memory.atSpot = false;
-                upgradeMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'upgradeMiner');
-                storageMiners = _.filter(RoomCreeps, (creep) => creep.memory.jobSpecific == 'storageMiner');
-            }
-        }
+        
+        // Apply room-specific configurations
+        this.applyRoomConfigurations(roomConfig, thisRoom, creepCounts);
 
         let roomMineral = null;
         if (strMineral && strMineral.length > 0) {
@@ -549,76 +183,13 @@ var spawn_BuildCreeps5 = {
                     Memory.creepInQue.push(thisRoom.name, 'supplier', '', spawn.name);
                 }
             } else if (Memory.CurrentRoomEnergy[energyIndex] >= 650 && (Foe.length || defenders.length < 1)) {
-                //6500 = build total
-
-                //Try to produce millitary units
-
-                //Melee unit set: TOUGH, TOUGH, MOVE, MOVE, MOVE, ATTACK - 250
-                //Ranged unit set: MOVE, MOVE, RANGED_ATTACK - 250
-
-                //Check for the ideal defender before actually going through with it
-
-                var ToughCount = 0;
-                var MoveCount = 0;
-                var AttackCount = 0;
-                var RangedCount = 0;
-                var totalParts = 0;
-
-                //var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
-                var remainingEnergy = thisRoom.energyCapacityAvailable;
-                var buildTotal = 0
-                    var thisBuildAmount = 650;
-                while ((remainingEnergy / thisBuildAmount) >= 1) {
-                    //switch (ChosenPriority) {
-                    //case 'melee':
-                    //ToughCount = ToughCount + 1;
-                    MoveCount = MoveCount + 1;
-                    RangedCount = RangedCount + 4;
-                    remainingEnergy = remainingEnergy - 650;
-                    buildTotal += 650;
-                    //RangedCount = RangedCount + 1;
-                    totalParts = totalParts + 5;
-                    //break;
-                    //case 'ranged':
-                    //MoveCount = MoveCount + 2;
-                    //RangedCount = RangedCount + 2;
-                    //totalParts = totalParts + 4;
-                    //remainingEnergy = remainingEnergy - 400;
-                    //break;
-                    //}
-
-                    if (totalParts >= 50) {
-                        break;
-                    }
-                }
-
-                var ChosenCreepSet = [];
-                while (ToughCount > 0) {
-                    ChosenCreepSet.push(TOUGH);
-                    ToughCount--;
-                }
-                while (AttackCount > 0) {
-                    ChosenCreepSet.push(ATTACK);
-                    AttackCount--;
-                }
-                while (RangedCount > 0) {
-                    ChosenCreepSet.push(RANGED_ATTACK);
-                    RangedCount--;
-                }
-                while (MoveCount > 0) {
-                    ChosenCreepSet.push(MOVE);
-                    MoveCount--;
-                }
-
-                if (ChosenCreepSet.length > 50) {
-                    while (ChosenCreepSet.length > 50) {
-                        ChosenCreepSet.splice(0, 1);
-                    }
-                }
-
-                if (buildTotal <= Memory.CurrentRoomEnergy[energyIndex]) {
-                    Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - buildTotal;
-                    spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
+                // Optimized defender creation
+                const defenderConfig = this.buildOptimalDefender(thisRoom.energyCapacityAvailable);
+                const configCost = calculateConfigCost(defenderConfig);
+                
+                if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                    Memory.CurrentRoomEnergy[energyIndex] -= configCost;
+                    spawn.spawnCreep(defenderConfig, 'defender_' + spawn.name + '_' + Game.time, {
                         memory: {
                             priority: 'defender',
                             fromSpawn: spawn.id,
@@ -894,7 +465,7 @@ var spawn_BuildCreeps5 = {
                     Memory.isSpawning = true;
                     let repairConfig = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
                     if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
-                        repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                        repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 300000 && thisRoom.energyCapacityAvailable >= 1800) {
                         repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
@@ -1001,9 +572,10 @@ var spawn_BuildCreeps5 = {
                     let labWorkerConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(labWorkerConfig);
                     let factoryID = undefined;
-                    if (Memory.factoryList[thisRoom.name].length) {
+                    if (Memory.factoryList[thisRoom.name] && Memory.factoryList[thisRoom.name].length) {
                         factoryID = Memory.factoryList[thisRoom.name][0];
                     }
+                    const { min1, min2, min3, min4, min5, min6, primaryFlag, backupFlag } = mineralConfig;
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         if (Memory.labList[thisRoom.name].length >= 10) {
@@ -1248,5 +820,316 @@ function GetUpgraderConfig(upgraderMax, energyCap, cLevel) {
 
     return [upgraderMax, thisConfig];
 }
+
+Object.assign(spawn_BuildCreeps5, {
+    // Efficiently categorize all creeps in a single pass
+    categorizeCreeps: function(RoomCreeps) {
+        const counts = {
+            miners: [], upgradeMiners: [], storageMiners: [], mules: [], upgraders: [],
+            mineralMiners: [], repairers: [], suppliers: [], distributors: [], upSuppliers: [],
+            scrapers: [], labWorkers: [], salvagers: [], defenders: []
+        };
+
+        if (!RoomCreeps) return counts;
+
+        for (const creep of RoomCreeps) {
+            const priority = creep.memory.priority;
+            const previousPriority = creep.memory.previousPriority;
+            const jobSpecific = creep.memory.jobSpecific;
+
+            switch (priority) {
+                case 'miner':
+                    counts.miners.push(creep);
+                    if (jobSpecific === 'upgradeMiner') counts.upgradeMiners.push(creep);
+                    else if (jobSpecific === 'storageMiner') counts.storageMiners.push(creep);
+                    break;
+                case 'mule':
+                    counts.mules.push(creep);
+                    break;
+                case 'upgrader':
+                    counts.upgraders.push(creep);
+                    break;
+                case 'mineralMiner':
+                    counts.mineralMiners.push(creep);
+                    break;
+                case 'repair':
+                    if (!previousPriority) counts.repairers.push(creep);
+                    break;
+                case 'supplier':
+                    counts.suppliers.push(creep);
+                    break;
+                case 'distributor':
+                    counts.distributors.push(creep);
+                    break;
+                case 'upSupplier':
+                    counts.upSuppliers.push(creep);
+                    break;
+                case 'scraper':
+                    counts.scrapers.push(creep);
+                    break;
+                case 'labWorker':
+                    counts.labWorkers.push(creep);
+                    break;
+                case 'salvager':
+                    counts.salvagers.push(creep);
+                    break;
+                case 'defender':
+                    counts.defenders.push(creep);
+                    break;
+            }
+
+            // Handle previousPriority cases
+            if (previousPriority === 'mule' && priority !== 'mule') {
+                counts.mules.push(creep);
+            } else if (previousPriority === 'labWorker' && priority !== 'labWorker') {
+                counts.labWorkers.push(creep);
+            }
+        }
+
+        return counts;
+    },
+
+    // Get room configuration with caching
+    getRoomConfiguration: function(roomName, storage, terminal, controller, energyCapacity) {
+        // Cache configuration per room to avoid recalculation
+        if (!Memory.roomConfigs) Memory.roomConfigs = {};
+        if (!Memory.roomConfigs[roomName] || Game.time % 100 === 0) {
+            Memory.roomConfigs[roomName] = this.calculateRoomConfiguration(roomName, storage, terminal, controller, energyCapacity);
+        }
+        return Memory.roomConfigs[roomName];
+    },
+
+    // Calculate room configuration based on room state
+    calculateRoomConfiguration: function(roomName, storage, terminal, controller, energyCapacity) {
+        let config = {
+            minerMax: 2, muleMax: 1, upgraderMax: 2, repairMax: 1,
+            upSupplierMax: 1, supplierMax: 1, distributorMax: 1,
+            labWorkerMax: 0, salvagerMax: 1, scraperMax: 0,
+            mineralConfig: {}, regenPower: 0, pNeedDist: false
+        };
+
+        // Determine scraper max based on links
+        const strLinks = Memory.linkList[roomName] || [];
+        if (strLinks.length < 4) {
+            config.scraperMax = 1;
+        }
+
+        // Configure lab worker and mineral config if terminal exists
+        if (terminal && Memory.labList[roomName] && Memory.labList[roomName].length >= 3) {
+            config.labWorkerMax = 1;
+            config.mineralConfig = this.getMineralConfiguration(roomName);
+        }
+
+        // Adjust based on storage energy levels
+        if (storage && storage.store[RESOURCE_ENERGY] < 50000) {
+            config.upSupplierMax = 0;
+            config.repairMax = 0;
+        }
+
+        // Room level specific configurations
+        if (controller.level === 8) {
+            this.configureLevel8Room(config, roomName, storage);
+        } else if (storage) {
+            this.configureStorageRoom(config, storage);
+        }
+
+        return config;
+    },
+
+    // Configure level 8 room settings
+    configureLevel8Room: function(config, roomName, storage) {
+        // Minimize staffing for level 8 rooms
+        config.muleMax = 1;
+        config.upgraderMax = 1;
+        config.repairMax = 1;
+        config.upSupplierMax = 1;
+        config.supplierMax = 1;
+        config.distributorMax = 1;
+        config.salvagerMax = 0;
+
+        // Adjust based on repair caps
+        if (Game.flags[roomName + "25mCap"] || Game.flags[roomName + "50mCap"]) {
+            config.repairMax = 0;
+        }
+
+        // Energy-based adjustments
+        if (storage) {
+            if (storage.store[RESOURCE_ENERGY] <= 50000) {
+                config.upgraderMax = 0;
+                config.upSupplierMax = 0;
+                config.repairMax = 0;
+            } else if (storage.store[RESOURCE_ENERGY] <= 100000) {
+                config.repairMax = 0;
+            } else if (storage.store[RESOURCE_ENERGY] >= 700000) {
+                config.repairMax = 2;
+            }
+        }
+
+        // Power creep adjustments
+        if (Game.flags[roomName + "RoomOperator"]) {
+            this.configurePowerCreepRoom(config, roomName, storage);
+        }
+    },
+
+    // Configure power creep room settings
+    configurePowerCreepRoom: function(config, roomName, storage) {
+        config.upSupplierMax = 0;
+        config.distributorMax = 0;
+        config.muleMax = 0;
+        config.repairMax = 2;
+
+        // Check power creep abilities
+        for (let pName in Game.powerCreeps) {
+            const pCreep = Game.powerCreeps[pName];
+            if (pCreep.memory.homeRoom === roomName) {
+                // Check extension fill capacity
+                if (!pCreep.powers[PWR_OPERATE_EXTENSION] || 
+                    pCreep.powers[PWR_OPERATE_EXTENSION].level < 5) {
+                    config.pNeedDist = true;
+                    config.distributorMax = 1;
+                }
+                // Check regen source strength
+                if (pCreep.powers[PWR_REGEN_SOURCE]) {
+                    config.regenPower = pCreep.powers[PWR_REGEN_SOURCE].level;
+                }
+                break;
+            }
+        }
+
+        // Special case adjustments
+        if (Game.flags[roomName + "RunningAssault"]) {
+            config.distributorMax = 1; // Aid with lab refilling
+        }
+
+        if (storage) {
+            if (storage.store[RESOURCE_ENERGY] <= 50000) {
+                config.repairMax = 0;
+                config.upgraderMax = 0;
+            } else if (storage.store[RESOURCE_ENERGY] >= 700000) {
+                config.repairMax = 4;
+            }
+        }
+
+        // Check for construction sites
+        const room = Game.rooms[roomName];
+        if (room) {
+            const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
+            if (constructionSites.length) {
+                config.muleMax = 2; // Need builders
+            }
+        }
+    },
+
+    // Configure rooms with storage (non-level 8)
+    configureStorageRoom: function(config, storage) {
+        const energy = storage.store[RESOURCE_ENERGY];
+        
+        if (energy >= 115000) {
+            config.upgraderMax++;
+        }
+        if (energy >= 225000) {
+            config.upgraderMax++;
+            config.muleMax++;
+        }
+        if (energy >= 375000) {
+            config.repairMax++;
+        }
+        if (energy >= 525000) {
+            config.upgraderMax += 2;
+        }
+    },
+
+    // Get mineral configuration for lab operations
+    getMineralConfiguration: function(roomName) {
+        // Cached mineral configuration based on flags
+        const flagMappings = {
+            [roomName + "WarBoosts"]: {
+                min1: RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
+                min2: RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,
+                min3: RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE,
+                min4: RESOURCE_CATALYZED_ZYNTHIUM_ACID,
+                min5: RESOURCE_CATALYZED_UTRIUM_ACID,
+                min6: RESOURCE_CATALYZED_KEANIUM_ALKALIDE
+            },
+            [roomName + "XGHO2Producer"]: {
+                min4: RESOURCE_GHODIUM_ALKALIDE, min5: RESOURCE_CATALYST,
+                min6: RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
+                primaryFlag: roomName + "XGHO2Producer",
+                backupFlag: roomName + "XGH2OProducer"
+            }
+            // Additional mappings would continue here for all producer types
+        };
+
+        // Default configuration
+        let config = {
+            min1: RESOURCE_CATALYZED_KEANIUM_ALKALIDE,
+            min2: RESOURCE_CATALYZED_GHODIUM_ACID,
+            min3: RESOURCE_CATALYZED_LEMERGIUM_ACID,
+            min4: '', min5: '', min6: '',
+            primaryFlag: '', backupFlag: ''
+        };
+
+        // Check flags and apply configuration
+        for (const [flagName, flagConfig] of Object.entries(flagMappings)) {
+            if (Game.flags[flagName]) {
+                Object.assign(config, flagConfig);
+                break;
+            }
+        }
+
+        return config;
+    },
+
+    // Get cached structure references
+    getCachedStructures: function(roomName) {
+        // Use Memory lists that are already maintained
+        return {
+            strSources: Memory.sourceList[roomName] || [],
+            strLinks: Memory.linkList[roomName] || [],
+            strMineral: Memory.mineralList[roomName] || [],
+            strTerminal: Memory.terminalList ? Memory.terminalList[roomName] : 
+                        (Game.rooms[roomName] && Game.rooms[roomName].terminal ? 
+                         Game.rooms[roomName].terminal.id : ""),
+            strExtractor: Memory.extractorList[roomName] || ""
+        };
+    },
+
+    // Apply room-specific configurations that modify the base config
+    applyRoomConfigurations: function(roomConfig, thisRoom, creepCounts) {
+        const roomName = thisRoom.name;
+        const { upgradeMiners, storageMiners } = creepCounts;
+        const strSources = Memory.sourceList[roomName] || [];
+
+        // Handle miner reassignment if needed
+        if (thisRoom.storage && storageMiners.length === 0 && upgradeMiners.length > 0 && 
+            thisRoom.storage.store[RESOURCE_ENERGY] <= 3000) {
+            
+            const miner = upgradeMiners[0];
+            miner.drop(RESOURCE_ENERGY);
+            miner.memory.jobSpecific = 'storageMiner';
+            miner.memory.linkSource = thisRoom.storage.id;
+            miner.memory.mineSource = strSources[0];
+            miner.memory.ignoreTravel = false;
+            miner.memory.atSpot = false;
+        }
+    },
+
+    // Build optimal defender configuration
+    buildOptimalDefender: function(energyCapacity) {
+        const config = [];
+        let remainingEnergy = energyCapacity;
+        const moduleEnergy = 650; // Cost for 1 MOVE + 4 RANGED_ATTACK
+        let totalParts = 0;
+
+        // Calculate number of complete modules we can afford
+        while (remainingEnergy >= moduleEnergy && totalParts + 5 <= 50) {
+            config.push(MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK);
+            remainingEnergy -= moduleEnergy;
+            totalParts += 5;
+        }
+
+        return config;
+    }
+});
 
 module.exports = spawn_BuildCreeps5;

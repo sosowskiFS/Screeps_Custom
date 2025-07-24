@@ -511,25 +511,44 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
 }
 
 function getHighwayPatrolBuild(energyCap) {
-    // 2 HEAL, 2 ATTACK, rest RANGED_ATTACK + MOVE
-    var thisConfig = [HEAL, HEAL, ATTACK, ATTACK];
-    var totalCost = BODYPART_COST[HEAL] * 2 + BODYPART_COST[ATTACK] * 2;
+    // Build for maximum combat effectiveness with optimal part ordering
+    let rangedAttackParts = [];
+    let moveParts = [];
+    let attackParts = [ATTACK, ATTACK]; // 2 attack parts
+    let healParts = [HEAL, HEAL]; // 2 heal parts
     
-    energyCap = energyCap - totalCost;
+    // Calculate remaining energy after fixed parts
+    let remainingEnergy = energyCap - (BODYPART_COST[ATTACK] * 2 + BODYPART_COST[HEAL] * 2);
+    let remainingParts = 50 - 4; // 46 parts remaining
     
-    // Add RANGED_ATTACK and MOVE parts (need equal amounts for no movement penalty)
-    var rangedAttackCost = BODYPART_COST[RANGED_ATTACK] + BODYPART_COST[MOVE];
+    // For fatigue-free movement on plains, we need 1 MOVE per non-MOVE part
+    // This means we need 25 MOVE parts for 25 other parts (total 50)
+    // So we can have: 2 ATTACK + 2 HEAL + 23 RANGED_ATTACK + 23 MOVE = 50 parts
     
-    while (energyCap >= rangedAttackCost && thisConfig.length < 48) {
-        thisConfig.push(RANGED_ATTACK);
-        thisConfig.push(MOVE);
-        energyCap = energyCap - rangedAttackCost;
+    let maxRangedAttackParts = Math.floor(remainingParts / 2); // Half for ranged attack, half for move
+    let costPerUnit = BODYPART_COST[RANGED_ATTACK] + BODYPART_COST[MOVE];
+    
+    // Add as many ranged attack + move pairs as possible
+    let unitsToAdd = Math.min(maxRangedAttackParts, Math.floor(remainingEnergy / costPerUnit));
+    
+    for (let i = 0; i < unitsToAdd; i++) {
+        rangedAttackParts.push(RANGED_ATTACK);
+        moveParts.push(MOVE);
     }
     
-    // Sort to group body parts nicely
-    thisConfig.sort();
+    // Build final configuration with optimal ordering:
+    // 1. MOVE parts first (for maximum mobility and positioning uptime)
+    // 2. RANGED_ATTACK parts (for maximum DPS)
+    // 3. ATTACK parts (melee combat, second to last)
+    // 4. HEAL parts last (for healing priority and protection)
+    let finalConfig = [
+        ...moveParts,
+        ...rangedAttackParts,
+        ...attackParts,
+        ...healParts
+    ];
     
-    return thisConfig;
+    return finalConfig;
 }
 
 module.exports = spawn_BuildFarCreeps;

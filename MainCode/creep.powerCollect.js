@@ -2,72 +2,54 @@ var creep_powerCollect = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
+        // Cache frequently used values
+        const homeRoom = creep.memory.homeRoom;
+        const powerGatherFlagName = homeRoom + "PowerGather";
+        const powerCollectFlagName = homeRoom + "PowerCollect";
+        const powerGatherFlag = Game.flags[powerGatherFlagName];
+        const powerCollectFlag = Game.flags[powerCollectFlagName];
+        
         if (!creep.memory.mode) {
             creep.memory.mode = 0;
         }
+        
         if (creep.memory.mode == 0) {
             //Pick up
             if (creep.room.name != creep.memory.destination) {
-                //Travel to room
-                if (Game.flags[creep.memory.homeRoom + "PowerGather"] && Game.flags[creep.memory.homeRoom + "PowerGather"]) {
-                    creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"]);
+                //Travel to room - removed redundant condition check
+                if (powerGatherFlag) {
+                    creep.travelTo(powerGatherFlag);
                 } else {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
                 }
             } else {
                 //Main loop
-                if (Game.flags[creep.memory.homeRoom + "PowerGather"]) {
+                if (powerGatherFlag) {
                     //Bank still active, hold.
-                    creep.travelTo(Game.flags[creep.memory.homeRoom + "PowerGather"], {
+                    creep.travelTo(powerGatherFlag, {
                         range: 3
                     });
                 } else {
-                    //Pick up
-                    if (Game.flags[creep.memory.homeRoom + "PowerCollect"]) {
-                        Game.flags[creep.memory.homeRoom + "PowerCollect"].remove();
+                    //Pick up - remove flag if exists
+                    if (powerCollectFlag) {
+                        powerCollectFlag.remove();
                     }
 
                     if (creep.store.getFreeCapacity() > 0) {
-                        let ruins = creep.pos.findClosestByRange(FIND_RUINS, {
-                            filter: (thisRuin) => (thisRuin.store.getUsedCapacity() > 0)
-                        });
-                        if (ruins) {
-                            if (creep.withdraw(ruins, Object.keys(ruins.store)[0]) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(ruins, {
-                                    maxRooms: 1
-                                });
+                        // Try to find something to pick up (prioritize by value/efficiency)
+                        let targetResource = this.findPickupTarget(creep);
+                        
+                        if (targetResource) {
+                            let result = this.handlePickup(creep, targetResource);
+                            if (result === 'full') {
+                                creep.memory.mode = 1;
+                                this.startReturnJourney(creep, homeRoom);
                             }
+                        } else if (creep.store.getUsedCapacity() > 0) {
+                            creep.memory.mode = 1;
                         } else {
-                            let something = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 30);
-                            if (something.length) {
-                                let pickupResult = creep.pickup(something[0]);
-                                if (pickupResult == ERR_NOT_IN_RANGE) {
-                                    creep.travelTo(something[0]);
-                                } else if (pickupResult == OK && something[0].amount >= creep.store.getFreeCapacity()) {
-                                    creep.memory.mode = 1;
-                                    if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
-                                        creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
-                                    } else {
-                                        creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
-                                    }
-                                }
-                            } else {
-                                returnObject = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
-                                    filter: (thisTombstone) => (_.sum(thisTombstone.store) > 0)
-                                });
-                                if (returnObject) {
-                                    if (creep.withdraw(returnObject, Object.keys(returnObject.store)[0]) == ERR_NOT_IN_RANGE) {
-                                        creep.travelTo(returnObject, {
-                                            maxRooms: 1
-                                        });
-                                    }
-                                } else if (creep.store.getUsedCapacity() > 0) {
-                                    creep.memory.mode = 1;
-                                } else {
-                                    //carrying nothing, nothing to pick up
-                                    creep.suicide();
-                                }
-                            }
+                            //carrying nothing, nothing to pick up
+                            creep.suicide();
                         }
                     } else {
                         creep.memory.mode = 1;
@@ -78,18 +60,19 @@ var creep_powerCollect = {
             //Deposit
             if (creep.room.name != creep.memory.homeRoom) {
                 //Travel to room
-                if (Game.rooms[creep.memory.homeRoom] && Game.rooms[creep.memory.homeRoom].storage) {
-                    creep.travelTo(Game.rooms[creep.memory.homeRoom].storage);
+                const homeRoomObj = Game.rooms[homeRoom];
+                if (homeRoomObj && homeRoomObj.storage) {
+                    creep.travelTo(homeRoomObj.storage);
                 } else {
-                    creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
+                    creep.travelTo(new RoomPosition(25, 25, homeRoom));
                 }
-            } else if (_.sum(creep.carry) > 0) {
+            } else if (creep.store.getUsedCapacity() > 0) {
                 if (creep.room.storage) {
-                    if (Object.keys(creep.carry).length > 1) {
-                        if (creep.transfer(creep.room.storage, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(creep.room.storage);
-                        }
-                    } else if (creep.transfer(creep.room.storage, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+                    // Get resource types as array once
+                    const resourceTypes = Object.keys(creep.store);
+                    const transferResource = resourceTypes.length > 1 ? resourceTypes[1] : resourceTypes[0];
+                    
+                    if (creep.transfer(creep.room.storage, transferResource) == ERR_NOT_IN_RANGE) {
                         creep.travelTo(creep.room.storage);
                     }
                 }
@@ -97,6 +80,71 @@ var creep_powerCollect = {
                 //Done
                 creep.suicide();
             }
+        }
+    },
+    
+    // Optimized method to find the best pickup target
+    findPickupTarget: function(creep) {
+        // Check for ruins first (highest priority - power bank ruins)
+        let ruins = creep.pos.findClosestByRange(FIND_RUINS, {
+            filter: (thisRuin) => thisRuin.store.getUsedCapacity() > 0
+        });
+        if (ruins) {
+            return { type: 'ruin', target: ruins, resource: Object.keys(ruins.store)[0] };
+        }
+        
+        // Check for dropped resources
+        let droppedResources = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 30);
+        if (droppedResources.length) {
+            // Sort by amount descending to get largest first
+            droppedResources.sort((a, b) => b.amount - a.amount);
+            return { type: 'dropped', target: droppedResources[0] };
+        }
+        
+        // Check tombstones last
+        let tombstones = creep.pos.findClosestByRange(FIND_TOMBSTONES, {
+            filter: (thisTombstone) => thisTombstone.store.getUsedCapacity() > 0
+        });
+        if (tombstones) {
+            return { type: 'tombstone', target: tombstones, resource: Object.keys(tombstones.store)[0] };
+        }
+        
+        return null;
+    },
+    
+    // Optimized method to handle pickup operations
+    handlePickup: function(creep, targetData) {
+        let result;
+        
+        switch (targetData.type) {
+            case 'ruin':
+            case 'tombstone':
+                result = creep.withdraw(targetData.target, targetData.resource);
+                if (result == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(targetData.target, { maxRooms: 1 });
+                }
+                break;
+                
+            case 'dropped':
+                result = creep.pickup(targetData.target);
+                if (result == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(targetData.target);
+                } else if (result == OK && targetData.target.amount >= creep.store.getFreeCapacity()) {
+                    return 'full';
+                }
+                break;
+        }
+        
+        return result == OK ? 'success' : 'pending';
+    },
+    
+    // Method to prepare for return journey
+    startReturnJourney: function(creep, homeRoom) {
+        const homeRoomObj = Game.rooms[homeRoom];
+        if (homeRoomObj && homeRoomObj.storage) {
+            creep.travelTo(homeRoomObj.storage);
+        } else {
+            creep.travelTo(new RoomPosition(25, 25, homeRoom));
         }
     }
 };
