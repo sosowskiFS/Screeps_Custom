@@ -211,8 +211,8 @@ var spawn_BuildFarCreeps = {
                 }
             }
 
-            // Check for highway patrol unit (spawn every 2000 ticks and only if energy storage >= 400,000)
-            if (prioritizedRole === '' && Game.time % 2000 === 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 400000) {
+            // Check for highway patrol unit (spawn every 1350 ticks and only if energy storage >= 400,000)
+            if (prioritizedRole === '' && Game.time % 1350 === 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 400000) {
                 let patrollers = _.filter(controlledCreeps, (creep) => 
                     creep.memory.priority == 'highwayPatrol' && 
                     creep.memory.homeRoom == thisRoom.name
