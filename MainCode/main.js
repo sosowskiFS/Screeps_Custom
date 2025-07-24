@@ -221,7 +221,7 @@ function handleGameFlags() {
     if (spawnOperatorFlag) {
         let foundOne = false;
         for (let pName in Game.powerCreeps) {
-            if (!Game.powerCreeps[pName].shard && Game.powerCreeps[pName].className == POWER_CLASS.OPERATOR) {
+            if (!Game.powerCreeps[pName].shard && Game.powerCreeps[pName].className == POWER_CLASS.OPERATOR && !Game.powerCreeps[pName].memory.priority) {
                 //This is an unspawned pCreep
                 if (Memory.powerSpawnList[spawnOperatorFlag.room.name].length > 0) {
                     Game.powerCreeps[pName].spawn(Game.getObjectById(Memory.powerSpawnList[spawnOperatorFlag.room.name][0]));
