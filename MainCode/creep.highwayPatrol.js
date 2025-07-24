@@ -147,13 +147,6 @@ var creep_highwayPatrol = {
         return validHighways.sort();
     },
     
-    coordinatesToRoomName: function(x, y) {
-        // Convert coordinates back to room name format
-        let xName = x >= 0 ? "E" + x : "W" + (-x - 1);
-        let yName = y >= 0 ? "S" + y : "N" + (-y - 1);
-        return xName + yName;
-    },
-    
     handleCombat: function(creep, hostiles) {
         // Find the closest hostile
         let target = creep.pos.findClosestByRange(hostiles);
@@ -170,12 +163,14 @@ var creep_highwayPatrol = {
                               eCreep.body.some(part => part.type === ATTACK)
         });
         
-        // Movement logic with Traveler
+        // Movement logic with Traveler - optimized for moving targets
         if (meleeThreat.length > 0 && hasAttackParts) {
             // Use Traveler's flee function to stay at range 3 from melee threats
             creep.travelTo(target, {
                 maxRooms: 1,
-                range: 3
+                range: 3,
+                movingTarget: true,
+                ignoreCreeps: false
             }, true); // true enables flee mode
         } else if (hasAttackParts) {
             // Enemy has attack parts but not in immediate threat range, maintain range 3
@@ -184,13 +179,17 @@ var creep_highwayPatrol = {
                     ignoreRoads: true,
                     maxRooms: 1,
                     allowSK: true,
-                    range: 3
+                    range: 3,
+                    movingTarget: true,
+                    ignoreCreeps: false
                 });
             } else if (range < 3) {
                 // Too close, use flee to back away
                 creep.travelTo(target, {
                     maxRooms: 1,
-                    range: 3
+                    range: 3,
+                    movingTarget: true,
+                    ignoreCreeps: false
                 }, true);
             }
         } else {
@@ -199,7 +198,9 @@ var creep_highwayPatrol = {
                 ignoreRoads: true,
                 maxRooms: 1,
                 allowSK: true,
-                range: 1
+                range: 1,
+                movingTarget: true,
+                ignoreCreeps: false
             });
         }
         
@@ -223,24 +224,6 @@ var creep_highwayPatrol = {
         this.healSelf(creep);
     },
     
-    moveAwayFrom: function(creep, target) {
-        // This is now handled by travelTo with flee mode, keeping for compatibility
-        creep.travelTo(target, {
-            maxRooms: 1,
-            range: 3
-        }, true);
-    },
-    
-    moveToRange: function(creep, target, desiredRange) {
-        // This is now handled by travelTo with range parameter, keeping for compatibility
-        creep.travelTo(target, {
-            ignoreRoads: true,
-            maxRooms: 1,
-            allowSK: true,
-            range: desiredRange
-        });
-    },
-    
     healSelf: function(creep) {
         if (creep.hits < creep.hitsMax) {
             creep.heal(creep);
@@ -257,14 +240,6 @@ var creep_highwayPatrol = {
             stuckValue: 2,
             allowSK: true
         });
-    },
-    
-    setNewPatrolTarget: function(creep) {
-        // Set a new random patrol target in the room
-        let x = Math.floor(Math.random() * 40) + 5; // 5-44 to avoid edges
-        let y = Math.floor(Math.random() * 40) + 5;
-        
-        creep.memory.patrolTarget = {x: x, y: y};
     }
 };
 
