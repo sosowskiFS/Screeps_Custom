@@ -523,13 +523,16 @@ function getHighwayPatrolBuild(energyCap) {
     
     // For fatigue-free movement on plains, we need 1 MOVE per non-MOVE part
     // This means we need 25 MOVE parts for 25 other parts (total 50)
-    // So we can have: 2 ATTACK + 2 HEAL + 23 RANGED_ATTACK + 23 MOVE = 50 parts
+    // We need: 2 ATTACK + 2 HEAL + 21 RANGED_ATTACK + 25 MOVE = 50 parts
     
-    let maxRangedAttackParts = Math.floor(remainingParts / 2); // Half for ranged attack, half for move
+    // We need 25 total move parts, but already have 0, so need 25 more
+    let movePartsNeeded = 25;
+    let nonMovePartsRemaining = 25 - 4; // 21 parts for ranged attack (25 non-move minus 4 fixed)
+    
     let costPerUnit = BODYPART_COST[RANGED_ATTACK] + BODYPART_COST[MOVE];
     
-    // Add as many ranged attack + move pairs as possible
-    let unitsToAdd = Math.min(maxRangedAttackParts, Math.floor(remainingEnergy / costPerUnit));
+    // Add ranged attack and move parts, ensuring we get exactly 25 move parts
+    let unitsToAdd = Math.min(nonMovePartsRemaining, movePartsNeeded, Math.floor(remainingEnergy / costPerUnit));
     
     for (let i = 0; i < unitsToAdd; i++) {
         rangedAttackParts.push(RANGED_ATTACK);
