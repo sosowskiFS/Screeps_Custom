@@ -213,7 +213,7 @@ function findNeededWork(creep, totalOps) {
         {
             condition: room.storage && room.storage.store[RESOURCE_POWER] >= 100 && 
                       Memory.powerSpawnList[room.name] && 
-                      creep.store.getFreeCapacity() >= 100 && 
+                      (creep.carryCapacity - _.sum(creep.carry) - 600) >= 100 && 
                       Game.getObjectById(Memory.powerSpawnList[room.name][0]) && 
                       Game.getObjectById(Memory.powerSpawnList[room.name][0]).store[RESOURCE_POWER] <= 5,
             job: 'FILL_POWER'
@@ -347,8 +347,13 @@ function handleRenewal(creep, powerSpawn) {
 
 function handleEnergyFillJob(creep, jobType) {
     // Power only fills extensions, fill spawns manually
+    const reservedForOps = 600;
+    const maxCarryCapacity = creep.carryCapacity - reservedForOps;
     let checkValue = creep.room.energyCapacityAvailable - creep.room.energyAvailable;
     if (checkValue > 900) checkValue = 900;
+    
+    // Ensure we don't exceed available carry capacity
+    checkValue = Math.min(checkValue, maxCarryCapacity - _.sum(creep.carry));
     
     if (creep.carry[RESOURCE_ENERGY] < checkValue) {
         withdrawEnergyForJob(creep);
@@ -359,14 +364,19 @@ function handleEnergyFillJob(creep, jobType) {
 }
 
 function handlePowerFillJob(creep) {
+    const reservedForOps = 600;
+    const maxCarryCapacity = creep.carryCapacity - reservedForOps;
+    const availableCapacity = maxCarryCapacity - _.sum(creep.carry);
+    
     if (!creep.carry[RESOURCE_POWER]) {
-        const withdrawResult = creep.withdraw(creep.room.storage, RESOURCE_POWER, 100);
+        const withdrawAmount = Math.min(100, availableCapacity);
+        const withdrawResult = creep.withdraw(creep.room.storage, RESOURCE_POWER, withdrawAmount);
         if (withdrawResult == ERR_NOT_IN_RANGE) {
             creep.travelTo(creep.room.storage, {
                 ignoreRoads: true,
                 maxRooms: 1
             });
-        } else if (withdrawResult == ERR_FULL) {
+        } else if (withdrawResult == ERR_FULL || availableCapacity <= 0) {
             creep.memory.jobFocus = undefined;
             return true; // Job completed (can't carry more)
         }
@@ -408,7 +418,10 @@ function handleBusyWork(creep) {
 }
 
 function withdrawEnergyForJob(creep) {
-    const neededAmount = creep.carryCapacity - (_.sum(creep.carry) + 6);
+    const reservedForOps = 600;
+    const maxCarryCapacity = creep.carryCapacity - reservedForOps;
+    const currentCarry = _.sum(creep.carry);
+    const neededAmount = Math.min(maxCarryCapacity - currentCarry, maxCarryCapacity - (currentCarry + 6));
     creep.memory.structureTarget = undefined;
     
     // Check overflow link first
