@@ -71,8 +71,8 @@ var creep_harasser = {
             part.type === ATTACK || part.type === RANGED_ATTACK
         );
         
-        // Find nearby dangerous threats within range 3
-        let dangerousThreats = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+        // Find nearby dangerous threats within range 5
+        let dangerousThreats = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 5, {
             filter: (eCreep) => !Memory.whiteList.includes(eCreep.owner.username) && 
                               eCreep.body.some(part => part.type === ATTACK || part.type === RANGED_ATTACK)
         });
@@ -84,7 +84,7 @@ var creep_harasser = {
             if (fleeTarget) {
                 creep.travelTo(fleeTarget, {
                     maxRooms: 1,
-                    range: 4,
+                    range: 5,
                     ignoreCreeps: false
                 }, true); // true enables flee mode
             }
