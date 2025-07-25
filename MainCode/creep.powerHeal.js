@@ -30,7 +30,7 @@ var creep_powerHeal = {
             //Main loop
             if (!creep.memory.targetAttacker) {
                 const attackers = creep.room.find(FIND_MY_CREEPS, {
-                    filter: (roomCreep) => roomCreep.getActiveBodyparts(ATTACK) >= 1
+                    filter: (roomCreep) => roomCreep.memory.priority === 'powerAttack' && roomCreep.memory.homeRoom === homeRoom
                 });
                 if (attackers.length) {
                     creep.memory.targetAttacker = attackers[0].id;

@@ -655,6 +655,31 @@ function processSpawnCommands(spawn, thisRoom, energyIndex) {
 
 function processSpecialSpawnCommands(spawn, thisRoom, energyIndex) {
     const roomName = thisRoom.name;
+    
+    // Special handling for PowerAttack - check if units need spawning even when PowerPickup exists
+    const powerAttackFlag = Game.flags[roomName + "PowerAttack"];
+    const powerPickupFlag = Game.flags[roomName + "PowerPickup"];
+    
+    if (powerAttackFlag && powerPickupFlag) {
+        // Both flags exist - check if PowerAttack units need spawning
+        const powerAttackers = _.filter(Game.creeps, (creep) => 
+            creep.memory.priority == 'powerAttack' && creep.memory.homeRoom == roomName
+        );
+        const powerHealers = _.filter(Game.creeps, (creep) => 
+            creep.memory.priority == 'powerHeal' && creep.memory.homeRoom == roomName
+        );
+        
+        // If PowerAttack units are missing, prioritize spawning them over PowerPickup
+        if (powerAttackers.length < 1 || powerHealers.length < 2) {
+            handleSpecificSpawnCommand(spawn, thisRoom, energyIndex, { 
+                flagName: roomName + "PowerAttack", 
+                type: 'powerAttack', 
+                flag: powerAttackFlag 
+            });
+            return;
+        }
+    }
+    
     const commandMap = [
         { flagName: roomName + "PowerPickup", type: 'powerPickup' }, // Top priority for power collection
         { flagName: roomName + "ClaimThis", type: 'claim' },
