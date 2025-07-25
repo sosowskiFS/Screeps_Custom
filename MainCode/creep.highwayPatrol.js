@@ -164,7 +164,7 @@ var creep_highwayPatrol = {
         });
         
         // Movement logic with Traveler - optimized for moving targets
-        if (meleeThreat.length > 0 && hasAttackParts) {
+        if (meleeThreat.length > 0) {
             // Use Traveler's flee function to stay at range 3 from melee threats
             creep.travelTo(target, {
                 maxRooms: 1,
@@ -216,12 +216,13 @@ var creep_highwayPatrol = {
                 if (range === 2 && !hasAttackParts) {
                     // Safe to use melee attack at range 2 against non-melee targets
                     creep.attack(target);
+                } else {
+                    this.healSelf(creep); //Can only attack OR heal, not both
                 }
             }
-        }
-        
-        // Heal self if damaged
-        this.healSelf(creep);
+        } else {
+            this.healSelf(creep);
+        }      
     },
     
     healSelf: function(creep) {

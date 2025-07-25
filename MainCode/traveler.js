@@ -80,10 +80,17 @@ class Traveler {
             // TODO:handle case where creep moved by some other function, but destination is still the same
             // delete path cache if destination is different
             if (!this.samePos(state.destination, destination)) {
-                if (options.movingTarget && state.destination.isNearTo(destination)) {
-                    travelData.path += state.destination.getDirectionTo(destination);
+                if (options.movingTarget) {
+                    // For moving targets, always delete path and recalculate to ensure we track the current position
+                    delete travelData.path;
                     state.destination = destination;
                 } else {
+                    delete travelData.path;
+                }
+            } else if (options.movingTarget) {
+                // Even if destination appears the same, for moving targets we should recalculate periodically
+                // to ensure we're not stuck following an old path to where the target used to be
+                if (travelData.path && travelData.path.length > 5) {
                     delete travelData.path;
                 }
             }
@@ -235,7 +242,10 @@ class Traveler {
                 flee: doFlee
             });
             if (options.movingTarget) {
-                options.range = 0;
+                // For moving targets, use a smaller range to get closer for better tracking
+                if (!options.range) {
+                    options.range = 1;
+                }
             }
             origin = this.normalizePos(origin);
             destination = this.normalizePos(destination);

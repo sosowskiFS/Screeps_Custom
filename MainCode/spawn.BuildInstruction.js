@@ -49,11 +49,11 @@ var spawn_BuildInstruction = {
                 this.spawnRanger(spawn, instruction, params, energyIndex, params2, roomName);
                 break;
                 
-            case 'powerGather':
-                this.handlePowerGatherSpawn(spawn, params, energyIndex, roomName);
+            case 'powerAttack':
+                this.handlePowerAttackSpawn(spawn, params, energyIndex, roomName);
                 break;
                 
-            case 'powerCollect':
+            case 'powerPickup':
                 this.spawnPowerCollector(spawn, params, energyIndex, params2, roomName);
                 break;
                 
@@ -331,8 +331,8 @@ var spawn_BuildInstruction = {
         }
     },
     
-    // Optimized method to handle power gathering spawn
-    handlePowerGatherSpawn: function(spawn, params, energyIndex, roomName) {
+    // Optimized method to handle power attack spawn
+    handlePowerAttackSpawn: function(spawn, params, energyIndex, roomName) {
         const powerAttackers = _.filter(Game.creeps, (creep) => 
             creep.memory.priority == 'powerAttack' && creep.memory.homeRoom == roomName
         );
@@ -389,13 +389,15 @@ var spawn_BuildInstruction = {
         }
     },
     
-    // Optimized method to spawn power collectors
+    // Optimized method to spawn power collectors with high priority
     spawnPowerCollector: function(spawn, params, energyIndex, params2, roomName) {
         const powerCollectors = _.filter(Game.creeps, (creep) => 
             creep.memory.priority == 'powerCollector' && creep.memory.homeRoom == roomName
         );
         
-        if (powerCollectors.length < params2) {
+        // Ensure we spawn the required number of collectors with high priority
+        const requiredCollectors = params2 || 3; // Default to 3 if not specified
+        if (powerCollectors.length < requiredCollectors) {
             const powerCollectConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
             const configCost = calculateConfigCost(powerCollectConfig);
             
@@ -410,7 +412,7 @@ var spawn_BuildInstruction = {
                     }
                 });
                 Memory.isSpawning = true;
-                console.log('Power Mining - Mule, ' + roomName);
+                console.log('Power Mining - Collector spawned, ' + roomName + ' (' + powerCollectors.length + '/' + requiredCollectors + ')');
             }
         }
     },

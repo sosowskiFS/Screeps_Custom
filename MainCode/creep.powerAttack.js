@@ -4,10 +4,10 @@ var creep_powerAttack = {
     run: function(creep) {
         // Cache frequently used values
         const homeRoom = creep.memory.homeRoom;
-        const powerGatherFlagName = homeRoom + "PowerGather";
-        const powerGatherFlag = Game.flags[powerGatherFlagName];
+        const powerAttackFlagName = homeRoom + "PowerAttack";
+        const powerAttackFlag = Game.flags[powerAttackFlagName];
         
-        if (!powerGatherFlag) {
+        if (!powerAttackFlag) {
             //You are not required
             creep.suicide();
             return;
@@ -25,13 +25,13 @@ var creep_powerAttack = {
         //Flag active
         if (creep.room.name != creep.memory.destination) {
             //Travel to room - removed redundant condition check
-            creep.travelTo(powerGatherFlag);
+            creep.travelTo(powerAttackFlag);
         } else {
                 //Main loop
                 if (!creep.memory.targetBank) {
-                    const powerGatherFlag = Game.flags[powerGatherFlagName];
-                    if (powerGatherFlag && powerGatherFlag.room) {
-                        var powerBanks = powerGatherFlag.pos.lookFor(LOOK_STRUCTURES);
+                    const powerAttackFlag = Game.flags[powerAttackFlagName];
+                    if (powerAttackFlag && powerAttackFlag.room) {
+                        var powerBanks = powerAttackFlag.pos.lookFor(LOOK_STRUCTURES);
                         if (powerBanks.length) {
                             creep.memory.targetBank = powerBanks[0].id
                             creep.travelTo(powerBanks[0]);
@@ -41,7 +41,7 @@ var creep_powerAttack = {
                             }
                         } else {
                             //No bank located, delete flags
-                            powerGatherFlag.remove();
+                            powerAttackFlag.remove();
                             const powerGuardFlag = Game.flags[homeRoom + "PowerGuard"];
                             if (powerGuardFlag) {
                                 powerGuardFlag.remove();
@@ -49,7 +49,7 @@ var creep_powerAttack = {
                         }
                     } else {
                         // Travel to flag position if we don't have room vision
-                        creep.travelTo(powerGatherFlag);
+                        creep.travelTo(powerAttackFlag);
                         if (!creep.memory.travelDistance && creep.memory._trav && creep.memory._trav.path) {
                             creep.memory.travelDistance = creep.memory._trav.path.length;
                             creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
@@ -65,13 +65,13 @@ var creep_powerAttack = {
                         } else if (attackResult == OK && thisBank.hits >= 1500000) {
                             creep.memory.checkForOwnership = true;
                         }
-                        if (thisBank.hits <= 468000 && !Game.flags[homeRoom + "PowerCollect"]) {
+                        if (thisBank.hits <= 468000 && !Game.flags[homeRoom + "PowerPickup"]) {
                             //Set flag to signal mule creation
-                            Game.rooms[creep.room.name].createFlag(25, 25, homeRoom + "PowerCollect");
+                            Game.rooms[creep.room.name].createFlag(25, 25, homeRoom + "PowerPickup");
                         }
                     } else {
                         //Cannot find bank, abort
-                        powerGatherFlag.remove();
+                        powerAttackFlag.remove();
                         const powerGuardFlag = Game.flags[homeRoom + "PowerGuard"];
                         if (powerGuardFlag) {
                             powerGuardFlag.remove();
@@ -93,7 +93,7 @@ var creep_powerAttack = {
                 if (!creep.memory.isOwner) {
                     if (AgreementList.includes(enemy.owner.username)) {
                         //They were here first, cancel flag.
-                        powerGatherFlag.remove();        
+                        powerAttackFlag.remove();        
                         const powerGuardFlag = Game.flags[homeRoom + "PowerGuard"];
                         if (powerGuardFlag) {
                             powerGuardFlag.remove();

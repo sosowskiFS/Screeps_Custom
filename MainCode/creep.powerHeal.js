@@ -4,10 +4,10 @@ var creep_powerHeal = {
     run: function(creep) {
         // Cache frequently used values
         const homeRoom = creep.memory.homeRoom;
-        const powerGatherFlagName = homeRoom + "PowerGather";
-        const powerGatherFlag = Game.flags[powerGatherFlagName];
+        const powerAttackFlagName = homeRoom + "PowerAttack";
+        const powerAttackFlag = Game.flags[powerAttackFlagName];
         
-        if (!powerGatherFlag) {
+        if (!powerAttackFlag) {
             //You are not required
             creep.suicide();
             return;
@@ -25,7 +25,7 @@ var creep_powerHeal = {
         //Flag active
         if (creep.room.name != creep.memory.destination) {
             //Travel to room - removed redundant condition check
-            creep.travelTo(powerGatherFlag);
+            creep.travelTo(powerAttackFlag);
         } else {
             //Main loop
             if (!creep.memory.targetAttacker) {
@@ -36,7 +36,7 @@ var creep_powerHeal = {
                     creep.memory.targetAttacker = attackers[0].id;
                     creep.travelTo(attackers[0]);
                 } else {
-                    creep.travelTo(powerGatherFlag, {
+                    creep.travelTo(powerAttackFlag, {
                         range: 5
                     });
                 }
@@ -57,7 +57,7 @@ var creep_powerHeal = {
                 } else {
                     //Cannot find attacker, clear memory
                     creep.memory.targetAttacker = undefined;
-                    creep.travelTo(powerGatherFlag, {
+                    creep.travelTo(powerAttackFlag, {
                         range: 5
                     });
                 }

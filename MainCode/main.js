@@ -26,7 +26,7 @@ var creep_asshealer = require('creep.asshealer');
 var creep_assranger = require('creep.assranger');
 var creep_powerAttack = require('creep.powerAttack');
 var creep_powerHeal = require('creep.powerHeal');
-var creep_powerCollect = require('creep.powerCollect');
+var creep_powerPickup = require('creep.powerCollect');
 var creep_scraper = require('creep.scraper');
 var creep_distantSupplier = require('creep.distantSupplier');
 var creep_ranger = require('creep.ranger');
@@ -655,15 +655,15 @@ function processSpawnCommands(spawn, thisRoom, energyIndex) {
 function processSpecialSpawnCommands(spawn, thisRoom, energyIndex) {
     const roomName = thisRoom.name;
     const commandMap = [
+        { flagName: roomName + "PowerPickup", type: 'powerPickup' }, // Top priority for power collection
         { flagName: roomName + "ClaimThis", type: 'claim' },
         { flagName: roomName + "RunningAssault", type: 'assault' },
         { flagName: roomName + "SendHelper", type: 'helper' },
         { flagName: roomName + "Ranger", type: 'ranger' },
         { flagName: roomName + "Ranger2", type: 'ranger2' },
         { flagName: roomName + "PowerGuard", type: 'PowerGuard' },
-        { flagName: roomName + "PowerGather", type: 'powerGather' },
+        { flagName: roomName + "PowerAttack", type: 'powerAttack' },
         { flagName: roomName + "Loot", type: 'loot' },
-        { flagName: roomName + "PowerCollect", type: 'powerCollect' },
         { flagName: roomName + "supplyEnergy", type: 'supplyEnergy' },
         { flagName: roomName + "MineScout", type: 'farScout' }
     ];
@@ -697,11 +697,11 @@ function handleSpecificSpawnCommand(spawn, thisRoom, energyIndex, command) {
                 }
             }
             break;
-        case 'powerCollect':
-            // PowerCollect flag is in the target room where power needs to be collected
+        case 'powerPickup':
+            // PowerPickup flag is in the target room where power needs to be collected
             if (flag) {
                 targetRoom = flag.pos.roomName;
-                // Look for power bank structures in the same room as the PowerCollect flag
+                // Look for power bank structures in the same room as the PowerPickup flag
                 if (flag.room) {
                     var powerBanks = flag.room.find(FIND_STRUCTURES, {
                         filter: (struct) => struct.structureType === STRUCTURE_POWER_BANK
@@ -717,7 +717,23 @@ function handleSpecificSpawnCommand(spawn, thisRoom, energyIndex, command) {
                             let totalPower = droppedPower.reduce((sum, drop) => sum + drop.amount, 0);
                             extra = Math.ceil(totalPower / 1650); // Mule capacity = 1650
                         } else {
-                            extra = 3; // Default number of collectors
+                            // Look for ruins and tombstones with power
+                            var powerRuins = flag.room.find(FIND_RUINS, {
+                                filter: (ruin) => ruin.store[RESOURCE_POWER] > 0
+                            });
+                            var powerTombstones = flag.room.find(FIND_TOMBSTONES, {
+                                filter: (tomb) => tomb.store[RESOURCE_POWER] > 0
+                            });
+                            
+                            let totalPowerStorage = 0;
+                            powerRuins.forEach(ruin => totalPowerStorage += ruin.store[RESOURCE_POWER]);
+                            powerTombstones.forEach(tomb => totalPowerStorage += tomb.store[RESOURCE_POWER]);
+                            
+                            if (totalPowerStorage > 0) {
+                                extra = Math.ceil(totalPowerStorage / 1650);
+                            } else {
+                                extra = 2; // Minimum collectors for pickup
+                            }
                         }
                     }
                 } else {
@@ -1042,7 +1058,7 @@ function handleCreepOperations() {
                     creep_powerHeal.run(creep);
                     break;
                 case 'powerCollector':
-                    creep_powerCollect.run(creep);
+                    creep_powerPickup.run(creep);
                     break;
                 case 'distantSupplier':
                     creep_distantSupplier.run(creep);
@@ -1544,15 +1560,15 @@ function handleObservedRoomOperations(thisRoom, observedRoom, roomName, observed
 }
 
 function handlePowerBankOperations(thisRoom, observedRoom, roomName) {
-    const powerGatherFlag = Game.flags[roomName + "PowerGather"];
+    const powerAttackFlag = Game.flags[roomName + "PowerAttack"];
     
-    if (powerGatherFlag && Game.rooms[powerGatherFlag.pos.roomName]) {
+    if (powerAttackFlag && Game.rooms[powerAttackFlag.pos.roomName]) {
         // Check if existing power bank flag is still valid
-        const powerBanks = Game.rooms[powerGatherFlag.pos.roomName].find(FIND_STRUCTURES, {
+        const powerBanks = Game.rooms[powerAttackFlag.pos.roomName].find(FIND_STRUCTURES, {
             filter: (struct) => struct.structureType === STRUCTURE_POWER_BANK
         });
         if (!powerBanks.length) {
-            powerGatherFlag.remove();
+            powerAttackFlag.remove();
         }
     } else if (thisRoom.storage && (!thisRoom.storage.store[RESOURCE_POWER] || thisRoom.storage.store[RESOURCE_POWER] <= 200000)) {
         // Search for new power banks in observed room
@@ -1561,7 +1577,7 @@ function handlePowerBankOperations(thisRoom, observedRoom, roomName) {
         });
         if (powerBanks.length > 0) {
             const powerBank = powerBanks[0];
-            observedRoom.createFlag(powerBank.pos.x, powerBank.pos.y, roomName + "PowerGather");
+            observedRoom.createFlag(powerBank.pos.x, powerBank.pos.y, roomName + "PowerAttack");
         }
     }
 }

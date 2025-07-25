@@ -4,10 +4,10 @@ var creep_powerCollect = {
     run: function(creep) {
         // Cache frequently used values
         const homeRoom = creep.memory.homeRoom;
-        const powerGatherFlagName = homeRoom + "PowerGather";
-        const powerCollectFlagName = homeRoom + "PowerCollect";
-        const powerGatherFlag = Game.flags[powerGatherFlagName];
-        const powerCollectFlag = Game.flags[powerCollectFlagName];
+        const powerAttackFlagName = homeRoom + "PowerAttack";
+        const powerPickupFlagName = homeRoom + "PowerPickup";
+        const powerAttackFlag = Game.flags[powerAttackFlagName];
+        const powerPickupFlag = Game.flags[powerPickupFlagName];
         
         if (!creep.memory.mode) {
             creep.memory.mode = 0;
@@ -17,22 +17,22 @@ var creep_powerCollect = {
             //Pick up
             if (creep.room.name != creep.memory.destination) {
                 //Travel to room - removed redundant condition check
-                if (powerGatherFlag) {
-                    creep.travelTo(powerGatherFlag);
+                if (powerAttackFlag) {
+                    creep.travelTo(powerAttackFlag);
                 } else {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
                 }
             } else {
                 //Main loop
-                if (powerGatherFlag) {
+                if (powerAttackFlag) {
                     //Bank still active, hold.
-                    creep.travelTo(powerGatherFlag, {
+                    creep.travelTo(powerAttackFlag, {
                         range: 3
                     });
                 } else {
                     //Pick up - remove flag if exists
-                    if (powerCollectFlag) {
-                        powerCollectFlag.remove();
+                    if (powerPickupFlag) {
+                        powerPickupFlag.remove();
                     }
 
                     if (creep.store.getFreeCapacity() > 0) {
