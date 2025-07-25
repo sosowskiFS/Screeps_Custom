@@ -1104,7 +1104,7 @@ function handleCreepOperations() {
                     break;
                 case 'harasser':
                 case 'harasserNearDeath':
-                    if (Game.cpu.bucket >= 500) {
+                    if (Game.cpu.bucket >= 750) {
                         creep_harasser.run(creep);
                     } else {
                         creep.say("\u2716\uFE0F", false);
@@ -1694,7 +1694,7 @@ function handleHarasserOperations(thisRoom, observedRoom, roomName, observedRoom
             filter: (creep) => creep.memory.priority === 'harasser'
         });
         
-        if (!existingHarasser && harasserInRoom.length === 0 && Game.cpu.bucket >= 500) {
+        if (!existingHarasser && harasserInRoom.length === 0 && Game.cpu.bucket >= 750) {
             // Spawn a harasser to disrupt the reservation
             const spawns = thisRoom.find(FIND_MY_STRUCTURES, {
                 filter: { structureType: STRUCTURE_SPAWN }

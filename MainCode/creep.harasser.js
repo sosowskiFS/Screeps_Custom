@@ -45,8 +45,17 @@ var creep_harasser = {
                     range: 20, // Just need to get off the border
                     ignoreCreeps: true
                 });
+            } else {
+                // Move toward the controller to prevent other players from reserving it
+                let controller = creep.room.controller;
+                if (controller && creep.pos.getRangeTo(controller) > 1) {
+                    creep.travelTo(controller, {
+                        maxRooms: 1,
+                        range: 1,
+                        ignoreCreeps: true
+                    });
+                }
             }
-            // Otherwise do nothing if no hostiles - save CPU by not moving around
         }
     },
     
