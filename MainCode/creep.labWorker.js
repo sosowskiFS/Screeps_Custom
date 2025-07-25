@@ -189,7 +189,15 @@ var creep_labWorker = {
                 thisTarget = Game.getObjectById(creep.memory.structureTarget);
             }
 
-            if (thisTarget) {
+            if (creep.memory.cleaningOverflow) {
+                //Drop basic minerals on ground to clear terminal overflow
+                foundWork = true;
+                var currentlyCarrying = _.findKey(creep.carry);
+                if (currentlyCarrying) {
+                    creep.drop(currentlyCarrying);
+                    creep.memory.cleaningOverflow = false;
+                }
+            } else if (thisTarget) {
                 //Acting upon already saved target
                 if (creep.memory.direction == 'Withdraw' && creep.memory.priority != 'labWorkerNearDeath') {
                     foundWork = true;
