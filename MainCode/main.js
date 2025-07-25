@@ -102,7 +102,7 @@ module.exports.loop = function() {
         Game.cpu.generatePixel();
     }
     
-    // Update CPU averages and cleanup
+    // Update CPU averages and cleanup - call Game.cpu.getUsed() only once here
     updateCPUAverages();
     cleanupTickMemory();
 }
@@ -543,9 +543,6 @@ function handleRampartControl(room, hostiles, pHostiles) {
 
 // Handle spawning operations
 function handleSpawning() {
-    // Log average CPU for spawn processes in memory.
-    var preSpawnCPU = Game.cpu.getUsed();
-
     //Reset mineral flag totals before going into loop
     if (Game.time % 5000 == 0) {
         resetMineralFlagCounts();
@@ -557,13 +554,13 @@ function handleSpawning() {
     }
 
     for (const i in Game.spawns) {
-        processSpawn(Game.spawns[i], preSpawnCPU);
+        processSpawn(Game.spawns[i]);
     }
-
-    processSpawningCleanup(preSpawnCPU);
+    
+    processSpawningCleanup();
 }
 
-function processSpawn(spawn, preSpawnCPU) {
+function processSpawn(spawn) {
     var thisRoom = spawn.room;
     if (thisRoom.controller.owner) {
         var controllerLevel = thisRoom.controller.level;
@@ -878,12 +875,7 @@ function displayRoomInfo(thisRoom) {
     }
 }
 
-function processSpawningCleanup(preSpawnCPU) {
-    //Average(new) = Average(old) + (value(new) - average(old)) / size(new)
-    Memory.CPUAverages.SpawnCPU.ticks = Memory.CPUAverages.SpawnCPU.ticks + 1;
-    var totalSpawnCPU = Game.cpu.getUsed() - preSpawnCPU;
-    Memory.CPUAverages.SpawnCPU.CPU = Memory.CPUAverages.SpawnCPU.CPU + ((totalSpawnCPU - Memory.CPUAverages.SpawnCPU.CPU) / Memory.CPUAverages.SpawnCPU.ticks)
-
+function processSpawningCleanup() {
     Memory.RoomsRun = [];
     Memory.NoSpawnNeeded = [];
     Memory.CurrentRoomEnergy = [];
@@ -958,12 +950,6 @@ function handleMarketOperations() {
 
 // Handle all creep operations
 function handleCreepOperations() {
-    //Log average CPU for creep processes in memory.
-    var preCreepCPU = Game.cpu.getUsed();
-    var farMiningCPU = 0;
-    var pre5CPU = 0;
-    var post5CPU = 0;
-    
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (!creep.spawning) {
@@ -1120,10 +1106,8 @@ function handleCreepOperations() {
                         creep.memory.previousPriority = 'helper';
                     }
                     if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
-                        var pre = Game.cpu.getUsed();
                         if (Game.cpu.bucket >= 500 || Memory.warMode) {
                             creep_workV2.run(creep, 25);
-                            pre5CPU = pre5CPU + (Game.cpu.getUsed() - pre);
                         } else {
                             creep.say("\u2716\uFE0F", false);
                         }
@@ -1132,10 +1116,8 @@ function handleCreepOperations() {
                             //In case of emergency
                             creep_workV2.run(creep, 25);
                         } else {
-                            var pre = Game.cpu.getUsed();
                             if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
                                 creep_work5.run(creep);
-                                post5CPU = post5CPU + (Game.cpu.getUsed() - pre);
                             } else {
                                 creep.say("\u2716\uFE0F", false);
                             }
@@ -1159,37 +1141,10 @@ function handleCreepOperations() {
             }
         }
     }
-
-    updateCreepCPUAverages(preCreepCPU, farMiningCPU, pre5CPU, post5CPU);
-}
-
-function updateCreepCPUAverages(preCreepCPU, farMiningCPU, pre5CPU, post5CPU) {
-    //Creep - overall
-    Memory.CPUAverages.CreepCPU.ticks = Memory.CPUAverages.CreepCPU.ticks + 1;
-    var totalCreepCPU = Game.cpu.getUsed() - preCreepCPU;
-    Memory.CPUAverages.CreepCPU.CPU = Memory.CPUAverages.CreepCPU.CPU + ((totalCreepCPU - Memory.CPUAverages.CreepCPU.CPU) / Memory.CPUAverages.CreepCPU.ticks);
-
-    //Creep - Remote Miners
-    if (farMiningCPU > 0) {
-        Memory.CPUAverages.RemoteMiningCPU.ticks = Memory.CPUAverages.RemoteMiningCPU.ticks + 1;
-        Memory.CPUAverages.RemoteMiningCPU.CPU = Memory.CPUAverages.RemoteMiningCPU.CPU + ((farMiningCPU - Memory.CPUAverages.RemoteMiningCPU.CPU) / Memory.CPUAverages.RemoteMiningCPU.ticks);
-    }
-
-    //Creep - Pre RCL5
-    if (pre5CPU > 0) {
-        Memory.CPUAverages.Pre5CPU.ticks = Memory.CPUAverages.Pre5CPU.ticks + 1;
-        Memory.CPUAverages.Pre5CPU.CPU = Memory.CPUAverages.Pre5CPU.CPU + ((pre5CPU - Memory.CPUAverages.Pre5CPU.CPU) / Memory.CPUAverages.Pre5CPU.ticks);
-    }
-
-    //Creep - Post RCL5
-    if (post5CPU > 0) {
-        Memory.CPUAverages.Post5CPU.ticks = Memory.CPUAverages.Post5CPU.ticks + 1;
-        Memory.CPUAverages.Post5CPU.CPU = Memory.CPUAverages.Post5CPU.CPU + ((post5CPU - Memory.CPUAverages.Post5CPU.CPU) / Memory.CPUAverages.Post5CPU.ticks);
-    }
 }
 
 function updateCPUAverages() {
-    //Total Usage
+    //Total Usage - only track overall CPU usage
     Memory.CPUAverages.TotalCPU.ticks = Memory.CPUAverages.TotalCPU.ticks + 1;
     var totalCPU = Game.cpu.getUsed();
     Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);

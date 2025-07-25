@@ -271,6 +271,11 @@ var creep_labWorker = {
             }
 
             if (!foundWork) {
+                // Handle terminal overflow by removing excess basic minerals - TOP PRIORITY
+                foundWork = handleTerminalOverflow(creep);
+            }
+
+            if (!foundWork) {
                 //Need to find target for work
                 for (var i in labArray) {
                     if (Game.flags[creep.room.name + "WarBoosts"] && labArray[i]) {
@@ -638,11 +643,6 @@ var creep_labWorker = {
                 creep.memory.hasDistributed = false;
             }
 
-            // Handle terminal overflow by removing excess basic minerals
-            if (!foundWork) {
-                foundWork = handleTerminalOverflow(creep);
-            }
-
             //Determine if this creep needs to move over
             let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
@@ -708,9 +708,11 @@ function handleTerminalOverflow(creep) {
     const terminal = creep.room.terminal;
     if (!terminal) return false;
     
-    // Check if terminal is nearly full (less than 10k free capacity)
+    // Check if terminal is nearly full (less than 10k free capacity) AND has less than 10k energy
     const freeCapacity = terminal.store.getFreeCapacity();
-    if (freeCapacity > 10000) return false;
+    const energyAmount = terminal.store[RESOURCE_ENERGY] || 0;
+    
+    if (freeCapacity >= 10000 || energyAmount >= 10000) return false;
     
     // List of basic minerals to remove when terminal is full
     const basicMinerals = [

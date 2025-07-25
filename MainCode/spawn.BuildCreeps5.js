@@ -81,6 +81,15 @@ var spawn_BuildCreeps5 = {
             repairMax = 0;
         }
 
+        // Check if room's lowest health rampart exceeds 290 million hitpoints
+        // If so, block production of repair creeps to minimize CPU impact
+        if (Memory.repairTarget[thisRoom.name]) {
+            let repairTarget = Game.getObjectById(Memory.repairTarget[thisRoom.name]);
+            if (repairTarget && repairTarget.structureType === STRUCTURE_RAMPART && repairTarget.hits > 290000000) {
+                repairMax = 0;
+            }
+        }
+
         //Returns [upgraderMax, upgraderConfig]
         let upgraderResults = GetUpgraderConfig(upgraderMax, thisRoom.energyCapacityAvailable, thisRoom.controller.level)
             upgraderMax = upgraderResults[0]

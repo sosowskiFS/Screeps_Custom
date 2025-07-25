@@ -98,7 +98,7 @@ var creep_powerAttack = {
                         if (powerGuardFlag) {
                             powerGuardFlag.remove();
                         }
-                        Game.notify(Game.time.toString() + " | " + creep.room.name + " gave ownership of power bank to " + enemy.owner.username);
+                        console.log(Game.time.toString() + " | " + creep.room.name + " gave ownership of power bank to " + enemy.owner.username);
                         Memory.LastNotification = Game.time.toString() + " : " + creep.room.name + " gave ownership of power bank to " + enemy.owner.username
                     } else {
                         if (!Game.flags[homeRoom + "PowerGuard"] && creep.room.name == creep.memory.destination) {

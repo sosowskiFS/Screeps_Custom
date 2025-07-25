@@ -185,7 +185,7 @@ const Profiler = {
   },
 
   emailProfile() {
-    Game.notify(Profiler.output(1000));
+    console.log(Profiler.output(1000));
   },
 
   output(passedOutputLengthLimit) {

@@ -13,11 +13,11 @@ var creep_farMiner = {
             });
             if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
 				creep.attack(hostiles[0]);
-            	Game.notify(creep.memory.targetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
+            	console.log(creep.memory.targetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
             	Memory.LastNotification = Game.time.toString() + ' : ' + creep.memory.targetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username
             	if (!Memory.warMode) {
             		Memory.warMode = true;
-            		Game.notify('War mode has been enabled.');
+            		console.log('War mode has been enabled.');
             	}
             	if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
             		Memory.FarRoomsUnderAttack.push(creep.room.name);
