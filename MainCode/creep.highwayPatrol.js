@@ -157,8 +157,8 @@ var creep_highwayPatrol = {
         // Check if target has ATTACK parts to determine threat level
         let hasAttackParts = target.body.some(part => part.type === ATTACK);
         
-        // Find nearby melee threats within range 3
-        let meleeThreat = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+        // Find nearby melee threats within range 4
+        let meleeThreat = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 4, {
             filter: (eCreep) => !Memory.whiteList.includes(eCreep.owner.username) && 
                               eCreep.body.some(part => part.type === ATTACK)
         });
@@ -173,8 +173,8 @@ var creep_highwayPatrol = {
                 ignoreCreeps: false
             }, true); // true enables flee mode
         } else if (hasAttackParts) {
-            // Enemy has attack parts but not in immediate threat range, maintain range 3
-            if (range > 3) {
+            // Enemy has attack parts but not in immediate threat range, maintain range 4
+            if (range > 4) {
                 creep.travelTo(target, {
                     ignoreRoads: true,
                     maxRooms: 1,
@@ -183,7 +183,7 @@ var creep_highwayPatrol = {
                     movingTarget: true,
                     ignoreCreeps: false
                 });
-            } else if (range < 3) {
+            } else if (range < 4) {
                 // Too close, use flee to back away
                 creep.travelTo(target, {
                     maxRooms: 1,
