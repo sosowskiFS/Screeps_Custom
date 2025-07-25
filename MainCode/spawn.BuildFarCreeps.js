@@ -513,30 +513,18 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
 function getHighwayPatrolBuild(energyCap) {
     // Build for maximum combat effectiveness with optimal part ordering
     let rangedAttackParts = [];
-    let moveParts = [];
+    let moveParts = [MOVE, MOVE, MOVE, MOVE]; // 4 fixed move parts
     let attackParts = [ATTACK, ATTACK]; // 2 attack parts
     let healParts = [HEAL, HEAL]; // 2 heal parts
     
     // Calculate remaining energy after fixed parts
-    let remainingEnergy = energyCap - (BODYPART_COST[ATTACK] * 2 + BODYPART_COST[HEAL] * 2);
-    let remainingParts = 50 - 4; // 46 parts remaining
-    
-    // For fatigue-free movement on plains, we need 1 MOVE per non-MOVE part
-    // This means we need 25 MOVE parts for 25 other parts (total 50)
-    // We need: 2 ATTACK + 2 HEAL + 21 RANGED_ATTACK + 25 MOVE = 50 parts
-    
-    // We need 25 total move parts, but already have 0, so need 25 more
-    let movePartsNeeded = 25;
-    let nonMovePartsRemaining = 25 - 4; // 21 parts for ranged attack (25 non-move minus 4 fixed)
-    
+    let remainingEnergy = energyCap - (BODYPART_COST[ATTACK] * 2 + BODYPART_COST[HEAL] * 2 + BODYPART_COST[MOVE] * 4);
     let costPerUnit = BODYPART_COST[RANGED_ATTACK] + BODYPART_COST[MOVE];
     
-    // Add ranged attack and move parts, ensuring we get exactly 25 move parts
-    let unitsToAdd = Math.min(nonMovePartsRemaining, movePartsNeeded, Math.floor(remainingEnergy / costPerUnit));
-    
-    for (let i = 0; i < unitsToAdd; i++) {
+    while (moveParts.length + rangedAttackParts.length + attackParts.length + healParts.length < 50 && remainingEnergy >= costPerUnit) {
         rangedAttackParts.push(RANGED_ATTACK);
         moveParts.push(MOVE);
+        remainingEnergy -= costPerUnit;
     }
     
     // Build final configuration with optimal ordering:

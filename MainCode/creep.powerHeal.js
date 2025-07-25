@@ -34,9 +34,7 @@ var creep_powerHeal = {
                 });
                 if (attackers.length) {
                     creep.memory.targetAttacker = attackers[0].id;
-                    creep.travelTo(attackers[0], {
-                        movingTarget: true
-                    });
+                    creep.travelTo(attackers[0]);
                 } else {
                     creep.travelTo(powerGatherFlag, {
                         range: 5
@@ -46,9 +44,7 @@ var creep_powerHeal = {
                 const thisAttacker = Game.getObjectById(creep.memory.targetAttacker);
                 if (thisAttacker) {
                     if (creep.heal(thisAttacker) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(thisAttacker, {
-                            movingTarget: true
-                        });
+                        creep.travelTo(thisAttacker);
                     }
                     // Update death warning every 10 ticks to reduce CPU
                     if (Game.time % 10 == 0) {
