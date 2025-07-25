@@ -32,6 +32,7 @@ var creep_distantSupplier = require('creep.distantSupplier');
 var creep_ranger = require('creep.ranger');
 var creep_farScout = require('creep.farScout');
 var creep_highwayPatrol = require('creep.highwayPatrol');
+var creep_harasser = require('creep.harasser');
 
 //Spawning
 var spawn_BuildCreeps = require('spawn.BuildCreeps');
@@ -1076,6 +1077,14 @@ function handleCreepOperations() {
                 case 'highwayPatrolNearDeath':
                     creep_highwayPatrol.run(creep);
                     break;
+                case 'harasser':
+                case 'harasserNearDeath':
+                    if (Game.cpu.bucket >= 500) {
+                        creep_harasser.run(creep);
+                    } else {
+                        creep.say("\u2716\uFE0F", false);
+                    }
+                    break;
                 default:
                     if (!creep.memory.priority) {
                         creep.memory.priority = 'helper';
@@ -1557,6 +1566,9 @@ function handleObservedRoomOperations(thisRoom, observedRoom, roomName, observed
     
     // Handle resource deposit operations
     handleResourceDepositOperations(thisRoom, observedRoom, roomName, observedRoomName);
+    
+    // Handle harasser operations for reserved controllers
+    handleHarasserOperations(thisRoom, observedRoom, roomName, observedRoomName);
 }
 
 function handlePowerBankOperations(thisRoom, observedRoom, roomName) {
@@ -1629,6 +1641,51 @@ function updateObservationPointer(roomName, observationPointer) {
     }
     
     Memory.observationPointers[roomName] = [xPointer, yPointer, getRoomAtOffset(xPointer, yPointer, roomName)];
+}
+
+function handleHarasserOperations(thisRoom, observedRoom, roomName, observedRoomName) {
+    // Check if the observed room has a controller that is reserved by a non-whitelisted player
+    if (!observedRoom.controller) return;
+    
+    const controller = observedRoom.controller;
+    
+    // Check if controller is reserved and by a non-whitelisted player
+    // Exclude reservations by Montblanc (player) and Invader (NPC)
+    if (controller.reservation && 
+        controller.reservation.username && 
+        !Memory.whiteList.includes(controller.reservation.username) &&
+        controller.reservation.username !== 'Montblanc' &&
+        controller.reservation.username !== 'Invader') {
+        
+        // Check if there's already a harasser in that room
+        const existingHarasser = _.find(Game.creeps, (creep) => 
+            creep.memory.priority === 'harasser' && 
+            creep.memory.destination === observedRoomName &&
+            creep.memory.homeRoom === roomName
+        );
+        
+        // Also check if there's already a harasser in the observed room
+        const harasserInRoom = observedRoom.find(FIND_MY_CREEPS, {
+            filter: (creep) => creep.memory.priority === 'harasser'
+        });
+        
+        if (!existingHarasser && harasserInRoom.length === 0 && Game.cpu.bucket >= 500) {
+            // Spawn a harasser to disrupt the reservation
+            const spawns = thisRoom.find(FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_SPAWN }
+            });
+            
+            if (spawns.length > 0) {
+                const spawn = spawns[0];
+                const energyIndex = getEnergyIndex(thisRoom);
+                
+                // Use spawn instruction to create harasser
+                spawn_BuildInstruction.run(spawn, 'harasser', observedRoomName, energyIndex, roomName);
+                
+                console.log(`Observer detected reserved controller in ${observedRoomName} by ${controller.reservation.username}, spawning harasser from ${roomName}`);
+            }
+        }
+    }
 }
 
 function updateObserverList(thisRoom, roomName) {

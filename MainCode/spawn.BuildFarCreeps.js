@@ -350,7 +350,7 @@ function getClaimerBuild(energyCap) {
     var thisConfig = [];
 
     var ConfigCost = BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]
-    energyCap = energyCap - BODYPART_COST[ATTACK];
+    energyCap = energyCap - BODYPART_COST[ATTACK] - BODYPART_COST[MOVE];
 
     while ((energyCap / ConfigCost) >= 1) {
         thisConfig.push(CLAIM);
@@ -361,6 +361,7 @@ function getClaimerBuild(energyCap) {
         }
     }
     thisConfig.sort();
+    thisConfig.push(MOVE);
     thisConfig.push(ATTACK);
     return thisConfig;
 }

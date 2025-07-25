@@ -64,6 +64,10 @@ var spawn_BuildInstruction = {
             case 'farScout':
                 this.spawnFarScout(spawn, energyIndex, roomName);
                 break;
+                
+            case 'harasser':
+                this.spawnHarasser(spawn, params, energyIndex, roomName);
+                break;
         }
     },
     
@@ -469,6 +473,34 @@ var spawn_BuildInstruction = {
                     mineScoutFlag.remove();
                 }
                 console.log('Far Scout, ' + roomName);
+            }
+        }
+    },
+    
+    // Method to spawn harassers
+    spawnHarasser: function(spawn, params, energyIndex, roomName) {
+        const harassers = _.filter(Game.creeps, (creep) => 
+            creep.memory.priority == 'harasser' && 
+            creep.memory.homeRoom == roomName &&
+            creep.memory.destination == params
+        );
+        
+        if (harassers.length < 1) {
+            const harasserConfig = [MOVE, MOVE, ATTACK, ATTACK];
+            const configCost = calculateConfigCost(harasserConfig);
+            
+            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                Memory.CurrentRoomEnergy[energyIndex] -= configCost;
+                spawn.spawnCreep(harasserConfig, 'harasser_' + spawn.name + '_' + Game.time, {
+                    memory: {
+                        priority: 'harasser',
+                        destination: params,
+                        homeRoom: roomName,
+                        deathWarn: harasserConfig.length * 3
+                    }
+                });
+                Memory.isSpawning = true;
+                console.log('Harasser executed from ' + roomName + ' targeting ' + params);
             }
         }
     }
