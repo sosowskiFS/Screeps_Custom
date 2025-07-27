@@ -97,6 +97,9 @@ module.exports.loop = function() {
     // Handle mineral flag distribution
     handleMineralFlagDistribution();
     
+    // Handle autoBuildRooms regeneration (one room per tick)
+    handleAutoBuildRoomsRegeneration();
+    
     // Generate pixel if bucket is high enough
     if (Game.cpu.bucket >= 9000) {
         Game.cpu.generatePixel();
@@ -138,7 +141,7 @@ function handleGameFlags() {
     const attackFlag = flags["AttackFlags"];
     const rAttackFlag = flags["RAttackFlags"];
     const dAttackFlag = flags["DAttackFlags"];
-    const testBaseGenFlag = flags["TestBaseGeneration"];
+    const initAutoBuildFlag = flags["InitAutoBuild"];
     const addAutobuildFlag = flags["AddAutobuildRoom"];
     const removeAutobuildFlag = flags["RemoveAutobuildRoom"];
     const removeMineralFlag = flags["RemoveMineralFlags"];
@@ -185,9 +188,16 @@ function handleGameFlags() {
         dAttackFlag.remove();
     }
 
-    if (testBaseGenFlag) {
-        tool_generateBase.run(testBaseGenFlag.room);
-        testBaseGenFlag.remove();
+    if (initAutoBuildFlag) {
+        // Initialize autoBuild process for this room
+        const room = initAutoBuildFlag.room;
+        console.log(`Initializing autoBuild for room ${room.name}`);
+        
+        // Run the base generation tool to find suitable space and generate initial structures
+        tool_generateBase.run(room);
+        
+        // The room will be automatically added to Memory.autoBuildRooms by the tool if suitable space is found
+        initAutoBuildFlag.remove();
     }
 	
 	if (addAutobuildFlag) {	
@@ -1781,6 +1791,61 @@ function handleMineralFlagDistribution() {
                     Memory.flagCount["9"] = Memory.flagCount["9"] + 1;
                     break;
             }
+        }
+    }
+}
+
+// Handle autoBuildRooms regeneration - process one room per tick to avoid CPU spikes
+function handleAutoBuildRoomsRegeneration() {
+    // Initialize memory objects if they don't exist
+    if (!Memory.autoBuildRooms) {
+        Memory.autoBuildRooms = [];
+    }
+    if (!Memory.autoBuildRegenIndex) {
+        Memory.autoBuildRegenIndex = 0;
+    }
+    if (!Memory.lastAutoBuildRegen) {
+        Memory.lastAutoBuildRegen = 0;
+    }
+    
+    // Early return if no autoBuildRooms exist
+    if (Memory.autoBuildRooms.length === 0) {
+        return;
+    }
+    
+    // Run regeneration every 50,000 ticks (offset from the main rampart/road generation)
+    // This gives about 13.9 hours between regenerations at default tick rate
+    if (Game.time - Memory.lastAutoBuildRegen >= 50000) {
+        // Get the current room to process
+        const roomName = Memory.autoBuildRooms[Memory.autoBuildRegenIndex];
+        const room = Game.rooms[roomName];
+        
+        // Only process if we have vision of the room
+        if (room && room.controller && room.controller.my) {
+            console.log(`AutoBuild regeneration: Processing ${roomName} (${Memory.autoBuildRegenIndex + 1}/${Memory.autoBuildRooms.length})`);
+            
+            // Clear existing road construction sites before regenerating
+            const roadSites = room.find(FIND_CONSTRUCTION_SITES, {
+                filter: { structureType: STRUCTURE_ROAD }
+            });
+            roadSites.forEach(site => site.remove());
+            
+            // Run the base generation tool
+            tool_generateBase.run(room);
+        } else if (room) {
+            console.log(`AutoBuild regeneration: Skipping ${roomName} - no controller ownership`);
+        } else {
+            console.log(`AutoBuild regeneration: Skipping ${roomName} - no room vision`);
+        }
+        
+        // Move to next room index
+        Memory.autoBuildRegenIndex++;
+        
+        // Reset index if we've processed all rooms
+        if (Memory.autoBuildRegenIndex >= Memory.autoBuildRooms.length) {
+            Memory.autoBuildRegenIndex = 0;
+            Memory.lastAutoBuildRegen = Game.time;
+            console.log(`AutoBuild regeneration cycle completed. Next cycle in ${50000} ticks.`);
         }
     }
 }

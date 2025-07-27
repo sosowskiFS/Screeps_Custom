@@ -114,22 +114,6 @@ var tool_generateBase = {
         // Early return if no sources
         if (!roomSources.length) return;
 
-        // Initialize Memory.autoBuildRooms if it doesn't exist
-        if (!Memory.autoBuildRooms) {
-            Memory.autoBuildRooms = [];
-        }
-        
-        // Initialize memory objects for base generation if they don't exist
-        if (!Memory.genBestCenterCoords) {
-            Memory.genBestCenterCoords = {};
-        }
-        if (!Memory.genBestDirection) {
-            Memory.genBestDirection = {};
-        }
-        if (!Memory.genBestSourceID) {
-            Memory.genBestSourceID = {};
-        }
-
         let bestCenterCoords, bestDirection, bestSourceID;
 
         // Step 1: Find best base location (cached in memory)
@@ -139,12 +123,6 @@ var tool_generateBase = {
                 Memory.genBestDirection[thisRoom.name] = result.direction;
                 Memory.genBestCenterCoords[thisRoom.name] = result.centerCoords;
                 Memory.genBestSourceID[thisRoom.name] = result.sourceID;
-                
-                // Add room to autoBuildRooms list if it's not already there
-                if (Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
-                    Memory.autoBuildRooms.push(thisRoom.name);
-                    console.log(`Added ${thisRoom.name} to autoBuildRooms - suitable space found for base generation.`);
-                }
             }
         }
 
@@ -161,12 +139,6 @@ var tool_generateBase = {
 
         // Step 2: Generate base structures
         this.generateBaseStructures(thisRoom, terrain, roomSources, bestCenterCoords, bestDirection, bestSourceID);
-        
-        // Ensure room is in autoBuildRooms list if structures were generated successfully
-        if (Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
-            Memory.autoBuildRooms.push(thisRoom.name);
-            console.log(`Added ${thisRoom.name} to autoBuildRooms - base structures generated.`);
-        }
     },
 
     findBestBaseLocation: function(thisRoom, terrain, roomSources) {
