@@ -134,27 +134,21 @@ var creep_farMining = {
                     creep.memory.priority = 'farGuardNearDeath';
                 }
 
-                //Recall guard into home room if it's under attack
-                if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100 && Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].room && !Game.flags[creep.memory.targetFlag + "TEMP"]) {
-                    Game.flags[creep.memory.targetFlag].pos.createFlag(creep.memory.targetFlag + "TEMP");
-                    Game.flags[creep.memory.targetFlag].remove();
-                    var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
-                    homePosition.createFlag(creep.memory.targetFlag);
-                } else if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100 && !Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
-                    var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
-                    homePosition.createFlag(creep.memory.targetFlag);
-                } else if (Game.flags[creep.memory.targetFlag + "TEMP"] && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) == -1) {
-                    if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
-                        if (Game.flags[creep.memory.targetFlag].pos.roomName == Game.flags[creep.memory.targetFlag + "TEMP"].pos.roomName && Game.flags[creep.memory.targetFlag].pos.x == Game.flags[creep.memory.targetFlag + "TEMP"].pos.x && Game.flags[creep.memory.targetFlag].pos.y == Game.flags[creep.memory.targetFlag + "TEMP"].pos.y) {
-                            Game.flags[creep.memory.targetFlag + "TEMP"].remove();
-                        } else {
+                // Simplified guard flag management - only check every 10 ticks
+                if (Game.time % 10 == 0) {
+                    if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100) {
+                        if (Game.flags[creep.memory.targetFlag] && !Game.flags[creep.memory.targetFlag + "TEMP"]) {
+                            Game.flags[creep.memory.targetFlag].pos.createFlag(creep.memory.targetFlag + "TEMP");
                             Game.flags[creep.memory.targetFlag].remove();
+                            var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
+                            homePosition.createFlag(creep.memory.targetFlag);
                         }
-                    } else if (!Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag + "TEMP"]) {
-                        try {
-                            Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
-                        } catch (e) {
-
+                    } else if (Game.flags[creep.memory.targetFlag + "TEMP"] && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) == -1) {
+                        if (Game.flags[creep.memory.targetFlag + "TEMP"]) {
+                            try {
+                                Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
+                                Game.flags[creep.memory.targetFlag + "TEMP"].remove();
+                            } catch (e) {}
                         }
                     }
                 }
@@ -203,65 +197,47 @@ var creep_farMining = {
                         creep.heal(creep);
                     }
                 } else if (closeFoe) {
-                    let rangedParts = 0;
-                    let attackParts = 0;
-                    creep.body.forEach(function(thisPart) {
-                        if (thisPart.type == RANGED_ATTACK) {
-                            rangedParts = rangedParts + 1;
-                        } else if (thisPart.type == ATTACK) {
-                            attackParts = attackParts + 1;
-                        }
-                    });
-
                     creep.say("\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
-                    let closeRangeResult = "";
-                    let attackResult = creep.attack(closeFoe);
+                    
+                    // Simplified combat logic - cache body part counts
+                    if (!creep.memory.bodyParts) {
+                        let rangedParts = 0;
+                        let attackParts = 0;
+                        creep.body.forEach(function(thisPart) {
+                            if (thisPart.type == RANGED_ATTACK) rangedParts++;
+                            else if (thisPart.type == ATTACK) attackParts++;
+                        });
+                        creep.memory.bodyParts = { ranged: rangedParts, attack: attackParts };
+                    }
 
-                    //Loop through melee threats to determine if you need to run
-                    let thisThreat = undefined;
-                    if (Foe.length) {
-                        for (let thisFoe in Foe) {
-                            if(determineThreat(Foe[thisFoe], creep, attackParts)) {
-                                thisThreat = Foe[thisFoe];
+                    let attackResult = creep.attack(closeFoe);
+                    
+                    // Simplified threat assessment
+                    let needToRetreat = false;
+                    if (Foe.length > 0) {
+                        for (let foe of Foe) {
+                            if (foe.getActiveBodyparts(ATTACK) > creep.memory.bodyParts.attack) {
+                                needToRetreat = true;
                                 break;
                             }
                         }
                     }
 
-                    if (thisThreat) {
-                        //Back up
-                        creep.travelTo(thisThreat, {
-                            maxRooms: 1,
-                            range: 3
-                        }, true);
-
-                        closeRangeResult = creep.rangedAttack(closeFoe);
+                    if (needToRetreat) {
+                        creep.travelTo(closeFoe, { maxRooms: 1, range: 3 }, true);
+                        creep.rangedAttack(closeFoe);
                     } else {
-                        creep.travelTo(closeFoe, {
-                            maxRooms: 1
-                        });
-
+                        creep.travelTo(closeFoe, { maxRooms: 1 });
                         if (Foe.length >= 2) {
                             creep.rangedMassAttack();
                         } else {
-                            closeRangeResult = creep.rangedAttack(closeFoe);
+                            creep.rangedAttack(closeFoe);
                         }
                     }
 
-                    if (attackResult != OK) {
-                        if (creep.hits < creep.hitsMax) {
-                            creep.heal(creep);
-                        } else {
-                            var hurtAlly = creep.pos.findInRange(FIND_MY_CREEPS, 3, {
-                                filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-                            });
-                            if (hurtAlly.length > 0) {
-                                if (closeRangeResult != OK) {
-                                    creep.rangedHeal(hurtAlly[0]);
-                                }
-                                creep.heal(hurtAlly[0]);
-                            }
-                        }
+                    // Simplified healing logic
+                    if (creep.hits < creep.hitsMax) {
+                        creep.heal(creep);
                     }
 
                 } else if (eCores) {
@@ -321,47 +297,45 @@ var creep_farMining = {
                         creep.heal(creep);
                     }
                 } else if (Game.flags[creep.memory.targetFlag]) {
+                    // Decorative idle animations
                     if (Game.time % 2 == 0) {
-                        creep.say("(=\uFF40\uFECC\u00B4=)", true);
+                        creep.say("(=`ﾟ´=)", true);
                     } else {
-                        creep.say("(=\u00B4\uFECC\uFF40=)", true);
+                        creep.say("(=´ﾟ`=)", true);
                     }
-                    var closeRangeResult = "";
-                    if (closeFoe) {
-                        closeRangeResult = creep.rangedAttack(closeFoe);
-                    }
+                    
+                    // Simplified idle behavior
                     if (creep.hits < creep.hitsMax) {
                         creep.heal(creep);
                         if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag], {
-                                maxRooms: 1
-                            });
+                            creep.travelTo(Game.flags[creep.memory.targetFlag], { maxRooms: 1 });
                         }
                     } else {
-                        var hurtAlly = creep.room.find(FIND_MY_CREEPS, {
-                            filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-                        });
-                        if (hurtAlly.length > 0) {
-                            creep.travelTo(hurtAlly[0]);
-                            if (closeRangeResult != OK) {
-                                creep.rangedHeal(hurtAlly[0]);
-                            }
-                            creep.heal(hurtAlly[0]);
-                        } else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag], {
-                                maxRooms: 1
+                        // Only heal allies if they're nearby - cache search every 5 ticks
+                        if (!creep.memory.lastAllyCheck || Game.time - creep.memory.lastAllyCheck >= 5) {
+                            creep.memory.hurtAllies = creep.room.find(FIND_MY_CREEPS, {
+                                filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
                             });
+                            creep.memory.lastAllyCheck = Game.time;
+                        }
+                        
+                        if (creep.memory.hurtAllies && creep.memory.hurtAllies.length > 0) {
+                            let ally = Game.getObjectById(creep.memory.hurtAllies[0].id);
+                            if (ally && ally.hits < ally.hitsMax) {
+                                creep.travelTo(ally);
+                                creep.heal(ally);
+                            }
+                        } else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
+                            creep.travelTo(Game.flags[creep.memory.targetFlag], { maxRooms: 1 });
                         }
                     }
 
+                    // Clean up attack tracking only when needed
                     if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) != -1) {
                         var UnderAttackPos = Memory.FarRoomsUnderAttack.indexOf(creep.room.name);
                         if (UnderAttackPos >= 0) {
                             Memory.FarRoomsUnderAttack.splice(UnderAttackPos, 1);
                         }
-                    }
-                    if (creep.hits < creep.hitsMax) {
-                        creep.heal(creep);
                     }
                 }
                 break;

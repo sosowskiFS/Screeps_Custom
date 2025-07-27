@@ -367,32 +367,36 @@ function getClaimerBuild(energyCap) {
 }
 
 function getMuleBuild(energyCap, thisRoom) {
-    var thisConfig = [CARRY, MOVE, MOVE, WORK];
-    var ConfigCost = (BODYPART_COST[CARRY] * 2) + BODYPART_COST[MOVE];
-    energyCap = energyCap - (BODYPART_COST[MOVE] + BODYPART_COST[MOVE] + BODYPART_COST[CARRY] + BODYPART_COST[WORK] + BODYPART_COST[ATTACK]);
-    var partCap = 49;
-    //initial : 1 move, 1 work, 1 carry
-    //Add to each loop : 2 carry, 1 move
-
-    while ((energyCap / ConfigCost) >= 1) {
-        thisConfig.push(MOVE);
-        thisConfig.push(CARRY);
-        thisConfig.push(CARRY);
-        energyCap = energyCap - ConfigCost;
-        if (thisConfig.length >= partCap) {
-            break;
-        }
+    // New mule build: CARRY and MOVE parts for optimal off-road movement + 1 ATTACK + extra MOVE
+    // Ratio: 1 MOVE per 1 CARRY + 1 extra MOVE to compensate for ATTACK weight
+    
+    let carryParts = [];
+    let moveParts = [];
+    let attackParts = [ATTACK]; // Always include 1 ATTACK part for defense
+    
+    // Reserve energy for ATTACK + 1 extra MOVE part to compensate for ATTACK weight
+    let remainingEnergy = energyCap - BODYPART_COST[ATTACK] - BODYPART_COST[MOVE];
+    let costPerUnit = BODYPART_COST[CARRY] + BODYPART_COST[MOVE]; // 50 + 50 = 100
+    
+    // Calculate how many CARRY+MOVE pairs we can afford
+    let maxPairs = Math.floor(remainingEnergy / costPerUnit);
+    
+    // Cap at 48 total parts (50 part limit - 1 ATTACK - 1 extra MOVE = 48 pairs max)
+    maxPairs = Math.min(maxPairs, 24); // 24 pairs + 1 ATTACK + 1 extra MOVE = 50 parts max
+    
+    // Build CARRY and MOVE parts
+    for (let i = 0; i < maxPairs; i++) {
+        carryParts.push(CARRY);
+        moveParts.push(MOVE);
     }
-
-    if (thisConfig.length > partCap) {
-        while (thisConfig.length > partCap) {
-            thisConfig.splice(0, 1);
-        }
-    }
-
-    thisConfig.sort(); //sorting like this throws attack first
-    thisConfig.push(ATTACK);
-    return thisConfig;
+    
+    // Add the extra MOVE part to compensate for ATTACK weight
+    moveParts.push(MOVE);
+    
+    // Combine all parts: MOVE parts first (for optimal ordering), then CARRY, then ATTACK
+    let finalConfig = [...carryParts, ...moveParts, ...attackParts];
+    
+    return finalConfig;
 }
 
 function calculateConfigCost(bodyConfig) {

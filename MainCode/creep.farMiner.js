@@ -7,24 +7,30 @@ var creep_farMiner = {
     	}
 
     	if (creep.hits < 400 && Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].room && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
-            //Determine if attacker is player, if so, delete flag.
+            // Simplified hostile detection - check for any hostile creeps
             var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-            	filter: (creep) => (creep.getActiveBodyparts(WORK) > 0 || creep.getActiveBodyparts(CARRY) > 0 || creep.getActiveBodyparts(ATTACK) > 0 || creep.getActiveBodyparts(RANGED_ATTACK) > 0 || creep.getActiveBodyparts(HEAL) > 0 && !Memory.whiteList.includes(creep.owner.username)) || (creep.hits <= 500)
+            	filter: (eCreep) => !Memory.whiteList.includes(eCreep.owner.username)
             });
-            if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
-				creep.attack(hostiles[0]);
-            	console.log(creep.memory.targetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
-            	Memory.LastNotification = Game.time.toString() + ' : ' + creep.memory.targetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username
-            	if (!Memory.warMode) {
-            		Memory.warMode = true;
-            		console.log('War mode has been enabled.');
-            	}
-            	if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
-            		Memory.FarRoomsUnderAttack.push(creep.room.name);
-            	}
-            	let targetTime = Game.time + 750;
-            	creep.room.createFlag(Game.flags[creep.memory.targetFlag].pos, creep.memory.targetFlag + ";" + targetTime.toString());
-            	Game.flags[creep.memory.targetFlag].remove();
+            
+            if (hostiles.length > 0) {
+                let hostile = hostiles[0];
+                if (hostile.owner.username != 'Invader' && hostile.owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
+    				creep.attack(hostile);
+                	console.log(creep.memory.targetFlag + ' was removed due to an attack by ' + hostile.owner.username);
+                	Memory.LastNotification = Game.time.toString() + ' : ' + creep.memory.targetFlag + ' was removed due to an attack by ' + hostile.owner.username;
+                	
+                	if (!Memory.warMode) {
+                		Memory.warMode = true;
+                		console.log('War mode has been enabled.');
+                	}
+                	if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
+                		Memory.FarRoomsUnderAttack.push(creep.room.name);
+                	}
+                	
+                	let targetTime = Game.time + 750;
+                	creep.room.createFlag(Game.flags[creep.memory.targetFlag].pos, creep.memory.targetFlag + ";" + targetTime.toString());
+                	Game.flags[creep.memory.targetFlag].remove();
+                }
             }
         }
 
@@ -41,33 +47,29 @@ var creep_farMiner = {
         		creep.memory.deathWarn = (creep.memory.travelDistance + _.size(creep.body) * 3) + 15;
         	}
         } else {
-        	if (Game.time >= creep.memory.nextReservationCheck) {
-                if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner != "Montblanc") {
-                    //Someone has taken control of this room, remove flag.
+        	// Check reservation status less frequently - every 50 ticks instead of variable timing
+        	if (Game.time % 50 == 0) {
+                if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
+                    // Someone has taken control of this room, remove flag
                     if (Game.flags[creep.memory.targetFlag]) {
                         Game.flags[creep.memory.targetFlag].remove();
                     }
-                } else if (creep.room.controller && creep.room.controller.reservation && (creep.room.name == creep.memory.destination)) {
+                } else if (creep.room.controller && creep.room.controller.reservation) {
         			if (creep.room.controller.reservation.username != 'Montblanc') {
-                		//Get guards in to clear invader core/hostiles
+                		// Get guards in to clear invader core/hostiles
                 		if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
                 			Memory.FarRoomsUnderAttack.push(creep.room.name);
                 		}
                 		Memory.FarClaimerNeeded[creep.room.name] = true;
-                        creep.memory.nextReservationCheck = Game.time + 50;
-                	} else if (creep.room.controller.reservation.ticksToEnd <= 1000 && !Memory.FarClaimerNeeded[creep.room.name]) {
+                	} else if (creep.room.controller.reservation.ticksToEnd <= 1000) {
                 		Memory.FarClaimerNeeded[creep.room.name] = true;
-                		creep.memory.nextReservationCheck = Game.time + 50;
                 	} else if (Memory.FarClaimerNeeded[creep.room.name]) {
                 		Memory.FarClaimerNeeded[creep.room.name] = false;
-                		creep.memory.nextReservationCheck = Game.time + creep.room.controller.reservation.ticksToEnd - 1000;
                 	}
-                } else if (creep.room.name == creep.memory.destination && creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
+                } else if (creep.room.controller && !Memory.FarClaimerNeeded[creep.room.name]) {
                 	Memory.FarClaimerNeeded[creep.room.name] = true;
-                	creep.memory.nextReservationCheck = Game.time + 50;
                 } else if (!creep.room.controller && Memory.FarClaimerNeeded[creep.room.name]) {
                 	Memory.FarClaimerNeeded[creep.room.name] = false;
-                	creep.memory.nextReservationCheck = Game.time + 1500;
                 }
             }
 
@@ -86,31 +88,31 @@ var creep_farMiner = {
             	let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 1, {
             		filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
             	});
+            	
             	if (containers.length) {
-            		if (creep.pos != containers[0].pos) {
+            		if (!creep.pos.isEqualTo(containers[0].pos)) {
             			creep.travelTo(containers[0]);
             		}
             		creep.memory.storageUnit = containers[0].id;
-            	} else {
-            		if (creep.carry[RESOURCE_ENERGY] >= 36) {
-            			let sites = mineTarget.pos.findInRange(FIND_CONSTRUCTION_SITES, 1)
-            			let nearFoe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-            				filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-            			});
-						if (nearFoe.length) {
-							//>:)
-							creep.attack(nearFoe[0]);
-						}else if (sites.length && !nearFoe.length) {
+            	} else if (creep.store[RESOURCE_ENERGY] >= 36) {
+            		// Check for hostiles first
+            		let nearFoe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+            			filter: (eCreep) => !Memory.whiteList.includes(eCreep.owner.username)
+            		});
+            		
+            		if (nearFoe.length) {
+            			creep.attack(nearFoe[0]);
+            		} else {
+            			// Build or create container
+            			let sites = mineTarget.pos.findInRange(FIND_CONSTRUCTION_SITES, 1);
+            			if (sites.length) {
             				if (creep.build(sites[0]) == ERR_NOT_IN_RANGE) {
             					creep.travelTo(sites[0]);
             				}
-            			} else if (!sites.length && !nearFoe.length) {
-                            //Create new container
-                            if (creep.pos.isNearTo(mineTarget)) {
-                            	creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
-                            }
-                        }
-                    }
+            			} else if (creep.pos.isNearTo(mineTarget)) {
+            				creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
+            			}
+            		}
                 }
             }
 
@@ -136,23 +138,25 @@ var creep_farMiner = {
             }
 
             if (mineTarget) {
-            	if (!doNotHarvest && creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
-            		creep.travelTo(Game.flags[creep.memory.targetFlag]);
-            	} else if (doNotHarvest && !creep.memory.onContainer) {
-            		creep.travelTo(Game.flags[creep.memory.targetFlag]);
+            	if (!doNotHarvest) {
+            		if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
+            			creep.travelTo(mineTarget);
+            		}
+            	} else if (!creep.memory.onContainer) {
+            		// Container is full, move to it anyway to position correctly
+            		creep.travelTo(mineTarget);
             	}
             } else {
-                //Get the source ID while in the room
-                let markedSources = [];
+                // Find and cache the source ID
                 if (Game.flags[creep.memory.targetFlag]) {
-                	markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
-                }
-                if (markedSources.length) {
-                	creep.memory.mineSource = markedSources[0].id;
-                }
-                mineTarget = Game.getObjectById(creep.memory.mineSource);
-                if (mineTarget) {
-                	if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE && !triedToMove) {
+                	let markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
+                	if (markedSources.length) {
+                		creep.memory.mineSource = markedSources[0].id;
+                		// Try to harvest immediately after finding source
+                		if (creep.harvest(markedSources[0]) == ERR_NOT_IN_RANGE && !triedToMove) {
+                			creep.travelTo(markedSources[0]);
+                		}
+                	} else {
                 		creep.travelTo(Game.flags[creep.memory.targetFlag]);
                 	}
                 }
