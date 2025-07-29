@@ -152,6 +152,7 @@ function handleGameFlags() {
     const removeSitesFlag = flags["RemoveSites"];
     const toggleWarFlag = flags["ToggleWar"];
     const resetLinksFlag = flags["resetLinks"];
+    const visualizeBaseFlag = flags["VisualizeBase"];
 
     //Set defaults on various memory values
     if (Game.time % 10000 == 0 || checkMemoryFlag) {
@@ -306,6 +307,18 @@ function handleGameFlags() {
         Memory.linkList = {};
         console.log('Link lists have been wiped. Structure lists will be rebuilt next tick.');
         resetLinksFlag.remove();
+    }
+
+    // Visualize base plan for debugging
+    if (visualizeBaseFlag) {
+        const roomName = visualizeBaseFlag.pos.roomName;
+        const roomLevel = parseInt(visualizeBaseFlag.name.split('_')[1]) || 8; // Extract level from flag name or default to 8
+        
+        console.log(`Visualizing base plan for ${roomName} at controller level ${roomLevel}`);
+        tool_generateBase.visualizeBasePlan(roomName, roomLevel);
+        
+        // Don't remove flag automatically - let user remove it manually when done viewing
+        console.log(`Base visualization complete. Remove the VisualizeBase flag to stop visualization.`);
     }
 }
 
@@ -658,6 +671,11 @@ function processSpawnCommands(spawn, thisRoom, energyIndex) {
     if (!Memory.isSpawning && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
         processFarMiningSpawn(spawn, thisRoom, energyIndex);
     }
+    
+    // Check for highway patrol unit spawning (every 1350 ticks, energy >= 400,000)
+    if (!Memory.isSpawning && thisRoom.storage && Game.time % 1350 === 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 400000) {
+        spawn_BuildInstruction.run(spawn, 'highwayPatrol', '', energyIndex, thisRoom.name);
+    }
 }
 
 function processSpecialSpawnCommands(spawn, thisRoom, energyIndex) {
@@ -813,6 +831,12 @@ function processNormalSpawning(spawn, thisRoom, energyIndex) {
 
 function processFarMiningSpawn(spawn, thisRoom, energyIndex) {
     const roomName = thisRoom.name;
+    
+    // Block far mining creep production if storage energy exceeds 300,000
+    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] > 300000) {
+        return; // Skip far mining creep production to reduce CPU usage
+    }
+    
     const farMiningFlags = [
         "FarMining", "FarGuard", "FarMining2", "FarMining3", 
         "FarMining4", "FarMining5", "FarMining6", "FarMining7", "FarMining8"

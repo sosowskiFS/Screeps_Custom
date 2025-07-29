@@ -68,6 +68,10 @@ var spawn_BuildInstruction = {
             case 'harasser':
                 this.spawnHarasser(spawn, params, energyIndex, roomName);
                 break;
+                
+            case 'highwayPatrol':
+                this.spawnHighwayPatrol(spawn, energyIndex, roomName);
+                break;
         }
     },
     
@@ -503,6 +507,50 @@ var spawn_BuildInstruction = {
                 console.log('Harasser executed from ' + roomName + ' targeting ' + params);
             }
         }
+    },
+    
+    // Method to spawn highway patrol units
+    spawnHighwayPatrol: function(spawn, energyIndex, roomName) {
+        const patrollers = _.filter(Game.creeps, (creep) => 
+            creep.memory.priority == 'highwayPatrol' && 
+            creep.memory.homeRoom == roomName
+        );
+        
+        if (patrollers.length < 1) {
+            const highwayPatrolConfig = getHighwayPatrolBuild(spawn.room.energyCapacityAvailable);
+            const configCost = calculateConfigCost(highwayPatrolConfig);
+            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                Memory.CurrentRoomEnergy[energyIndex] -= configCost;
+                
+                // Set up build directions, avoiding supplier spot in autobuild rooms
+                let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+                if (Memory.autoBuildRooms.indexOf(roomName) > -1 && Game.flags[roomName + "Supply"]) {
+                    // Find supply flag direction and remove it from available directions
+                    let supplyFlag = Game.flags[roomName + "Supply"];
+                    if (supplyFlag.pos.isNearTo(spawn)) {
+                        let supplierDirection = spawn.pos.getDirectionTo(supplyFlag);
+                        let dirIndex = buildDirections.indexOf(supplierDirection);
+                        if (dirIndex > -1) {
+                            buildDirections.splice(dirIndex, 1);
+                        }
+                    }
+                }
+                
+                spawn.spawnCreep(highwayPatrolConfig, 'hwPatrol_' + spawn.name + '_' + Game.time, {
+                    memory: {
+                        priority: 'highwayPatrol',
+                        homeRoom: roomName,
+                        fromSpawn: spawn.id,
+                        deathWarn: _.size(highwayPatrolConfig) * 8,
+                        patrolDirection: 0 // Start with first highway direction
+                    },
+                    directions: buildDirections
+                });
+                Memory.creepInQue.push(roomName, 'highwayPatrol', '', spawn.name);
+                Memory.isSpawning = true;
+                console.log('Highway patrol executed from ' + roomName);
+            }
+        }
     }
 };
 
@@ -529,6 +577,38 @@ function getLooterBuild(energyCap) {
     }
     //thisConfig.sort();
     return thisConfig;
+}
+
+function getHighwayPatrolBuild(energyCap) {
+    // Build for maximum combat effectiveness with optimal part ordering
+    let rangedAttackParts = [];
+    let moveParts = [MOVE, MOVE, MOVE, MOVE]; // 4 fixed move parts
+    let attackParts = [ATTACK, ATTACK]; // 2 attack parts
+    let healParts = [HEAL, HEAL]; // 2 heal parts
+    
+    // Calculate remaining energy after fixed parts
+    let remainingEnergy = energyCap - (BODYPART_COST[ATTACK] * 2 + BODYPART_COST[HEAL] * 2 + BODYPART_COST[MOVE] * 4);
+    let costPerUnit = BODYPART_COST[RANGED_ATTACK] + BODYPART_COST[MOVE];
+    
+    while (moveParts.length + rangedAttackParts.length + attackParts.length + healParts.length < 50 && remainingEnergy >= costPerUnit) {
+        rangedAttackParts.push(RANGED_ATTACK);
+        moveParts.push(MOVE);
+        remainingEnergy -= costPerUnit;
+    }
+    
+    // Build final configuration with optimal ordering:
+    // 1. MOVE parts first (for maximum mobility and positioning uptime)
+    // 2. RANGED_ATTACK parts (for maximum DPS)
+    // 3. ATTACK parts (melee combat, second to last)
+    // 4. HEAL parts last (for healing priority and protection)
+    let finalConfig = [
+        ...moveParts,
+        ...rangedAttackParts,
+        ...attackParts,
+        ...healParts
+    ];
+    
+    return finalConfig;
 }
 
 module.exports = spawn_BuildInstruction;
