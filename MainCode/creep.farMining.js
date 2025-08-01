@@ -193,8 +193,14 @@ var creep_farMining = {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
                         reusePath: 50
                     });
+                    // Only heal when no nearby enemies (prioritize escape over healing)
                     if (creep.hits < creep.hitsMax) {
-                        creep.heal(creep);
+                        let nearbyEnemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                        });
+                        if (nearbyEnemies.length == 0) {
+                            creep.heal(creep);
+                        }
                     }
                 } else if (closeFoe) {
                     creep.say("\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
@@ -235,14 +241,16 @@ var creep_farMining = {
                         }
                     }
 
-                    // Simplified healing logic
-                    if (creep.hits < creep.hitsMax) {
+                    // Only heal if no melee attack was performed this tick (ranged attacks are allowed with healing)
+                    if (creep.hits < creep.hitsMax && attackResult != OK) {
                         creep.heal(creep);
                     }
 
                 } else if (eCores) {
                     let attackResult = creep.attack(eCores);
                     creep.rangedAttack(eCores);
+                    
+                    // Only heal if no successful melee attack was performed (ranged attack + heal is allowed)
                     if (attackResult != OK) {
                         if (creep.hits < creep.hitsMax) {
                             creep.heal(creep);
@@ -251,10 +259,7 @@ var creep_farMining = {
                                 filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
                             });
                             if (hurtAlly.length > 0) {
-                                if (closeRangeResult != OK) {
-                                    creep.rangedHeal(hurtAlly[0]);
-                                }
-                                creep.heal(hurtAlly[0]);
+                                creep.rangedHeal(hurtAlly[0]);
                             }
                         }
                     }
@@ -293,8 +298,15 @@ var creep_farMining = {
                         });
                     }
 
+                    // Only heal when not in combat and traveling
                     if (creep.hits < creep.hitsMax) {
-                        creep.heal(creep);
+                        // Check if there are any nearby enemies before healing
+                        let nearbyEnemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                        });
+                        if (nearbyEnemies.length == 0) {
+                            creep.heal(creep);
+                        }
                     }
                 } else if (Game.flags[creep.memory.targetFlag]) {
                     // Decorative idle animations
@@ -306,7 +318,13 @@ var creep_farMining = {
                     
                     // Simplified idle behavior
                     if (creep.hits < creep.hitsMax) {
-                        creep.heal(creep);
+                        // Check if there are any nearby enemies before healing
+                        let nearbyEnemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                        });
+                        if (nearbyEnemies.length == 0) {
+                            creep.heal(creep);
+                        }
                         if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
                             creep.travelTo(Game.flags[creep.memory.targetFlag], { maxRooms: 1 });
                         }

@@ -203,6 +203,7 @@ var creep_ranger = {
             }
         }
 
+        let usedAttack = false;
         if (closeFoe) {
             let closeRange = creep.pos.getRangeTo(closeFoe);
             if (closeRange <= 3) {
@@ -220,10 +221,12 @@ var creep_ranger = {
                     } else {
                         creep.rangedAttack(closeFoe);
                         creep.attack(closeFoe);
+                        usedAttack = true;
                     }
                 } else {
                     creep.rangedAttack(closeFoe);
                     creep.attack(closeFoe);
+                    usedAttack = true;
                 }
                 if (closeRange == 1) {
                     creep.rangedMassAttack();
@@ -231,8 +234,10 @@ var creep_ranger = {
             }
         }
 
-        //Only works with no attack parts
-        creep.heal(creep);
+        //Only heal if we didn't use attack (attack and heal can't be used on same tick)
+        if (!usedAttack) {
+            creep.heal(creep);
+        }
 
     }
 
