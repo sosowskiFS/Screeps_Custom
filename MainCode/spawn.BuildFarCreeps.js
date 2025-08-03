@@ -1,6 +1,6 @@
 var spawn_BuildFarCreeps = {
     run: function(spawn, thisRoom, energyIndex) {
-        if (!spawn.spawning && thisRoom.storage && Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1) {
+        if (!spawn.spawning && !global.isSpawnBusy(spawn) && thisRoom.storage && Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1) {
             let controlledCreeps = Game.creeps;
 
             let Flag25 = false;
@@ -228,6 +228,7 @@ var spawn_BuildFarCreeps = {
                             },
                             directions: buildDirections
                         });
+                        global.setSpawnBusy(spawn);
                         Memory.FarClaimerNeeded[Game.flags[flagName].pos.roomName] = false;
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
@@ -248,6 +249,7 @@ var spawn_BuildFarCreeps = {
                             },
                             directions: buildDirections
                         });
+                        global.setSpawnBusy(spawn);
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMule') {
@@ -267,6 +269,7 @@ var spawn_BuildFarCreeps = {
                             },
                             directions: buildDirections
                         });
+                        global.setSpawnBusy(spawn);
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farGuard') {
@@ -288,6 +291,7 @@ var spawn_BuildFarCreeps = {
                             },
                             directions: buildDirections
                         });
+                        global.setSpawnBusy(spawn);
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                     Memory.guardType = !Memory.guardType;
@@ -307,6 +311,7 @@ var spawn_BuildFarCreeps = {
                             },
                             directions: buildDirections
                         });
+                        global.setSpawnBusy(spawn);
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 }

@@ -64,14 +64,110 @@ var market_buyers = require('market.FindBuyers');
 
 global.lastMemoryTick = undefined;
 
+// Initialize spawn tracking system if needed
+function initializeSpawnTracking() {
+    if (!Memory.isSpawning || typeof Memory.isSpawning !== 'object' || Array.isArray(Memory.isSpawning)) {
+        Memory.isSpawning = {};
+    }
+}
+
+// Spawn tracking helper functions
+function setSpawnStatus(spawn, isSpawning) {
+    initializeSpawnTracking();
+    const roomName = spawn.room.name;
+    if (!Memory.isSpawning[roomName]) {
+        Memory.isSpawning[roomName] = {};
+    }
+    Memory.isSpawning[roomName][spawn.id] = isSpawning;
+}
+
+// Global helper function for spawn scripts to mark spawn as busy
+global.setSpawnBusy = function(spawn) {
+    initializeSpawnTracking();
+    const roomName = spawn.room.name;
+    if (!Memory.isSpawning[roomName]) {
+        Memory.isSpawning[roomName] = {};
+    }
+    Memory.isSpawning[roomName][spawn.id] = true;
+}
+
+// Global helper function to check if spawn is busy
+global.isSpawnBusy = function(spawn) {
+    // Check if spawn is actually spawning or marked as busy in memory
+    if (spawn.spawning) return true;
+    
+    initializeSpawnTracking();
+    const roomName = spawn.room.name;
+    return Memory.isSpawning[roomName] && Memory.isSpawning[roomName][spawn.id];
+}
+
+function isSpawnBusy(spawn) {
+    // Check if spawn is actually spawning or marked as busy in memory
+    if (spawn.spawning) return true;
+    
+    initializeSpawnTracking();
+    const roomName = spawn.room.name;
+    return Memory.isSpawning[roomName] && Memory.isSpawning[roomName][spawn.id];
+}
+
+function isAnySpawnBusyInRoom(roomName) {
+    initializeSpawnTracking();
+    if (!Memory.isSpawning[roomName]) return false;
+    return Object.values(Memory.isSpawning[roomName]).some(busy => busy);
+}
+
+function getAvailableSpawnsInRoom(roomName) {
+    const room = Game.rooms[roomName];
+    if (!room) return [];
+    
+    const spawns = room.find(FIND_MY_SPAWNS);
+    return spawns.filter(spawn => spawn.isActive() && !spawn.spawning && !isSpawnBusy(spawn));
+}
+
+function cleanupSpawnTracking() {
+    // Initialize spawn tracking if needed
+    initializeSpawnTracking();
+    
+    // Clean up spawn tracking for dead spawns and rooms we no longer control
+    for (const roomName in Memory.isSpawning) {
+        const room = Game.rooms[roomName];
+        if (!room || !room.controller || !room.controller.my) {
+            delete Memory.isSpawning[roomName];
+            continue;
+        }
+        
+        for (const spawnId in Memory.isSpawning[roomName]) {
+            const spawn = Game.getObjectById(spawnId);
+            if (!spawn) {
+                // Spawn no longer exists
+                delete Memory.isSpawning[roomName][spawnId];
+            } else if (!spawn.spawning && Memory.isSpawning[roomName][spawnId]) {
+                // Spawn is no longer actually spawning, clear the memory flag
+                delete Memory.isSpawning[roomName][spawnId];
+            }
+        }
+        
+        // Remove empty room entries
+        if (Object.keys(Memory.isSpawning[roomName]).length === 0) {
+            delete Memory.isSpawning[roomName];
+        }
+    }
+}
+
 //profiler.enable();
 // Main game loop
 module.exports.loop = function() {
     //tryInitSameMemory();
     //profiler.wrap(function() {
     
+    // Initialize spawn tracking system first
+    initializeSpawnTracking();
+    
     // Clean up memory for dead creeps
     cleanupCreepMemory();
+    
+    // Clean up spawn tracking
+    cleanupSpawnTracking();
     
     // Handle CPU unlocking for shard2
     handleCPUUnlocking();
@@ -609,23 +705,14 @@ function processSpawn(spawn) {
             Memory.RoomsRun.push(thisRoom.name);
         }
 
-        if (Memory.isSpawning == null) {
-            Memory.isSpawning = false;
-        }
-
         processSpawnLogic(spawn, thisRoom);
-        Memory.isSpawning = false;
 
-        // Only mark room as no spawn needed if NO spawns in the room are spawning
-        // and this is the last spawn being processed in the room
-        if (!Memory.isSpawning) {
-            // Check if any other spawns in this room are currently spawning
-            const roomSpawns = thisRoom.find(FIND_MY_SPAWNS);
-            const anySpawnActive = roomSpawns.some(s => s.spawning);
-            
-            if (!anySpawnActive && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0) {
-                Memory.NoSpawnNeeded.push(thisRoom.name);
-            }
+        // Only mark room as no spawn needed if NO spawns in the room are spawning or busy
+        const roomSpawns = thisRoom.find(FIND_MY_SPAWNS);
+        const anySpawnActive = roomSpawns.some(s => s.spawning || isSpawnBusy(s));
+        
+        if (!anySpawnActive && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0) {
+            Memory.NoSpawnNeeded.push(thisRoom.name);
         }
     }
 }
@@ -680,16 +767,17 @@ function processSpawnCommands(spawn, thisRoom, energyIndex) {
     // Process various spawn commands
     processSpecialSpawnCommands(spawn, thisRoom, energyIndex);
     
-    if (!Memory.isSpawning) {
+    // Check if this specific spawn is busy, not the global flag
+    if (!isSpawnBusy(spawn)) {
         processNormalSpawning(spawn, thisRoom, energyIndex);
     }
 
-    if (!Memory.isSpawning && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
+    if (!isSpawnBusy(spawn) && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
         processFarMiningSpawn(spawn, thisRoom, energyIndex);
     }
     
     // Check for highway patrol unit spawning (every 1350 ticks, energy >= 400,000)
-    if (!Memory.isSpawning && thisRoom.storage && Game.time % 1350 === 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 400000) {
+    if (!isSpawnBusy(spawn) && thisRoom.storage && Game.time % 1350 === 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 400000) {
         spawn_BuildInstruction.run(spawn, 'highwayPatrol', '', energyIndex, thisRoom.name);
     }
 }
@@ -2280,6 +2368,10 @@ function memCheck() {
 	if (!Memory.autoBuildRooms) {
 		Memory.autoBuildRooms = [];
 	}
+    // Spawn tracking - initialize as object structure
+    if (!Memory.isSpawning) {
+        Memory.isSpawning = {};
+    }
     //Boolean
     if (Memory.warMode == null) {
         Memory.warMode = false;

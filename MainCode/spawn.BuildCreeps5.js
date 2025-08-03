@@ -134,7 +134,7 @@ var spawn_BuildCreeps5 = {
                         },
                         directions: buildDirections
                     });
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                 }
             } else if (thisRoom.storage) {
                 let configCost = calculateConfigCost([MOVE, WORK, WORK, CARRY]);
@@ -157,7 +157,7 @@ var spawn_BuildCreeps5 = {
                         },
                         directions: buildDirections
                     });
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                 }
             }
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 6) {
@@ -174,7 +174,7 @@ var spawn_BuildCreeps5 = {
             }
 
             if (suppliers.length < supplierMax && !blockedRole.includes('supplier') && supplierDirection.length > 0) {
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 let supplierConfig = [MOVE, CARRY, CARRY, CARRY];
                 let configCost = calculateConfigCost(supplierConfig);
                 if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -206,18 +206,19 @@ var spawn_BuildCreeps5 = {
                         },
                         directions: buildDirections
                     });
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                 }
             } else {
                 //Lock out spawning other units until max defenders
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
             }
         }
-        if (!Memory.isSpawning && (miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax || salvagers.length < salvagerMax) || (roomMineral && roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
-            let prioritizedRole = '';
-            let creepSource = '';
-            let connectedLink = '';
-            let backupLink = '';
+        if (!global.isSpawnBusy || !global.isSpawnBusy(spawn)) {
+            if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax || salvagers.length < salvagerMax) || (roomMineral && roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
+                let prioritizedRole = '';
+                let creepSource = '';
+                let connectedLink = '';
+                let backupLink = '';
             let storageID = '';
             let jobSpecificPri = '';
             let blockedRole = '';
@@ -320,7 +321,7 @@ var spawn_BuildCreeps5 = {
 
             if (prioritizedRole != '') {
                 if (prioritizedRole == 'miner') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let minePower = 5 * HARVEST_POWER;
                     let minerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY];
                     if (Game.flags[thisRoom.name + "RoomOperator"] && regenPower > 0) {
@@ -394,7 +395,7 @@ var spawn_BuildCreeps5 = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'mule') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let muleConfig = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
                     if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
                         muleConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -425,7 +426,7 @@ var spawn_BuildCreeps5 = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'upgrader') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let configCost = calculateConfigCost(upgraderConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
                         //Took severe damage, assume cap of 300
@@ -448,7 +449,7 @@ var spawn_BuildCreeps5 = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'upSupplier') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 265000 && thisRoom.energyCapacityAvailable >= 2500 && thisRoom.controller.level != 8) {
                         upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -471,7 +472,7 @@ var spawn_BuildCreeps5 = {
 
                     }
                 } else if (prioritizedRole == 'repair') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let repairConfig = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
                     if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
                         repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -494,7 +495,7 @@ var spawn_BuildCreeps5 = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'supplier') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let supplierConfig = [MOVE, CARRY, CARRY, CARRY];
                     let configCost = calculateConfigCost(supplierConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -512,7 +513,7 @@ var spawn_BuildCreeps5 = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'distributor') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
                     if (thisRoom.storage && thisRoom.energyCapacityAvailable >= 1200) {
                         distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -553,7 +554,7 @@ var spawn_BuildCreeps5 = {
 
                     }
                 } else if (prioritizedRole == 'mineralMiner') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let mineralMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK];
                     if (thisRoom.energyCapacityAvailable >= 4500) {
                         mineralMinerConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK];
@@ -577,7 +578,7 @@ var spawn_BuildCreeps5 = {
 
                     }
                 } else if (prioritizedRole == 'labWorker') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let labWorkerConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(labWorkerConfig);
                     let factoryID = undefined;
@@ -719,7 +720,7 @@ var spawn_BuildCreeps5 = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'scraper') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let scraperConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     let configCost = calculateConfigCost(scraperConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -737,7 +738,7 @@ var spawn_BuildCreeps5 = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'salvager') {
-                    Memory.isSpawning = true;
+                    global.setSpawnBusy(spawn);
                     let configCost = calculateConfigCost([CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -767,7 +768,7 @@ var spawn_BuildCreeps5 = {
             }
             if (!blockedRole.includes('mule')) {
                 //Spawn a crappy mule
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 let configCost = calculateConfigCost([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]);
                 if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                     Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -786,6 +787,7 @@ var spawn_BuildCreeps5 = {
                     Memory.creepInQue.push(thisRoom.name, 'mule', '', spawn.name);
                 }
             }
+        }
         }
     }
 };

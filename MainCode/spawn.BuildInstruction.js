@@ -99,7 +99,7 @@ var spawn_BuildInstruction = {
             spawn.spawnCreep(tConfig, 'claimer_' + spawn.name + '_' + Game.time, {
                 memory: creepMemory
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             console.log('Claim executed from ' + roomName);
         }
     },
@@ -115,7 +115,7 @@ var spawn_BuildInstruction = {
                     message: "Wew Lad"
                 }
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             console.log('Vandalize executed from ' + roomName);
         }
     },
@@ -148,7 +148,7 @@ var spawn_BuildInstruction = {
             spawn.spawnCreep(helperConfig, 'helper_' + spawn.name + '_' + Game.time, {
                 memory: creepMemory
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             console.log('Helper executed from ' + roomName);
         }
     },
@@ -166,7 +166,7 @@ var spawn_BuildInstruction = {
                     homeRoom: roomName
                 }
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             console.log('Looter executed from ' + roomName);
         }
     },
@@ -239,7 +239,7 @@ var spawn_BuildInstruction = {
             spawn.spawnCreep(attackerConfig, 'attacker_' + spawn.name + '_' + Game.time, {
                 memory: creepMemory
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             console.log('FUCK. SHIT. UP. ' + roomName);
             
             // Cycle through combat styles
@@ -272,7 +272,7 @@ var spawn_BuildInstruction = {
                     attackerID: attackerID
                 }
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             healerlessAttacker.memory.isReserved = true;
             console.log('HEAL. SHIT. UP. ' + roomName);
         }
@@ -330,7 +330,7 @@ var spawn_BuildInstruction = {
                 spawn.spawnCreep(rangerConfig, 'ranger_' + spawn.name + '_' + Game.time, {
                     memory: creepMemory
                 });
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 console.log('Ranger ' + roomName);
             }
         }
@@ -367,7 +367,7 @@ var spawn_BuildInstruction = {
                     deathWarn: powerAttackConfig.length * 4
                 }
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             console.log('Power Mining - Attacker, ' + roomName);
         }
     },
@@ -389,7 +389,7 @@ var spawn_BuildInstruction = {
                     deathWarn: healerConfig.length * 4
                 }
             });
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
             console.log('Power Mining - Healer, ' + roomName);
         }
     },
@@ -416,7 +416,7 @@ var spawn_BuildInstruction = {
                         deathWarn: powerCollectConfig.length * 4
                     }
                 });
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 console.log('Power Mining - Collector spawned, ' + roomName + ' (' + powerCollectors.length + '/' + requiredCollectors + ')');
             }
         }
@@ -442,7 +442,7 @@ var spawn_BuildInstruction = {
                         deathWarn: energySupplierConfig.length * 4
                     }
                 });
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 console.log('Distant Supplier, ' + roomName);
             }
         }
@@ -467,7 +467,7 @@ var spawn_BuildInstruction = {
                         deathWarn: mConfig.length * 4
                     }
                 });
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 
                 const mineScoutFlag = Game.flags[roomName + "MineScout"];
                 if (mineScoutFlag) {
@@ -500,7 +500,7 @@ var spawn_BuildInstruction = {
                         deathWarn: harasserConfig.length * 3
                     }
                 });
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 console.log('Harasser executed from ' + roomName + ' targeting ' + params);
             }
         }
@@ -544,7 +544,7 @@ var spawn_BuildInstruction = {
                     directions: buildDirections
                 });
                 Memory.creepInQue.push(roomName, 'highwayPatrol', '', spawn.name);
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
                 console.log('Highway patrol executed from ' + roomName);
             }
         }

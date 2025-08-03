@@ -92,7 +92,7 @@ var spawn_BuildCreeps = {
                 });
             }
 
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyAvailable >= defenderEnergyLim && defenders.length < 2 && harvesters.length >= harvesterMax) {
             //Try to produce millitary units
                  var ToughCount = 0;
@@ -161,7 +161,7 @@ var spawn_BuildCreeps = {
                     },
 					directions: buildDirections
                 });
-                Memory.isSpawning = true;
+                global.setSpawnBusy(spawn);
         } else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
             var prioritizedRole = 'harvester';
             var creepSourceID = '';
@@ -221,7 +221,7 @@ var spawn_BuildCreeps = {
 				}
                 
             }
-            Memory.isSpawning = true;
+            global.setSpawnBusy(spawn);
         }
     }
 };
