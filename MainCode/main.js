@@ -224,7 +224,7 @@ function handleGameFlags() {
 	
 	if (wipeRoomFlag) {
 		//Delete all of this room's controlled structures (for autobuild purposes)
-		var allStruct = wipeRoomFlag.room.find(FIND_MY_STRUCTURES);
+		var allStruct = wipeRoomFlag.room.find(FIND_STRUCTURES);
         for (var n = 0; n < allStruct.length; n++) {
 			allStruct[n].destroy();
         }
