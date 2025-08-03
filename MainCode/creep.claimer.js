@@ -68,6 +68,15 @@ var creep_claimer = {
 	                    offRoad: true
 	                });
 	            } else if (creep.claimController(creep.room.controller) == OK) {
+                    // Room successfully claimed - place automation flags
+                    
+                    // 1. Place InitAutoBuild flag to automatically generate room structures
+                    creep.room.controller.pos.createFlag("InitAutoBuild", COLOR_GREEN, COLOR_WHITE);
+                    
+                    // 2. Place SendHelper flag to automatically build helper creeps from home room
+                    creep.room.controller.pos.createFlag(creep.memory.homeRoom + "SendHelper", COLOR_BLUE, COLOR_WHITE);
+                    
+                    // Clean up original claim flag
                     if (Game.flags[creep.memory.homeRoom + "ClaimThis"]) {
                         Game.flags[creep.memory.homeRoom + "ClaimThis"].remove();
                     }

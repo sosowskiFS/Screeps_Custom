@@ -78,9 +78,6 @@ var spawn_BuildInstruction = {
     // Optimized method to spawn claimers
     spawnClaimer: function(spawn, params, energyIndex, params2, roomName) {
         let tConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM];
-        if (Memory.CurrentRoomEnergy[energyIndex] >= 2650) {
-            tConfig = [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM,CLAIM];
-        }
         
         const configCost = calculateConfigCost(tConfig);
         if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {

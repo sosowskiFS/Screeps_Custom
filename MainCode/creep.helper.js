@@ -40,6 +40,14 @@ var creep_Helper = {
                 }
             }
         } else {
+            // Check if room has reached level 4 and remove helper flag
+            if (creep.room.controller.level >= 4 && creep.memory.homeRoom) {
+                const helperFlag = Game.flags[creep.memory.homeRoom + "SendHelper"];
+                if (helperFlag) {
+                    helperFlag.remove();
+                }
+            }
+            
             if (!creep.memory.currentState) {
                 creep.memory.currentState = 1;
             }

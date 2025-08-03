@@ -309,16 +309,32 @@ function handleGameFlags() {
         resetLinksFlag.remove();
     }
 
-    // Visualize base plan for debugging
+    // Visualize base plan for debugging - now integrated into main generation function
     if (visualizeBaseFlag) {
         const roomName = visualizeBaseFlag.pos.roomName;
         const roomLevel = parseInt(visualizeBaseFlag.name.split('_')[1]) || 8; // Extract level from flag name or default to 8
         
-        console.log(`Visualizing base plan for ${roomName} at controller level ${roomLevel}`);
-        tool_generateBase.visualizeBasePlan(roomName, roomLevel);
+        // Check if room exists and run the unified generation function
+        const room = Game.rooms[roomName];
+        if (room) {
+            console.log(`Visualizing base plan for ${roomName} at controller level ${roomLevel}`);
+            // Create a mock room with the specified controller level for visualization
+            const mockRoom = {
+                ...room,
+                controller: {
+                    ...room.controller,
+                    level: roomLevel
+                },
+                // Ensure the find method is available for the mock room
+                find: room.find.bind(room)
+            };
+            tool_generateBase.run(mockRoom);
+        } else {
+            console.log(`Cannot visualize ${roomName} - no room access. Try running the base generation tool in a room you have vision of.`);
+        }
         
         // Don't remove flag automatically - let user remove it manually when done viewing
-        console.log(`Base visualization complete. Remove the VisualizeBase flag to stop visualization.`);
+        console.log(`Base visualization complete. Remove the VisualizeBase flag to stop visualization and return to normal base generation.`);
     }
 }
 
@@ -1457,26 +1473,6 @@ function manageRoomStructures(thisRoom) {
                                 break outer; // Stop if construction site limit reached
                             }
                         }
-                    }
-                }
-            }
-        }
-        
-        // Generate ramparts on road structures
-        if (!constructionLimitReached) {
-            const roadStructures = thisRoom.find(FIND_STRUCTURES, {
-                filter: { structureType: STRUCTURE_ROAD }
-            });
-            
-            for (const road of roadStructures) {
-                const structuresAtPos = road.pos.lookFor(LOOK_STRUCTURES);
-                const hasRampart = structuresAtPos.some(s => s.structureType === STRUCTURE_RAMPART);
-                
-                if (!hasRampart) {
-                    const result = thisRoom.createConstructionSite(road.pos.x, road.pos.y, STRUCTURE_RAMPART);
-                    if (result === ERR_FULL) {
-                        constructionLimitReached = true;
-                        break; // Stop if construction site limit reached
                     }
                 }
             }
