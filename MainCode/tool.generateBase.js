@@ -106,6 +106,10 @@ var tool_generateBase = {
 
         let bestCenterCoords, bestDirection, bestSourceID;
 
+        // Check if we should visualize instead of generate construction sites
+        const visualizeBaseFlag = Game.flags["VisualizeBase"];
+        const shouldVisualize = visualizeBaseFlag && visualizeBaseFlag.pos.roomName === thisRoom.name;
+
         // Step 1: Find best base location (cached in memory)
         if (!Memory.genBestCenterCoords[thisRoom.name]) {
             const result = this.findBestBaseLocation(thisRoom, terrain, roomSources);
@@ -114,8 +118,8 @@ var tool_generateBase = {
                 Memory.genBestCenterCoords[thisRoom.name] = result.centerCoords;
                 Memory.genBestSourceID[thisRoom.name] = result.sourceID;
                 
-                // Add room to autoBuildRooms list if it's not already there
-                if (Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
+                // Add room to autoBuildRooms list if it's not already there (but not in visualization mode)
+                if (!shouldVisualize && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
                     Memory.autoBuildRooms.push(thisRoom.name);
                     console.log(`Added ${thisRoom.name} to autoBuildRooms - suitable space found for base generation.`);
                 }
@@ -136,8 +140,8 @@ var tool_generateBase = {
         // Step 2: Generate base structures
         this.generateBaseStructures(thisRoom, terrain, roomSources, bestCenterCoords, bestDirection, bestSourceID);
         
-        // Ensure room is in autoBuildRooms list if structures were generated successfully
-        if (Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
+        // Ensure room is in autoBuildRooms list if structures were generated successfully (but not in visualization mode)
+        if (!shouldVisualize && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
             Memory.autoBuildRooms.push(thisRoom.name);
             console.log(`Added ${thisRoom.name} to autoBuildRooms - base structures generated.`);
         }
