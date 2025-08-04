@@ -27,6 +27,18 @@ var creep_workV2 = {
                             creep.travelTo(mineTarget);
                         }
                     }
+                } else {
+                    // Fallback: find the closest source if sourceLocation is not set
+                    let sources = creep.room.find(FIND_SOURCES);
+                    if (sources.length > 0) {
+                        mineTarget = creep.pos.findClosestByPath(sources);
+                        if (mineTarget) {
+                            creep.memory.sourceLocation = mineTarget.id;
+                            if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(mineTarget);
+                            }
+                        }
+                    }
                 }
                 if (creep.memory.storageUnit && (Game.time % 4 == 0 || !creep.memory.onContainer)) {
                     thisUnit = Game.getObjectById(creep.memory.storageUnit);
@@ -76,6 +88,28 @@ var creep_workV2 = {
                                 if (creep.pos.isNearTo(mineTarget)) {
                                     creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
                                 }
+                            }
+                        }
+                    }
+                } else if (!creep.memory.storageUnit && _.sum(creep.carry) > 0) {
+                    // Fallback: if harvester is full but has no storage unit, find somewhere to deposit energy
+                    let storage = creep.room.storage;
+                    if (storage) {
+                        if (creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(storage);
+                        }
+                    } else {
+                        // Find spawn or extension to deposit energy
+                        let target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
+                            filter: (structure) => {
+                                return (structure.structureType == STRUCTURE_EXTENSION ||
+                                    structure.structureType == STRUCTURE_SPAWN) && 
+                                    structure.energy < structure.energyCapacity;
+                            }
+                        });
+                        if (target) {
+                            if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(target);
                             }
                         }
                     }

@@ -19,7 +19,7 @@ var spawn_BuildCreeps = {
 
         let strSources = Memory.sourceList[thisRoom.name];
         let assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
-        let assignedSlot2 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
+        let assignedSlot2 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[1] && creep.memory.priority == 'harvester');
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
         let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];

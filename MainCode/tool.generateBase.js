@@ -1045,6 +1045,17 @@ var tool_generateBase = {
                 if (thisRoom.controller.level >= 2) {
                     thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
                 }
+            } else if (structureData === STRUCTURE_TOWER) {
+                // Towers require controller level 3
+                if (thisRoom.controller.level >= 3) {
+                    thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_TOWER);
+                }
+            } else if (structureData === STRUCTURE_SPAWN) {
+                // Spawns are available from level 1
+                thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_SPAWN);
+            } else {
+                // Other regular structures - place without level check for now
+                thisRoom.createConstructionSite(pos[0], pos[1], structureData);
             }
         } else if (typeof structureData === 'object' && structureData.level) {
             // Level-dependent structure
