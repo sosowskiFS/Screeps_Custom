@@ -140,6 +140,11 @@ var tool_generateBase = {
         // Step 2: Generate base structures
         this.generateBaseStructures(thisRoom, terrain, roomSources, bestCenterCoords, bestDirection, bestSourceID);
         
+        // Step 3: Process rampart queue to place ramparts on existing structures
+        if (!shouldVisualize) {
+            this.processRampartQueue(thisRoom);
+        }
+        
         // Ensure room is in autoBuildRooms list if structures were generated successfully (but not in visualization mode)
         if (!shouldVisualize && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
             Memory.autoBuildRooms.push(thisRoom.name);
@@ -287,12 +292,11 @@ var tool_generateBase = {
         const shouldVisualize = visualizeBaseFlag && visualizeBaseFlag.pos.roomName === thisRoom.name;
         
         let roomVis = null;
-        let occupiedPositions = null;
+        let occupiedPositions = new Set(); // Always track occupied positions to prevent conflicts
         
         if (shouldVisualize) {
             roomVis = new RoomVisual(thisRoom.name);
             roomVis.clear();
-            occupiedPositions = new Set();
             
             // Draw terrain overview for visualization
             this.drawTerrainOverview(roomVis, terrain, bestCenterCoords);
@@ -345,6 +349,11 @@ var tool_generateBase = {
                 // Generation mode
                 console.log(`Placing ${structureData} from layout ${structureKey} at world coords (${worldX},${worldY})`);
                 this.createStructureFromData(thisRoom, [worldX, worldY], structureData);
+                
+                // Track this position as occupied
+                if (occupiedPositions) {
+                    occupiedPositions.add(`${worldX},${worldY}`);
+                }
             }
         });
     },
@@ -388,12 +397,14 @@ var tool_generateBase = {
                 if (terrain.get(x, y) === TERRAIN_MASK_WALL) continue;
                 
                 // Check if position is not occupied
-                if (roomVis && occupiedPositions) {
-                    // In visualization mode, check occupied positions set
+                if (occupiedPositions) {
+                    // Check occupied positions set (both visualization and generation mode)
                     const posKey = `${x},${y}`;
                     if (occupiedPositions.has(posKey)) continue;
-                } else if (!roomVis) {
-                    // In generation mode, check for real structures/sites/flags
+                }
+                
+                if (!roomVis) {
+                    // In generation mode, also check for real structures/sites/flags
                     const roomPos = new RoomPosition(x, y, thisRoom.name);
                     const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -474,6 +485,10 @@ var tool_generateBase = {
                 thisRoom.createFlag(storageMinerPos[0], storageMinerPos[1], thisRoom.name + "storageMiner");
                 console.log(`Placed storageMiner flag at ${storageMinerPos[0]},${storageMinerPos[1]} adjacent to core (road access: ${hasRoadAccess})`);
             }
+            // Track this position as occupied
+            if (occupiedPositions) {
+                occupiedPositions.add(`${storageMinerPos[0]},${storageMinerPos[1]}`);
+            }
         }
         
         // Find a position for storage next to the storageMiner, preferring positions closer to the core
@@ -491,12 +506,14 @@ var tool_generateBase = {
                 // Check if position is not occupied and not the source
                 if (storagePos[0] === sourcePos[0] && storagePos[1] === sourcePos[1]) continue;
                 
-                if (roomVis && occupiedPositions) {
-                    // In visualization mode, check occupied positions set
+                if (occupiedPositions) {
+                    // Check occupied positions set (both visualization and generation mode)
                     const posKey = `${storagePos[0]},${storagePos[1]}`;
                     if (occupiedPositions.has(posKey)) continue;
-                } else if (!roomVis) {
-                    // In generation mode, check for real structures/sites/flags
+                }
+                
+                if (!roomVis) {
+                    // In generation mode, also check for real structures/sites/flags
                     const roomPos = new RoomPosition(storagePos[0], storagePos[1], thisRoom.name);
                     const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -541,13 +558,18 @@ var tool_generateBase = {
             thisRoom.createConstructionSite(finalStoragePos[0], finalStoragePos[1], STRUCTURE_STORAGE);
             console.log(`Placed storage at ${finalStoragePos[0]},${finalStoragePos[1]} next to storageMiner and core`);
             
+            // Track this position as occupied
+            if (occupiedPositions) {
+                occupiedPositions.add(`${finalStoragePos[0]},${finalStoragePos[1]}`);
+            }
+            
             // Ensure road accessibility for the storageMiner by placing a road adjacent to it
             // This guarantees access even if the extension grid doesn't naturally create one
-            this.ensureStorageMinerRoadAccess(thisRoom, terrain, storageMinerPos, bestCenterCoords);
+            this.ensureStorageMinerRoadAccess(thisRoom, terrain, storageMinerPos, bestCenterCoords, occupiedPositions);
         }
     },
 
-    ensureStorageMinerRoadAccess: function(thisRoom, terrain, storageMinerPos, bestCenterCoords) {
+    ensureStorageMinerRoadAccess: function(thisRoom, terrain, storageMinerPos, bestCenterCoords, occupiedPositions = null) {
         // Check if there's already a road adjacent to the storage miner
         let hasAdjacentRoad = false;
         
@@ -617,9 +639,14 @@ var tool_generateBase = {
                 thisRoom.createConstructionSite(roadPos[0], roadPos[1], STRUCTURE_ROAD);
                 console.log(`Placed access road at ${roadPos[0]},${roadPos[1]} for storageMiner accessibility`);
                 
-                // Add rampart if high enough level
+                // Track this position as occupied
+                if (occupiedPositions) {
+                    occupiedPositions.add(`${roadPos[0]},${roadPos[1]}`);
+                }
+                
+                // Schedule rampart placement for later (after main structure is built)
                 if (thisRoom.controller.level >= 2) {
-                    thisRoom.createConstructionSite(roadPos[0], roadPos[1], STRUCTURE_RAMPART);
+                    this.scheduleRampartPlacement(thisRoom, roadPos[0], roadPos[1]);
                 }
             } else {
                 console.log(`Warning: Could not place access road for storageMiner at ${storageMinerPos[0]},${storageMinerPos[1]}`);
@@ -662,12 +689,14 @@ var tool_generateBase = {
                 if (!this.isConnectedToCenter(pos[0], pos[1], bestCenterCoords[0], bestCenterCoords[1], terrain)) continue;
                 
                 // Check if position is already occupied
-                if (roomVis && occupiedPositions) {
-                    // In visualization mode, check occupied positions set
+                if (occupiedPositions) {
+                    // Check occupied positions set (both visualization and generation mode)
                     const posKey = `${pos[0]},${pos[1]}`;
                     if (occupiedPositions.has(posKey)) continue;
-                } else if (!roomVis) {
-                    // In generation mode, check for real structures/sites/flags
+                }
+                
+                if (!roomVis) {
+                    // In generation mode, also check for real structures/sites/flags
                     const roomPos = new RoomPosition(pos[0], pos[1], thisRoom.name);
                     const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -690,9 +719,14 @@ var tool_generateBase = {
                             // Generation mode
                             thisRoom.createConstructionSite(pos[0], pos[1], priorityStruct.type);
                             
-                            // Add rampart for defensive structures
+                            // Track this position as occupied
+                            if (occupiedPositions) {
+                                occupiedPositions.add(`${pos[0]},${pos[1]}`);
+                            }
+                            
+                            // Schedule rampart placement for later (after main structure is built)
                             if (thisRoom.controller.level >= 2) {
-                                thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                                this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                             }
                         }
                         
@@ -750,12 +784,14 @@ var tool_generateBase = {
                 if (notMainSource && roomPos.inRangeTo(notMainSource, 2)) continue;
                 
                 // Skip if position already has structures
-                if (roomVis && occupiedPositions) {
-                    // In visualization mode, check occupied positions set
+                if (occupiedPositions) {
+                    // Check occupied positions set (both visualization and generation mode)
                     const posKey = `${pos[0]},${pos[1]}`;
                     if (occupiedPositions.has(posKey)) continue;
-                } else if (!roomVis) {
-                    // In generation mode, check for real structures/sites/flags
+                }
+                
+                if (!roomVis) {
+                    // In generation mode, also check for real structures/sites/flags
                     const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
                     const flags = roomPos.lookFor(LOOK_FLAGS);
@@ -778,8 +814,14 @@ var tool_generateBase = {
                         // Generation mode
                         thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_EXTENSION);
                         
+                        // Track this position as occupied
+                        if (occupiedPositions) {
+                            occupiedPositions.add(`${pos[0]},${pos[1]}`);
+                        }
+                        
+                        // Schedule rampart placement for later (after main structure is built)
                         if (thisRoom.controller.level >= 2) {
-                            thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                            this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                         }
                     }
                     extensionsPlaced++;
@@ -795,8 +837,14 @@ var tool_generateBase = {
                         // Generation mode
                         thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_ROAD);
                         
+                        // Track this position as occupied
+                        if (occupiedPositions) {
+                            occupiedPositions.add(`${pos[0]},${pos[1]}`);
+                        }
+                        
+                        // Schedule rampart placement for later (after main structure is built)
                         if (thisRoom.controller.level >= 2) {
-                            thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                            this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                         }
                     }
                 }
@@ -897,15 +945,17 @@ var tool_generateBase = {
                     }
                     
                     // Check if position is already occupied
-                    if (roomVis && occupiedPositions) {
-                        // In visualization mode, check occupied positions set
+                    if (occupiedPositions) {
+                        // Check occupied positions set (both visualization and generation mode)
                         const posKey = `${worldX},${worldY}`;
                         if (occupiedPositions.has(posKey)) {
                             canPlaceCluster = false;
                             break;
                         }
-                    } else if (!roomVis) {
-                        // In generation mode, check for real structures/sites/flags
+                    }
+                    
+                    if (!roomVis) {
+                        // In generation mode, also check for real structures/sites/flags
                         const roomPos = new RoomPosition(worldX, worldY, thisRoom.name);
                         const structures = roomPos.lookFor(LOOK_STRUCTURES);
                         const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -943,8 +993,14 @@ var tool_generateBase = {
                             // Generation mode
                             thisRoom.createConstructionSite(labPos.x, labPos.y, STRUCTURE_LAB);
                             
+                            // Track this position as occupied
+                            if (occupiedPositions) {
+                                occupiedPositions.add(`${labPos.x},${labPos.y}`);
+                            }
+                            
+                            // Schedule rampart placement for later (after main structure is built)
                             if (thisRoom.controller.level >= 2) {
-                                thisRoom.createConstructionSite(labPos.x, labPos.y, STRUCTURE_RAMPART);
+                                this.scheduleRampartPlacement(thisRoom, labPos.x, labPos.y);
                             }
                         }
                         labsPlaced++;
@@ -990,7 +1046,7 @@ var tool_generateBase = {
                 if (adjX > 2 && adjX < 47 && adjY > 2 && adjY < 47) {
                     // Check if position is passable terrain
                     if (terrain.get(adjX, adjY) !== TERRAIN_MASK_WALL) {
-                        // This position would be a road if (adjX + adjY) % 2 !== 0 in checkerboard pattern
+                        // This position would be a road if (adjX + adjY) % 2 !== 0
                         const wouldBeRoad = (adjX + adjY) % 2 !== 0;
                         if (wouldBeRoad) {
                             adjacentRoadPositions.push({ x: adjX, y: adjY });
@@ -1129,12 +1185,14 @@ var tool_generateBase = {
             if (terrain.get(pos[0], pos[1]) === TERRAIN_MASK_WALL) continue;
             
             // Check if position is not occupied
-            if (roomVis && occupiedPositions) {
-                // In visualization mode, check occupied positions set
+            if (occupiedPositions) {
+                // Check occupied positions set (both visualization and generation mode)
                 const posKey = `${pos[0]},${pos[1]}`;
                 if (occupiedPositions.has(posKey)) continue;
-            } else if (!roomVis) {
-                // In generation mode, check for real structures/sites/flags
+            }
+            
+            if (!roomVis) {
+                // In generation mode, also check for real structures/sites/flags
                 const roomPos = new RoomPosition(pos[0], pos[1], thisRoom.name);
                 const structures = roomPos.lookFor(LOOK_STRUCTURES);
                 const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -1154,9 +1212,14 @@ var tool_generateBase = {
                 thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_LINK);
                 console.log(`Placed center link at ${pos[0]},${pos[1]}`);
                 
-                // Add rampart for protection
+                // Track this position as occupied
+                if (occupiedPositions) {
+                    occupiedPositions.add(`${pos[0]},${pos[1]}`);
+                }
+                
+                // Schedule rampart placement for later (after main structure is built)
                 if (thisRoom.controller.level >= 2) {
-                    thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                    this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                 }
             }
             return true; // Successfully placed
@@ -1183,12 +1246,14 @@ var tool_generateBase = {
                     if (terrain.get(pos[0], pos[1]) === TERRAIN_MASK_WALL) continue;
                     
                     // Check if position is not occupied
-                    if (roomVis && occupiedPositions) {
-                        // In visualization mode, check occupied positions set
+                    if (occupiedPositions) {
+                        // Check occupied positions set (both visualization and generation mode)
                         const posKey = `${pos[0]},${pos[1]}`;
                         if (occupiedPositions.has(posKey)) continue;
-                    } else if (!roomVis) {
-                        // In generation mode, check for real structures/sites/flags
+                    }
+                    
+                    if (!roomVis) {
+                        // In generation mode, also check for real structures/sites/flags
                         const roomPos = new RoomPosition(pos[0], pos[1], thisRoom.name);
                         const structures = roomPos.lookFor(LOOK_STRUCTURES);
                         const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -1208,9 +1273,14 @@ var tool_generateBase = {
                         thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_LINK);
                         console.log(`Placed controller link at ${pos[0]},${pos[1]} near controller`);
                         
-                        // Add rampart for protection
+                        // Track this position as occupied
+                        if (occupiedPositions) {
+                            occupiedPositions.add(`${pos[0]},${pos[1]}`);
+                        }
+                        
+                        // Schedule rampart placement for later (after main structure is built)
                         if (thisRoom.controller.level >= 2) {
-                            thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                            this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                         }
                     }
                     return true; // Successfully placed
@@ -1239,12 +1309,14 @@ var tool_generateBase = {
                 if (terrain.get(pos[0], pos[1]) === TERRAIN_MASK_WALL) continue;
                 
                 // Check if position is not occupied
-                if (roomVis && occupiedPositions) {
-                    // In visualization mode, check occupied positions set
+                if (occupiedPositions) {
+                    // Check occupied positions set (both visualization and generation mode)
                     const posKey = `${pos[0]},${pos[1]}`;
                     if (occupiedPositions.has(posKey)) continue;
-                } else if (!roomVis) {
-                    // In generation mode, check for real structures/sites/flags
+                }
+                
+                if (!roomVis) {
+                    // In generation mode, also check for real structures/sites/flags
                     const roomPos = new RoomPosition(pos[0], pos[1], thisRoom.name);
                     const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
@@ -1274,9 +1346,14 @@ var tool_generateBase = {
                 thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_LINK);
                 console.log(`Placed source link ${linksPlaced + 1} at ${pos[0]},${pos[1]} near secondary source`);
                 
-                // Add rampart for protection
+                // Track this position as occupied
+                if (occupiedPositions) {
+                    occupiedPositions.add(`${pos[0]},${pos[1]}`);
+                }
+                
+                // Schedule rampart placement for later (after main structure is built)
                 if (thisRoom.controller.level >= 2) {
-                    thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                    this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                 }
             }
             
@@ -1424,9 +1501,9 @@ var tool_generateBase = {
                             labsPlaced++;
                             labsInThisCluster++;
                             
-                            // Add rampart for protection
+                            // Schedule rampart placement for later (after main structure is built)
                             if (thisRoom.controller.level >= 2) {
-                                thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                                this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                             }
                         }
                         
@@ -1444,6 +1521,69 @@ var tool_generateBase = {
         }
         
         console.log(`Lab cluster generation complete, placed ${labsPlaced} total labs`);
+    },
+
+    scheduleRampartPlacement: function(thisRoom, x, y) {
+        // Initialize rampart queue in memory if it doesn't exist
+        if (!Memory.rampartQueue) {
+            Memory.rampartQueue = {};
+        }
+        if (!Memory.rampartQueue[thisRoom.name]) {
+            Memory.rampartQueue[thisRoom.name] = [];
+        }
+        
+        // Add position to rampart queue if not already there
+        const posKey = `${x},${y}`;
+        if (!Memory.rampartQueue[thisRoom.name].includes(posKey)) {
+            Memory.rampartQueue[thisRoom.name].push(posKey);
+        }
+    },
+
+    processRampartQueue: function(thisRoom) {
+        // Process queued rampart placements for existing structures
+        if (!Memory.rampartQueue || !Memory.rampartQueue[thisRoom.name]) {
+            return;
+        }
+        
+        const queue = Memory.rampartQueue[thisRoom.name];
+        const processed = [];
+        
+        for (const posKey of queue) {
+            const [x, y] = posKey.split(',').map(Number);
+            const roomPos = new RoomPosition(x, y, thisRoom.name);
+            
+            // Check if there's a structure at this position (built, not just construction site)
+            const structures = roomPos.lookFor(LOOK_STRUCTURES);
+            const hasMainStructure = structures.some(s => s.structureType !== STRUCTURE_RAMPART);
+            
+            // Check if there's already a rampart here
+            const hasRampart = structures.some(s => s.structureType === STRUCTURE_RAMPART);
+            const rampartSite = roomPos.lookFor(LOOK_CONSTRUCTION_SITES).find(s => s.structureType === STRUCTURE_RAMPART);
+            
+            if (hasMainStructure && !hasRampart && !rampartSite) {
+                // Main structure exists, no rampart yet - place rampart
+                const result = thisRoom.createConstructionSite(x, y, STRUCTURE_RAMPART);
+                if (result === OK) {
+                    console.log(`Placed rampart on existing structure at ${x},${y} in ${thisRoom.name}`);
+                    processed.push(posKey);
+                } else if (result === ERR_FULL) {
+                    // Construction site limit reached, try again later
+                    break;
+                }
+            } else if (hasMainStructure && (hasRampart || rampartSite)) {
+                // Rampart already exists or is being built - remove from queue
+                processed.push(posKey);
+            }
+            // If no main structure yet, leave in queue for later processing
+        }
+        
+        // Remove processed positions from queue
+        Memory.rampartQueue[thisRoom.name] = queue.filter(pos => !processed.includes(pos));
+        
+        // Clean up empty queue
+        if (Memory.rampartQueue[thisRoom.name].length === 0) {
+            delete Memory.rampartQueue[thisRoom.name];
+        }
     },
 
     drawLegend: function(roomVis) {
