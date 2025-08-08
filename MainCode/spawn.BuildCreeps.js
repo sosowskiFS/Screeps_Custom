@@ -39,11 +39,6 @@ var spawn_BuildCreeps = {
         else if (Game.flags[thisRoom.name + "Supply"] && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
             supplierDirection = buildDirections; // Use all available directions
         }
-        
-        // Debug logging for supplier spawning
-        if (Game.time % 50 === 0 && supplierMax > 0) {
-            console.log(`${thisRoom.name} - ${spawn.name}: [BuildCreeps] Supplier debug - Current: ${suppliers.length}/${supplierMax}, Supply flag exists: ${!!Game.flags[thisRoom.name + "Supply"]}, Near spawn: ${Game.flags[thisRoom.name + "Supply"] ? Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn) : false}, Direction array length: ${supplierDirection.length}, Is autobuild: ${Memory.autoBuildRooms.indexOf(thisRoom.name) > -1}`);
-        }
 
         if (strSources.length == 1) {
             harvesterMax = 1;
@@ -72,12 +67,6 @@ var spawn_BuildCreeps = {
             //Laser focus on upgrading
             upgraderMax = upgraderMax + repairMax;
             repairMax = 0;
-        }
-
-        // Early exit if we already have enough creeps
-        let totalCreepsNeeded = harvesterMax + builderMax + upgraderMax + repairMax + supplierMax + distributorMax;
-        if (RoomCreeps.length >= totalCreepsNeeded && RoomCreeps.length > 0) {
-            return; // Don't spawn more creeps than needed
         }
 
         let defenderEnergyLim = 780;
@@ -185,7 +174,7 @@ var spawn_BuildCreeps = {
                     creepSourceID = strSources[0];
                 }
                 bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesters.length);
-            } else if (distributors.length < distributorMax && thisRoom.energyCapacityAvailable >= 300) {
+            } else if (distributors.length < distributorMax && thisRoom.energyCapacityAvailable >= 150) {
                 prioritizedRole = 'distributor';
                 bestWorker = getDistributorConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesters.length);
             } else if (suppliers.length < supplierMax && supplierDirection.length > 0 && thisRoom.energyCapacityAvailable >= 200) {
@@ -207,10 +196,7 @@ var spawn_BuildCreeps = {
 
             let configCost = calculateConfigCost(bestWorker);
             
-            // Only spawn if we have enough energy and the creep will be reasonably effective
-            let minEnergyThreshold = RoomCreeps.length === 0 ? 200 : Math.min(300, thisRoom.energyCapacityAvailable * 0.4);
-            
-            if (configCost <= Memory.CurrentRoomEnergy[energyIndex] && thisRoom.energyAvailable >= minEnergyThreshold) {
+            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                 Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
 				if (prioritizedRole == 'supplier') {
 					spawn.spawnCreep(bestWorker, prioritizedRole + '_' + spawn.name + '_' + Game.time, {
@@ -269,10 +255,7 @@ function getRepairMax(room) {
 }
 
 function getDistributorMax(room) {
-    // Distributors are most useful in early game and when storage doesn't exist
-    if (!room.storage && room.controller.level >= 2) return 1;
-    if (room.controller.level < 4) return 1;
-    return 0; // Higher level rooms rely more on suppliers and direct harvesting
+    return 1;
 }
 
 function getWorkerConfig(energyCap, role) {
@@ -398,10 +381,14 @@ function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
 
 function getDistributorConfig(energyCap, numRoomCreeps, numHarvesters) {
     // Distributors focus on moving energy efficiently
-    if (energyCap < 200 || numRoomCreeps <= 1) {
-        return [MOVE, MOVE, CARRY, CARRY, CARRY]; // Minimum distributor
+    // Lower energy requirement for early game rooms
+    if (energyCap < 150) {
+        return [MOVE, CARRY, CARRY]; // Very minimal distributor for RCL 1-2
     }
     
+    return [MOVE, MOVE, CARRY, CARRY, CARRY]; // Early game distributor
+    
+    //rest is whatever
     let config = [];
     let remainingEnergy = energyCap;
     let carryParts = 0;
@@ -430,6 +417,7 @@ function getDistributorConfig(energyCap, numRoomCreeps, numHarvesters) {
     for (let i = 0; i < moveParts; i++) config.push(MOVE);
     
     return config;
+    
 }
 
 module.exports = spawn_BuildCreeps;
