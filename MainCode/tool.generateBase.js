@@ -7,7 +7,7 @@ var tool_generateBase = {
         9: { x: 1, y: -1 }    // Top-right
     },
 
-    /* 
+    /*
      * UNIFIED GENERATION AND VISUALIZATION SYSTEM:
      * To visualize base plans instead of placing construction sites:
      * 1. Place a flag named "VisualizeBase" in any room
@@ -16,59 +16,13 @@ var tool_generateBase = {
      * 4. Remove the flag when done viewing to return to normal construction site generation
      * 
      * The same generation functions now handle both modes - no separate visualization code needed!
+     * 
+     * DYNAMIC CORE STRUCTURE SYSTEM:
+     * The core 3x3 structure layout is now dynamically generated based on flag positions:
+     * - Supply flag placement adapts to room direction
+     * - Storage is placed adjacent to both Supply flag and storageMiner flag
+     * - Remaining positions are filled with towers and spawns as needed
      */
-
-    // Compact 3x3 core structure layouts for each direction
-    STRUCTURE_LAYOUTS: {
-        1: {
-            // Core 3x3 layout (positions 3,3 to 5,5) - center of 7x7 grid - 6 towers max
-            '3,3': STRUCTURE_TOWER,
-            '3,4': 'supply', // Supply flag position
-            '3,5': STRUCTURE_TOWER,
-            '4,3': STRUCTURE_SPAWN,
-            '4,4': STRUCTURE_TOWER, // Tower in center
-            '4,5': STRUCTURE_TOWER,
-            '5,3': STRUCTURE_TOWER,
-            '5,4': STRUCTURE_TOWER
-            // '5,5': left empty for creep movement/mining access
-        },
-        3: {
-            // Core 3x3 layout (positions 3,3 to 5,5) - center of 7x7 grid - 6 towers max
-            '3,3': STRUCTURE_TOWER,
-            '3,4': STRUCTURE_TOWER,
-            '3,5': STRUCTURE_TOWER,
-            '4,3': STRUCTURE_TOWER, 
-            '4,4': 'supply', // Supply flag position in center
-            '4,5': STRUCTURE_SPAWN,
-            '5,3': STRUCTURE_TOWER,
-            '5,4': STRUCTURE_TOWER
-            // '5,5': left empty for creep movement/mining access
-        },
-        7: {
-            // Core 3x3 layout (positions 3,3 to 5,5) - center of 7x7 grid - 6 towers max
-            '3,3': STRUCTURE_TOWER,
-            '3,4': STRUCTURE_TOWER,
-            '3,5': STRUCTURE_TOWER,
-            '4,3': STRUCTURE_TOWER,
-            '4,4': 'supply', // Supply flag position in center
-            '4,5': STRUCTURE_TOWER,
-            '5,3': STRUCTURE_TOWER,
-            '5,4': STRUCTURE_SPAWN
-            // '5,5': left empty for creep movement/mining access
-        },
-        9: {
-            // Core 3x3 layout (positions 3,3 to 5,5) - center of 7x7 grid - 6 towers max
-            '3,3': STRUCTURE_TOWER,
-            '3,4': STRUCTURE_TOWER,
-            '3,5': STRUCTURE_TOWER,
-            '4,3': STRUCTURE_SPAWN,
-            '4,4': 'supply', // Supply flag position in center
-            '4,5': STRUCTURE_TOWER,
-            '5,3': STRUCTURE_TOWER,
-            '5,4': STRUCTURE_TOWER
-            // '5,5': left empty for creep movement/mining access
-        }
-    },
 
     // Priority structures to place around the core (in order of priority)
     PRIORITY_STRUCTURES: [
@@ -308,6 +262,11 @@ var tool_generateBase = {
 
         // Generate storageMiner flag and storage adjacent to the core (not conflicting with it)
         this.generateStorageMinerAndStorage(thisRoom, terrain, mainSource, bestCenterCoords, bestDirection, roomVis, occupiedPositions);
+        
+        // Generate upgradeMiner flag near the secondary source for link placement
+        if (notMainSource) {
+            this.generateUpgradeMinerFlag(thisRoom, terrain, notMainSource, bestCenterCoords, roomVis, occupiedPositions);
+        }
 
         // Generate priority structures around the core
         this.generatePriorityStructures(thisRoom, terrain, bestCenterCoords, bestDirection, notMainSource, roomVis, occupiedPositions);
@@ -325,34 +284,174 @@ var tool_generateBase = {
         }
     },
 
+    // Dynamic core structure generation - adapts based on flag positions
     generateCoreStructures: function(thisRoom, terrain, bestCenterCoords, bestDirection, roomVis = null, occupiedPositions = null) {
-        const layout = this.STRUCTURE_LAYOUTS[bestDirection];
+        // Get flag positions if they exist
+        let supplyFlagPos = null;
+        let storageMinerPos = null;
         
-        // Generate the 3x3 core using the layout coordinates directly
-        Object.keys(layout).forEach(structureKey => {
-            const structureData = layout[structureKey];
-            const [layoutX, layoutY] = structureKey.split(',').map(Number);
+        if (Game.flags[thisRoom.name + "Supply"]) {
+            supplyFlagPos = [Game.flags[thisRoom.name + "Supply"].pos.x, Game.flags[thisRoom.name + "Supply"].pos.y];
+        }
+        if (Game.flags[thisRoom.name + "storageMiner"]) {
+            storageMinerPos = [Game.flags[thisRoom.name + "storageMiner"].pos.x, Game.flags[thisRoom.name + "storageMiner"].pos.y];
+        }
+        
+        // Define the 3x3 core boundaries
+        const coreMinX = bestCenterCoords[0] - 1;
+        const coreMaxX = bestCenterCoords[0] + 1;
+        const coreMinY = bestCenterCoords[1] - 1;
+        const coreMaxY = bestCenterCoords[1] + 1;
+        
+        // Generate all positions in the 3x3 core
+        const corePositions = [];
+        for (let x = coreMinX; x <= coreMaxX; x++) {
+            for (let y = coreMinY; y <= coreMaxY; y++) {
+                corePositions.push([x, y]);
+            }
+        }
+        
+        // Track which positions are reserved for specific purposes
+        const reservedPositions = new Set();
+        const structurePlacements = new Map();
+        
+        // Step 1: Place Supply flag at center or appropriate position based on direction
+        this.placeSupplyFlag(bestCenterCoords, bestDirection, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions);
+        
+        // Step 2: Place storage adjacent to both Supply flag and storageMiner (if both exist)
+        if (supplyFlagPos && storageMinerPos) {
+            this.placeStorageAdjacentToBothFlags(supplyFlagPos, storageMinerPos, corePositions, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions);
+        }
+        
+        // Step 3: Place spawn in remaining suitable position
+        this.placeSpawnInCore(corePositions, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions);
+        
+        // Step 4: Fill remaining positions with towers
+        this.fillRemainingWithTowers(corePositions, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions);
+        
+        // Execute all placements
+        this.executePlacements(structurePlacements, thisRoom, roomVis, occupiedPositions);
+    },
+
+    placeSupplyFlag: function(bestCenterCoords, bestDirection, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions) {
+        // Place Supply flag based on direction preference
+        let supplyPos;
+        
+        switch(bestDirection) {
+            case 1: // Bottom-left - place supply on left side
+                supplyPos = [bestCenterCoords[0] - 1, bestCenterCoords[1]];
+                break;
+            case 3: // Bottom-right - place supply in center
+                supplyPos = [bestCenterCoords[0], bestCenterCoords[1]];
+                break;
+            case 7: // Top-left - place supply in center
+                supplyPos = [bestCenterCoords[0], bestCenterCoords[1]];
+                break;
+            case 9: // Top-right - place supply in center
+                supplyPos = [bestCenterCoords[0], bestCenterCoords[1]];
+                break;
+            default:
+                supplyPos = [bestCenterCoords[0], bestCenterCoords[1]]; // Default to center
+        }
+        
+        structurePlacements.set(`${supplyPos[0]},${supplyPos[1]}`, 'supply');
+        reservedPositions.add(`${supplyPos[0]},${supplyPos[1]}`);
+    },
+
+    placeStorageAdjacentToBothFlags: function(supplyFlagPos, storageMinerPos, corePositions, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions) {
+        // Helper function to check if a position is adjacent to a target position
+        const isAdjacent = (pos1, pos2) => {
+            return Math.abs(pos1[0] - pos2[0]) <= 1 && Math.abs(pos1[1] - pos2[1]) <= 1 && 
+                   !(pos1[0] === pos2[0] && pos1[1] === pos2[1]); // Not the same position
+        };
+        
+        // Find core positions that are adjacent to both flags
+        const validStoragePositions = corePositions.filter(pos => {
+            const posKey = `${pos[0]},${pos[1]}`;
+            // Skip if position is already reserved
+            if (reservedPositions.has(posKey)) return false;
             
-            // Transform layout coordinates (3,3 to 5,5) to world coordinates
-            // Layout coordinates are relative to center, so we offset by the center position
-            const worldX = bestCenterCoords[0] - 4 + layoutX; // -4 because layout uses 3,4,5 (center at 4)
-            const worldY = bestCenterCoords[1] - 4 + layoutY;
+            // Check if adjacent to both flags
+            const adjacentToSupply = isAdjacent(pos, supplyFlagPos);
+            const adjacentToStorageMiner = isAdjacent(pos, storageMinerPos);
+            
+            return adjacentToSupply && adjacentToStorageMiner;
+        });
+        
+        if (validStoragePositions.length > 0) {
+            // Choose the first valid position (could add more sophisticated selection logic)
+            const storagePos = validStoragePositions[0];
+            structurePlacements.set(`${storagePos[0]},${storagePos[1]}`, STRUCTURE_STORAGE);
+            reservedPositions.add(`${storagePos[0]},${storagePos[1]}`);
+            console.log(`Planned storage at ${storagePos[0]},${storagePos[1]} adjacent to both Supply flag and storageMiner`);
+        } else {
+            console.log(`Warning: No core position found adjacent to both Supply flag and storageMiner`);
+            // Fallback: place storage adjacent to Supply flag only
+            const fallbackPositions = corePositions.filter(pos => {
+                const posKey = `${pos[0]},${pos[1]}`;
+                if (reservedPositions.has(posKey)) return false;
+                return isAdjacent(pos, supplyFlagPos);
+            });
+            
+            if (fallbackPositions.length > 0) {
+                const storagePos = fallbackPositions[0];
+                structurePlacements.set(`${storagePos[0]},${storagePos[1]}`, STRUCTURE_STORAGE);
+                reservedPositions.add(`${storagePos[0]},${storagePos[1]}`);
+                console.log(`Fallback: Planned storage at ${storagePos[0]},${storagePos[1]} adjacent to Supply flag only`);
+            }
+        }
+    },
+
+    placeSpawnInCore: function(corePositions, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions) {
+        // Find a good position for spawn (avoid center if possible)
+        const availablePositions = corePositions.filter(pos => {
+            const posKey = `${pos[0]},${pos[1]}`;
+            return !reservedPositions.has(posKey);
+        });
+        
+        if (availablePositions.length > 0) {
+            // Calculate the center of the core area
+            const centerX = Math.floor((Math.min(...corePositions.map(pos => pos[0])) + Math.max(...corePositions.map(pos => pos[0]))) / 2);
+            const centerY = Math.floor((Math.min(...corePositions.map(pos => pos[1])) + Math.max(...corePositions.map(pos => pos[1]))) / 2);
+            
+            // Prefer corner or edge positions for spawn
+            const preferredPos = availablePositions.find(pos => {
+                // Check if it's a corner or edge position (not center)
+                const isCornerOrEdge = pos[0] !== centerX || pos[1] !== centerY;
+                return isCornerOrEdge;
+            }) || availablePositions[0]; // Fallback to any available position
+            
+            structurePlacements.set(`${preferredPos[0]},${preferredPos[1]}`, STRUCTURE_SPAWN);
+            reservedPositions.add(`${preferredPos[0]},${preferredPos[1]}`);
+        }
+    },
+
+    fillRemainingWithTowers: function(corePositions, structurePlacements, reservedPositions, thisRoom, roomVis, occupiedPositions) {
+        // Fill all remaining core positions with towers
+        corePositions.forEach(pos => {
+            const posKey = `${pos[0]},${pos[1]}`;
+            if (!reservedPositions.has(posKey)) {
+                structurePlacements.set(posKey, STRUCTURE_TOWER);
+            }
+        });
+    },
+
+    executePlacements: function(structurePlacements, thisRoom, roomVis, occupiedPositions) {
+        // Execute all planned structure placements
+        structurePlacements.forEach((structureData, posKey) => {
+            const [x, y] = posKey.split(',').map(Number);
             
             if (roomVis) {
                 // Visualization mode
-                console.log(`Visualizing ${structureData} from layout ${structureKey} at world coords (${worldX},${worldY})`);
-                this.drawStructureVisual(roomVis, [worldX, worldY], structureData, 'core');
+                this.drawStructureVisual(roomVis, [x, y], structureData, 'core');
                 if (occupiedPositions) {
-                    occupiedPositions.add(`${worldX},${worldY}`);
+                    occupiedPositions.add(posKey);
                 }
             } else {
                 // Generation mode
-                console.log(`Placing ${structureData} from layout ${structureKey} at world coords (${worldX},${worldY})`);
-                this.createStructureFromData(thisRoom, [worldX, worldY], structureData);
-                
-                // Track this position as occupied
+                this.createStructureFromData(thisRoom, [x, y], structureData);
                 if (occupiedPositions) {
-                    occupiedPositions.add(`${worldX},${worldY}`);
+                    occupiedPositions.add(posKey);
                 }
             }
         });
@@ -491,81 +590,135 @@ var tool_generateBase = {
             }
         }
         
-        // Find a position for storage next to the storageMiner, preferring positions closer to the core
-        const storagePositions = [];
+        // Storage placement is now handled by the core structure layout at position 5,5
+        // which is adjacent to both the storageMiner and Supply flag positions
+    },
+
+    generateUpgradeMinerFlag: function(thisRoom, terrain, notMainSource, bestCenterCoords, roomVis = null, occupiedPositions = null) {
+        if (!notMainSource) return;
+
+        // Find positions adjacent to the secondary source that are closest to the main base
+        const sourcePos = [notMainSource.pos.x, notMainSource.pos.y];
+        const candidatePositions = [];
+        
+        if (roomVis) {
+            // Draw the secondary source for visualization
+            roomVis.circle(sourcePos[0], sourcePos[1], {
+                radius: 0.5,
+                fill: '#ffff00',
+                stroke: '#000000',
+                strokeWidth: 0.1
+            });
+            roomVis.text('SRC2', sourcePos[0], sourcePos[1] + 0.1, {
+                color: '#000000',
+                font: '0.4',
+                align: 'center'
+            });
+        }
+        
+        // Check positions around the secondary source
         for (let y = -1; y <= 1; y++) {
             for (let x = -1; x <= 1; x++) {
-                if (x === 0 && y === 0) continue; // Skip storageMiner position
+                if (x === 0 && y === 0) continue; // Skip source position
                 
-                const storagePos = [storageMinerPos[0] + x, storageMinerPos[1] + y];
+                const upgradeMinerPos = [sourcePos[0] + x, sourcePos[1] + y];
                 
-                // Check if position is valid
-                if (storagePos[0] <= 2 || storagePos[0] >= 47 || storagePos[1] <= 2 || storagePos[1] >= 47) continue;
-                if (terrain.get(storagePos[0], storagePos[1]) === TERRAIN_MASK_WALL) continue;
+                // Check if position is valid (not wall, within bounds)
+                if (upgradeMinerPos[0] <= 2 || upgradeMinerPos[0] >= 47 || upgradeMinerPos[1] <= 2 || upgradeMinerPos[1] >= 47) continue;
+                if (terrain.get(upgradeMinerPos[0], upgradeMinerPos[1]) === TERRAIN_MASK_WALL) continue;
                 
-                // Check if position is not occupied and not the source
-                if (storagePos[0] === sourcePos[0] && storagePos[1] === sourcePos[1]) continue;
-                
+                // Check if position is not occupied
                 if (occupiedPositions) {
                     // Check occupied positions set (both visualization and generation mode)
-                    const posKey = `${storagePos[0]},${storagePos[1]}`;
+                    const posKey = `${upgradeMinerPos[0]},${upgradeMinerPos[1]}`;
                     if (occupiedPositions.has(posKey)) continue;
                 }
                 
                 if (!roomVis) {
                     // In generation mode, also check for real structures/sites/flags
-                    const roomPos = new RoomPosition(storagePos[0], storagePos[1], thisRoom.name);
+                    const roomPos = new RoomPosition(upgradeMinerPos[0], upgradeMinerPos[1], thisRoom.name);
                     const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
                     const flags = roomPos.lookFor(LOOK_FLAGS);
                     if (structures.length > 0 || sites.length > 0 || flags.length > 0) continue;
                 }
                 
-                // Avoid placing storage inside the 3x3 core
-                if (storagePos[0] >= coreMinX && storagePos[0] <= coreMaxX && 
-                    storagePos[1] >= coreMinY && storagePos[1] <= coreMaxY) continue;
+                // Check if this position will have road accessibility based on checkerboard pattern
+                let hasRoadAccess = false;
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        if (dx === 0 && dy === 0) continue; // Skip the position itself
+                        
+                        const adjX = upgradeMinerPos[0] + dx;
+                        const adjY = upgradeMinerPos[1] + dy;
+                        
+                        // Check if adjacent position is valid and would be a road in checkerboard pattern
+                        if (adjX > 2 && adjX < 47 && adjY > 2 && adjY < 47) {
+                            if (terrain.get(adjX, adjY) !== TERRAIN_MASK_WALL) {
+                                // This adjacent position would be a road if (adjX + adjY) % 2 !== 0
+                                const wouldBeRoad = (adjX + adjY) % 2 !== 0;
+                                if (wouldBeRoad) {
+                                    hasRoadAccess = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (hasRoadAccess) break;
+                }
                 
-                // Calculate distance to core center for prioritization
-                const distanceToCore = Math.sqrt(Math.pow(storagePos[0] - bestCenterCoords[0], 2) + Math.pow(storagePos[1] - bestCenterCoords[1], 2));
-                storagePositions.push({
-                    pos: storagePos,
-                    distance: distanceToCore
+                // Calculate distance to main base for prioritization
+                const distanceToBase = Math.sqrt(Math.pow(upgradeMinerPos[0] - bestCenterCoords[0], 2) + Math.pow(upgradeMinerPos[1] - bestCenterCoords[1], 2));
+                candidatePositions.push({
+                    pos: upgradeMinerPos,
+                    distance: distanceToBase,
+                    hasRoadAccess: hasRoadAccess
                 });
             }
         }
         
-        if (storagePositions.length === 0) {
-            console.log(`No valid position found for storage next to storageMiner at ${storageMinerPos[0]},${storageMinerPos[1]}`);
+        if (candidatePositions.length === 0) {
+            console.log(`No valid positions found for upgradeMiner around secondary source at ${sourcePos[0]},${sourcePos[1]}`);
             return;
         }
         
-        // Sort by distance to core and choose the closest position
-        storagePositions.sort((a, b) => a.distance - b.distance);
-        const finalStoragePos = storagePositions[0].pos;
+        // Sort by road accessibility first, then by distance to main base
+        // Prioritize positions with road access, then by proximity to main base
+        candidatePositions.sort((a, b) => {
+            if (a.hasRoadAccess && !b.hasRoadAccess) return -1;
+            if (!a.hasRoadAccess && b.hasRoadAccess) return 1;
+            return a.distance - b.distance;
+        });
+        
+        const upgradeMinerPos = candidatePositions[0].pos;
+        const hasRoadAccess = candidatePositions[0].hasRoadAccess;
         
         if (roomVis) {
             // Visualization mode
-            this.drawStructureVisual(roomVis, finalStoragePos, STRUCTURE_STORAGE, 'core');
+            this.drawStructureVisual(roomVis, upgradeMinerPos, 'upgradeMiner', 'core');
             if (occupiedPositions) {
-                occupiedPositions.add(`${finalStoragePos[0]},${finalStoragePos[1]}`);
+                occupiedPositions.add(`${upgradeMinerPos[0]},${upgradeMinerPos[1]}`);
             }
-            console.log(`Visualized storage at ${finalStoragePos[0]},${finalStoragePos[1]} next to storageMiner and core`);
             
-            // Visualize potential access road
-            //this.visualizeStorageMinerRoadAccess(roomVis, terrain, storageMinerPos, bestCenterCoords, occupiedPositions);
+            // Add visual indicator for road access
+            if (hasRoadAccess) {
+                roomVis.text('R', upgradeMinerPos[0] + 0.3, upgradeMinerPos[1] - 0.3, {
+                    color: '#00ff00',
+                    font: '0.3',
+                    stroke: '#000000',
+                    strokeWidth: 0.05
+                });
+            }
         } else {
-            // Generation mode - Place storage here
-            thisRoom.createConstructionSite(finalStoragePos[0], finalStoragePos[1], STRUCTURE_STORAGE);
-            console.log(`Placed storage at ${finalStoragePos[0]},${finalStoragePos[1]} next to storageMiner and core`);
-            
+            // Generation mode - Place upgradeMiner flag if it doesn't exist
+            if (!Game.flags[thisRoom.name + "upgradeMiner"]) {
+                thisRoom.createFlag(upgradeMinerPos[0], upgradeMinerPos[1], thisRoom.name + "upgradeMiner");
+                console.log(`Placed upgradeMiner flag at ${upgradeMinerPos[0]},${upgradeMinerPos[1]} adjacent to secondary source (road access: ${hasRoadAccess})`);
+            }
             // Track this position as occupied
             if (occupiedPositions) {
-                occupiedPositions.add(`${finalStoragePos[0]},${finalStoragePos[1]}`);
+                occupiedPositions.add(`${upgradeMinerPos[0]},${upgradeMinerPos[1]}`);
             }
-            
-            // Ensure road accessibility for the storageMiner by placing a road adjacent to it
-            // This guarantees access even if the extension grid doesn't naturally create one
-            this.ensureStorageMinerRoadAccess(thisRoom, terrain, storageMinerPos, bestCenterCoords, occupiedPositions);
         }
     },
 
@@ -662,18 +815,86 @@ var tool_generateBase = {
             structureCounts[priorityStruct.type] = 0;
         });
         
-        // Count already placed structures from core
-        const layout = this.STRUCTURE_LAYOUTS[bestDirection];
-        Object.values(layout).forEach(structureData => {
-            if (typeof structureData === 'string' && structureData !== 'supply' && structureData !== 'storageMiner') {
-                if (structureCounts[structureData] !== undefined) {
-                    structureCounts[structureData]++;
+        // Count already placed structures from core (dynamic system)
+        // Since we use dynamic placement, count existing structures in the 3x3 core area
+        const coreMinX = bestCenterCoords[0] - 1;
+        const coreMaxX = bestCenterCoords[0] + 1;
+        const coreMinY = bestCenterCoords[1] - 1;
+        const coreMaxY = bestCenterCoords[1] + 1;
+        
+        // Find spawn position from core area to avoid blocking it
+        let spawnPos = null;
+        
+        for (let x = coreMinX; x <= coreMaxX; x++) {
+            for (let y = coreMinY; y <= coreMaxY; y++) {
+                if (!roomVis) {
+                    // In generation mode, count existing structures and find spawn
+                    const roomPos = new RoomPosition(x, y, thisRoom.name);
+                    const structures = roomPos.lookFor(LOOK_STRUCTURES);
+                    const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
+                    
+                    [...structures, ...sites].forEach(structure => {
+                        const structType = structure.structureType;
+                        if (structureCounts[structType] !== undefined) {
+                            structureCounts[structType]++;
+                        }
+                        // Track spawn position
+                        if (structType === STRUCTURE_SPAWN) {
+                            spawnPos = [x, y];
+                        }
+                    });
+                } else {
+                    // In visualization mode, we'll assume typical core layout counts
+                    // This is an approximation for visualization purposes
+                    // 1 storage, 1 spawn, ~6 towers in a 3x3 core
+                    if (x === coreMinX && y === coreMinY) {
+                        // Only count once during the first iteration
+                        structureCounts[STRUCTURE_STORAGE] = 1;
+                        structureCounts[STRUCTURE_SPAWN] = 1;
+                        structureCounts[STRUCTURE_TOWER] = 6; // Approximate tower count in core
+                        // Assume spawn is at a corner position for visualization
+                        spawnPos = [coreMinX, coreMinY];
+                    }
                 }
             }
-        });
+        }
 
-        // Account for storage placed near source (not in priority list but affects counts)
-        // Storage is already placed by generateStorageMinerAndStorage, so we don't need to place another
+        // Helper function to check if position is adjacent to spawn
+        const isAdjacentToSpawn = (pos) => {
+            if (!spawnPos) return false;
+            
+            const dx = Math.abs(pos[0] - spawnPos[0]);
+            const dy = Math.abs(pos[1] - spawnPos[1]);
+            
+            // Adjacent includes diagonal positions
+            return dx <= 1 && dy <= 1 && (dx !== 0 || dy !== 0);
+        };
+
+        // Helper function to check if spawn has external access
+        const checkSpawnAccess = () => {
+            if (!spawnPos) return true; // No spawn found, assume it's fine
+            
+            // Check if spawn has at least one free adjacent position outside the core
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    
+                    const adjX = spawnPos[0] + dx;
+                    const adjY = spawnPos[1] + dy;
+                    
+                    // Check if this position is outside the core
+                    if (adjX < coreMinX || adjX > coreMaxX || adjY < coreMinY || adjY > coreMaxY) {
+                        // Check if position is valid and not occupied
+                        if (adjX > 2 && adjX < 47 && adjY > 2 && adjY < 47) {
+                            if (terrain.get(adjX, adjY) !== TERRAIN_MASK_WALL) {
+                                return true; // Found at least one accessible position
+                            }
+                        }
+                    }
+                }
+            }
+            return false; // No external access found
+        };
 
         // Place priority structures in expanding rings around the core
         let radius = 2;
@@ -709,15 +930,28 @@ var tool_generateBase = {
                     if (thisRoom.controller.level >= priorityStruct.level && 
                         structureCounts[priorityStruct.type] < priorityStruct.count) {
                         
+                        // Special check: avoid placing structures adjacent to spawn in first ring
+                        // This ensures spawn has at least one free adjacent position for external access
+                        if (radius === 2 && isAdjacentToSpawn(pos)) {
+                            // Skip this position if it's adjacent to spawn in the first ring
+                            console.log(`Skipping position ${pos[0]},${pos[1]} adjacent to spawn at ${spawnPos[0]},${spawnPos[1]} to preserve access`);
+                            break; // Break out of structure loop, continue to next position
+                        }
+                        
                         if (roomVis) {
-                            // Visualization mode
-                            this.drawStructureVisual(roomVis, pos, priorityStruct.type, 'priority');
+                            // Visualization mode - add special handling for links
+                            let linkCategory = 'priority';
+                            if (priorityStruct.type === STRUCTURE_LINK) {
+                                linkCategory = 'link';
+                            }
+                            this.drawStructureVisual(roomVis, pos, priorityStruct.type, linkCategory);
                             if (occupiedPositions) {
                                 occupiedPositions.add(`${pos[0]},${pos[1]}`);
                             }
                         } else {
                             // Generation mode
                             thisRoom.createConstructionSite(pos[0], pos[1], priorityStruct.type);
+                            console.log(`Placed ${priorityStruct.type} at radius ${radius} position ${pos[0]},${pos[1]}`);
                             
                             // Track this position as occupied
                             if (occupiedPositions) {
@@ -1095,6 +1329,8 @@ var tool_generateBase = {
             // Special case for flags
             if (structureData === 'storageMiner' && !Game.flags[thisRoom.name + "storageMiner"]) {
                 thisRoom.createFlag(pos[0], pos[1], thisRoom.name + "storageMiner");
+            } else if (structureData === 'upgradeMiner' && !Game.flags[thisRoom.name + "upgradeMiner"]) {
+                thisRoom.createFlag(pos[0], pos[1], thisRoom.name + "upgradeMiner");
             } else if (structureData === 'supply' && !Game.flags[thisRoom.name + "Supply"]) {
                 thisRoom.createFlag(pos[0], pos[1], thisRoom.name + "Supply");
                 // Also add rampart at supply position
@@ -1109,6 +1345,11 @@ var tool_generateBase = {
             } else if (structureData === STRUCTURE_SPAWN) {
                 // Spawns are available from level 1
                 thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_SPAWN);
+            } else if (structureData === STRUCTURE_STORAGE) {
+                // Storage requires controller level 4
+                if (thisRoom.controller.level >= 4) {
+                    thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_STORAGE);
+                }
             } else {
                 // Other regular structures - place without level check for now
                 thisRoom.createConstructionSite(pos[0], pos[1], structureData);
@@ -1127,62 +1368,121 @@ var tool_generateBase = {
     generateLinks: function(thisRoom, terrain, notMainSource, bestCenterCoords, mainSource, roomVis = null, occupiedPositions = null) {
         if (thisRoom.controller.level < 5) return; // Links available at level 5
         
-        console.log(`Generating optimal 4-link system for ${thisRoom.name}`);
+        console.log(`Generating optimal link system for ${thisRoom.name}`);
         
         // Count existing links
-        const existingLinks = thisRoom.find(FIND_MY_STRUCTURES, {
-            filter: s => s.structureType === STRUCTURE_LINK
-        }).length;
-        const plannedLinks = thisRoom.find(FIND_MY_CONSTRUCTION_SITES, {
-            filter: s => s.structureType === STRUCTURE_LINK
-        }).length;
+        let existingLinks = 0;
+        let plannedLinks = 0;
+        
+        if (!roomVis) {
+            // Only count in generation mode
+            existingLinks = thisRoom.find(FIND_MY_STRUCTURES, {
+                filter: s => s.structureType === STRUCTURE_LINK
+            }).length;
+            plannedLinks = thisRoom.find(FIND_MY_CONSTRUCTION_SITES, {
+                filter: s => s.structureType === STRUCTURE_LINK
+            }).length;
+        }
         
         let linksPlaced = existingLinks + plannedLinks;
+        const maxLinks = CONTROLLER_STRUCTURES[STRUCTURE_LINK][thisRoom.controller.level] || 0;
         
-        if (linksPlaced >= 4) {
-            console.log(`Already have ${linksPlaced} links, skipping link generation`);
+        console.log(`Starting with ${existingLinks} existing links and ${plannedLinks} planned links = ${linksPlaced} total`);
+        console.log(`Room level ${thisRoom.controller.level} allows ${maxLinks} total links`);
+        
+        if (!roomVis && linksPlaced >= maxLinks) {
+            console.log(`Already have ${linksPlaced} links (max ${maxLinks}), skipping link generation`);
             return;
         }
         
-        // 1. Place center link in the main base core (priority 1)
-        if (linksPlaced < 4) {
-            if (this.placeCenterLink(thisRoom, terrain, bestCenterCoords, roomVis, occupiedPositions)) {
-                linksPlaced++;
-            }
+        // Priority 1: Source link (most important for energy flow)
+        if (linksPlaced < maxLinks && notMainSource) {
+            console.log(`Priority 1: Attempting to place source link...`);
+            const sourceLinksPlaced = this.placeSourceLinks(thisRoom, terrain, notMainSource, 1, roomVis, occupiedPositions);
+            linksPlaced += sourceLinksPlaced;
+            console.log(`Placed ${sourceLinksPlaced} source links, total links: ${linksPlaced}`);
+        } else if (!notMainSource) {
+            console.log(`No secondary source found, skipping source link`);
         }
         
-        // 2. Place controller link for upgraders (priority 2)
-        if (linksPlaced < 4) {
+        // Priority 2: Controller link (for upgraders)
+        if (linksPlaced < maxLinks) {
+            console.log(`Priority 2: Attempting to place controller link...`);
             if (this.placeControllerLink(thisRoom, terrain, roomVis, occupiedPositions)) {
                 linksPlaced++;
+                console.log(`Controller link placed, total links: ${linksPlaced}`);
+            } else {
+                console.log(`Failed to place controller link`);
             }
         }
         
-        // 3 & 4. Place source links near the secondary source (priority 3 & 4)
-        if (linksPlaced < 4 && notMainSource) {
-            const sourceLinksNeeded = Math.min(2, 4 - linksPlaced);
-            const sourceLinksPlaced = this.placeSourceLinks(thisRoom, terrain, notMainSource, sourceLinksNeeded, roomVis, occupiedPositions);
-            linksPlaced += sourceLinksPlaced;
+        // Priority 3: Additional source link (if room level allows and we have space)
+        if (linksPlaced < maxLinks && notMainSource && thisRoom.controller.level >= 6) {
+            console.log(`Priority 3: Attempting to place second source link...`);
+            const additionalSourceLinks = this.placeSourceLinks(thisRoom, terrain, notMainSource, 1, roomVis, occupiedPositions);
+            linksPlaced += additionalSourceLinks;
+            console.log(`Placed ${additionalSourceLinks} additional source links, total links: ${linksPlaced}`);
         }
         
-        const expectedLinks = 4; // Center + upgrader + 2 source links
-        console.log(`Link generation complete for ${thisRoom.name}: placed ${linksPlaced} of ${expectedLinks} expected links`);
+        // Priority 4: Center link (lowest priority - only if we have remaining capacity)
+        if (linksPlaced < maxLinks && thisRoom.controller.level >= 6) {
+            console.log(`Priority 4: Attempting to place center link...`);
+            if (this.placeCenterLink(thisRoom, terrain, bestCenterCoords, roomVis, occupiedPositions)) {
+                linksPlaced++;
+                console.log(`Center link placed, total links: ${linksPlaced}`);
+            } else {
+                console.log(`Failed to place center link (not critical)`);
+            }
+        }
+        
+        console.log(`Link generation complete for ${thisRoom.name}: placed ${linksPlaced} of ${maxLinks} available links`);
+        
+        // Log the final link configuration
+        if (roomVis || linksPlaced > 0) {
+            let linkTypes = [];
+            if (notMainSource && linksPlaced >= 1) linkTypes.push("source");
+            if (linksPlaced >= 2) linkTypes.push("controller");
+            if (linksPlaced >= 3 && thisRoom.controller.level >= 6) linkTypes.push("second source");
+            if (linksPlaced >= 4 && thisRoom.controller.level >= 6) linkTypes.push("center");
+            
+            console.log(`Link configuration: ${linkTypes.join(", ")}`);
+        }
     },
 
     placeCenterLink: function(thisRoom, terrain, bestCenterCoords, roomVis = null, occupiedPositions = null) {
-        // Place a link in the center core area for central distribution
-        const centerPositions = [
-            [bestCenterCoords[0], bestCenterCoords[1]], // Exact center
-            [bestCenterCoords[0] + 1, bestCenterCoords[1]], // Adjacent positions
-            [bestCenterCoords[0] - 1, bestCenterCoords[1]],
-            [bestCenterCoords[0], bestCenterCoords[1] + 1],
-            [bestCenterCoords[0], bestCenterCoords[1] - 1],
-        ];
+        // Place a link near the center core area for central distribution
+        // Look for positions around the 3x3 core, not inside it
+        const coreMinX = bestCenterCoords[0] - 1;
+        const coreMaxX = bestCenterCoords[0] + 1;
+        const coreMinY = bestCenterCoords[1] - 1;
+        const coreMaxY = bestCenterCoords[1] + 1;
         
-        for (const pos of centerPositions) {
-            // Check if position is valid
-            if (pos[0] <= 2 || pos[0] >= 47 || pos[1] <= 2 || pos[1] >= 47) continue;
-            if (terrain.get(pos[0], pos[1]) === TERRAIN_MASK_WALL) continue;
+        const centerPositions = [];
+        
+        // Check positions around the 3x3 core perimeter
+        for (let y = coreMinY - 1; y <= coreMaxY + 1; y++) {
+            for (let x = coreMinX - 1; x <= coreMaxX + 1; x++) {
+                // Skip positions inside the 3x3 core
+                if (x >= coreMinX && x <= coreMaxX && y >= coreMinY && y <= coreMaxY) continue;
+                
+                // Check if position is valid (not wall, within bounds)
+                if (x <= 2 || x >= 47 || y <= 2 || y >= 47) continue;
+                if (terrain.get(x, y) === TERRAIN_MASK_WALL) continue;
+                
+                // Calculate distance to core center for prioritization
+                const distanceToCore = Math.sqrt(Math.pow(x - bestCenterCoords[0], 2) + Math.pow(y - bestCenterCoords[1], 2));
+                centerPositions.push({
+                    pos: [x, y],
+                    distance: distanceToCore
+                });
+            }
+        }
+        
+        // Sort by distance to core center - closest first
+        centerPositions.sort((a, b) => a.distance - b.distance);
+        
+        for (const posData of centerPositions) {
+            const pos = posData.pos;
             
             // Check if position is not occupied
             if (occupiedPositions) {
@@ -1206,11 +1506,11 @@ var tool_generateBase = {
                 if (occupiedPositions) {
                     occupiedPositions.add(`${pos[0]},${pos[1]}`);
                 }
-                console.log(`Visualized center link at ${pos[0]},${pos[1]}`);
+                console.log(`Visualized center link at ${pos[0]},${pos[1]} adjacent to core`);
             } else {
                 // Generation mode - Place center link here
                 thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_LINK);
-                console.log(`Placed center link at ${pos[0]},${pos[1]}`);
+                console.log(`Placed center link at ${pos[0]},${pos[1]} adjacent to core`);
                 
                 // Track this position as occupied
                 if (occupiedPositions) {
@@ -1225,7 +1525,7 @@ var tool_generateBase = {
             return true; // Successfully placed
         }
         
-        console.log(`No valid position found for center link near ${bestCenterCoords[0]},${bestCenterCoords[1]}`);
+        console.log(`No valid position found for center link around core at ${bestCenterCoords[0]},${bestCenterCoords[1]}`);
         return false; // Failed to place
     },
 
@@ -1293,43 +1593,76 @@ var tool_generateBase = {
     },
 
     placeSourceLinks: function(thisRoom, terrain, notMainSource, linksNeeded, roomVis = null, occupiedPositions = null) {
-        const sourcePos = [notMainSource.pos.x, notMainSource.pos.y];
+        // Check if upgradeMiner flag exists
+        const upgradeMinerFlag = Game.flags[thisRoom.name + "upgradeMiner"];
+        if (!upgradeMinerFlag) {
+            console.log(`No upgradeMiner flag found for ${thisRoom.name} - cannot place source links`);
+            return 0;
+        }
+        
+        const upgradeMinerPos = [upgradeMinerFlag.pos.x, upgradeMinerFlag.pos.y];
         let linksPlaced = 0;
         
-        // Find positions around the source, leaving space for miners
+        console.log(`Searching for ${linksNeeded} source link positions around upgradeMiner flag at ${upgradeMinerPos[0]},${upgradeMinerPos[1]}`);
+        
+        // Find all valid positions around the upgradeMiner flag for link placement
         const linkPositions = [];
         for (let y = -1; y <= 1; y++) {
             for (let x = -1; x <= 1; x++) {
-                if (x === 0 && y === 0) continue; // Skip source position
+                if (x === 0 && y === 0) continue; // Skip upgradeMiner position
                 
-                const pos = [sourcePos[0] + x, sourcePos[1] + y];
+                const pos = [upgradeMinerPos[0] + x, upgradeMinerPos[1] + y];
                 
                 // Check if position is valid
-                if (pos[0] <= 2 || pos[0] >= 47 || pos[1] <= 2 || pos[1] >= 47) continue;
-                if (terrain.get(pos[0], pos[1]) === TERRAIN_MASK_WALL) continue;
+                if (pos[0] <= 2 || pos[0] >= 47 || pos[1] <= 2 || pos[1] >= 47) {
+                    console.log(`Position ${pos[0]},${pos[1]} out of bounds`);
+                    continue;
+                }
+                if (terrain.get(pos[0], pos[1]) === TERRAIN_MASK_WALL) {
+                    console.log(`Position ${pos[0]},${pos[1]} is a wall`);
+                    continue;
+                }
                 
                 // Check if position is not occupied
+                let isOccupied = false;
                 if (occupiedPositions) {
                     // Check occupied positions set (both visualization and generation mode)
                     const posKey = `${pos[0]},${pos[1]}`;
-                    if (occupiedPositions.has(posKey)) continue;
+                    if (occupiedPositions.has(posKey)) {
+                        console.log(`Position ${pos[0]},${pos[1]} is occupied in occupiedPositions set`);
+                        isOccupied = true;
+                    }
                 }
                 
-                if (!roomVis) {
+                if (!roomVis && !isOccupied) {
                     // In generation mode, also check for real structures/sites/flags
                     const roomPos = new RoomPosition(pos[0], pos[1], thisRoom.name);
                     const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
                     const flags = roomPos.lookFor(LOOK_FLAGS);
-                    if (structures.length > 0 || sites.length > 0 || flags.length > 0) continue;
+                    if (structures.length > 0 || sites.length > 0 || flags.length > 0) {
+                        console.log(`Position ${pos[0]},${pos[1]} has existing structures/sites/flags`);
+                        isOccupied = true;
+                    }
                 }
                 
-                linkPositions.push(pos);
+                if (!isOccupied) {
+                    linkPositions.push(pos);
+                    console.log(`Found valid link position: ${pos[0]},${pos[1]}`);
+                }
             }
         }
         
-        // Place links, but leave at least one free space for miners
-        const maxLinksToPlace = Math.min(linksNeeded, linkPositions.length - 1);
+        console.log(`Found ${linkPositions.length} valid positions for source links`);
+        
+        if (linkPositions.length === 0) {
+            console.log(`No valid positions found around upgradeMiner flag at ${upgradeMinerPos[0]},${upgradeMinerPos[1]} for source links`);
+            return 0;
+        }
+        
+        // Place the requested number of links around the upgradeMiner flag
+        const maxLinksToPlace = Math.min(linksNeeded, linkPositions.length);
+        console.log(`Attempting to place ${maxLinksToPlace} source links`);
         
         for (let i = 0; i < maxLinksToPlace && linksPlaced < linksNeeded; i++) {
             const pos = linkPositions[i];
@@ -1340,11 +1673,11 @@ var tool_generateBase = {
                 if (occupiedPositions) {
                     occupiedPositions.add(`${pos[0]},${pos[1]}`);
                 }
-                console.log(`Visualized source link ${linksPlaced + 1} at ${pos[0]},${pos[1]} near secondary source`);
+                console.log(`Visualized source link ${linksPlaced + 1} at ${pos[0]},${pos[1]} near upgradeMiner flag`);
             } else {
                 // Generation mode
                 thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_LINK);
-                console.log(`Placed source link ${linksPlaced + 1} at ${pos[0]},${pos[1]} near secondary source`);
+                console.log(`Placed source link ${linksPlaced + 1} at ${pos[0]},${pos[1]} near upgradeMiner flag`);
                 
                 // Track this position as occupied
                 if (occupiedPositions) {
@@ -1361,7 +1694,9 @@ var tool_generateBase = {
         }
         
         if (linksPlaced < linksNeeded) {
-            console.log(`Only placed ${linksPlaced} of ${linksNeeded} source links - not enough free positions`);
+            console.log(`Warning: Placed only ${linksPlaced} of ${linksNeeded} requested source links around upgradeMiner flag`);
+        } else {
+            console.log(`Successfully placed all ${linksPlaced} source links around upgradeMiner flag`);
         }
         
         return linksPlaced; // Return actual number of links placed
@@ -1643,6 +1978,7 @@ var tool_generateBase = {
         drawLegendEntry(STRUCTURE_STORAGE, "Storage");
         drawLegendEntry('supply', "Supply Flag");
         drawLegendEntry('storageMiner', "Storage Miner");
+        drawLegendEntry('upgradeMiner', "Upgrade Miner");
         
         // Extensions and roads
         drawLegendEntry(STRUCTURE_EXTENSION, "Extension");
@@ -1894,6 +2230,20 @@ var tool_generateBase = {
                 });
                 break;
                 
+            case 'upgradeMiner':
+                roomVis.circle(x, y, {
+                    radius: 0.2,
+                    fill: '#aaffaa',
+                    stroke: strokeColor,
+                    strokeWidth: strokeWidth
+                });
+                roomVis.text('UM', x, y + 0.1, {
+                    color: '#000000',
+                    font: '0.3',
+                    align: 'center'
+                });
+                break;
+                
             default:
                 // Generic structure visualization
                 roomVis.circle(x, y, {
@@ -2097,6 +2447,20 @@ var tool_generateBase = {
                     strokeWidth: 0.1
                 });
                 roomVis.text('SM', x, y + 0.1, {
+                    color: '#000000',
+                    font: (0.3 * scale).toString(),
+                    align: 'center'
+                });
+                break;
+                
+            case 'upgradeMiner':
+                roomVis.circle(x, y, {
+                    radius: 0.2 * scale,
+                    fill: '#aaffaa',
+                    stroke: '#000000',
+                    strokeWidth: 0.1
+                });
+                roomVis.text('UM', x, y + 0.1, {
                     color: '#000000',
                     font: (0.3 * scale).toString(),
                     align: 'center'
