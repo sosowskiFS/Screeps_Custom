@@ -1329,8 +1329,16 @@ var tool_generateBase = {
             // Special case for flags
             if (structureData === 'storageMiner' && !Game.flags[thisRoom.name + "storageMiner"]) {
                 thisRoom.createFlag(pos[0], pos[1], thisRoom.name + "storageMiner");
+                // Ensure rampart on this tile as part of base coverage
+                if (thisRoom.controller.level >= 2) {
+                    thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                }
             } else if (structureData === 'upgradeMiner' && !Game.flags[thisRoom.name + "upgradeMiner"]) {
                 thisRoom.createFlag(pos[0], pos[1], thisRoom.name + "upgradeMiner");
+                // Ensure rampart on this tile as part of base coverage
+                if (thisRoom.controller.level >= 2) {
+                    thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_RAMPART);
+                }
             } else if (structureData === 'supply' && !Game.flags[thisRoom.name + "Supply"]) {
                 thisRoom.createFlag(pos[0], pos[1], thisRoom.name + "Supply");
                 // Also add rampart at supply position
@@ -1341,27 +1349,39 @@ var tool_generateBase = {
                 // Towers require controller level 3
                 if (thisRoom.controller.level >= 3) {
                     thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_TOWER);
+                    // Schedule a rampart for this tile
+                    this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                 }
             } else if (structureData === STRUCTURE_SPAWN) {
                 // Spawns are available from level 1
                 thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_SPAWN);
+                // Schedule a rampart for this tile
+                this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
             } else if (structureData === STRUCTURE_STORAGE) {
                 // Storage requires controller level 4
                 if (thisRoom.controller.level >= 4) {
                     thisRoom.createConstructionSite(pos[0], pos[1], STRUCTURE_STORAGE);
+                    // Schedule a rampart for this tile
+                    this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
                 }
             } else {
                 // Other regular structures - place without level check for now
                 thisRoom.createConstructionSite(pos[0], pos[1], structureData);
+                // Schedule a rampart for this tile
+                this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
             }
         } else if (typeof structureData === 'object' && structureData.level) {
             // Level-dependent structure
             if (thisRoom.controller.level >= structureData.level) {
                 thisRoom.createConstructionSite(pos[0], pos[1], structureData.type);
+                // Schedule a rampart for this tile
+                this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
             }
         } else {
             // Regular structure
             thisRoom.createConstructionSite(pos[0], pos[1], structureData);
+            // Schedule a rampart for this tile
+            this.scheduleRampartPlacement(thisRoom, pos[0], pos[1]);
         }
     },
 

@@ -203,6 +203,7 @@ class Traveler {
          * @param opacity
          */
     static circle(pos, color, opacity) {
+            if (!TRAVELER_VISUALIZE) return;
             new RoomVisual(pos.roomName).circle(pos, {
                 radius: .45,
                 fill: "transparent",
@@ -427,8 +428,20 @@ class Traveler {
          * @returns {any}
          */
     static getStructureMatrix(room) {
+            // Per-tick cache for structure matrices
+            if (Traveler._cacheTick !== Game.time) {
+                Traveler._cacheTick = Game.time;
+                Traveler._structureMatrixCache = {};
+                Traveler._creepMatrixCache = {};
+            }
+            const key = room.name;
+            if (Traveler._structureMatrixCache && Traveler._structureMatrixCache[key]) {
+                return Traveler._structureMatrixCache[key];
+            }
             let matrix = new PathFinder.CostMatrix();
-            return Traveler.addStructuresToMatrix(room, matrix, 1);
+            matrix = Traveler.addStructuresToMatrix(room, matrix, 1);
+            Traveler._structureMatrixCache[key] = matrix;
+            return matrix;
         }
         /**
          * build a cost matrix based on creeps and structures in the room. Will be cached for one tick. Requires vision.
@@ -436,7 +449,20 @@ class Traveler {
          * @returns {any}
          */
     static getCreepMatrix(room) {
-            return Traveler.addCreepsToMatrix(room, this.getStructureMatrix(room).clone());
+            // Per-tick cache for creep+structure matrices
+            if (Traveler._cacheTick !== Game.time) {
+                Traveler._cacheTick = Game.time;
+                Traveler._structureMatrixCache = {};
+                Traveler._creepMatrixCache = {};
+            }
+            const key = room.name;
+            if (Traveler._creepMatrixCache && Traveler._creepMatrixCache[key]) {
+                return Traveler._creepMatrixCache[key];
+            }
+            const base = this.getStructureMatrix(room).clone();
+            const withCreeps = Traveler.addCreepsToMatrix(room, base);
+            Traveler._creepMatrixCache[key] = withCreeps;
+            return withCreeps;
         }
         /**
          * add structures to matrix so that impassible structures can be avoided and roads given a lower cost
@@ -491,14 +517,16 @@ class Traveler {
     static serializePath(startPos, path, color = "orange") {
             let serializedPath = "";
             let lastPosition = startPos;
-            this.circle(startPos, color);
+            if (TRAVELER_VISUALIZE) this.circle(startPos, color);
             for (let position of path) {
                 if (position.roomName === lastPosition.roomName) {
-                    new RoomVisual(position.roomName)
-                        .line(position, lastPosition, {
-                            color: color,
-                            lineStyle: "dashed"
-                        });
+                    if (TRAVELER_VISUALIZE) {
+                        new RoomVisual(position.roomName)
+                            .line(position, lastPosition, {
+                                color: color,
+                                lineStyle: "dashed"
+                            });
+                    }
                     serializedPath += lastPosition.getDirectionTo(position);
                 }
                 lastPosition = position;
@@ -588,11 +616,19 @@ class Traveler {
 //Traveler.structureMatrixCache = {};
 //Traveler.creepMatrixCache = {};
 exports.Traveler = Traveler;
+// Visualization toggle for Traveler pathing; set global.TRAVELER_VISUALIZE=false to reduce CPU spent on visuals
+const TRAVELER_VISUALIZE = (typeof global !== 'undefined' && typeof global.TRAVELER_VISUALIZE !== 'undefined')
+    ? !!global.TRAVELER_VISUALIZE
+    : true;
 // this might be higher than you wish, setting it lower is a great way to diagnose creep behavior issues. When creeps
 // need to repath to often or they aren't finding valid paths, it can sometimes point to problems elsewhere in your code
 const REPORT_CPU_THRESHOLD = 1000;
 const DEFAULT_MAXOPS = 20000;
 const DEFAULT_STUCK_VALUE = 5;
+// Internal caches (reset each tick)
+Traveler._cacheTick = -1;
+Traveler._structureMatrixCache = {};
+Traveler._creepMatrixCache = {};
 const STATE_PREV_X = 0;
 const STATE_PREV_Y = 1;
 const STATE_STUCK = 2;
