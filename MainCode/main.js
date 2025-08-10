@@ -465,6 +465,11 @@ function initializeGameState() {
     if (Game.time % 50 == 0) {
         resetMineralTotals();
     }
+
+    // Maintain list of rooms at RCL5+ with storage and >=2 links infrequently
+    if (Game.time % 500 == 0) {
+        updateRoomsAt5List();
+    }
 }
 
 function checkTimedOutFlags() {
@@ -528,6 +533,28 @@ function resetMineralTotals() {
     minerals.forEach(mineral => {
         Memory.mineralTotals[mineral] = 0;
     });
+}
+
+// Infrequent scan to keep Memory.RoomsAt5 accurate based on criteria:
+// 1) Controller level >= 5; 2) Has storage; 3) At least 2 link structures.
+function updateRoomsAt5List() {
+    if (!Memory.RoomsAt5) {
+        Memory.RoomsAt5 = [];
+    }
+
+    const qualified = [];
+    for (const roomName in Game.rooms) {
+        const room = Game.rooms[roomName];
+        if (!room || !room.controller || !room.controller.my) continue; // only my controlled rooms
+        if (room.controller.level < 5) continue;
+        if (!room.storage) continue;
+        const links = room.find(FIND_MY_STRUCTURES, { filter: s => s.structureType === STRUCTURE_LINK });
+        if (links.length >= 2) {
+            qualified.push(roomName);
+        }
+    }
+
+    Memory.RoomsAt5 = qualified;
 }
 
 // Handle towers and room operations
@@ -1921,9 +1948,8 @@ function handleAutoBuildRoomsRegeneration() {
         return;
     }
     
-    // Run regeneration every 50,000 ticks (offset from the main rampart/road generation)
-    // This gives about 13.9 hours between regenerations at default tick rate
-    if (Game.time - Memory.lastAutoBuildRegen >= 50000) {
+    // Run regeneration every 5000 ticks (offset from the main rampart/road generation)
+    if (Game.time - Memory.lastAutoBuildRegen >= 5000) {
         // Get the current room to process
         const roomName = Memory.autoBuildRooms[Memory.autoBuildRegenIndex];
         const room = Game.rooms[roomName];

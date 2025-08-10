@@ -98,18 +98,26 @@ var spawn_BuildCreeps5 = {
         let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
         let supplierDirection = [];
         
-        // Check if this spawn should build suppliers (next to Supply flag)
-        if (Game.flags[thisRoom.name + "Supply"] && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
-            let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);
-            // For autobuild rooms, restrict directions more strictly
-            if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1) {
-                buildDirections.splice(buildDirections.indexOf(targetDir), 1);
+        // Supplier spawn logic: restrict to the spawn adjacent to Supply flag ONLY if auto-build room has 3+ spawns
+        const supplyFlag = Game.flags[thisRoom.name + "Supply"];
+        if (supplyFlag) {
+            const isAutoBuild = Memory.autoBuildRooms.indexOf(thisRoom.name) > -1;
+            const spawnCount = thisRoom.find(FIND_MY_STRUCTURES, { filter: s => s.structureType === STRUCTURE_SPAWN }).length;
+            const restrictToSupplySpawn = isAutoBuild && spawnCount >= 3;
+
+            if (restrictToSupplySpawn) {
+                if (supplyFlag.pos.isNearTo(spawn)) {
+                    const targetDir = spawn.pos.getDirectionTo(supplyFlag);
+                    // Keep other roles from using this direction to avoid traffic; suppliers take the exact direction
+                    const idx = buildDirections.indexOf(targetDir);
+                    if (idx > -1) buildDirections.splice(idx, 1);
+                    supplierDirection.push(targetDir);
+                }
+                // If not near the Supply flag, leave supplierDirection empty to block supplier from this spawn
+            } else {
+                // Not restricted (either not auto-build or fewer than 3 spawns): any spawn may build suppliers
+                supplierDirection = buildDirections;
             }
-            supplierDirection.push(targetDir);
-        }
-        // For non-autobuild rooms, allow any spawn to build suppliers if Supply flag exists
-        else if (Game.flags[thisRoom.name + "Supply"] && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
-            supplierDirection = buildDirections; // Use all available directions
         }
 
 
