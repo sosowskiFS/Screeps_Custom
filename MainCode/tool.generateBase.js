@@ -98,6 +98,11 @@ var tool_generateBase = {
         if (!shouldVisualize) {
             this.processRampartQueue(thisRoom);
         }
+
+        // NEW: Ensure an extractor is placed at the mineral from RCL 6+
+        if (!shouldVisualize) {
+            this.ensureExtractor(thisRoom);
+        }
         
         // Ensure room is in autoBuildRooms list if structures were generated successfully (but not in visualization mode)
         if (!shouldVisualize && Memory.autoBuildRooms.indexOf(thisRoom.name) === -1) {
@@ -558,7 +563,6 @@ var tool_generateBase = {
             if (!a.hasRoadAccess && b.hasRoadAccess) return 1;
             return a.distance - b.distance;
         });
-        
         const storageMinerPos = candidatePositions[0].pos;
         const hasRoadAccess = candidatePositions[0].hasRoadAccess;
         
@@ -568,15 +572,8 @@ var tool_generateBase = {
             if (occupiedPositions) {
                 occupiedPositions.add(`${storageMinerPos[0]},${storageMinerPos[1]}`);
             }
-            
-            // Add visual indicator for road access
             if (hasRoadAccess) {
-                roomVis.text('R', storageMinerPos[0] + 0.3, storageMinerPos[1] - 0.3, {
-                    color: '#00ff00',
-                    font: '0.3',
-                    stroke: '#000000',
-                    strokeWidth: 0.05
-                });
+                roomVis.text('R', storageMinerPos[0] + 0.3, storageMinerPos[1] - 0.3, { color: '#00ff00', font: '0.3', stroke: '#000', strokeWidth: 0.05 });
             }
         } else {
             // Generation mode - Place storageMiner flag if it doesn't exist
@@ -584,6 +581,8 @@ var tool_generateBase = {
                 thisRoom.createFlag(storageMinerPos[0], storageMinerPos[1], thisRoom.name + "storageMiner");
                 console.log(`Placed storageMiner flag at ${storageMinerPos[0]},${storageMinerPos[1]} adjacent to core (road access: ${hasRoadAccess})`);
             }
+            // Ensure at least one adjacent road for pathing to core
+            this.ensureStorageMinerRoadAccess(thisRoom, terrain, storageMinerPos, bestCenterCoords, occupiedPositions);
             // Track this position as occupied
             if (occupiedPositions) {
                 occupiedPositions.add(`${storageMinerPos[0]},${storageMinerPos[1]}`);
@@ -722,88 +721,98 @@ var tool_generateBase = {
         }
     },
 
+    ensureExtractor: function(thisRoom) {
+        // Only for owned rooms with RCL 6+
+        if (!thisRoom.controller || !thisRoom.controller.my || thisRoom.controller.level < 6) return;
+
+        // Rooms in Screeps have at most one mineral
+        const mineral = thisRoom.find(FIND_MINERALS)[0];
+        if (!mineral) return;
+
+        // Skip if extractor or construction site already present
+        const lookStructures = mineral.pos.lookFor(LOOK_STRUCTURES);
+        if (lookStructures && lookStructures.some(s => s.structureType === STRUCTURE_EXTRACTOR)) return;
+
+        const lookSites = mineral.pos.lookFor(LOOK_CONSTRUCTION_SITES);
+        if (lookSites && lookSites.some(s => s.structureType === STRUCTURE_EXTRACTOR)) return;
+
+        // Place extractor construction site
+        const res = mineral.pos.createConstructionSite(STRUCTURE_EXTRACTOR);
+        if (res === OK) {
+            console.log(`[extractor] Placed construction site in ${thisRoom.name} at ${mineral.pos.x},${mineral.pos.y}`);
+        } else {
+            // Avoid noisy logs for common transient errors
+            if (res !== ERR_FULL && res !== ERR_RCL_NOT_ENOUGH) {
+                console.log(`[extractor] Failed to place in ${thisRoom.name}: ${res}`);
+            }
+        }
+    },
+
+    // Restored: ensure a road is adjacent to the storageMiner position for reliable access
     ensureStorageMinerRoadAccess: function(thisRoom, terrain, storageMinerPos, bestCenterCoords, occupiedPositions = null) {
-        // Check if there's already a road adjacent to the storage miner
-        let hasAdjacentRoad = false;
+        const [sx, sy] = storageMinerPos;
         
+        // First, check if any adjacent tile already has a road or road site
+        let hasAdjacentRoad = false;
         for (let dy = -1; dy <= 1; dy++) {
             for (let dx = -1; dx <= 1; dx++) {
-                if (dx === 0 && dy === 0) continue; // Skip the storage miner position itself
-                
-                const adjX = storageMinerPos[0] + dx;
-                const adjY = storageMinerPos[1] + dy;
-                
-                // Check if this adjacent position already has a road
-                if (adjX > 2 && adjX < 47 && adjY > 2 && adjY < 47) {
-                    const roomPos = new RoomPosition(adjX, adjY, thisRoom.name);
-                    const structures = roomPos.lookFor(LOOK_STRUCTURES);
-                    const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
-                    
-                    const hasRoad = structures.some(s => s.structureType === STRUCTURE_ROAD) ||
-                                  sites.some(s => s.structureType === STRUCTURE_ROAD);
-                    
-                    if (hasRoad) {
-                        hasAdjacentRoad = true;
-                        break;
-                    }
+                if (dx === 0 && dy === 0) continue;
+                const x = sx + dx; const y = sy + dy;
+                if (x <= 2 || x >= 47 || y <= 2 || y >= 47) continue;
+                if (terrain.get(x, y) === TERRAIN_MASK_WALL) continue;
+                const pos = new RoomPosition(x, y, thisRoom.name);
+                const structs = pos.lookFor(LOOK_STRUCTURES);
+                const sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                if (structs.some(s => s.structureType === STRUCTURE_ROAD) ||
+                    sites.some(s => s.structureType === STRUCTURE_ROAD)) {
+                    hasAdjacentRoad = true;
+                    break;
                 }
             }
             if (hasAdjacentRoad) break;
         }
-        
-        // If no adjacent road exists, place one in the best available position
-        if (!hasAdjacentRoad) {
-            const roadPositions = [];
-            
-            for (let dy = -1; dy <= 1; dy++) {
-                for (let dx = -1; dx <= 1; dx++) {
-                    if (dx === 0 && dy === 0) continue; // Skip the storage miner position itself
-                    
-                    const adjX = storageMinerPos[0] + dx;
-                    const adjY = storageMinerPos[1] + dy;
-                    
-                    // Check if this position is valid for a road
-                    if (adjX <= 2 || adjX >= 47 || adjY <= 2 || adjY >= 47) continue;
-                    if (terrain.get(adjX, adjY) === TERRAIN_MASK_WALL) continue;
-                    
-                    const roomPos = new RoomPosition(adjX, adjY, thisRoom.name);
-                    const structures = roomPos.lookFor(LOOK_STRUCTURES);
-                    const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
-                    const flags = roomPos.lookFor(LOOK_FLAGS);
-                    
-                    // Skip if position is already occupied
-                    if (structures.length > 0 || sites.length > 0 || flags.length > 0) continue;
-                    
-                    // Calculate distance to core center for prioritization (closer to core is better)
-                    const distanceToCore = Math.sqrt(Math.pow(adjX - bestCenterCoords[0], 2) + Math.pow(adjY - bestCenterCoords[1], 2));
-                    roadPositions.push({
-                        pos: [adjX, adjY],
-                        distance: distanceToCore
-                    });
-                }
+        if (hasAdjacentRoad) return; // Nothing to do
+
+        // Choose the best adjacent tile to place a road
+        const candidates = [];
+        for (let dy = -1; dy <= 1; dy++) {
+            for (let dx = -1; dx <= 1; dx++) {
+                if (dx === 0 && dy === 0) continue;
+                const x = sx + dx; const y = sy + dy;
+                if (x <= 2 || x >= 47 || y <= 2 || y >= 47) continue;
+                if (terrain.get(x, y) === TERRAIN_MASK_WALL) continue;
+
+                // Skip if occupied (structures/sites/flags) or marked occupied
+                const pos = new RoomPosition(x, y, thisRoom.name);
+                const structs = pos.lookFor(LOOK_STRUCTURES);
+                const sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+                const flags = pos.lookFor(LOOK_FLAGS);
+                if (structs.length > 0 || sites.length > 0 || flags.length > 0) continue;
+                if (occupiedPositions && occupiedPositions.has(`${x},${y}`)) continue;
+
+                const wouldBeRoad = ((x + y) % 2) !== 0; // matches checkerboard
+                const distToCore = Math.hypot(x - bestCenterCoords[0], y - bestCenterCoords[1]);
+                candidates.push({ x, y, wouldBeRoad, distToCore });
             }
-            
-            if (roadPositions.length > 0) {
-                // Sort by distance to core and choose the closest position
-                roadPositions.sort((a, b) => a.distance - b.distance);
-                const roadPos = roadPositions[0].pos;
-                
-                // Place road to ensure storage miner accessibility
-                thisRoom.createConstructionSite(roadPos[0], roadPos[1], STRUCTURE_ROAD);
-                console.log(`Placed access road at ${roadPos[0]},${roadPos[1]} for storageMiner accessibility`);
-                
-                // Track this position as occupied
-                if (occupiedPositions) {
-                    occupiedPositions.add(`${roadPos[0]},${roadPos[1]}`);
-                }
-                
-                // Schedule rampart placement for later (after main structure is built)
-                if (thisRoom.controller.level >= 2) {
-                    this.scheduleRampartPlacement(thisRoom, roadPos[0], roadPos[1]);
-                }
-            } else {
-                console.log(`Warning: Could not place access road for storageMiner at ${storageMinerPos[0]},${storageMinerPos[1]}`);
+        }
+        if (candidates.length === 0) return;
+
+        // Prefer tiles that match road parity, then closest to core
+        candidates.sort((a, b) => {
+            if (a.wouldBeRoad !== b.wouldBeRoad) return a.wouldBeRoad ? -1 : 1;
+            return a.distToCore - b.distToCore;
+        });
+        const best = candidates[0];
+
+        const res = thisRoom.createConstructionSite(best.x, best.y, STRUCTURE_ROAD);
+        if (res === OK) {
+            if (occupiedPositions) occupiedPositions.add(`${best.x},${best.y}`);
+            if (thisRoom.controller && thisRoom.controller.level >= 2) {
+                this.scheduleRampartPlacement(thisRoom, best.x, best.y);
             }
+            console.log(`Placed storageMiner road at ${best.x},${best.y} (parity road tile: ${best.wouldBeRoad})`);
+        } else if (res !== ERR_FULL) {
+            console.log(`Failed to place storageMiner road at ${best.x},${best.y}: ${res}`);
         }
     },
 
@@ -1179,25 +1188,10 @@ var tool_generateBase = {
                     }
                     
                     // Check if position is already occupied
-                    if (occupiedPositions) {
-                        // Check occupied positions set (both visualization and generation mode)
-                        const posKey = `${worldX},${worldY}`;
-                        if (occupiedPositions.has(posKey)) {
-                            canPlaceCluster = false;
-                            break;
-                        }
-                    }
-                    
-                    if (!roomVis) {
-                        // In generation mode, also check for real structures/sites/flags
-                        const roomPos = new RoomPosition(worldX, worldY, thisRoom.name);
-                        const structures = roomPos.lookFor(LOOK_STRUCTURES);
-                        const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
-                        const flags = roomPos.lookFor(LOOK_FLAGS);
-                        if (structures.length > 0 || sites.length > 0 || flags.length > 0) {
-                            canPlaceCluster = false;
-                            break;
-                        }
+                    const posKey = `${worldX},${worldY}`;
+                    if (occupiedPositions.has(posKey)) {
+                        canPlaceCluster = false;
+                        break;
                     }
                     
                     // Check road accessibility for each individual lab position
@@ -1586,7 +1580,7 @@ var tool_generateBase = {
                         this.drawStructureVisual(roomVis, pos, STRUCTURE_LINK, 'link');
                         if (occupiedPositions) {
                             occupiedPositions.add(`${pos[0]},${pos[1]}`);
-                        }
+ }
                         console.log(`Visualized controller link at ${pos[0]},${pos[1]} near controller`);
                     } else {
                         // Generation mode - Place controller link here
@@ -1657,7 +1651,7 @@ var tool_generateBase = {
                 if (!roomVis && !isOccupied) {
                     // In generation mode, also check for real structures/sites/flags
                     const roomPos = new RoomPosition(pos[0], pos[1], thisRoom.name);
-                    const structures = roomPos.lookFor(LOOK_STRUCTURES);
+                                       const structures = roomPos.lookFor(LOOK_STRUCTURES);
                     const sites = roomPos.lookFor(LOOK_CONSTRUCTION_SITES);
                     const flags = roomPos.lookFor(LOOK_FLAGS);
                     if (structures.length > 0 || sites.length > 0 || flags.length > 0) {
@@ -1831,20 +1825,12 @@ var tool_generateBase = {
                             break;
                         }
                         
-                        // Check if position is occupied
+                        // Check if position is already occupied
                         const posKey = `${worldX},${worldY}`;
                         if (occupiedPositions.has(posKey)) {
                             canPlaceCluster = false;
                             break;
                         }
-                        
-                        // Check connectivity to center
-                        if (!this.isConnectedToCenter(worldX, worldY, bestCenterCoords[0], bestCenterCoords[1], terrain)) {
-                            canPlaceCluster = false;
-                            break;
-                        }
-                        
-                        clusterPositions.push({ pos: [worldX, worldY], type: labPos.type });
                     }
                     
                     // If we can place the cluster, do it
