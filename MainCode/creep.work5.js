@@ -158,82 +158,82 @@ var creep_work5 = {
                                     creep.memory.structureTarget = undefined;
                                 }
                             } else {
-                                //Store in terminal
-                                let terminalTarget = Game.getObjectById(creep.memory.terminalID)
-                                if (terminalTarget) {
-                                    let targetEnergy = 0;
-                                    if (creep.room.storage) {
-                                        if (creep.room.storage.store[RESOURCE_ENERGY] >= 275000) {
-                                            targetEnergy = 60000;
-                                        } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
-                                            targetEnergy = 30000;
-                                        }
+                                //Build construction sites (moved up in priority)
+                                var targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                                if (targets2) {
+                                    creep.memory.structureTarget = targets2.id;
+                                    let buildResult = creep.build(targets2)
+                                    if (buildResult == ERR_NOT_IN_RANGE) {
+                                        creep.travelTo(targets2, {
+                                            maxRooms: 1
+                                        });
+                                    } else if (buildResult == ERR_NO_BODYPART) {
+                                        creep.suicide();
+                                    } else if (targets2.structureType == STRUCTURE_RAMPART && buildResult == OK) {
+                                        //Change job to repair, reset room repair target.
+                                        creep.memory.priority = 'repair';
+                                        creep.memory.previousPriority = 'mule';
+                                        Memory.repairTarget[creep.room.name] = undefined;
                                     }
-                                    if (terminalTarget.store[RESOURCE_ENERGY] < targetEnergy && terminalTarget.store.getFreeCapacity() > 5000) {
-                                        creep.memory.structureTarget = terminalTarget.id;
-                                        if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(terminalTarget, {
-                                                maxRooms: 1
-                                            });
+                                } else {
+                                    //Store in terminal
+                                    let terminalTarget = Game.getObjectById(creep.memory.terminalID)
+                                    if (terminalTarget) {
+                                        let targetEnergy = 0;
+                                        if (creep.room.storage) {
+                                            if (creep.room.storage.store[RESOURCE_ENERGY] >= 275000) {
+                                                targetEnergy = 60000;
+                                            } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
+                                                targetEnergy = 30000;
+                                            }
                                         }
-                                    } else {
-                                        terminalTarget = undefined;
-                                    }
-                                }
-
-                                if (!terminalTarget) {
-                                    //Store in factory
-                                    let factoryTarget = undefined;
-                                    if (Memory.factoryList[creep.room.name]) {
-                                        factoryTarget = Game.getObjectById(Memory.factoryList[creep.room.name][0]);
-                                    }
-                                    if (factoryTarget && factoryTarget.store[RESOURCE_ENERGY] < 10000 && factoryTarget.store.getFreeCapacity() >= creep.store[RESOURCE_ENERGY]) {
-                                        creep.memory.structureTarget = Memory.factoryList[creep.room.name][0];
-                                        if (creep.transfer(factoryTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                            creep.travelTo(factoryTarget, {
-                                                maxRooms: 1
-                                            });
-                                        }
-                                    } else {
-                                        factoryTarget = undefined;
-                                    }
-
-                                    if (!factoryTarget) {
-                                        var targets2;
-                                        if (creep.room.controller.level == 8) {
-                                            targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                                filter: (structure) => {
-                                                    return (structure.structureType == STRUCTURE_POWER_SPAWN ||
-                                                        structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
-                                                }
-                                            });
-                                        }
-                                        if (targets2) {
-                                            creep.memory.structureTarget = targets2.id;
-                                            if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                                creep.travelTo(targets2, {
+                                        if (terminalTarget.store[RESOURCE_ENERGY] < targetEnergy && terminalTarget.store.getFreeCapacity() > 5000) {
+                                            creep.memory.structureTarget = terminalTarget.id;
+                                            if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                                creep.travelTo(terminalTarget, {
                                                     maxRooms: 1
                                                 });
-                                            } else {
-                                                creep.memory.structureTarget = undefined;
                                             }
                                         } else {
-                                            //Build
-                                            targets2 = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                                            terminalTarget = undefined;
+                                        }
+                                    }
+
+                                    if (!terminalTarget) {
+                                        //Store in factory
+                                        let factoryTarget = undefined;
+                                        if (Memory.factoryList[creep.room.name]) {
+                                            factoryTarget = Game.getObjectById(Memory.factoryList[creep.room.name][0]);
+                                        }
+                                        if (factoryTarget && factoryTarget.store[RESOURCE_ENERGY] < 10000 && factoryTarget.store.getFreeCapacity() >= creep.store[RESOURCE_ENERGY]) {
+                                            creep.memory.structureTarget = Memory.factoryList[creep.room.name][0];
+                                            if (creep.transfer(factoryTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                                                creep.travelTo(factoryTarget, {
+                                                    maxRooms: 1
+                                                });
+                                            }
+                                        } else {
+                                            factoryTarget = undefined;
+                                        }
+
+                                        if (!factoryTarget) {
+                                            targets2 = undefined;
+                                            if (creep.room.controller.level == 8) {
+                                                targets2 = creep.pos.findClosestByRange(FIND_STRUCTURES, {
+                                                    filter: (structure) => {
+                                                        return (structure.structureType == STRUCTURE_POWER_SPAWN ||
+                                                            structure.structureType == STRUCTURE_NUKER) && structure.energy < structure.energyCapacity;
+                                                    }
+                                                });
+                                            }
                                             if (targets2) {
                                                 creep.memory.structureTarget = targets2.id;
-                                                let buildResult = creep.build(targets2)
-                                                if (buildResult == ERR_NOT_IN_RANGE) {
+                                                if (creep.transfer(targets2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                                     creep.travelTo(targets2, {
                                                         maxRooms: 1
                                                     });
-                                                } else if (buildResult == ERR_NO_BODYPART) {
-                                                    creep.suicide();
-                                                } else if (targets2.structureType == STRUCTURE_RAMPART && buildResult == OK) {
-                                                    //Change job to repair, reset room repair target.
-                                                    creep.memory.priority = 'repair';
-                                                    creep.memory.previousPriority = 'mule';
-                                                    Memory.repairTarget[creep.room.name] = undefined;
+                                                } else {
+                                                    creep.memory.structureTarget = undefined;
                                                 }
                                             } else {
                                                 //Upgrade
