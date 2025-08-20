@@ -1115,6 +1115,9 @@ function handleMarketOperations() {
 
 // Handle all creep operations
 function handleCreepOperations() {
+    // Remote creep CPU throttle: if bucket is low (<1000), skip execution for
+    // heavy remote roles every other tick to reduce CPU usage.
+    const remoteThrottleActive = (Game.cpu.bucket < 1000) && (Game.time % 2 === 1);
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
         if (!creep.spawning) {
@@ -1129,6 +1132,7 @@ function handleCreepOperations() {
                     break;
                 case 'farMiner':
                 case 'farMinerNearDeath':
+                    if (remoteThrottleActive) { break; }
                     //Change to if (creep.memory.jobSpecific) after new wave is out
                     if (creep.getActiveBodyparts(HEAL) > 0) {
                         //SK Miner (TEMP, MAKE OWN FILE)
@@ -1148,6 +1152,7 @@ function handleCreepOperations() {
                 case 'SKAttackGuardNearDeath':
                 case 'SKHealGuardNearDeath':
                 case 'farMineralMiner':
+                    if (remoteThrottleActive) { break; }
                     var doExcessWork = true;
                     if (Game.cpu.bucket < 500) {
                         doExcessWork = false;
@@ -1172,6 +1177,7 @@ function handleCreepOperations() {
                     break;
                 case 'repair':
                 case 'repairNearDeath':
+                    if (remoteThrottleActive) { break; }
                     if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
                         creep_repair.run(creep);
                     } else {
@@ -1180,10 +1186,12 @@ function handleCreepOperations() {
                     break;
                 case 'scraper':
                 case 'scraperNearDeath':
+                    if (remoteThrottleActive) { break; }
                     creep_scraper.run(creep);
                     break;
                 case 'salvager':
                 case 'salvagerNearDeath':
+                    if (remoteThrottleActive) { break; }
                     creep_salvager.run(creep);
                     break;
                 case 'supplier':
@@ -1192,10 +1200,12 @@ function handleCreepOperations() {
                     break;
                 case 'upSupplier':
                 case 'upSupplierNearDeath':
+                    if (remoteThrottleActive) { break; }
                     creep_upSupplier.run(creep);
                     break;
                 case 'labWorker':
                 case 'labWorkerNearDeath':
+                    if (remoteThrottleActive) { break; }
                     creep_labWorker.run(creep);
                     break;
                 case 'claimer':
@@ -1271,7 +1281,7 @@ function handleCreepOperations() {
                         creep.memory.previousPriority = 'helper';
                     }
                     if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
-                        if (Game.cpu.bucket >= 500 || Memory.warMode) {
+                        if (!remoteThrottleActive || Memory.warMode) {
                             creep_workV2.run(creep, 25);
                         } else {
                             creep.say("\u2716\uFE0F", false);
@@ -1281,7 +1291,7 @@ function handleCreepOperations() {
                             //In case of emergency
                             creep_workV2.run(creep, 25);
                         } else {
-                            if ((Game.cpu.bucket >= 500 || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
+                            if ((!remoteThrottleActive || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
                                 creep_work5.run(creep);
                             } else {
                                 creep.say("\u2716\uFE0F", false);
