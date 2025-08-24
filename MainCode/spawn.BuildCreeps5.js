@@ -1060,38 +1060,82 @@ Object.assign(spawn_BuildCreeps5, {
 
     // Get mineral configuration for lab operations
     getMineralConfiguration: function(roomName) {
-        // Cached mineral configuration based on flags
-        const flagMappings = {
-            [roomName + "WarBoosts"]: {
-                min1: RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
-                min2: RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,
-                min3: RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE,
-                min4: RESOURCE_CATALYZED_ZYNTHIUM_ACID,
-                min5: RESOURCE_CATALYZED_UTRIUM_ACID,
-                min6: RESOURCE_CATALYZED_KEANIUM_ALKALIDE
-            },
-            [roomName + "XGHO2Producer"]: {
-                min4: RESOURCE_GHODIUM_ALKALIDE, min5: RESOURCE_CATALYST,
-                min6: RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
-                primaryFlag: roomName + "XGHO2Producer",
-                backupFlag: roomName + "XGH2OProducer"
-            }
-            // Additional mappings would continue here for all producer types
-        };
-
-        // Default configuration
+        // Default configuration (idle / storage usage)
+        // Labs 1-3 (min1..min3) are for high tier stockpiles / war boosts
         let config = {
-            min1: RESOURCE_CATALYZED_KEANIUM_ALKALIDE,
-            min2: RESOURCE_CATALYZED_GHODIUM_ACID,
-            min3: RESOURCE_CATALYZED_LEMERGIUM_ACID,
-            min4: '', min5: '', min6: '',
-            primaryFlag: '', backupFlag: ''
+            min1: RESOURCE_CATALYZED_KEANIUM_ALKALIDE,   // SHOOT
+            min2: RESOURCE_CATALYZED_GHODIUM_ACID,       // UPGRADE
+            min3: RESOURCE_CATALYZED_LEMERGIUM_ACID,     // REPAIR
+            min4: '',                                    // Input A (reaction)
+            min5: '',                                    // Input B (reaction)
+            min6: '',                                    // Product (all output labs)
+            primaryFlag: '',
+            backupFlag: ''
         };
 
-        // Check flags and apply configuration
-        for (const [flagName, flagConfig] of Object.entries(flagMappings)) {
-            if (Game.flags[flagName]) {
-                Object.assign(config, flagConfig);
+        // War boost staging overrides min1..min3 (does not select reaction)
+        if (Game.flags[roomName + 'WarBoosts']) {
+            config.min1 = RESOURCE_CATALYZED_GHODIUM_ALKALIDE;   // TOUGH
+            config.min2 = RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;  // MOVE
+            config.min3 = RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE; // HEAL
+            // Keep any reaction selection logic below (allows producing while staged for war)
+        }
+
+        // Mirror manageLabOperations producer list so labWorker spawn can configure input / outputs
+        const producerDefs = [
+            // Tier 1 (T3 catalyzed)
+            { flag: 'XGHO2Producer', out: RESOURCE_CATALYZED_GHODIUM_ALKALIDE, in: [RESOURCE_GHODIUM_ALKALIDE, RESOURCE_CATALYST], backup: 'XGH2OProducer' },
+            { flag: 'XGH2OProducer', out: RESOURCE_CATALYZED_GHODIUM_ACID,      in: [RESOURCE_GHODIUM_ACID, RESOURCE_CATALYST],      backup: 'XGHO2Producer' },
+            { flag: 'XUH2OProducer', out: RESOURCE_CATALYZED_UTRIUM_ACID,       in: [RESOURCE_UTRIUM_ACID, RESOURCE_CATALYST],       backup: 'XKHO2Producer' },
+            // Tier 2 (T3 catalyzed)
+            { flag: 'XZHO2Producer', out: RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, in: [RESOURCE_ZYNTHIUM_ALKALIDE, RESOURCE_CATALYST], backup: 'XZH2OProducer' },
+            { flag: 'XZH2OProducer', out: RESOURCE_CATALYZED_ZYNTHIUM_ACID,     in: [RESOURCE_ZYNTHIUM_ACID, RESOURCE_CATALYST],     backup: 'XZHO2Producer' },
+            { flag: 'XKHO2Producer', out: RESOURCE_CATALYZED_KEANIUM_ALKALIDE,  in: [RESOURCE_KEANIUM_ALKALIDE, RESOURCE_CATALYST],  backup: 'XUH2OProducer' },
+            // Tier 3 (T3 catalyzed + base hydroxide option)
+            { flag: 'XLH2OProducer', out: RESOURCE_CATALYZED_LEMERGIUM_ACID,    in: [RESOURCE_LEMERGIUM_ACID, RESOURCE_CATALYST],    backup: 'XLHO2Producer' },
+            { flag: 'XLHO2Producer', out: RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE,in: [RESOURCE_LEMERGIUM_ALKALIDE, RESOURCE_CATALYST],backup: 'XLH2OProducer' },
+            { flag: 'OHProducer(3)', out: RESOURCE_HYDROXIDE,                   in: [RESOURCE_HYDROGEN, RESOURCE_OXYGEN],            backup: 'GOProducer' },
+            // Tier 4 (T2)
+            { flag: 'GProducer(4)', out: RESOURCE_GHODIUM,                      in: [RESOURCE_ZYNTHIUM_KEANITE, RESOURCE_UTRIUM_LEMERGITE], backup: 'GH2OProducer' },
+            { flag: 'GHO2Producer', out: RESOURCE_GHODIUM_ALKALIDE,             in: [RESOURCE_GHODIUM_OXIDE, RESOURCE_HYDROXIDE],    backup: 'GH2OProducer' },
+            { flag: 'GH2OProducer', out: RESOURCE_GHODIUM_ACID,                 in: [RESOURCE_GHODIUM_HYDRIDE, RESOURCE_HYDROXIDE],  backup: 'GHO2Producer' },
+            // Tier 5 (T2)
+            { flag: 'ZHO2Producer', out: RESOURCE_ZYNTHIUM_ALKALIDE,            in: [RESOURCE_ZYNTHIUM_OXIDE, RESOURCE_HYDROXIDE],   backup: 'ZH2OProducer' },
+            { flag: 'ZH2OProducer', out: RESOURCE_ZYNTHIUM_ACID,                in: [RESOURCE_ZYNTHIUM_HYDRIDE, RESOURCE_HYDROXIDE], backup: 'ZHO2Producer' },
+            { flag: 'KHO2Producer', out: RESOURCE_KEANIUM_ALKALIDE,             in: [RESOURCE_KEANIUM_OXIDE, RESOURCE_HYDROXIDE],    backup: 'ZHO2Producer' },
+            // Tier 6 (T2)
+            { flag: 'UH2OProducer', out: RESOURCE_UTRIUM_ACID,                  in: [RESOURCE_UTRIUM_HYDRIDE, RESOURCE_HYDROXIDE],   backup: 'LH2OProducer' },
+            { flag: 'LH2OProducer', out: RESOURCE_LEMERGIUM_ACID,               in: [RESOURCE_LEMERGIUM_HYDRIDE, RESOURCE_HYDROXIDE],backup: 'LHO2Producer' },
+            { flag: 'LHO2Producer', out: RESOURCE_LEMERGIUM_ALKALIDE,           in: [RESOURCE_LEMERGIUM_OXIDE, RESOURCE_HYDROXIDE],  backup: 'LH2OProducer' },
+            // Tier 7 (T1)
+            { flag: 'UHProducer',  out: RESOURCE_UTRIUM_HYDRIDE,                in: [RESOURCE_UTRIUM, RESOURCE_HYDROGEN],            backup: 'GHProducer' },
+            { flag: 'GHProducer',  out: RESOURCE_GHODIUM_HYDRIDE,               in: [RESOURCE_GHODIUM, RESOURCE_HYDROGEN],           backup: 'GOProducer' },
+            { flag: 'GOProducer',  out: RESOURCE_GHODIUM_OXIDE,                 in: [RESOURCE_GHODIUM, RESOURCE_OXYGEN],             backup: 'GHProducer' },
+            { flag: 'KOProducer',  out: RESOURCE_KEANIUM_OXIDE,                 in: [RESOURCE_KEANIUM, RESOURCE_OXYGEN],             backup: 'ZOProducer' },
+            // Tier 8 (T1)
+            { flag: 'ZHProducer',  out: RESOURCE_ZYNTHIUM_HYDRIDE,              in: [RESOURCE_ZYNTHIUM, RESOURCE_HYDROGEN],          backup: 'ZOProducer' },
+            { flag: 'ZOProducer',  out: RESOURCE_ZYNTHIUM_OXIDE,                in: [RESOURCE_ZYNTHIUM, RESOURCE_OXYGEN],            backup: 'ZHProducer' },
+            { flag: 'LOProducer',  out: RESOURCE_LEMERGIUM_OXIDE,               in: [RESOURCE_LEMERGIUM, RESOURCE_OXYGEN],           backup: 'LHProducer' },
+            { flag: 'LHProducer',  out: RESOURCE_LEMERGIUM_HYDRIDE,             in: [RESOURCE_LEMERGIUM, RESOURCE_HYDROGEN],         backup: 'LOProducer' },
+            // Tier 9 (Base)
+            { flag: 'ULProducer',  out: RESOURCE_UTRIUM_LEMERGITE,              in: [RESOURCE_UTRIUM, RESOURCE_LEMERGIUM],           backup: 'UHProducer' },
+            { flag: 'ZKProducer',  out: RESOURCE_ZYNTHIUM_KEANITE,              in: [RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM],           backup: 'ZHProducer' },
+            { flag: 'GProducer(9)',out: RESOURCE_GHODIUM,                       in: [RESOURCE_ZYNTHIUM_KEANITE, RESOURCE_UTRIUM_LEMERGITE], backup: 'GHO2Producer' },
+            { flag: 'OHProducer(9)',out: RESOURCE_HYDROXIDE,                    in: [RESOURCE_HYDROGEN, RESOURCE_OXYGEN],            backup: 'KOProducer' }
+        ];
+
+        // Find first active production flag (priority is order above)
+        for (const def of producerDefs) {
+            const fullName = roomName + def.flag;
+            if (Game.flags[fullName]) {
+                config.min4 = def.in[0];      // Input A lab4
+                config.min5 = def.in[1];      // Input B lab5
+                config.min6 = def.out;        // Product labs 6+
+                config.primaryFlag = fullName;
+                if (def.backup) {
+                    const backupFull = roomName + def.backup;
+                    config.backupFlag = backupFull;
+                }
                 break;
             }
         }
