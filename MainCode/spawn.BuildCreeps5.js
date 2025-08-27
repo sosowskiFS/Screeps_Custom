@@ -1096,31 +1096,31 @@ Object.assign(spawn_BuildCreeps5, {
             { flag: 'XLHO2Producer', out: RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE,in: [RESOURCE_LEMERGIUM_ALKALIDE, RESOURCE_CATALYST],backup: 'XLH2OProducer' },
             { flag: 'OHProducer(3)', out: RESOURCE_HYDROXIDE,                   in: [RESOURCE_HYDROGEN, RESOURCE_OXYGEN],            backup: 'GOProducer' },
             // Tier 4 (T2)
-            { flag: 'GProducer(4)', out: RESOURCE_GHODIUM,                      in: [RESOURCE_ZYNTHIUM_KEANITE, RESOURCE_UTRIUM_LEMERGITE], backup: 'GH2OProducer' },
+                { flag: 'GProducer(4)', out: RESOURCE_GHODIUM,                      in: [RESOURCE_ZYNTHIUM_KEANITE, RESOURCE_UTRIUM_LEMERGITE], backup: 'ULProducer' },
             { flag: 'GHO2Producer', out: RESOURCE_GHODIUM_ALKALIDE,             in: [RESOURCE_GHODIUM_OXIDE, RESOURCE_HYDROXIDE],    backup: 'GH2OProducer' },
-            { flag: 'GH2OProducer', out: RESOURCE_GHODIUM_ACID,                 in: [RESOURCE_GHODIUM_HYDRIDE, RESOURCE_HYDROXIDE],  backup: 'GHO2Producer' },
+                { flag: 'GH2OProducer', out: RESOURCE_GHODIUM_ACID,                 in: [RESOURCE_GHODIUM_HYDRIDE, RESOURCE_HYDROXIDE],  backup: 'GHO2Producer' },
             // Tier 5 (T2)
-            { flag: 'ZHO2Producer', out: RESOURCE_ZYNTHIUM_ALKALIDE,            in: [RESOURCE_ZYNTHIUM_OXIDE, RESOURCE_HYDROXIDE],   backup: 'ZH2OProducer' },
-            { flag: 'ZH2OProducer', out: RESOURCE_ZYNTHIUM_ACID,                in: [RESOURCE_ZYNTHIUM_HYDRIDE, RESOURCE_HYDROXIDE], backup: 'ZHO2Producer' },
+                { flag: 'ZHO2Producer', out: RESOURCE_ZYNTHIUM_ALKALIDE,            in: [RESOURCE_ZYNTHIUM_OXIDE, RESOURCE_HYDROXIDE],   backup: 'ZH2OProducer' },
+                { flag: 'ZH2OProducer', out: RESOURCE_ZYNTHIUM_ACID,                in: [RESOURCE_ZYNTHIUM_HYDRIDE, RESOURCE_HYDROXIDE], backup: 'KHO2Producer' },
             { flag: 'KHO2Producer', out: RESOURCE_KEANIUM_ALKALIDE,             in: [RESOURCE_KEANIUM_OXIDE, RESOURCE_HYDROXIDE],    backup: 'ZHO2Producer' },
             // Tier 6 (T2)
             { flag: 'UH2OProducer', out: RESOURCE_UTRIUM_ACID,                  in: [RESOURCE_UTRIUM_HYDRIDE, RESOURCE_HYDROXIDE],   backup: 'LH2OProducer' },
             { flag: 'LH2OProducer', out: RESOURCE_LEMERGIUM_ACID,               in: [RESOURCE_LEMERGIUM_HYDRIDE, RESOURCE_HYDROXIDE],backup: 'LHO2Producer' },
-            { flag: 'LHO2Producer', out: RESOURCE_LEMERGIUM_ALKALIDE,           in: [RESOURCE_LEMERGIUM_OXIDE, RESOURCE_HYDROXIDE],  backup: 'LH2OProducer' },
+                { flag: 'LHO2Producer', out: RESOURCE_LEMERGIUM_ALKALIDE,           in: [RESOURCE_LEMERGIUM_OXIDE, RESOURCE_HYDROXIDE],  backup: 'OHProducer(9)' },
             // Tier 7 (T1)
-            { flag: 'UHProducer',  out: RESOURCE_UTRIUM_HYDRIDE,                in: [RESOURCE_UTRIUM, RESOURCE_HYDROGEN],            backup: 'GHProducer' },
-            { flag: 'GHProducer',  out: RESOURCE_GHODIUM_HYDRIDE,               in: [RESOURCE_GHODIUM, RESOURCE_HYDROGEN],           backup: 'GOProducer' },
-            { flag: 'GOProducer',  out: RESOURCE_GHODIUM_OXIDE,                 in: [RESOURCE_GHODIUM, RESOURCE_OXYGEN],             backup: 'GHProducer' },
-            { flag: 'KOProducer',  out: RESOURCE_KEANIUM_OXIDE,                 in: [RESOURCE_KEANIUM, RESOURCE_OXYGEN],             backup: 'ZOProducer' },
+                { flag: 'UHProducer',  out: RESOURCE_UTRIUM_HYDRIDE,                in: [RESOURCE_UTRIUM, RESOURCE_HYDROGEN],            backup: 'GHProducer' },
+                { flag: 'GHProducer',  out: RESOURCE_GHODIUM_HYDRIDE,               in: [RESOURCE_GHODIUM, RESOURCE_HYDROGEN],           backup: 'UHProducer' },
+                { flag: 'GOProducer',  out: RESOURCE_GHODIUM_OXIDE,                 in: [RESOURCE_GHODIUM, RESOURCE_OXYGEN],             backup: 'ZKProducer' },
+                { flag: 'KOProducer',  out: RESOURCE_KEANIUM_OXIDE,                 in: [RESOURCE_KEANIUM, RESOURCE_OXYGEN],             backup: 'OHProducer(3)' },
             // Tier 8 (T1)
-            { flag: 'ZHProducer',  out: RESOURCE_ZYNTHIUM_HYDRIDE,              in: [RESOURCE_ZYNTHIUM, RESOURCE_HYDROGEN],          backup: 'ZOProducer' },
-            { flag: 'ZOProducer',  out: RESOURCE_ZYNTHIUM_OXIDE,                in: [RESOURCE_ZYNTHIUM, RESOURCE_OXYGEN],            backup: 'ZHProducer' },
+                { flag: 'ZHProducer',  out: RESOURCE_ZYNTHIUM_HYDRIDE,              in: [RESOURCE_ZYNTHIUM, RESOURCE_HYDROGEN],          backup: 'ZOProducer' },
+                { flag: 'ZOProducer',  out: RESOURCE_ZYNTHIUM_OXIDE,                in: [RESOURCE_ZYNTHIUM, RESOURCE_OXYGEN],            backup: 'GProducer(9)' },
             { flag: 'LOProducer',  out: RESOURCE_LEMERGIUM_OXIDE,               in: [RESOURCE_LEMERGIUM, RESOURCE_OXYGEN],           backup: 'LHProducer' },
             { flag: 'LHProducer',  out: RESOURCE_LEMERGIUM_HYDRIDE,             in: [RESOURCE_LEMERGIUM, RESOURCE_HYDROGEN],         backup: 'LOProducer' },
             // Tier 9 (Base)
-            { flag: 'ULProducer',  out: RESOURCE_UTRIUM_LEMERGITE,              in: [RESOURCE_UTRIUM, RESOURCE_LEMERGIUM],           backup: 'UHProducer' },
-            { flag: 'ZKProducer',  out: RESOURCE_ZYNTHIUM_KEANITE,              in: [RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM],           backup: 'ZHProducer' },
-            { flag: 'GProducer(9)',out: RESOURCE_GHODIUM,                       in: [RESOURCE_ZYNTHIUM_KEANITE, RESOURCE_UTRIUM_LEMERGITE], backup: 'GHO2Producer' },
+                { flag: 'ULProducer',  out: RESOURCE_UTRIUM_LEMERGITE,              in: [RESOURCE_UTRIUM, RESOURCE_LEMERGIUM],           backup: 'UH2OProducer' },
+                { flag: 'ZKProducer',  out: RESOURCE_ZYNTHIUM_KEANITE,              in: [RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM],           backup: 'ZHProducer' },
+                { flag: 'GProducer(9)',out: RESOURCE_GHODIUM,                       in: [RESOURCE_ZYNTHIUM_KEANITE, RESOURCE_UTRIUM_LEMERGITE], backup: 'GProducer(4)' },
             { flag: 'OHProducer(9)',out: RESOURCE_HYDROXIDE,                    in: [RESOURCE_HYDROGEN, RESOURCE_OXYGEN],            backup: 'KOProducer' }
         ];
 
