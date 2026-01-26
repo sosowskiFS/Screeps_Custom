@@ -267,13 +267,16 @@ var tower_Operate = {
                     if (flatDamage <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
+                    if (allHostiles[thisHostile]) {
+                        new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
 
-                    //Determine if this beats the best
-                    if ((flatDamage - damageReduction) > damageRecord) {
-                        damageRecord = (flatDamage - damageReduction);
-                        targetToShoot = allHostiles[thisHostile];
+                        //Determine if this beats the best
+                        if ((flatDamage - damageReduction) > damageRecord) {
+                            damageRecord = (flatDamage - damageReduction);
+                            targetToShoot = allHostiles[thisHostile];
+                        }
                     }
+                    
                 }
 
                 //if targetToShoot is defined, a valid target you can damage was found.
