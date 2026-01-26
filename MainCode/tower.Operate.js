@@ -214,6 +214,24 @@ var tower_Operate = {
                     }
                     flatDamage += defenderDamage;
 
+                    //Subtract target's TOUGH & HEAL damage soak
+                    let damageReduction = 0;
+                    let boostedTough = undefined;
+
+                    if (!thisRoom.controller.safeMode && pHostiles[thisHostile] && pHostiles[thisHostile].body) {
+                        pHostiles[thisHostile].body.forEach(function(thisPart) {
+                            if (thisPart.hits > 0) {
+                                if (thisPart.type == TOUGH && thisPart.boost) {
+                                    boostedTough = thisPart.boost;
+                                } else if (thisPart.type == HEAL && thisPart.boost) {
+                                    damageReduction += HEAL_POWER * BOOSTS['heal'][thisPart.boost]['heal']
+                                } else if (thisPart.type == HEAL) {
+                                    damageReduction += HEAL_POWER
+                                }
+                            }
+                        });
+                    }
+
                     //Look for healer creeps within 3 spaces of target creep for further subtractions
                     let nearbyFriendos = pHostiles[thisHostile].pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
@@ -237,6 +255,11 @@ var tower_Operate = {
                                 }
                             }
                         });
+                    }
+
+                    //Factor in damage reduction from Tough parts
+                    if (boostedTough) {
+                        flatDamage = flatDamage * BOOSTS['tough'][boostedTough]['damage']
                     }
 
                     //Display the calculated damage total under the target
