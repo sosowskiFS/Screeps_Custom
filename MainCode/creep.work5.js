@@ -375,6 +375,7 @@ var creep_work5 = {
                     if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
                         if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(savedTarget);
+                            placeRoadOnPath(creep);
                         } else {
                             creep.memory.structureTarget = undefined;
                             // Calculate remaining energy after transfer since creep.carry doesn't update immediately
@@ -444,9 +445,11 @@ var creep_work5 = {
                         if (target) {
                             if (getNewStructure) {
                                 creep.travelTo(target);
+                                placeRoadOnPath(creep);
                                 creep.memory.structureTarget = target.id;
                             } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                 creep.travelTo(target);
+                                placeRoadOnPath(creep);
                                 creep.memory.structureTarget = target.id;
                             }
                         }
@@ -738,6 +741,7 @@ function findAndMoveToDistributionTarget(creep) {
         creep.memory.structureTarget = target.id;
         // Immediately start moving to the target
         creep.travelTo(target);
+        placeRoadOnPath(creep);
         return true;
     }
     
@@ -782,4 +786,67 @@ function handleMovementCoordination(creep) {
             }
         }
     }
+}
+
+function placeRoadOnPath(creep) {
+    // Only attempt if we have an active travel path
+    if (!creep.memory._trav || !creep.memory._trav.path || creep.memory._trav.path.length === 0) {
+        return;
+    }
+
+    // Try to place road at current position
+    tryCreateRoadAt(creep.pos);
+
+    // Try to place road at next step in the path
+    let nextDir = parseInt(creep.memory._trav.path[0], 10);
+    if (nextDir) {
+        let nextPos = positionAtDirection(creep.pos, nextDir);
+        if (nextPos) {
+            tryCreateRoadAt(nextPos);
+        }
+    }
+}
+
+function tryCreateRoadAt(pos) {
+    if (!pos || !pos.roomName) {
+        return;
+    }
+
+    let structures = pos.lookFor(LOOK_STRUCTURES);
+    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD)) {
+        return;
+    }
+
+    let sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+    if (sites.length) {
+        return;
+    }
+
+    pos.createConstructionSite(STRUCTURE_ROAD);
+}
+
+function positionAtDirection(pos, direction) {
+    const offsets = {
+        1: { x: 0, y: -1 },
+        2: { x: 1, y: -1 },
+        3: { x: 1, y: 0 },
+        4: { x: 1, y: 1 },
+        5: { x: 0, y: 1 },
+        6: { x: -1, y: 1 },
+        7: { x: -1, y: 0 },
+        8: { x: -1, y: -1 }
+    };
+
+    let offset = offsets[direction];
+    if (!offset) {
+        return undefined;
+    }
+
+    let x = pos.x + offset.x;
+    let y = pos.y + offset.y;
+    if (x < 0 || x > 49 || y < 0 || y > 49) {
+        return undefined;
+    }
+
+    return new RoomPosition(x, y, pos.roomName);
 }

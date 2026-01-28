@@ -77,6 +77,9 @@ var tower_Operate = {
                     //Calculate flat tower damage
                     let flatDamage = 0;
                     for (let thisTower in allTowers) {
+                        if (!allTowers[thisTower].isActive() || allTowers[thisTower].energy <= 0) {
+                            continue;
+                        }
                         let thisRange = allTowers[thisTower].pos.getRangeTo(allHostiles[thisHostile]);
                         let thisTowerDamage = TOWER_POWER_ATTACK;
                         if (thisRange > TOWER_OPTIMAL_RANGE) {
@@ -98,7 +101,7 @@ var tower_Operate = {
                     //Add in potential defender damage
                     let defenderDamage = 0;             
                     for (let thisDefender in defenders) {
-                        if (defenders[thisDefender].pos.inRangeTo(allHostiles[thisHostile], 3)) {
+                        if (defenders[thisDefender].pos.inRangeTo(pHostiles[thisHostile], 3)) {
                             defenders[thisDefender].body.forEach(function(thisPart) {
                                 if (thisPart.hits > 0) {
                                     if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
@@ -179,6 +182,9 @@ var tower_Operate = {
                     //Calculate flat tower damage
                     let flatDamage = 0;
                     for (let thisTower in allTowers) {
+                        if (!allTowers[thisTower].isActive() || allTowers[thisTower].energy <= 0) {
+                            continue;
+                        }
                         let thisRange = allTowers[thisTower].pos.getRangeTo(pHostiles[thisHostile]);
                         let thisTowerDamage = TOWER_POWER_ATTACK;
                         if (thisRange > TOWER_OPTIMAL_RANGE) {
@@ -267,13 +273,13 @@ var tower_Operate = {
                     if (flatDamage <= 0) {
                         dColor = 'red';
                     }
-                    if (allHostiles[thisHostile]) {
-                        new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
+                    if (pHostiles[thisHostile]) {
+                        new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), pHostiles[thisHostile].pos.x, pHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
 
                         //Determine if this beats the best
                         if ((flatDamage - damageReduction) > damageRecord) {
                             damageRecord = (flatDamage - damageReduction);
-                            targetToShoot = allHostiles[thisHostile];
+                            targetToShoot = pHostiles[thisHostile];
                         }
                     }
                     
@@ -328,7 +334,9 @@ var tower_Operate = {
                             tower.room.controller.activateSafeMode();
                         }
                     }
-                    tower.attack(closestHostile);
+                    if (!thisRoom.storage || thisRoom.storage.store[RESOURCE_ENERGY] >= 2000) {
+                        tower.attack(closestHostile);
+                    }
                 }
             }
         } else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % checkDelay == 0)) {
