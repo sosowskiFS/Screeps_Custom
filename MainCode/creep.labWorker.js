@@ -779,6 +779,10 @@ function placeRoadOnPath(creep) {
         return;
     }
 
+    if (Game.constructionSites && Object.keys(Game.constructionSites).length >= MAX_CONSTRUCTION_SITES) {
+        return;
+    }
+
     tryCreateRoadAt(creep.pos);
 
     const nextDir = parseInt(creep.memory._trav.path[0], 10);

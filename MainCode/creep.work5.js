@@ -807,6 +807,10 @@ function placeRoadOnPath(creep) {
         return;
     }
 
+    if (Game.constructionSites && Object.keys(Game.constructionSites).length >= MAX_CONSTRUCTION_SITES) {
+        return;
+    }
+
     // Try to place road at current position
     tryCreateRoadAt(creep.pos);
 

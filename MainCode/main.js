@@ -1537,12 +1537,15 @@ function manageRoomStructures(thisRoom) {
         }
     }
     
-    // Clear road construction sites the tick before rampart checking
-    if ((Game.time + 1) % 10000 == 0 && !Game.flags["DoNotClear"]) {
-        const roadSites = thisRoom.find(FIND_CONSTRUCTION_SITES, {
-            filter: { structureType: STRUCTURE_ROAD }
-        });
-        roadSites.forEach(site => site.remove());
+    // Clear road construction sites every 1000 ticks if at construction site cap
+    if ((Game.time + 1) % 1000 == 0 && !Game.flags["DoNotClear"]) {
+        const siteCount = Object.keys(Game.constructionSites).length;
+        if (siteCount >= MAX_CONSTRUCTION_SITES) {
+            const roadSites = thisRoom.find(FIND_CONSTRUCTION_SITES, {
+                filter: (site) => site.structureType === STRUCTURE_ROAD && site.progress === 0
+            });
+            roadSites.forEach(site => site.remove());
+        }
     }
     
     // Check all structures for ramparts, add if missing
