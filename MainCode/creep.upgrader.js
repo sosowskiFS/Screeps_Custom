@@ -49,6 +49,7 @@ var creep_upgrader = {
                     } else {
                         creep.say("\uD83D\uDC4C\uD83D\uDE39", true);
                     }
+                    clearTravelMemory(creep);
                 }
             }
 
@@ -79,8 +80,85 @@ var creep_upgrader = {
                     creep.say("\uD83D\uDCA6", true);
                 }
             }
+
+            if (creep.memory._trav && creep.memory._trav.path && creep.memory._trav.path.length) {
+                placeRoadOnPath(creep);
+            }
         }
     }
 };
+
+function placeRoadOnPath(creep) {
+    // Only attempt if we have an active travel path
+    if (!creep.memory._trav || !creep.memory._trav.path || creep.memory._trav.path.length === 0) {
+        return;
+    }
+
+    if (Game.cpu && Game.cpu.bucket < 1000) {
+        return;
+    }
+
+    // Try to place road at current position
+    tryCreateRoadAt(creep.pos);
+
+    // Try to place road at next step in the path
+    let nextDir = parseInt(creep.memory._trav.path[0], 10);
+    if (nextDir) {
+        let nextPos = positionAtDirection(creep.pos, nextDir);
+        if (nextPos) {
+            tryCreateRoadAt(nextPos);
+        }
+    }
+}
+
+function tryCreateRoadAt(pos) {
+    if (!pos || !pos.roomName) {
+        return;
+    }
+
+    let structures = pos.lookFor(LOOK_STRUCTURES);
+    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD)) {
+        return;
+    }
+
+    let sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+    if (sites.length) {
+        return;
+    }
+
+    pos.createConstructionSite(STRUCTURE_ROAD);
+}
+
+function positionAtDirection(pos, direction) {
+    const offsets = {
+        1: { x: 0, y: -1 },
+        2: { x: 1, y: -1 },
+        3: { x: 1, y: 0 },
+        4: { x: 1, y: 1 },
+        5: { x: 0, y: 1 },
+        6: { x: -1, y: 1 },
+        7: { x: -1, y: 0 },
+        8: { x: -1, y: -1 }
+    };
+
+    let offset = offsets[direction];
+    if (!offset) {
+        return undefined;
+    }
+
+    let x = pos.x + offset.x;
+    let y = pos.y + offset.y;
+    if (x < 0 || x > 49 || y < 0 || y > 49) {
+        return undefined;
+    }
+
+    return new RoomPosition(x, y, pos.roomName);
+}
+
+function clearTravelMemory(creep) {
+    if (creep.memory && creep.memory._trav) {
+        delete creep.memory._trav;
+    }
+}
 
 module.exports = creep_upgrader;

@@ -206,7 +206,7 @@ var tower_Operate = {
                     //Add in potential defender damage
                     let defenderDamage = 0;             
                     for (let thisDefender in defenders) {
-                        if (defenders[thisDefender].pos.inRangeTo(allHostiles[thisHostile], 3)) {
+                        if (defenders[thisDefender].pos.inRangeTo(pHostiles[thisHostile], 3)) {
                             defenders[thisDefender].body.forEach(function(thisPart) {
                                 if (thisPart.hits > 0) {
                                     if (thisPart.type == RANGED_ATTACK && thisPart.boost) {
@@ -334,7 +334,7 @@ var tower_Operate = {
                             tower.room.controller.activateSafeMode();
                         }
                     }
-                    if (!thisRoom.storage || thisRoom.storage.store[RESOURCE_ENERGY] >= 2000) {
+                    if ((!thisRoom.storage || thisRoom.storage.store[RESOURCE_ENERGY] >= 2000) || closestHostile.owner.username == 'Invader') {
                         tower.attack(closestHostile);
                     }
                 }

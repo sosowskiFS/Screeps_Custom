@@ -373,10 +373,14 @@ var creep_work5 = {
                     var savedTarget = Game.getObjectById(creep.memory.structureTarget);
                     var getNewStructure = false;
                     if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
-                        if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        const transferResult = creep.transfer(savedTarget, RESOURCE_ENERGY);
+                        if (transferResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(savedTarget);
                             placeRoadOnPath(creep);
                         } else {
+                            if (transferResult == OK) {
+                                clearTravelMemory(creep);
+                            }
                             creep.memory.structureTarget = undefined;
                             // Calculate remaining energy after transfer since creep.carry doesn't update immediately
                             let transferAmount = Math.min(creep.carry[RESOURCE_ENERGY], savedTarget.energyCapacity - savedTarget.energy);
@@ -447,10 +451,15 @@ var creep_work5 = {
                                 creep.travelTo(target);
                                 placeRoadOnPath(creep);
                                 creep.memory.structureTarget = target.id;
-                            } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(target);
-                                placeRoadOnPath(creep);
-                                creep.memory.structureTarget = target.id;
+                            } else {
+                                const transferResult = creep.transfer(target, RESOURCE_ENERGY);
+                                if (transferResult == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(target);
+                                    placeRoadOnPath(creep);
+                                    creep.memory.structureTarget = target.id;
+                                } else if (transferResult == OK) {
+                                    clearTravelMemory(creep);
+                                }
                             }
                         }
                     }
@@ -794,6 +803,10 @@ function placeRoadOnPath(creep) {
         return;
     }
 
+    if (Game.cpu && Game.cpu.bucket < 1000) {
+        return;
+    }
+
     // Try to place road at current position
     tryCreateRoadAt(creep.pos);
 
@@ -849,4 +862,10 @@ function positionAtDirection(pos, direction) {
     }
 
     return new RoomPosition(x, y, pos.roomName);
+}
+
+function clearTravelMemory(creep) {
+    if (creep.memory && creep.memory._trav) {
+        delete creep.memory._trav;
+    }
 }
