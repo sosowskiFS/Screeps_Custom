@@ -137,9 +137,8 @@ function handleTerminalOverflow(creep) {
     if (_.sum(creep.carry) > 0) {
         for (let mineral of basicMinerals) {
             if (creep.carry[mineral]) {
-                creep.drop(mineral);
-                clearTravelMemory(creep);
-                return true;
+                creep.memory.terminalOverflowUntil = Game.time + 100;
+                return dropCarried(creep);
             }
         }
         return false;
@@ -170,6 +169,7 @@ function handleTerminalOverflow(creep) {
             creep.memory.cleaningOverflow = true;
             clearTravelMemory(creep);
         }
+        creep.memory.terminalOverflowUntil = Game.time + 100;
         return true;
     }
     
@@ -327,6 +327,17 @@ function dropCarried(creep) {
     if (!currentlyCarrying) {
         return false;
     }
+    const storage = creep.room.storage;
+    if (storage && storage.store.getFreeCapacity() >= 100000) {
+        const transferResult = creep.transfer(storage, currentlyCarrying);
+        if (transferResult == ERR_NOT_IN_RANGE) {
+            creep.travelTo(storage, { maxRooms: 1, ignoreRoads: true });
+        } else {
+            clearTravelMemory(creep);
+        }
+        return true;
+    }
+
     creep.drop(currentlyCarrying);
     clearTravelMemory(creep);
     return true;
@@ -342,6 +353,11 @@ function actOnTarget(creep, target) {
             clearTravelMemory(creep);
         }
         return true;
+    }
+
+    const storage = creep.room.storage;
+    if (shouldStoreOverflowInStorage(creep, creep.memory.mineralToMove) && target == creep.room.terminal && storage) {
+        target = storage;
     }
 
     const transferResult = creep.transfer(target, creep.memory.mineralToMove);
@@ -386,6 +402,11 @@ function deliverOtherMineral(creep, terminal) {
     let transferTarget = terminal;
     if (creep.memory.otherMineralTarget) {
         transferTarget = Game.getObjectById(creep.memory.otherMineralTarget) || terminal;
+    }
+
+    const storage = creep.room.storage;
+    if (shouldStoreOverflowInStorage(creep, currentlyCarrying) && transferTarget == terminal && storage) {
+        transferTarget = storage;
     }
 
     const transferResult = creep.transfer(transferTarget, currentlyCarrying);
@@ -573,13 +594,26 @@ function handleResultLab(creep, ctx, lab, mineral, terminal) {
         }
     }
 
-    creep.memory.structureTarget = terminal.id;
+    const storage = creep.room.storage;
+    const transferTarget = (shouldStoreOverflowInStorage(creep, mineral) && storage) ? storage : terminal;
+
+    creep.memory.structureTarget = transferTarget.id;
     creep.memory.direction = 'Transfer';
     creep.memory.mineralToMove = mineral;
-    if (creep.transfer(terminal, mineral) == ERR_NOT_IN_RANGE) {
-        creep.travelTo(terminal, { maxRooms: 1, ignoreRoads: true });
+    if (creep.transfer(transferTarget, mineral) == ERR_NOT_IN_RANGE) {
+        creep.travelTo(transferTarget, { maxRooms: 1, ignoreRoads: true });
     } else {
         clearTravelMemory(creep);
+    }
+    return true;
+}
+
+function shouldStoreOverflowInStorage(creep, resourceType) {
+    if (!creep.memory.terminalOverflowUntil || Game.time > creep.memory.terminalOverflowUntil) {
+        return false;
+    }
+    if (!resourceType || resourceType == RESOURCE_ENERGY) {
+        return false;
     }
     return true;
 }
@@ -796,6 +830,11 @@ function placeRoadOnPath(creep) {
 
 function tryCreateRoadAt(pos) {
     if (!pos || !pos.roomName) {
+        return;
+    }
+
+    const terrain = pos.lookFor(LOOK_TERRAIN);
+    if (terrain && terrain.includes("wall")) {
         return;
     }
 

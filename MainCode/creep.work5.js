@@ -829,6 +829,11 @@ function tryCreateRoadAt(pos) {
         return;
     }
 
+    const terrain = pos.lookFor(LOOK_TERRAIN);
+    if (terrain && terrain.includes("wall")) {
+        return;
+    }
+
     let structures = pos.lookFor(LOOK_STRUCTURES);
     if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD)) {
         return;

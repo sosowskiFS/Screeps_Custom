@@ -34,13 +34,13 @@ var creep_upgrader = {
                         attemptedTravel = true;
                         creep.travelTo(Game.flags[creep.room.name + "Controller"], {
                             maxRooms: 1,
-                            stuckValue: 2
+                            stuckValue: 4
                         });
                     } else {
                         attemptedTravel = true;
                         creep.travelTo(creep.room.controller, {
                             maxRooms: 1,
-                            stuckValue: 2
+                            stuckValue: 4
                         });
                     }
                 } else {
@@ -58,7 +58,7 @@ var creep_upgrader = {
                 if (linkTarget && creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.travelTo(linkTarget, {
                         maxRooms: 1,
-                        stuckValue: 2
+                        stuckValue: 4
                     });
                 }
 
@@ -117,6 +117,11 @@ function placeRoadOnPath(creep) {
 
 function tryCreateRoadAt(pos) {
     if (!pos || !pos.roomName) {
+        return;
+    }
+
+    const terrain = pos.lookFor(LOOK_TERRAIN);
+    if (terrain && terrain.includes("wall")) {
         return;
     }
 

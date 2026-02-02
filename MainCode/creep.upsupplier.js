@@ -60,6 +60,7 @@ var creep_upSupplier = {
                     } else if (transferResult == OK) {
                         determineIfEmptyPower(pSpawn, creep);
                     }
+                    handleMovementCoordination(creep);
                 }
             } else {
                 //Drop off in upgrader link
@@ -73,6 +74,7 @@ var creep_upSupplier = {
                     } else if (transferResult == OK){
                         determineIfEmptyEnergy(upLink, creep);
                     }
+                    handleMovementCoordination(creep);
                 }
             }
         }
@@ -119,6 +121,27 @@ function determineIfEmptyEnergy(thisLink, creep) {
                 ignoreRoads: true,
                 maxRooms: 1
             });
+            handleMovementCoordination(creep);
+        }
+    }
+}
+
+function handleMovementCoordination(creep) {
+    // Listen for movement requests only from upgrader-priority creeps
+    let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+        filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying && thisCreep.memory &&
+            (thisCreep.memory.priority == 'upgrader' || thisCreep.memory.priority == 'upgraderNearDeath'))
+    });
+
+    if (talkingCreeps.length) {
+        let coords = talkingCreeps[0].saying.split(";");
+        if (coords.length == 2 &&
+            creep.pos.x == parseInt(coords[0]) &&
+            creep.pos.y == parseInt(coords[1])) {
+            // Standing in the way of an upgrader-priority creep
+            let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+            creep.move(thisDirection);
+            creep.say("\uD83D\uDCA6", true);
         }
     }
 }

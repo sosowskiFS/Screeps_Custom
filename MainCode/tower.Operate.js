@@ -51,10 +51,10 @@ var tower_Operate = {
             if (!closestHostile) {
                 //Find new target to shoot at.
                 let allHostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
-                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
                 });
                 let pHostiles = tower.room.find(FIND_HOSTILE_POWER_CREEPS, {
-                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
                 });
                 let allTowers = tower.room.find(FIND_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
@@ -418,6 +418,10 @@ function determineCreepThreat(eCreep, totalHostiles) {
         //unboosted threat, not a problem.
         return false;
     }
+}
+
+function isBorderPos(pos) {
+    return pos && (pos.x === 0 || pos.x === 49 || pos.y === 0 || pos.y === 49);
 }
 
 module.exports = tower_Operate;
