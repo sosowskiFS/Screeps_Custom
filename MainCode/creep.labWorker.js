@@ -115,64 +115,94 @@ function NotOverLimit(thisTerminal) {
 function handleTerminalOverflow(creep) {
     const terminal = creep.room.terminal;
     if (!terminal) return false;
-    
-    // Check if terminal is nearly full (less than 10k free capacity) AND has less than 10k energy
-    const freeCapacity = terminal.store.getFreeCapacity();
-    const energyAmount = terminal.store[RESOURCE_ENERGY] || 0;
-    
-    if (freeCapacity >= 10000 || energyAmount >= 10000) return false;
-    
-    // List of basic minerals to remove when terminal is full
+
+    const storage = creep.room.storage;
+    const factory = creep.memory.factory ? Game.getObjectById(creep.memory.factory) : undefined;
+
+    const terminalFree = terminal.store.getFreeCapacity();
+    const factoryFree = factory ? factory.store.getFreeCapacity() : 999999;
+
     const basicMinerals = [
         RESOURCE_HYDROGEN,
-        RESOURCE_OXYGEN, 
+        RESOURCE_OXYGEN,
         RESOURCE_UTRIUM,
         RESOURCE_LEMERGIUM,
         RESOURCE_KEANIUM,
         RESOURCE_ZYNTHIUM,
         RESOURCE_CATALYST
     ];
-    
-    // If creep is carrying basic minerals, drop them
-    if (_.sum(creep.carry) > 0) {
+
+    // If terminal or factory is too full, move basic minerals to storage.
+    if (storage && (terminalFree < 10000 || factoryFree < 1000)) {
+        if (_.sum(creep.carry) > 0) {
+            for (let mineral of basicMinerals) {
+                if (creep.carry[mineral]) {
+                    creep.memory.terminalOverflowUntil = Game.time + 100;
+                    return dropCarried(creep);
+                }
+            }
+            return false;
+        }
+
+        let targetMineral = null;
+        let maxAmount = 0;
+
         for (let mineral of basicMinerals) {
-            if (creep.carry[mineral]) {
-                creep.memory.terminalOverflowUntil = Game.time + 100;
-                return dropCarried(creep);
+            const amount = terminal.store[mineral] || 0;
+            if (amount > maxAmount && amount > 5000) {
+                maxAmount = amount;
+                targetMineral = mineral;
             }
         }
+
+        if (targetMineral) {
+            const withdrawResult = creep.withdraw(terminal, targetMineral);
+            if (withdrawResult == ERR_NOT_IN_RANGE) {
+                creep.travelTo(terminal, {
+                    maxRooms: 1,
+                    ignoreRoads: true
+                });
+            } else if (withdrawResult == OK) {
+                creep.memory.cleaningOverflow = true;
+                clearTravelMemory(creep);
+            }
+            creep.memory.terminalOverflowUntil = Game.time + 100;
+            return true;
+        }
+
         return false;
     }
-    
-    // Find basic mineral with highest quantity in terminal
-    let targetMineral = null;
-    let maxAmount = 0;
-    
-    for (let mineral of basicMinerals) {
-        const amount = terminal.store[mineral] || 0;
-        if (amount > maxAmount && amount > 5000) { // Only target if > 5k
-            maxAmount = amount;
-            targetMineral = mineral;
+
+    // If terminal has room, move non-energy/power from storage to terminal.
+    if (storage && terminalFree > 15000) {
+        if (_.sum(creep.carry) > 0) {
+            const currentlyCarrying = _.findKey(creep.carry);
+            if (currentlyCarrying && currentlyCarrying != RESOURCE_ENERGY && currentlyCarrying != RESOURCE_POWER) {
+                const transferResult = creep.transfer(terminal, currentlyCarrying);
+                if (transferResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(terminal, { maxRooms: 1, ignoreRoads: true });
+                } else if (transferResult == OK) {
+                    clearTravelMemory(creep);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        for (const resourceType in storage.store) {
+            if (resourceType == RESOURCE_ENERGY || resourceType == RESOURCE_POWER) {
+                continue;
+            }
+            const withdrawResult = creep.withdraw(storage, resourceType);
+            if (withdrawResult == ERR_NOT_IN_RANGE) {
+                creep.travelTo(storage, { maxRooms: 1, ignoreRoads: true });
+            } else if (withdrawResult == OK) {
+                clearTravelMemory(creep);
+            }
+            return true;
         }
     }
-    
-    // Withdraw excess basic mineral from terminal
-    if (targetMineral) {
-        const withdrawResult = creep.withdraw(terminal, targetMineral);
-        if (withdrawResult == ERR_NOT_IN_RANGE) {
-            creep.travelTo(terminal, {
-                maxRooms: 1,
-                ignoreRoads: true
-            });
-        } else if (withdrawResult == OK) {
-            // Set memory to indicate we're cleaning overflow
-            creep.memory.cleaningOverflow = true;
-            clearTravelMemory(creep);
-        }
-        creep.memory.terminalOverflowUntil = Game.time + 100;
-        return true;
-    }
-    
+
     return false;
 }
 
@@ -762,7 +792,11 @@ function manageFactory(creep, terminal) {
         terminalLimit = 20000;
     }
 
+    const factoryFree = thisFactory.store.getFreeCapacity();
     if (terminal.store[roomMineral] && terminal.store[roomMineral] > terminalLimit && NotOverLimit(terminal) && thisFactory.store[RESOURCE_ENERGY] >= 200) {
+        if (factoryFree < 1500) {
+            return false;
+        }
         creep.memory.structureTarget = terminal.id;
         creep.memory.direction = 'Withdraw';
         creep.memory.mineralToMove = roomMineral;
@@ -817,18 +851,23 @@ function placeRoadOnPath(creep) {
         return;
     }
 
-    tryCreateRoadAt(creep.pos);
-
-    const nextDir = parseInt(creep.memory._trav.path[0], 10);
-    if (nextDir) {
-        const nextPos = positionAtDirection(creep.pos, nextDir);
-        if (nextPos) {
-            tryCreateRoadAt(nextPos);
+    let nextDir = parseInt(creep.memory._trav.path[0], 10);
+    let nextPos = nextDir ? positionAtDirection(creep.pos, nextDir) : undefined;
+    let nextNextPos = undefined;
+    if (nextPos && creep.memory._trav.path.length > 1) {
+        let nextNextDir = parseInt(creep.memory._trav.path[1], 10);
+        if (nextNextDir) {
+            nextNextPos = positionAtDirection(nextPos, nextNextDir);
         }
+    }
+    tryCreateRoadAt(creep.pos, nextPos);
+
+    if (nextPos) {
+        tryCreateRoadAt(nextPos, nextNextPos);
     }
 }
 
-function tryCreateRoadAt(pos) {
+function tryCreateRoadAt(pos, nextPosAfterTarget) {
     if (!pos || !pos.roomName) {
         return;
     }
@@ -848,7 +887,60 @@ function tryCreateRoadAt(pos) {
         return;
     }
 
+    // If the next position after this target already has a road/site,
+    // avoid placing a road here when there is another road/site adjacent
+    // that is not the next position.
+    if (nextPosAfterTarget && hasRoadOrSiteAt(nextPosAfterTarget)) {
+        let adjacentPositions = getAdjacentPositions(pos);
+        let hasOtherAdjacentRoad = adjacentPositions.some((adj) => {
+            if (nextPosAfterTarget && adj.isEqualTo(nextPosAfterTarget)) {
+                return false;
+            }
+            return hasRoadOrSiteAt(adj);
+        });
+        if (hasOtherAdjacentRoad) {
+            return;
+        }
+    }
+
     pos.createConstructionSite(STRUCTURE_ROAD);
+}
+
+function hasRoadOrSiteAt(pos) {
+    if (!pos || !pos.roomName) {
+        return false;
+    }
+
+    let structures = pos.lookFor(LOOK_STRUCTURES);
+    if (structures.some(s => s.structureType === STRUCTURE_ROAD)) {
+        return true;
+    }
+
+    let sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+    return sites.some(s => s.structureType === STRUCTURE_ROAD);
+}
+
+function getAdjacentPositions(pos) {
+    const offsets = [
+        { x: 0, y: -1 },
+        { x: 1, y: -1 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+        { x: 0, y: 1 },
+        { x: -1, y: 1 },
+        { x: -1, y: 0 },
+        { x: -1, y: -1 }
+    ];
+
+    let positions = [];
+    for (let i = 0; i < offsets.length; i++) {
+        let x = pos.x + offsets[i].x;
+        let y = pos.y + offsets[i].y;
+        if (x >= 0 && x <= 49 && y >= 0 && y <= 49) {
+            positions.push(new RoomPosition(x, y, pos.roomName));
+        }
+    }
+    return positions;
 }
 
 function positionAtDirection(pos, direction) {

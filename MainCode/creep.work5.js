@@ -812,19 +812,24 @@ function placeRoadOnPath(creep) {
     }
 
     // Try to place road at current position
-    tryCreateRoadAt(creep.pos);
+    let nextDir = parseInt(creep.memory._trav.path[0], 10);
+    let nextPos = nextDir ? positionAtDirection(creep.pos, nextDir) : undefined;
+    let nextNextPos = undefined;
+    if (nextPos && creep.memory._trav.path.length > 1) {
+        let nextNextDir = parseInt(creep.memory._trav.path[1], 10);
+        if (nextNextDir) {
+            nextNextPos = positionAtDirection(nextPos, nextNextDir);
+        }
+    }
+    tryCreateRoadAt(creep.pos, nextPos);
 
     // Try to place road at next step in the path
-    let nextDir = parseInt(creep.memory._trav.path[0], 10);
-    if (nextDir) {
-        let nextPos = positionAtDirection(creep.pos, nextDir);
-        if (nextPos) {
-            tryCreateRoadAt(nextPos);
-        }
+    if (nextPos) {
+        tryCreateRoadAt(nextPos, nextNextPos);
     }
 }
 
-function tryCreateRoadAt(pos) {
+function tryCreateRoadAt(pos, nextPosAfterTarget) {
     if (!pos || !pos.roomName) {
         return;
     }
@@ -844,7 +849,60 @@ function tryCreateRoadAt(pos) {
         return;
     }
 
+    // If the next position after this target already has a road/site,
+    // avoid placing a road here when there is another road/site adjacent
+    // that is not the next position.
+    if (nextPosAfterTarget && hasRoadOrSiteAt(nextPosAfterTarget)) {
+        let adjacentPositions = getAdjacentPositions(pos);
+        let hasOtherAdjacentRoad = adjacentPositions.some((adj) => {
+            if (nextPosAfterTarget && adj.isEqualTo(nextPosAfterTarget)) {
+                return false;
+            }
+            return hasRoadOrSiteAt(adj);
+        });
+        if (hasOtherAdjacentRoad) {
+            return;
+        }
+    }
+
     pos.createConstructionSite(STRUCTURE_ROAD);
+}
+
+function hasRoadOrSiteAt(pos) {
+    if (!pos || !pos.roomName) {
+        return false;
+    }
+
+    let structures = pos.lookFor(LOOK_STRUCTURES);
+    if (structures.some(s => s.structureType === STRUCTURE_ROAD)) {
+        return true;
+    }
+
+    let sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+    return sites.some(s => s.structureType === STRUCTURE_ROAD);
+}
+
+function getAdjacentPositions(pos) {
+    const offsets = [
+        { x: 0, y: -1 },
+        { x: 1, y: -1 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+        { x: 0, y: 1 },
+        { x: -1, y: 1 },
+        { x: -1, y: 0 },
+        { x: -1, y: -1 }
+    ];
+
+    let positions = [];
+    for (let i = 0; i < offsets.length; i++) {
+        let x = pos.x + offsets[i].x;
+        let y = pos.y + offsets[i].y;
+        if (x >= 0 && x <= 49 && y >= 0 && y <= 49) {
+            positions.push(new RoomPosition(x, y, pos.roomName));
+        }
+    }
+    return positions;
 }
 
 function positionAtDirection(pos, direction) {
