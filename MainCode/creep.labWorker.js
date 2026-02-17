@@ -2,6 +2,7 @@ var creep_labWorker = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (!creep.room.terminal) {
+            debugSay(creep, "noTerm");
             return;
         }
 
@@ -33,46 +34,78 @@ var creep_labWorker = {
         if (creep.memory.cleaningOverflow) {
             foundWork = dropCarried(creep);
             if (foundWork) {
+                debugSay(creep, "ovfDrop");
                 creep.memory.cleaningOverflow = false;
             }
-        } else if (currentTarget) {
-            foundWork = actOnTarget(creep, currentTarget);
-        } else if (_.sum(creep.carry) == 0) {
-            foundWork = withdrawWrongMineral(creep, ctx);
-        } else if (creep.memory.movingOtherMineral) {
-            foundWork = deliverOtherMineral(creep, terminal);
         } else {
-            clearInstructions(creep);
+            foundWork = handleTerminalOverflow(creep);
+            if (foundWork) {
+                debugSay(creep, "ovfFlow");
+            }
         }
 
-        if (!foundWork) {
-            foundWork = handleTerminalOverflow(creep);
+        if (!foundWork && currentTarget) {
+            debugSay(creep, creep.memory.direction == 'Withdraw' ? "actW" : "actT");
+            foundWork = actOnTarget(creep, currentTarget);
+        } else if (!foundWork && _.sum(creep.carry) == 0) {
+            foundWork = withdrawWrongMineral(creep, ctx);
+            if (foundWork) {
+                debugSay(creep, "labWrong");
+            }
+        } else if (!foundWork && creep.memory.movingOtherMineral) {
+            foundWork = deliverOtherMineral(creep, terminal);
+            if (foundWork) {
+                debugSay(creep, "otherDel");
+            }
+        } else if (!foundWork) {
+            clearInstructions(creep);
+            debugSay(creep, "clrInst");
         }
 
         if (!foundWork) {
             foundWork = findLabWork(creep, ctx, terminal);
+            if (foundWork) {
+                debugSay(creep, "labFlow");
+            }
         }
 
         if (!foundWork && storage) {
             foundWork = moveStorageMineralsToTerminal(creep, storage, terminal);
+            if (foundWork) {
+                debugSay(creep, "s2tFlow");
+            }
         }
 
         if (!foundWork && Memory.mineralList[roomName] && Memory.mineralList[roomName].length) {
             foundWork = haulMineralContainer(creep, terminal);
+            if (foundWork) {
+                debugSay(creep, "haulMin");
+            }
         }
 
         if (!foundWork && creep.room.controller.level == 8 && Memory.nukerList[roomName].length) {
             foundWork = fillNuker(creep, terminal);
+            if (foundWork) {
+                debugSay(creep, "nuker");
+            }
         }
 
         if (!foundWork && creep.memory.factory) {
             foundWork = manageFactory(creep, terminal);
+            if (foundWork) {
+                debugSay(creep, "factory");
+            }
         }
 
         if (!foundWork && !Game.flags[roomName + "RoomOperator"]) {
             creep.memory.previousPriority = 'labWorker';
             creep.memory.priority = 'distributor';
             creep.memory.hasDistributed = false;
+            debugSay(creep, "toDist");
+        }
+
+        if (!foundWork) {
+            debugSay(creep, "idle");
         }
 
         handleMovementCoordination(creep);
@@ -116,6 +149,10 @@ function handleTerminalOverflow(creep) {
     const terminal = creep.room.terminal;
     if (!terminal) return false;
 
+    if (creep.memory.fillingTerminalFromStorage && _.sum(creep.carry) == 0) {
+        creep.memory.fillingTerminalFromStorage = false;
+    }
+
     const storage = creep.room.storage;
     const factory = creep.memory.factory ? Game.getObjectById(creep.memory.factory) : undefined;
 
@@ -135,13 +172,8 @@ function handleTerminalOverflow(creep) {
     // If terminal or factory is too full, move basic minerals to storage.
     if (storage && (terminalFree < 10000 || factoryFree < 1000)) {
         if (_.sum(creep.carry) > 0) {
-            for (let mineral of basicMinerals) {
-                if (creep.carry[mineral]) {
-                    creep.memory.terminalOverflowUntil = Game.time + 100;
-                    return dropCarried(creep);
-                }
-            }
-            return false;
+            creep.memory.terminalOverflowUntil = Game.time + 100;
+            return dropCarried(creep);
         }
 
         let targetMineral = null;
@@ -153,6 +185,25 @@ function handleTerminalOverflow(creep) {
                 maxAmount = amount;
                 targetMineral = mineral;
             }
+        }
+
+        if (!targetMineral) {
+            let fallbackMineral = null;
+            let fallbackAmount = 0;
+            for (const resourceType in terminal.store) {
+                if (resourceType == RESOURCE_ENERGY) {
+                    continue;
+                }
+                const amount = terminal.store[resourceType] || 0;
+                if (amount > fallbackAmount) {
+                    fallbackAmount = amount;
+                    fallbackMineral = resourceType;
+                }
+            }
+            if (!fallbackMineral && (terminal.store[RESOURCE_ENERGY] || 0) > 0) {
+                fallbackMineral = RESOURCE_ENERGY;
+            }
+            targetMineral = fallbackMineral;
         }
 
         if (targetMineral) {
@@ -175,7 +226,7 @@ function handleTerminalOverflow(creep) {
 
     // If terminal has room, move non-energy/power from storage to terminal.
     if (storage && terminalFree > 15000) {
-        if (_.sum(creep.carry) > 0) {
+        if (creep.memory.fillingTerminalFromStorage && _.sum(creep.carry) > 0) {
             const currentlyCarrying = _.findKey(creep.carry);
             if (currentlyCarrying && currentlyCarrying != RESOURCE_ENERGY && currentlyCarrying != RESOURCE_POWER) {
                 const transferResult = creep.transfer(terminal, currentlyCarrying);
@@ -183,9 +234,17 @@ function handleTerminalOverflow(creep) {
                     creep.travelTo(terminal, { maxRooms: 1, ignoreRoads: true });
                 } else if (transferResult == OK) {
                     clearTravelMemory(creep);
+                    if (_.sum(creep.carry) == 0) {
+                        creep.memory.fillingTerminalFromStorage = false;
+                    }
                 }
                 return true;
             }
+            creep.memory.fillingTerminalFromStorage = false;
+            return false;
+        }
+
+        if (_.sum(creep.carry) > 0) {
             return false;
         }
 
@@ -195,8 +254,10 @@ function handleTerminalOverflow(creep) {
             }
             const withdrawResult = creep.withdraw(storage, resourceType);
             if (withdrawResult == ERR_NOT_IN_RANGE) {
+                creep.memory.fillingTerminalFromStorage = true;
                 creep.travelTo(storage, { maxRooms: 1, ignoreRoads: true });
             } else if (withdrawResult == OK) {
+                creep.memory.fillingTerminalFromStorage = true;
                 clearTravelMemory(creep);
             }
             return true;
@@ -377,9 +438,18 @@ function actOnTarget(creep, target) {
     if (creep.memory.direction == 'Withdraw' && creep.memory.priority != 'labWorkerNearDeath') {
         const withdrawResult = creep.withdraw(target, creep.memory.mineralToMove);
         if (withdrawResult == ERR_NOT_IN_RANGE) {
+            debugSay(creep, "mv->W");
             creep.travelTo(target, { maxRooms: 1, ignoreRoads: true });
         } else {
-            clearInstructions(creep);
+            debugSay(creep, withdrawResult == OK ? "W:OK" : "W:ERR");
+            const carriedResource = _.findKey(creep.carry);
+            if (creep.memory.movingOtherMineral && creep.memory.otherMineralTarget && carriedResource) {
+                creep.memory.structureTarget = creep.memory.otherMineralTarget;
+                creep.memory.direction = 'Transfer';
+                creep.memory.mineralToMove = carriedResource;
+            } else {
+                clearInstructions(creep);
+            }
             clearTravelMemory(creep);
         }
         return true;
@@ -392,8 +462,10 @@ function actOnTarget(creep, target) {
 
     const transferResult = creep.transfer(target, creep.memory.mineralToMove);
     if (transferResult == ERR_NOT_IN_RANGE) {
+        debugSay(creep, "mv->T");
         creep.travelTo(target, { maxRooms: 1, ignoreRoads: true });
     } else {
+        debugSay(creep, transferResult == OK ? "T:OK" : "T:ERR");
         clearInstructions(creep);
         clearTravelMemory(creep);
     }
@@ -504,7 +576,7 @@ function findLabWork(creep, ctx, terminal) {
 
 function handleBoostLab(creep, lab, mineral, terminal) {
     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-        const minAmount = mineral in terminal.store;
+        const minAmount = terminal.store[mineral] || 0;
         const minLab = lab.mineralAmount;
         if (minLab <= 2500 && minAmount > 0) {
             creep.memory.structureTarget = terminal.id;
@@ -514,6 +586,7 @@ function handleBoostLab(creep, lab, mineral, terminal) {
             if (withdrawResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(terminal, { maxRooms: 1, ignoreRoads: true });
             } else if (withdrawResult == OK) {
+                clearInstructions(creep);
                 clearTravelMemory(creep);
             }
             return true;
@@ -521,7 +594,7 @@ function handleBoostLab(creep, lab, mineral, terminal) {
         return false;
     }
 
-    const carryAmount = mineral in creep.carry;
+    const carryAmount = creep.carry[mineral] || 0;
     if (carryAmount > 0 && lab.mineralAmount <= 2500) {
         creep.memory.structureTarget = lab.id;
         creep.memory.direction = 'Transfer';
@@ -530,6 +603,7 @@ function handleBoostLab(creep, lab, mineral, terminal) {
         if (transferResult == ERR_NOT_IN_RANGE) {
             creep.travelTo(lab, { maxRooms: 1, ignoreRoads: true });
         } else if (transferResult == OK) {
+            clearInstructions(creep);
             clearTravelMemory(creep);
         }
         return true;
@@ -541,7 +615,7 @@ function handleBoostLab(creep, lab, mineral, terminal) {
 function handleReagentLab(creep, lab, mineral, terminal) {
     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
         if (terminal.store[creep.memory.mineral6] < 40000 || !terminal.store[creep.memory.mineral6]) {
-            const mineralAmount = mineral in terminal.store;
+            const mineralAmount = terminal.store[mineral] || 0;
             if (mineralAmount > 0 && lab.mineralAmount < lab.mineralCapacity - creep.carryCapacity) {
                 creep.memory.structureTarget = terminal.id;
                 creep.memory.direction = 'Withdraw';
@@ -550,6 +624,7 @@ function handleReagentLab(creep, lab, mineral, terminal) {
                 if (withdrawResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(terminal, { maxRooms: 1, ignoreRoads: true });
                 } else if (withdrawResult == OK) {
+                    clearInstructions(creep);
                     clearTravelMemory(creep);
                 }
                 return true;
@@ -566,6 +641,7 @@ function handleReagentLab(creep, lab, mineral, terminal) {
         if (transferResult == ERR_NOT_IN_RANGE) {
             creep.travelTo(lab, { maxRooms: 1, ignoreRoads: true });
         } else if (transferResult == OK) {
+            clearInstructions(creep);
             clearTravelMemory(creep);
         }
         return true;
@@ -584,6 +660,7 @@ function handleResultLab(creep, ctx, lab, mineral, terminal) {
             if (withdrawResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(lab, { maxRooms: 1, ignoreRoads: true });
             } else if (withdrawResult == OK) {
+                clearInstructions(creep);
                 clearTravelMemory(creep);
             }
             return true;
@@ -618,6 +695,7 @@ function handleResultLab(creep, ctx, lab, mineral, terminal) {
             if (creep.transfer(thisNuker, mineral) == ERR_NOT_IN_RANGE) {
                 creep.travelTo(thisNuker, { maxRooms: 1, ignoreRoads: true });
             } else {
+                clearInstructions(creep);
                 clearTravelMemory(creep);
             }
             return true;
@@ -633,6 +711,7 @@ function handleResultLab(creep, ctx, lab, mineral, terminal) {
     if (creep.transfer(transferTarget, mineral) == ERR_NOT_IN_RANGE) {
         creep.travelTo(transferTarget, { maxRooms: 1, ignoreRoads: true });
     } else {
+        clearInstructions(creep);
         clearTravelMemory(creep);
     }
     return true;
@@ -725,21 +804,21 @@ function fillNuker(creep, terminal) {
         creep.memory.structureTarget = terminal.id;
         creep.memory.direction = 'Withdraw';
         creep.memory.mineralToMove = RESOURCE_GHODIUM;
-        return true;
+        return actOnTarget(creep, terminal);
     }
 
     if (thisNuker.ghodiumCapacity > thisNuker.ghodium && creep.carry[RESOURCE_GHODIUM]) {
         creep.memory.structureTarget = thisNuker.id;
         creep.memory.direction = 'Transfer';
         creep.memory.mineralToMove = RESOURCE_GHODIUM;
-        return true;
+        return actOnTarget(creep, thisNuker);
     }
 
     if (thisNuker.ghodiumCapacity == thisNuker.ghodium && creep.carry[RESOURCE_GHODIUM]) {
         creep.memory.structureTarget = terminal.id;
         creep.memory.direction = 'Transfer';
         creep.memory.mineralToMove = RESOURCE_GHODIUM;
-        return true;
+        return actOnTarget(creep, terminal);
     }
 
     return false;
@@ -768,7 +847,7 @@ function manageFactory(creep, terminal) {
             creep.memory.direction = 'Withdraw';
             creep.memory.mineralToMove = res;
             creep.memory.movingOtherMineral = true;
-            return true;
+            return actOnTarget(creep, thisFactory);
         }
     }
 
@@ -802,7 +881,7 @@ function manageFactory(creep, terminal) {
         creep.memory.mineralToMove = roomMineral;
         creep.memory.movingOtherMineral = true;
         creep.memory.otherMineralTarget = thisFactory.id;
-        return true;
+        return actOnTarget(creep, terminal);
     }
 
     return false;
@@ -878,7 +957,7 @@ function tryCreateRoadAt(pos, nextPosAfterTarget) {
     }
 
     const structures = pos.lookFor(LOOK_STRUCTURES);
-    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD)) {
+    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_RAMPART)) {
         return;
     }
 
@@ -973,6 +1052,13 @@ function clearTravelMemory(creep) {
     if (creep.memory && creep.memory._trav) {
         delete creep.memory._trav;
     }
+}
+
+function debugSay(creep, message) {
+    if (!creep || !message) {
+        return;
+    }
+    creep.say(message, false);
 }
 
 module.exports = creep_labWorker;

@@ -840,7 +840,7 @@ function tryCreateRoadAt(pos, nextPosAfterTarget) {
     }
 
     let structures = pos.lookFor(LOOK_STRUCTURES);
-    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD)) {
+    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_RAMPART)) {
         return;
     }
 
