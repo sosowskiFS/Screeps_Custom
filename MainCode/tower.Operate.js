@@ -1,5 +1,5 @@
 var tower_Operate = {
-    run: function(tower, attackDuration, towerNum) {
+    run: function(tower, attackDuration, towerNum, roomIntel) {
         //My bit that computes "how much damage could my towers do to creep x?" counted inactive towers
         //Count defender damage from current ones as well
         //Remember to factor in boosted ranged parts
@@ -9,7 +9,13 @@ var tower_Operate = {
         if (!Memory.towerNeedEnergy[thisRoom.name]) {
             Memory.towerNeedEnergy[thisRoom.name] = [];
         }
-        if (!Memory.towerPickedTarget[thisRoom.name] || Game.time % 5 == 0) {
+        if (!Memory.towerPickedTarget[thisRoom.name]) {
+            Memory.towerPickedTarget[thisRoom.name] = '';
+        }
+        if (!Memory.towerTargetTick) {
+            Memory.towerTargetTick = {};
+        }
+        if (Game.time % 5 == 0 && Memory.towerTargetTick[thisRoom.name] != Game.time) {
             /*if (Memory.towerPickedTarget[thisRoom.name]) {
                 let thisHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
                 if (thisHostile && thisHostile.hits > (thisHostile.hitsMax - 500)) {
@@ -20,7 +26,10 @@ var tower_Operate = {
             }*/
 
             Memory.towerPickedTarget[thisRoom.name] = '';
+            Memory.towerTargetTick[thisRoom.name] = Game.time;
         }
+
+        const showTowerDamageText = !!Game.flags[thisRoom.name + "TowerDebug"];
 
         var checkDelay;
         if (thisRoom.storage) {
@@ -50,15 +59,25 @@ var tower_Operate = {
             let closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
             if (!closestHostile) {
                 //Find new target to shoot at.
-                let allHostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
-                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
-                });
-                let pHostiles = tower.room.find(FIND_HOSTILE_POWER_CREEPS, {
-                    filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
-                });
-                let allTowers = tower.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
-                });
+                let allHostiles = [];
+                let pHostiles = [];
+                let allTowers = [];
+
+                if (roomIntel && roomIntel.hostiles && roomIntel.pHostiles && roomIntel.allTowers) {
+                    allHostiles = roomIntel.hostiles.filter((eCreep) => !isBorderPos(eCreep.pos));
+                    pHostiles = roomIntel.pHostiles.filter((eCreep) => !isBorderPos(eCreep.pos));
+                    allTowers = roomIntel.allTowers;
+                } else {
+                    allHostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
+                    });
+                    pHostiles = tower.room.find(FIND_HOSTILE_POWER_CREEPS, {
+                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
+                    });
+                    allTowers = tower.room.find(FIND_STRUCTURES, {
+                        filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
+                    });
+                }
                 hostileCount = 0
                 if (allHostiles.length) {
                     hostileCount += allHostiles.length;
@@ -90,8 +109,9 @@ var tower_Operate = {
                         }
                         if (thisTower.effects) {
                             for (let thisPower in thisTower.effects) {
-                                if (thisTower.effects[thisPower].effect == PWR_OPERATE_TOWER || thisTower.effects[thisPower].effect == PWR_DISRUPT_TOWER) {
-                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
+                                let powerEffect = thisTower.effects[thisPower];
+                                if (powerEffect.effect == PWR_OPERATE_TOWER || powerEffect.effect == PWR_DISRUPT_TOWER) {
+                                    thisTowerDamage *= POWER_INFO[powerEffect.effect].effect[powerEffect.level - 1];
                                 }
                             }
                         }
@@ -168,7 +188,9 @@ var tower_Operate = {
                     if ((flatDamage - damageReduction) <= 0) {
                         dColor = 'red';
                     }
-                    new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
+                    if (showTowerDamageText) {
+                        new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), allHostiles[thisHostile].pos.x, allHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
+                    }
 
                     //Determine if this beats the best
                     if ((flatDamage - damageReduction) > damageRecord) {
@@ -195,8 +217,9 @@ var tower_Operate = {
                         }
                         if (thisTower.effects) {
                             for (let thisPower in thisTower.effects) {
-                                if (thisTower.effects[thisPower].effect == PWR_OPERATE_TOWER || thisTower.effects[thisPower].effect == PWR_DISRUPT_TOWER) {
-                                    thisTowerDamage *= POWER_INFO[thisPower.effect].effect[thisPower.effect.level - 1];
+                                let powerEffect = thisTower.effects[thisPower];
+                                if (powerEffect.effect == PWR_OPERATE_TOWER || powerEffect.effect == PWR_DISRUPT_TOWER) {
+                                    thisTowerDamage *= POWER_INFO[powerEffect.effect].effect[powerEffect.level - 1];
                                 }
                             }
                         }
@@ -274,7 +297,9 @@ var tower_Operate = {
                         dColor = 'red';
                     }
                     if (pHostiles[thisHostile]) {
-                        new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), pHostiles[thisHostile].pos.x, pHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
+                        if (showTowerDamageText) {
+                            new RoomVisual(thisRoom.name).text((flatDamage - damageReduction).toString(), pHostiles[thisHostile].pos.x, pHostiles[thisHostile].pos.y, { color: dColor, font: 0.3 });
+                        }
 
                         //Determine if this beats the best
                         if ((flatDamage - damageReduction) > damageRecord) {
@@ -300,11 +325,20 @@ var tower_Operate = {
                         didHeal = true;
                     }
                 }
-                let allCreeps = Memory.roomCreeps[thisRoom.name];
-                if (allCreeps.length && !didHeal) {
-                    allCreeps.sort(healCompare);
-                    if (allCreeps[0].hits < allCreeps[0].hitsMax - 199) {
-                        tower.heal(allCreeps[0]);
+                let topInjured = roomIntel && roomIntel.mostInjuredCreep ? roomIntel.mostInjuredCreep : undefined;
+                if (!topInjured || (topInjured.hits >= topInjured.hitsMax)) {
+                    let allCreeps = Memory.roomCreeps[thisRoom.name];
+                    if (allCreeps && allCreeps.length) {
+                        for (let i = 0; i < allCreeps.length; i++) {
+                            if (!topInjured || (allCreeps[i].hitsMax - allCreeps[i].hits) > (topInjured.hitsMax - topInjured.hits)) {
+                                topInjured = allCreeps[i];
+                            }
+                        }
+                    }
+                }
+                if (topInjured && !didHeal) {
+                    if (topInjured.hits < topInjured.hitsMax - 199) {
+                        tower.heal(topInjured);
                         didHeal = true;
                     }
                 }
@@ -365,11 +399,20 @@ var tower_Operate = {
                     didHeal = true;
                 }
             }
-            let allCreeps = Memory.roomCreeps[thisRoom.name];
-            if (allCreeps.length && !didHeal) {
-                allCreeps.sort(healCompare);
-                if (allCreeps[0].hits < allCreeps[0].hitsMax) {
-                    tower.heal(allCreeps[0]);
+            let topInjured = roomIntel && roomIntel.mostInjuredCreep ? roomIntel.mostInjuredCreep : undefined;
+            if (!topInjured || (topInjured.hits >= topInjured.hitsMax)) {
+                let allCreeps = Memory.roomCreeps[thisRoom.name];
+                if (allCreeps && allCreeps.length) {
+                    for (let i = 0; i < allCreeps.length; i++) {
+                        if (!topInjured || (allCreeps[i].hitsMax - allCreeps[i].hits) > (topInjured.hitsMax - topInjured.hits)) {
+                            topInjured = allCreeps[i];
+                        }
+                    }
+                }
+            }
+            if (topInjured && !didHeal) {
+                if (topInjured.hits < topInjured.hitsMax) {
+                    tower.heal(topInjured);
                     didHeal = true;
                 }
             }

@@ -18,10 +18,11 @@ var creep_miner = {
             creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
         }
 
-        if (Game.flags[creep.room.name + creep.memory.jobSpecific] && !creep.memory.atSpot) {
+        let minerFlag = Game.flags[creep.room.name + creep.memory.jobSpecific];
+        if (minerFlag && !creep.memory.atSpot) {
             creep.memory.ignoreTravel = true;
-            if (creep.pos.x != Game.flags[creep.room.name + creep.memory.jobSpecific].pos.x || creep.pos.y != Game.flags[creep.room.name + creep.memory.jobSpecific].pos.y) {
-                creep.travelTo(Game.flags[creep.room.name + creep.memory.jobSpecific], {
+            if (creep.pos.x != minerFlag.pos.x || creep.pos.y != minerFlag.pos.y) {
+                creep.travelTo(minerFlag, {
                     maxRooms: 1
                 });
             } else {
@@ -44,24 +45,19 @@ var creep_miner = {
 
             if (creep.store.getFreeCapacity(RESOURCE_ENERGY) <= creep.memory.minePower) {
                 let storageTarget = Game.getObjectById(creep.memory.linkSource);
+                let transferTarget = storageTarget;
                 if (creep.memory.jobSpecific == 'upgradeMiner') {
-                    let storageTarget2 = undefined;
+                    let storageTarget2;
                     if (creep.memory.linkSource2) {
                         storageTarget2 = Game.getObjectById(creep.memory.linkSource2);
                     }
-                    if (storageTarget2 && storageTarget.energy == storageTarget.energyCapacity) {
-                        if (creep.transfer(storageTarget2, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && !creep.memory.ignoreTravel) {
-                            creep.travelTo(storageTarget2);
-                        }
-                    } else {
-                        if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && !creep.memory.ignoreTravel) {
-                            creep.travelTo(storageTarget);
-                        }
+                    if (storageTarget2 && storageTarget && storageTarget.energy == storageTarget.energyCapacity) {
+                        transferTarget = storageTarget2;
                     }
-                } else {
-                    if (creep.transfer(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && !creep.memory.ignoreTravel) {
-                        creep.travelTo(storageTarget);
-                    }
+                }
+
+                if (transferTarget && creep.transfer(transferTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && !creep.memory.ignoreTravel) {
+                    creep.travelTo(transferTarget);
                 }
             }
 

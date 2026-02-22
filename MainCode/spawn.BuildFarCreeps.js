@@ -391,14 +391,13 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
         farMineralMiners: []
     };
 
+    const miningFlagToIndex = {};
+    const miningDestinationToIndex = {};
+    const guardFlagToIndex = {};
+    const mineralFlagToIndex = {};
+
     // Initialize eFarGuards for war mode
-    if (Memory.warMode) {
-        result.eFarGuards = _.filter(controlledCreeps, (creep) => 
-            creep.memory.priority == 'farGuard' && 
-            creep.memory.homeRoom == roomName && 
-            creep.memory.targetFlag == roomName + "eFarGuard"
-        );
-    }
+    const watchEFarGuards = Memory.warMode;
 
     // Mining operations configurations
     const miningConfigs = [
@@ -421,23 +420,13 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
         result.farMining[i] = { mules: [], claimers: [], miners: [] };
         
         if (config.condition && Game.flags[miningFlag]) {
-            result.farMining[i].mules = _.filter(controlledCreeps, (creep) => 
-                creep.memory.priority == 'farMule' && 
-                creep.memory.homeRoom == roomName && 
-                creep.memory.targetFlag == miningFlag
-            );
-            
-            result.farMining[i].claimers = _.filter(controlledCreeps, (creep) => 
-                creep.memory.priority == 'farClaimer' && 
-                creep.memory.homeRoom == roomName && 
-                creep.memory.destination == Game.flags[miningFlag].pos.roomName
-            );
-            
-            result.farMining[i].miners = _.filter(controlledCreeps, (creep) => 
-                creep.memory.priority == 'farMiner' && 
-                creep.memory.homeRoom == roomName && 
-                creep.memory.targetFlag == miningFlag
-            );
+            miningFlagToIndex[miningFlag] = i;
+
+            const destination = Game.flags[miningFlag].pos.roomName;
+            if (!miningDestinationToIndex[destination]) {
+                miningDestinationToIndex[destination] = [];
+            }
+            miningDestinationToIndex[destination].push(i);
         }
     }
 
@@ -463,11 +452,7 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
         result.farGuards[i] = [];
         
         if (config.condition && (Game.flags[guardFlag] || Game.flags[tempFlag])) {
-            result.farGuards[i] = _.filter(controlledCreeps, (creep) => 
-                creep.memory.priority == 'farGuard' && 
-                creep.memory.homeRoom == roomName && 
-                creep.memory.targetFlag == guardFlag
-            );
+            guardFlagToIndex[guardFlag] = i;
         }
     }
 
@@ -479,11 +464,61 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
         result.farMineralMiners[i] = [];
         
         if (Game.flags[mineralFlag]) {
-            result.farMineralMiners[i] = _.filter(controlledCreeps, (creep) => 
-                creep.memory.priority == 'farMineralMiner' && 
-                creep.memory.homeRoom == roomName && 
-                creep.memory.targetFlag == mineralFlag
-            );
+            mineralFlagToIndex[mineralFlag] = i;
+        }
+    }
+
+    for (const creepName in controlledCreeps) {
+        const creep = controlledCreeps[creepName];
+        if (!creep || !creep.memory || creep.memory.homeRoom != roomName) {
+            continue;
+        }
+
+        const priority = creep.memory.priority;
+
+        if (priority == 'farGuard') {
+            if (watchEFarGuards && creep.memory.targetFlag == roomName + "eFarGuard") {
+                result.eFarGuards.push(creep);
+            }
+
+            const guardIndex = guardFlagToIndex[creep.memory.targetFlag];
+            if (guardIndex !== undefined) {
+                result.farGuards[guardIndex].push(creep);
+            }
+            continue;
+        }
+
+        if (priority == 'farMule') {
+            const miningIndex = miningFlagToIndex[creep.memory.targetFlag];
+            if (miningIndex !== undefined) {
+                result.farMining[miningIndex].mules.push(creep);
+            }
+            continue;
+        }
+
+        if (priority == 'farMiner') {
+            const miningIndex = miningFlagToIndex[creep.memory.targetFlag];
+            if (miningIndex !== undefined) {
+                result.farMining[miningIndex].miners.push(creep);
+            }
+            continue;
+        }
+
+        if (priority == 'farClaimer') {
+            const destinationIndexes = miningDestinationToIndex[creep.memory.destination];
+            if (destinationIndexes && destinationIndexes.length) {
+                for (let d = 0; d < destinationIndexes.length; d++) {
+                    result.farMining[destinationIndexes[d]].claimers.push(creep);
+                }
+            }
+            continue;
+        }
+
+        if (priority == 'farMineralMiner') {
+            const mineralIndex = mineralFlagToIndex[creep.memory.targetFlag];
+            if (mineralIndex !== undefined) {
+                result.farMineralMiners[mineralIndex].push(creep);
+            }
         }
     }
 

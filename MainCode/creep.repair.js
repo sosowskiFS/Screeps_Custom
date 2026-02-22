@@ -32,7 +32,7 @@ var creep_repair = {
             }
 
             if (creep.carryCapacity > 0) {
-                findNewTarget(creep, _.sum(creep.carry), repairRange);
+                findNewTarget(creep, getUsedCarry(creep), repairRange);
             } else {
                 creep.suicide();
             }
@@ -48,7 +48,7 @@ function findNewTarget(creep, creepEnergy, repairRange) {
         } else {
             //Get from storage
             var storageTarget = creep.room.storage;
-            if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+            if (creep.room.terminal && storageTarget && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
                 storageTarget = creep.room.terminal;
             }
             if (storageTarget && storageTarget.store[RESOURCE_ENERGY] >= 200 && creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
@@ -58,7 +58,7 @@ function findNewTarget(creep, creepEnergy, repairRange) {
                         maxRooms: 1
                     });
                 } else if (withdrawResult == OK) {
-                    moveToNewTarget(creep);
+                    assignRepairTargetAndAct(creep, repairRange);
                 }
             } else if (storageTarget) {
                 var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
@@ -71,9 +71,9 @@ function findNewTarget(creep, creepEnergy, repairRange) {
         }
     } else if (creep.memory.structureTarget) {
         let doRepair = true;
-        if (creep.memory.previousPriority == 'mule' && creep.carry.energy > 300 && Memory.linkList[creep.room.name].length > 1) {
+        if (creep.memory.previousPriority == 'mule' && getEnergyCarry(creep) > 300 && Memory.linkList[creep.room.name].length > 1) {
             let upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
-            if (upgraderLink && upgraderLink.energy < 100 && creep.carry[RESOURCE_ENERGY] > 0 && upgraderLink.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+            if (upgraderLink && upgraderLink.energy < 100 && getEnergyCarry(creep) > 0 && upgraderLink.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 doRepair = false;
                 creep.memory.priority = 'mule';
                 creep.memory.structureTarget = upgraderLink.id;
@@ -89,10 +89,9 @@ function findNewTarget(creep, creepEnergy, repairRange) {
                     //No repair needed, clear for reassignment
                     Memory.repairTarget[creep.room.name] = undefined;
                     creep.memory.structureTarget = undefined;
-                    findNewTarget(creep, _.sum(creep.carry));
                 } else {
                     //If using last bit of energy this tick, find new target
-                    if (thisStructure.hits < thisStructure.hitsMax && creep.carry[RESOURCE_ENERGY] > 0) {
+                    if (thisStructure.hits < thisStructure.hitsMax && getEnergyCarry(creep) > 0) {
                         let repairResult = creep.repair(thisStructure);
                         if (repairResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisStructure, {
@@ -100,40 +99,7 @@ function findNewTarget(creep, creepEnergy, repairRange) {
                                 range: repairRange
                             });
                         } else if (repairResult == OK) {
-                            //Listen for creeps
-                            let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
-                            })
-                            if (talkingCreeps.length) {
-                                let coords = talkingCreeps[0].saying.split(";");
-                                if (talkingCreeps[0].memory.priority != 'repair' && coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-                                    let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-                                    creep.move(thisDirection);
-                                    creep.say("\uD83D\uDCA6", true);
-                                }
-                            } else if (Game.flags[creep.room.name + "RoomOperator"]) {
-                                talkingCreeps = creep.pos.findInRange(FIND_MY_POWER_CREEPS, 1, {
-                                    filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
-                                })
-                                if (talkingCreeps.length) {
-                                    let coords = talkingCreeps[0].saying.split(";");
-                                    if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-                                        let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-                                        creep.move(thisDirection);
-                                        creep.say("\uD83D\uDCA6", true);
-                                    } else {
-                                        creep.travelTo(thisStructure, {
-                                            maxRooms: 1,
-                                            range: repairRange
-                                        });
-                                    }
-                                } else {
-                                    creep.travelTo(thisStructure, {
-                                        maxRooms: 1,
-                                        range: repairRange
-                                    });
-                                }
-                            } else {
+                            if (Game.time % 5 == 0 && !nudgeBlockingUnits(creep, true)) {
                                 creep.travelTo(thisStructure, {
                                     maxRooms: 1,
                                     range: repairRange
@@ -141,64 +107,34 @@ function findNewTarget(creep, creepEnergy, repairRange) {
                             }
                         }
                         if (repairResult == OK && creepEnergy <= creep.getActiveBodyparts(WORK)) {
-                            findNewTarget(creep, 0);
+                            creep.memory.structureTarget = undefined;
                         }
                     }
                 }
             } else {
                 Memory.repairTarget[creep.room.name] = undefined;
                 creep.memory.structureTarget = undefined;
-                findNewTarget(creep, _.sum(creep.carry));
             }
         }
     } else {
-        if (Memory.repairTarget[creep.room.name]) {
-            let closestDamagedStructure = Game.getObjectById(Memory.repairTarget[creep.room.name]);
-            if (closestDamagedStructure && closestDamagedStructure.hits < closestDamagedStructure.hitsMax && creep.carry[RESOURCE_ENERGY] > 0) {
-                creep.memory.structureTarget = Memory.repairTarget[creep.room.name];
-                if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
-                    if (!Memory.warMode) {
-                        creep.travelTo(closestDamagedStructure, {
-                            maxRooms: 1,
-                            range: 1
-                        });
-                    } else {
-                        creep.travelTo(closestDamagedStructure, {
-                            maxRooms: 1
-                        });
-                    }
-                }
-            } else if (!closestDamagedStructure || closestDamagedStructure.hits == closestDamagedStructure.hitsMax) {
-                Memory.repairTarget[creep.room.name] = undefined;
-            }
-        } else {
-            // No repair target found, listen for other creeps needing to move
-            let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
-            })
-            if (talkingCreeps.length) {
-                let coords = talkingCreeps[0].saying.split(";");
-                if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-                    //Standing in the way of a creep
-                    let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-                    creep.move(thisDirection);
-                    creep.say("\uD83D\uDCA6", true);
-                }
-            }
-        }
+        assignRepairTargetAndAct(creep, repairRange);
+    }
+
+    if (!creep.memory.structureTarget && creepEnergy > 0) {
+        assignRepairTargetAndAct(creep, repairRange);
     }
 }
 
-function moveToNewTarget(creep) {
+function assignRepairTargetAndAct(creep, repairRange) {
     if (Memory.repairTarget[creep.room.name]) {
         let closestDamagedStructure = Game.getObjectById(Memory.repairTarget[creep.room.name]);
-        if (closestDamagedStructure && closestDamagedStructure.hits < closestDamagedStructure.hitsMax && creep.carry[RESOURCE_ENERGY] > 0) {
+        if (closestDamagedStructure && closestDamagedStructure.hits < closestDamagedStructure.hitsMax && getEnergyCarry(creep) > 0) {
             creep.memory.structureTarget = Memory.repairTarget[creep.room.name];
             if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
                 if (!Memory.warMode) {
                     creep.travelTo(closestDamagedStructure, {
                         maxRooms: 1,
-                        range: 1
+                        range: repairRange || 1
                     });
                 } else {
                     creep.travelTo(closestDamagedStructure, {
@@ -211,19 +147,56 @@ function moveToNewTarget(creep) {
         }
     } else {
         // No repair target found, listen for other creeps needing to move
-        let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+        if (Game.time % 5 == 0) {
+            nudgeBlockingUnits(creep, false);
+        }
+    }
+}
+
+function nudgeBlockingUnits(creep, includePowerCreeps) {
+    let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+        filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
+    });
+    if (talkingCreeps.length) {
+        let coords = talkingCreeps[0].saying.split(";");
+        if (talkingCreeps[0].memory.priority != 'repair' && coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+            let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+            creep.move(thisDirection);
+            creep.say("\uD83D\uDCA6", true);
+            return true;
+        }
+    }
+
+    if (includePowerCreeps && Game.flags[creep.room.name + "RoomOperator"]) {
+        talkingCreeps = creep.pos.findInRange(FIND_MY_POWER_CREEPS, 1, {
             filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying)
-        })
+        });
         if (talkingCreeps.length) {
-            let coords = talkingCreeps[0].saying.split(";");
-            if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-                //Standing in the way of a creep
-                let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-                creep.move(thisDirection);
+            let powerCoords = talkingCreeps[0].saying.split(";");
+            if (powerCoords.length == 2 && creep.pos.x == parseInt(powerCoords[0]) && creep.pos.y == parseInt(powerCoords[1])) {
+                let powerDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                creep.move(powerDirection);
                 creep.say("\uD83D\uDCA6", true);
+                return true;
             }
         }
     }
+
+    return false;
+}
+
+function getUsedCarry(creep) {
+    if (creep.store && creep.store.getUsedCapacity) {
+        return creep.store.getUsedCapacity();
+    }
+    return _.sum(creep.carry);
+}
+
+function getEnergyCarry(creep) {
+    if (creep.store && creep.store.getUsedCapacity) {
+        return creep.store.getUsedCapacity(RESOURCE_ENERGY) || 0;
+    }
+    return creep.carry[RESOURCE_ENERGY] || 0;
 }
 
 module.exports = creep_repair;

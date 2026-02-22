@@ -1,3 +1,33 @@
+/*
+LabWorker breakpoint reference (overflow + notable thresholds)
+
+Overflow breakpoints
+- Terminal overflow cleanup: trigger when terminal free < 10,000 OR factory free < 1,000.
+- Terminal overflow mineral pick: basic minerals prioritized when amount > 5,000.
+- Terminal overflow reroute window: terminalOverflowUntil = Game.time + 100.
+- Terminal stock refill from storage (inside handleTerminalOverflow): run when terminal free > 15,000.
+- Pre-lab storage -> terminal transfer (run order step): run when terminal free >= 20,000.
+- General storage -> terminal transfer helper default: min terminal free = 25,000.
+- Factory overflow handling: trigger when factory free < 2,000 OR factory energy > 10,000.
+- Factory overflow destination: send to terminal first if terminal free > 20,000, else storage.
+
+Notable non-overflow breakpoints
+- Resource check cadence: every 50 ticks via nextResourceCheck.
+- Resource check failover/suicide gate: resourceChecks >= 15.
+- Production stop/market gate: when terminal[mineral6] >= 40,000.
+- Market price floor: minimum sell price = 0.5.
+- Boost/reagent lab refill threshold: refill when lab mineralAmount <= 2,500.
+- Reagent feed allowed while terminal[mineral6] < 40,000.
+- Result lab withdraw threshold: withdraw when lab mineralAmount >= carryCapacity.
+- Store-produced guard: avoid terminal drop if source lab amount <= 2,500.
+- ManageFactory room-mineral target limits by terminal free:
+    - free > 50,000 => limit 40,000
+    - 5,001..50,000 => limit 20,000
+    - <= 5,000 => limit 3,000
+- ManageFactory room-mineral move blocked when factory free < 1,500.
+- NotOverLimit bar/reactant cap: 10,000 for each tracked commodity.
+*/
+
 var creep_labWorker = {
     /** @param {Creep} creep **/
     run: function(creep) {
@@ -41,6 +71,20 @@ var creep_labWorker = {
             foundWork = handleTerminalOverflow(creep);
             if (foundWork) {
                 debugSay(creep, "ovfFlow");
+            }
+        }
+
+        if (!foundWork) {
+            foundWork = handleFactoryOverflow(creep, terminal, storage);
+            if (foundWork) {
+                debugSay(creep, "fOvf");
+            }
+        }
+
+        if (!foundWork && storage) {
+            foundWork = moveStorageMineralsToTerminal(creep, storage, terminal, 20000);
+            if (foundWork) {
+                debugSay(creep, "s2tPre");
             }
         }
 
@@ -303,6 +347,94 @@ function handleResourceCheck(creep, terminal) {
     if (lab4 && lab5 && (lab4.mineralAmount < creep.carryCapacity || lab5.mineralAmount < creep.carryCapacity) && _.sum(creep.carry) == 0) {
         creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
     }
+}
+
+function handleFactoryOverflow(creep, terminal, storage) {
+    const thisFactory = creep.memory.factory ? Game.getObjectById(creep.memory.factory) : undefined;
+    if (!thisFactory) {
+        return false;
+    }
+
+    const factoryFree = thisFactory.store.getFreeCapacity();
+    const energyInFactory = thisFactory.store[RESOURCE_ENERGY] || 0;
+    if (factoryFree >= 2000 && energyInFactory <= 10000) {
+        return false;
+    }
+
+    let transferTarget = undefined;
+    if (terminal && terminal.store.getFreeCapacity() > 20000) {
+        transferTarget = terminal;
+    } else if (storage) {
+        transferTarget = storage;
+    }
+
+    if (!transferTarget) {
+        return false;
+    }
+
+    if (_.sum(creep.carry) > 0) {
+        const currentlyCarrying = _.findKey(creep.carry);
+        if (!currentlyCarrying) {
+            return false;
+        }
+
+        const transferResult = creep.transfer(transferTarget, currentlyCarrying);
+        if (transferResult == ERR_NOT_IN_RANGE) {
+            creep.travelTo(transferTarget, { maxRooms: 1, ignoreRoads: true });
+        } else if (transferResult == OK) {
+            clearTravelMemory(creep);
+        }
+        return true;
+    }
+
+    const withdrawCandidates = [
+        RESOURCE_UTRIUM_BAR,
+        RESOURCE_LEMERGIUM_BAR,
+        RESOURCE_ZYNTHIUM_BAR,
+        RESOURCE_KEANIUM_BAR,
+        RESOURCE_OXIDANT,
+        RESOURCE_REDUCTANT,
+        RESOURCE_PURIFIER
+    ];
+
+    let targetResource = undefined;
+    for (let i = 0; i < withdrawCandidates.length; i++) {
+        const resourceType = withdrawCandidates[i];
+        if ((thisFactory.store[resourceType] || 0) > 0) {
+            targetResource = resourceType;
+            break;
+        }
+    }
+
+    if (!targetResource) {
+        let roomMineral = '';
+        if (Memory.mineralList[creep.room.name] && Memory.mineralList[creep.room.name].length > 0) {
+            const mineralObj = Game.getObjectById(Memory.mineralList[creep.room.name][0]);
+            if (mineralObj) {
+                roomMineral = mineralObj.mineralType;
+            }
+        }
+        if (roomMineral && (thisFactory.store[roomMineral] || 0) > 0) {
+            targetResource = roomMineral;
+        }
+    }
+
+    if (!targetResource && energyInFactory > 10000) {
+        targetResource = RESOURCE_ENERGY;
+    }
+
+    if (!targetResource) {
+        return false;
+    }
+
+    const withdrawResult = creep.withdraw(thisFactory, targetResource);
+    if (withdrawResult == ERR_NOT_IN_RANGE) {
+        creep.travelTo(thisFactory, { maxRooms: 1, ignoreRoads: true });
+    } else if (withdrawResult == OK) {
+        clearTravelMemory(creep);
+    }
+
+    return true;
 }
 
 function handleMarketOrder(creep, terminal) {
@@ -727,8 +859,21 @@ function shouldStoreOverflowInStorage(creep, resourceType) {
     return true;
 }
 
-function moveStorageMineralsToTerminal(creep, storage, terminal) {
-    if (Object.keys(storage.store).length <= 1 || terminal.store.getFreeCapacity() < 25000) {
+function moveStorageMineralsToTerminal(creep, storage, terminal, minTerminalFree) {
+    const requiredFree = minTerminalFree || 25000;
+    if (terminal.store.getFreeCapacity() < requiredFree) {
+        return false;
+    }
+
+    let hasNonEnergyResource = false;
+    for (const resourceType in storage.store) {
+        if (resourceType != RESOURCE_POWER && resourceType != RESOURCE_ENERGY && storage.store[resourceType] > 0) {
+            hasNonEnergyResource = true;
+            break;
+        }
+    }
+
+    if (!hasNonEnergyResource) {
         return false;
     }
 

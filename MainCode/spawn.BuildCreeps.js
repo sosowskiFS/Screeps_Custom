@@ -1,26 +1,57 @@
 var spawn_BuildCreeps = {
     run: function(spawn, bestWorker, thisRoom, RoomCreeps, energyIndex) {
 
-        let harvesters = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'harvester');
-        let builders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'builder');
-        let upgraders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'upgrader');
-        let repairers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'repair');
-        let suppliers = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'supplier');
-        let distributors = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'distributor');
+        const roomName = thisRoom.name;
+        const strSources = Memory.sourceList[roomName] || [];
+        const firstSource = strSources[0];
+        const secondSource = strSources[1];
 
-        let defenders = _.filter(RoomCreeps, (creep) => creep.memory.priority == 'defender');
+        let harvesterCount = 0;
+        let builderCount = 0;
+        let upgraderCount = 0;
+        let repairerCount = 0;
+        let supplierCount = 0;
+        let distributorCount = 0;
+        let defenderCount = 0;
+        let assignedSlot1Count = 0;
+        let assignedSlot2Count = 0;
+
+        for (let i = 0; i < RoomCreeps.length; i++) {
+            const creep = RoomCreeps[i];
+            if (!creep || !creep.memory) {
+                continue;
+            }
+
+            const priority = creep.memory.priority;
+            if (priority == 'harvester') {
+                harvesterCount++;
+                if (firstSource && creep.memory.sourceLocation == firstSource) {
+                    assignedSlot1Count++;
+                } else if (secondSource && creep.memory.sourceLocation == secondSource) {
+                    assignedSlot2Count++;
+                }
+            } else if (priority == 'builder') {
+                builderCount++;
+            } else if (priority == 'upgrader') {
+                upgraderCount++;
+            } else if (priority == 'repair') {
+                repairerCount++;
+            } else if (priority == 'supplier') {
+                supplierCount++;
+            } else if (priority == 'distributor') {
+                distributorCount++;
+            } else if (priority == 'defender') {
+                defenderCount++;
+            }
+        }
 
         // Dynamic creep limits based on room level and available energy
-        let harvesterMax = Math.min(2, Memory.sourceList[thisRoom.name].length);
+        let harvesterMax = Math.min(2, strSources.length);
         let builderMax = thisRoom.find(FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0;
         let upgraderMax = getUpgraderMax(thisRoom);
         let repairMax = getRepairMax(thisRoom);
         let supplierMax = 0;
         let distributorMax = getDistributorMax(thisRoom);
-
-        let strSources = Memory.sourceList[thisRoom.name];
-        let assignedSlot1 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[0] && creep.memory.priority == 'harvester');
-        let assignedSlot2 = _.filter(RoomCreeps, (creep) => creep.memory.sourceLocation == strSources[1] && creep.memory.priority == 'harvester');
 
         let bareMinConfig = [MOVE, MOVE, WORK, CARRY, CARRY];
         let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
@@ -89,7 +120,7 @@ var spawn_BuildCreeps = {
             }
 
             global.setSpawnBusy(spawn);
-        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenders.length < 2 && harvesters.length >= harvesterMax) {
+        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenderCount < 2 && harvesterCount >= harvesterMax) {
             //Try to produce millitary units
                  var ToughCount = 0;
                 var MoveCount = 0;
@@ -158,34 +189,34 @@ var spawn_BuildCreeps = {
 					directions: buildDirections
                 });
                 global.setSpawnBusy(spawn);
-        } else if ((harvesters.length < harvesterMax || builders.length < builderMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax)) {
+        } else if ((harvesterCount < harvesterMax || builderCount < builderMax || upgraderCount < upgraderMax || repairerCount < repairMax || supplierCount < supplierMax || distributorCount < distributorMax)) {
             var prioritizedRole = 'harvester';
             var creepSourceID = '';
             
             // Prioritize essential roles first, then support roles
-            if (harvesters.length < harvesterMax) {
+            if (harvesterCount < harvesterMax) {
                 prioritizedRole = 'harvester';
-                if (assignedSlot1.length) {
+                if (assignedSlot1Count > 0) {
                     //Assign slot 2
                     creepSourceID = strSources[1];
                 } else {
                     //Assign slot 1
                     creepSourceID = strSources[0];
                 }
-                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesters.length);
-            } else if (distributors.length < distributorMax && thisRoom.energyCapacityAvailable >= 150) {
+                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesterCount);
+            } else if (distributorCount < distributorMax && thisRoom.energyCapacityAvailable >= 150) {
                 prioritizedRole = 'distributor';
-                bestWorker = getDistributorConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesters.length);
-            } else if (suppliers.length < supplierMax && supplierDirection.length > 0 && thisRoom.energyCapacityAvailable >= 200) {
+                bestWorker = getDistributorConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesterCount);
+            } else if (supplierCount < supplierMax && supplierDirection.length > 0 && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'supplier';
                 bestWorker = getSupplierConfig(thisRoom.energyCapacityAvailable);
-            } else if (upgraders.length < upgraderMax && thisRoom.energyCapacityAvailable >= 200) {
+            } else if (upgraderCount < upgraderMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'upgrader';
                 bestWorker = getWorkerConfig(thisRoom.energyCapacityAvailable, 'upgrader');
-            } else if (builders.length < builderMax && thisRoom.energyCapacityAvailable >= 200) {
+            } else if (builderCount < builderMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'builder';
                 bestWorker = getWorkerConfig(thisRoom.energyCapacityAvailable, 'builder');
-            } else if (repairers.length < repairMax && thisRoom.energyCapacityAvailable >= 200) {
+            } else if (repairerCount < repairMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'repair';
                 bestWorker = getWorkerConfig(thisRoom.energyCapacityAvailable, 'repair');
             } else {

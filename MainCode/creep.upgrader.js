@@ -27,12 +27,15 @@ var creep_upgrader = {
                 creep.memory.hasBoosted = true;
             }
 
+            const carriedEnergy = getCarriedEnergy(creep);
+            const controllerFlag = Game.flags[creep.room.name + "Controller"];
+
             let attemptedTravel = false
-            if (_.sum(creep.carry) > 0) {
+            if (carriedEnergy > 0) {
                 if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                    if (Game.flags[creep.room.name + "Controller"]) {
+                    if (controllerFlag) {
                         attemptedTravel = true;
-                        creep.travelTo(Game.flags[creep.room.name + "Controller"], {
+                        creep.travelTo(controllerFlag, {
                             maxRooms: 1,
                             stuckValue: 4
                         });
@@ -53,7 +56,7 @@ var creep_upgrader = {
                 }
             }
 
-            if (_.sum(creep.carry) <= creep.getActiveBodyparts(WORK) && !attemptedTravel) {
+            if (carriedEnergy <= creep.getActiveBodyparts(WORK) && !attemptedTravel) {
                 var linkTarget = Game.getObjectById(creep.memory.linkSource);
                 if (linkTarget && creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.travelTo(linkTarget, {
@@ -68,20 +71,22 @@ var creep_upgrader = {
                 }
             }
 
-            let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
-                filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying && thisCreep.saying != "\u261D\uD83D\uDE3C" && thisCreep.saying != "\uD83D\uDC4C\uD83D\uDE39")
-            })
-            if (talkingCreeps.length) {
-                let coords = talkingCreeps[0].saying.split(";");
-                if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
-                    //Standing in the way of a creep
-                    let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
-                    creep.move(thisDirection);
-                    creep.say("\uD83D\uDCA6", true);
+            if (Game.time % 5 == 0) {
+                let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
+                    filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying && thisCreep.saying != "\u261D\uD83D\uDE3C" && thisCreep.saying != "\uD83D\uDC4C\uD83D\uDE39")
+                })
+                if (talkingCreeps.length) {
+                    let coords = talkingCreeps[0].saying.split(";");
+                    if (coords.length == 2 && creep.pos.x == parseInt(coords[0]) && creep.pos.y == parseInt(coords[1])) {
+                        //Standing in the way of a creep
+                        let thisDirection = creep.pos.getDirectionTo(talkingCreeps[0].pos);
+                        creep.move(thisDirection);
+                        creep.say("\uD83D\uDCA6", true);
+                    }
                 }
             }
 
-            if (creep.memory._trav && creep.memory._trav.path && creep.memory._trav.path.length) {
+            if (Game.time % 3 == 0 && creep.memory._trav && creep.memory._trav.path && creep.memory._trav.path.length) {
                 placeRoadOnPath(creep);
             }
         }
@@ -94,30 +99,28 @@ function placeRoadOnPath(creep) {
         return;
     }
 
-    if (Game.cpu && Game.cpu.bucket < 1000) {
-        return;
-    }
-
-    if (Game.constructionSites && Object.keys(Game.constructionSites).length >= MAX_CONSTRUCTION_SITES) {
-        return;
-    }
-
-    // Try to place road at current position
-    let nextDir = parseInt(creep.memory._trav.path[0], 10);
+    let path = creep.memory._trav.path;
+    let nextDir = parseInt(path[0], 10);
     let nextPos = nextDir ? positionAtDirection(creep.pos, nextDir) : undefined;
     let nextNextPos = undefined;
-    if (nextPos && creep.memory._trav.path.length > 1) {
-        let nextNextDir = parseInt(creep.memory._trav.path[1], 10);
+    if (nextPos && path.length > 1) {
+        let nextNextDir = parseInt(path[1], 10);
         if (nextNextDir) {
             nextNextPos = positionAtDirection(nextPos, nextNextDir);
         }
     }
-    tryCreateRoadAt(creep.pos, nextPos);
 
-    // Try to place road at next step in the path
+    tryCreateRoadAt(creep.pos, nextPos);
     if (nextPos) {
         tryCreateRoadAt(nextPos, nextNextPos);
     }
+}
+
+function getCarriedEnergy(creep) {
+    if (creep.store && creep.store.getUsedCapacity) {
+        return creep.store.getUsedCapacity(RESOURCE_ENERGY) || 0;
+    }
+    return creep.carry[RESOURCE_ENERGY] || 0;
 }
 
 function tryCreateRoadAt(pos, nextPosAfterTarget) {

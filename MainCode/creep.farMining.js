@@ -130,6 +130,20 @@ var creep_farMining = {
                     creep.memory.disabledNotify = true;
                 }
 
+                let targetFlagName = creep.memory.targetFlag;
+                let tempTargetFlagName = targetFlagName + "TEMP";
+                let targetFlag = Game.flags[targetFlagName];
+                let tempTargetFlag = Game.flags[tempTargetFlagName];
+                let nearbyEnemyCount = -1;
+                let hasNearbyEnemies = function() {
+                    if (nearbyEnemyCount < 0) {
+                        nearbyEnemyCount = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
+                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
+                        }).length;
+                    }
+                    return nearbyEnemyCount > 0;
+                }
+
                 if ((creep.ticksToLive <= creep.memory.deathWarn || creep.hits < 400) && creep.memory.priority != 'farGuardNearDeath') {
                     creep.memory.priority = 'farGuardNearDeath';
                 }
@@ -137,29 +151,31 @@ var creep_farMining = {
                 // Simplified guard flag management - only check every 10 ticks
                 if (Game.time % 10 == 0) {
                     if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100) {
-                        if (Game.flags[creep.memory.targetFlag] && !Game.flags[creep.memory.targetFlag + "TEMP"]) {
-                            Game.flags[creep.memory.targetFlag].pos.createFlag(creep.memory.targetFlag + "TEMP");
-                            Game.flags[creep.memory.targetFlag].remove();
+                        if (targetFlag && !tempTargetFlag) {
+                            targetFlag.pos.createFlag(tempTargetFlagName);
+                            targetFlag.remove();
                             var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
-                            homePosition.createFlag(creep.memory.targetFlag);
+                            homePosition.createFlag(targetFlagName);
                         }
-                    } else if (Game.flags[creep.memory.targetFlag + "TEMP"] && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) == -1) {
-                        if (Game.flags[creep.memory.targetFlag + "TEMP"]) {
+                    } else if (tempTargetFlag && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) == -1) {
+                        if (tempTargetFlag) {
                             try {
-                                Game.flags[creep.memory.targetFlag + "TEMP"].pos.createFlag(creep.memory.targetFlag);
-                                Game.flags[creep.memory.targetFlag + "TEMP"].remove();
+                                tempTargetFlag.pos.createFlag(targetFlagName);
+                                tempTargetFlag.remove();
                             } catch (e) {}
                         }
                     }
                 }
 
-                if (Game.flags[creep.memory.targetFlag]) {
-                    if (Game.flags[creep.memory.targetFlag].pos.roomName != creep.memory.destination) {
-                        creep.memory.destination = Game.flags[creep.memory.targetFlag].pos.roomName;
+                targetFlag = Game.flags[targetFlagName];
+                tempTargetFlag = Game.flags[tempTargetFlagName];
+                if (targetFlag) {
+                    if (targetFlag.pos.roomName != creep.memory.destination) {
+                        creep.memory.destination = targetFlag.pos.roomName;
                     }
-                } else if (Game.flags[creep.memory.targetFlag + "TEMP"]) {
-                    if (Game.flags[creep.memory.targetFlag + "TEMP"].pos.roomName != creep.memory.destination) {
-                        creep.memory.destination = Game.flags[creep.memory.targetFlag + "TEMP"].pos.roomName;
+                } else if (tempTargetFlag) {
+                    if (tempTargetFlag.pos.roomName != creep.memory.destination) {
+                        creep.memory.destination = tempTargetFlag.pos.roomName;
                     }
                 }
 
@@ -194,13 +210,8 @@ var creep_farMining = {
                         reusePath: 50
                     });
                     // Only heal when no nearby enemies (prioritize escape over healing)
-                    if (creep.hits < creep.hitsMax) {
-                        let nearbyEnemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                        });
-                        if (nearbyEnemies.length == 0) {
-                            creep.heal(creep);
-                        }
+                    if (creep.hits < creep.hitsMax && !hasNearbyEnemies()) {
+                        creep.heal(creep);
                     }
                 } else if (closeFoe) {
                     creep.say("\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
@@ -268,7 +279,7 @@ var creep_farMining = {
                         maxRooms: 1
                     });
                 } else if (creep.room.name != creep.memory.destination) {
-                    if (creep.memory.targetFlag.includes("eFarGuard")) {
+                    if (targetFlagName.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
                             var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination, {
                                 routeCallback(roomName, fromRoomName) {
@@ -299,16 +310,10 @@ var creep_farMining = {
                     }
 
                     // Only heal when not in combat and traveling
-                    if (creep.hits < creep.hitsMax) {
-                        // Check if there are any nearby enemies before healing
-                        let nearbyEnemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                        });
-                        if (nearbyEnemies.length == 0) {
-                            creep.heal(creep);
-                        }
+                    if (creep.hits < creep.hitsMax && !hasNearbyEnemies()) {
+                        creep.heal(creep);
                     }
-                } else if (Game.flags[creep.memory.targetFlag]) {
+                } else if (targetFlag) {
                     // Decorative idle animations
                     if (Game.time % 2 == 0) {
                         creep.say("(=`ﾟ´=)", true);
@@ -318,15 +323,11 @@ var creep_farMining = {
                     
                     // Simplified idle behavior
                     if (creep.hits < creep.hitsMax) {
-                        // Check if there are any nearby enemies before healing
-                        let nearbyEnemies = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                        });
-                        if (nearbyEnemies.length == 0) {
+                        if (!hasNearbyEnemies()) {
                             creep.heal(creep);
                         }
-                        if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag], { maxRooms: 1 });
+                        if (creep.pos != targetFlag.pos) {
+                            creep.travelTo(targetFlag, { maxRooms: 1 });
                         }
                     } else {
                         // Only heal allies if they're nearby - cache search every 5 ticks
@@ -343,8 +344,8 @@ var creep_farMining = {
                                 creep.travelTo(ally);
                                 creep.heal(ally);
                             }
-                        } else if (creep.pos != Game.flags[creep.memory.targetFlag].pos) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag], { maxRooms: 1 });
+                        } else if (creep.pos != targetFlag.pos) {
+                            creep.travelTo(targetFlag, { maxRooms: 1 });
                         }
                     }
 

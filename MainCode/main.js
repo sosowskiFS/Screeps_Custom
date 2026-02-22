@@ -561,14 +561,14 @@ function updateRoomsAt5List() {
 function handleTowersAndRooms() {
     var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
     if (towers.length) {
-        var alreadySearched = [];
+        var roomIntel = {};
         for (var y = 0; y < towers.length; y++) {
             if (towers[y].room.controller.owner && towers[y].room.controller.owner.username == "Montblanc") {
-                if (alreadySearched.indexOf(towers[y].room.name) < 0) {
-                    processTowerRoom(towers[y]);
-                    alreadySearched.push(towers[y].room.name);
+                const roomName = towers[y].room.name;
+                if (!roomIntel[roomName]) {
+                    roomIntel[roomName] = processTowerRoom(towers[y]);
                 }
-                tower_Operate.run(towers[y], Memory.attackDuration, y);
+                tower_Operate.run(towers[y], Memory.attackDuration, y, roomIntel[roomName]);
             }
         }
     }
@@ -577,6 +577,17 @@ function handleTowersAndRooms() {
 function processTowerRoom(tower) {
     //Populate the room creeps memory.
     Memory.roomCreeps[tower.room.name] = tower.room.find(FIND_MY_CREEPS);
+    const roomCreeps = Memory.roomCreeps[tower.room.name];
+    let mostInjuredCreep = null;
+    let mostMissingHits = 0;
+    for (let i = 0; i < roomCreeps.length; i++) {
+        const thisCreep = roomCreeps[i];
+        const missingHits = thisCreep.hitsMax - thisCreep.hits;
+        if (missingHits > mostMissingHits) {
+            mostMissingHits = missingHits;
+            mostInjuredCreep = thisCreep;
+        }
+    }
     var RampartDirection = ""
     //Check for hostiles in this room
     let hostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
@@ -589,6 +600,18 @@ function processTowerRoom(tower) {
     RampartDirection = handleHostileDetection(tower.room, hostiles, pHostiles);
     handleRampartControl(tower.room, hostiles, pHostiles);
     controlRamparts(RampartDirection, tower);
+
+    const allTowers = tower.room.find(FIND_STRUCTURES, {
+        filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
+    });
+
+    return {
+        roomCreeps: roomCreeps,
+        mostInjuredCreep: mostInjuredCreep,
+        hostiles: hostiles,
+        pHostiles: pHostiles,
+        allTowers: allTowers
+    };
 }
 
 function handleHostileDetection(room, hostiles, pHostiles) {
@@ -705,24 +728,25 @@ function handleRampartControl(room, hostiles, pHostiles) {
 
 // Handle spawning operations
 function handleSpawning() {
-    //Reset mineral flag totals before going into loop
-    if (Game.time % 5000 == 0) {
-        resetMineralFlagCounts();
-    }
+    const spawnRoleCache = buildSpawnRoleCache();
+    const roomSpawnCache = {};
 
-    //Reset mineral totals
-    if (Game.time % 50 == 0) {
-        resetMineralTotals();
+    for (const spawnName in Game.spawns) {
+        const roomName = Game.spawns[spawnName].room.name;
+        if (!roomSpawnCache[roomName]) {
+            roomSpawnCache[roomName] = [];
+        }
+        roomSpawnCache[roomName].push(Game.spawns[spawnName]);
     }
 
     for (const i in Game.spawns) {
-        processSpawn(Game.spawns[i]);
+        processSpawn(Game.spawns[i], spawnRoleCache, roomSpawnCache);
     }
     
     processSpawningCleanup();
 }
 
-function processSpawn(spawn) {
+function processSpawn(spawn, spawnRoleCache, roomSpawnCache) {
     var thisRoom = spawn.room;
     if (thisRoom.controller.owner) {
         var controllerLevel = thisRoom.controller.level;
@@ -732,10 +756,10 @@ function processSpawn(spawn) {
             Memory.RoomsRun.push(thisRoom.name);
         }
 
-        processSpawnLogic(spawn, thisRoom);
+        processSpawnLogic(spawn, thisRoom, spawnRoleCache);
 
         // Only mark room as no spawn needed if NO spawns in the room are spawning or busy
-        const roomSpawns = thisRoom.find(FIND_MY_SPAWNS);
+        const roomSpawns = roomSpawnCache[thisRoom.name] || [];
         const anySpawnActive = roomSpawns.some(s => s.spawning || isSpawnBusy(s));
         
         if (!anySpawnActive && Memory.NoSpawnNeeded.indexOf(thisRoom.name) < 0) {
@@ -744,7 +768,7 @@ function processSpawn(spawn) {
     }
 }
 
-function processSpawnLogic(spawn, thisRoom) {
+function processSpawnLogic(spawn, thisRoom, spawnRoleCache) {
     var delay = thisRoom.controller.level == 8 ? 15 : 10;
     const runningAssaultFlag = Game.flags[thisRoom.name + "RunningAssault"];
     if (runningAssaultFlag) {
@@ -763,7 +787,7 @@ function processSpawnLogic(spawn, thisRoom) {
         }
 
         var energyIndex = getEnergyIndex(thisRoom);
-        processSpawnCommands(spawn, thisRoom, energyIndex);
+        processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache);
     }
 }
 
@@ -790,9 +814,9 @@ function getEnergyIndex(thisRoom) {
     return energyIndex;
 }
 
-function processSpawnCommands(spawn, thisRoom, energyIndex) {
+function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
     // Process various spawn commands
-    processSpecialSpawnCommands(spawn, thisRoom, energyIndex);
+    processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache);
     
     // Check if this specific spawn is busy, not the global flag
     if (!isSpawnBusy(spawn)) {
@@ -800,7 +824,7 @@ function processSpawnCommands(spawn, thisRoom, energyIndex) {
     }
 
     if (!isSpawnBusy(spawn) && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
-        processFarMiningSpawn(spawn, thisRoom, energyIndex);
+        processFarMiningSpawn(spawn, thisRoom, energyIndex, spawnRoleCache);
     }
     
     // Check for highway patrol unit spawning (every 1350 ticks, energy >= 400,000)
@@ -809,7 +833,7 @@ function processSpawnCommands(spawn, thisRoom, energyIndex) {
     }
 }
 
-function processSpecialSpawnCommands(spawn, thisRoom, energyIndex) {
+function processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
     const roomName = thisRoom.name;
     
     // Special handling for PowerAttack - check if units need spawning even when PowerPickup exists
@@ -818,15 +842,11 @@ function processSpecialSpawnCommands(spawn, thisRoom, energyIndex) {
     
     if (powerAttackFlag && powerPickupFlag) {
         // Both flags exist - check if PowerAttack units need spawning
-        const powerAttackers = _.filter(Game.creeps, (creep) => 
-            creep.memory.priority == 'powerAttack' && creep.memory.homeRoom == roomName
-        );
-        const powerHealers = _.filter(Game.creeps, (creep) => 
-            creep.memory.priority == 'powerHeal' && creep.memory.homeRoom == roomName
-        );
+        const powerAttackers = getRoomRoleCount(spawnRoleCache, roomName, 'powerAttack');
+        const powerHealers = getRoomRoleCount(spawnRoleCache, roomName, 'powerHeal');
         
         // If PowerAttack units are missing, prioritize spawning them over PowerPickup
-        if (powerAttackers.length < 1 || powerHealers.length < 2) {
+        if (powerAttackers < 1 || powerHealers < 2) {
             handleSpecificSpawnCommand(spawn, thisRoom, energyIndex, { 
                 flagName: roomName + "PowerAttack", 
                 type: 'powerAttack', 
@@ -960,7 +980,7 @@ function processNormalSpawning(spawn, thisRoom, energyIndex) {
     }
 }
 
-function processFarMiningSpawn(spawn, thisRoom, energyIndex) {
+function processFarMiningSpawn(spawn, thisRoom, energyIndex, spawnRoleCache) {
     const roomName = thisRoom.name;
     
     // Block far mining creep production if storage energy exceeds 300,000
@@ -978,24 +998,69 @@ function processFarMiningSpawn(spawn, thisRoom, energyIndex) {
     if (hasFarMiningFlag) {
         const runningAssaultFlag = Game.flags[roomName + "RunningAssault"];
         if (runningAssaultFlag) {
-            var attackers = _.filter(Game.creeps, (creep) => 
-                (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && 
-                creep.memory.homeRoom == roomName
-            );
-            var healerlessAttackers = _.filter(Game.creeps, (creep) => 
-                (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && 
-                !creep.memory.healerID && 
-                creep.memory.homeRoom == roomName && 
-                !creep.memory.isReserved
-            );
+            var attackers = getRoomRoleCount(spawnRoleCache, roomName, 'assattacker') + getRoomRoleCount(spawnRoleCache, roomName, 'assranger');
+            var healerlessAttackers = getRoomHealerlessAssaultCount(spawnRoleCache, roomName);
             
-            if (attackers.length >= 1 && !healerlessAttackers.length) {
+            if (attackers >= 1 && healerlessAttackers === 0) {
                 spawn_BuildFarCreeps.run(spawn, thisRoom, energyIndex);
             }
         } else {
             spawn_BuildFarCreeps.run(spawn, thisRoom, energyIndex);
         }
     }
+}
+
+function buildSpawnRoleCache() {
+    const roleByRoom = {};
+    const healerlessAssaultByRoom = {};
+
+    for (const creepName in Game.creeps) {
+        const creep = Game.creeps[creepName];
+        if (!creep || !creep.memory) {
+            continue;
+        }
+
+        const homeRoom = creep.memory.homeRoom;
+        const role = creep.memory.priority;
+        if (!homeRoom || !role) {
+            continue;
+        }
+
+        if (!roleByRoom[homeRoom]) {
+            roleByRoom[homeRoom] = {};
+        }
+
+        if (!roleByRoom[homeRoom][role]) {
+            roleByRoom[homeRoom][role] = 0;
+        }
+        roleByRoom[homeRoom][role]++;
+
+        if ((role == 'assattacker' || role == 'assranger') && !creep.memory.healerID && !creep.memory.isReserved) {
+            if (!healerlessAssaultByRoom[homeRoom]) {
+                healerlessAssaultByRoom[homeRoom] = 0;
+            }
+            healerlessAssaultByRoom[homeRoom]++;
+        }
+    }
+
+    return {
+        roleByRoom: roleByRoom,
+        healerlessAssaultByRoom: healerlessAssaultByRoom
+    };
+}
+
+function getRoomRoleCount(spawnRoleCache, roomName, roleName) {
+    if (!spawnRoleCache || !spawnRoleCache.roleByRoom || !spawnRoleCache.roleByRoom[roomName]) {
+        return 0;
+    }
+    return spawnRoleCache.roleByRoom[roomName][roleName] || 0;
+}
+
+function getRoomHealerlessAssaultCount(spawnRoleCache, roomName) {
+    if (!spawnRoleCache || !spawnRoleCache.healerlessAssaultByRoom) {
+        return 0;
+    }
+    return spawnRoleCache.healerlessAssaultByRoom[roomName] || 0;
 }
 
 function processRoomManagement(thisRoom) {
@@ -1118,8 +1183,15 @@ function handleCreepOperations() {
     // Remote creep CPU throttle: if bucket is low (<1000), skip execution for
     // heavy remote roles every other tick to reduce CPU usage.
     const remoteThrottleActive = (Game.cpu.bucket < 1000) && (Game.time % 2 === 1);
+    const roomsAt5Map = {};
+    if (Memory.RoomsAt5 && Memory.RoomsAt5.length) {
+        for (let i = 0; i < Memory.RoomsAt5.length; i++) {
+            roomsAt5Map[Memory.RoomsAt5[i]] = true;
+        }
+    }
     for (var name in Game.creeps) {
         var creep = Game.creeps[name];
+        const isRoomAt5 = !!roomsAt5Map[creep.room.name];
         if (!creep.spawning) {
             switch (creep.memory.priority) {
                 case 'farMule':
@@ -1161,7 +1233,7 @@ function handleCreepOperations() {
                     break;
                 case 'miner':
                 case 'minerNearDeath':
-                    if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
+                    if (isRoomAt5) {
                         creep_miner.run(creep);
                     } else {
                         creep_workV2.run(creep, 25);
@@ -1169,7 +1241,7 @@ function handleCreepOperations() {
                     break;
                 case 'upgrader':
                 case 'upgraderNearDeath':
-                    if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
+                    if (isRoomAt5) {
                         creep_upgrader.run(creep);
                     } else {
                         creep_workV2.run(creep, 25);
@@ -1178,7 +1250,7 @@ function handleCreepOperations() {
                 case 'repair':
                 case 'repairNearDeath':
                     if (remoteThrottleActive) { break; }
-                    if (Memory.RoomsAt5.indexOf(creep.room.name) != -1) {
+                    if (isRoomAt5) {
                         creep_repair.run(creep);
                     } else {
                         creep_workV2.run(creep, 25);
@@ -1280,7 +1352,7 @@ function handleCreepOperations() {
                         creep.memory.homeRoom = 'E29N43';
                         creep.memory.previousPriority = 'helper';
                     }
-                    if (Memory.RoomsAt5.indexOf(creep.room.name) === -1) {
+                    if (!isRoomAt5) {
                         if (!remoteThrottleActive || Memory.warMode) {
                             creep_workV2.run(creep, 25);
                         } else {
