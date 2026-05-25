@@ -38,10 +38,11 @@ var creep_farScout = {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
                 } else {
                     //Flag sources, remove room from path, step back.
-                    updateRoomThreatFlags(creep.room);
                     let roomSources = creep.room.find(FIND_SOURCES);
-                    for (let sourceCounter = 0; sourceCounter < roomSources.length; sourceCounter++) {
-                        CreateNewMiningFlag(creep, roomSources[sourceCounter].pos.x, roomSources[sourceCounter].pos.y);
+                    let sourceCounter = 0;
+                    while (roomSources[sourceCounter]) {
+                        CreateNewMiningFlag(creep, roomSources[sourceCounter].pos.x, roomSources[sourceCounter].pos.y)
+                        sourceCounter++;
                     }
                     CreateNewGuardFlag(creep);
                     creep.memory.path.splice(0, 1);
@@ -56,68 +57,48 @@ var creep_farScout = {
     }
 };
 
-const REMOTE_OPERATION_SUFFIXES = ['', '2', '3', '4', '5', '6', '7', '8', '9'];
-
 function CreateNewMiningFlag(creep, x, y) {
-    const flagName = getFirstAvailableRemoteFlag(creep.memory.homeRoom, "FarMining");
-    if (flagName) {
-        creep.room.createFlag(x, y, flagName);
+    if (!Game.flags[creep.memory.homeRoom + "FarMining"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining2"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining2");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining3"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining3");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining4"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining4");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining5"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining5");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining6"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining6");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining7"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining7");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining8"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining8");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarMining9"]) {
+        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining9");
     }
 }
 
 function CreateNewGuardFlag(creep) {
-    const flagName = getFirstAvailableRemoteFlag(creep.memory.homeRoom, "FarGuard");
-    if (flagName) {
-        creep.room.createFlag(25, 25, flagName);
+	if (!Game.flags[creep.memory.homeRoom + "FarGuard"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard2"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard2");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard3"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard3");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard4"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard4");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard5"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard5");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard6"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard6");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard7"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard7");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard8"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard8");
+    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard9"]) {
+        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard9");
     }
-}
-
-function getFirstAvailableRemoteFlag(homeRoomName, prefix) {
-    for (let i = 0; i < REMOTE_OPERATION_SUFFIXES.length; i++) {
-        const candidate = homeRoomName + prefix + REMOTE_OPERATION_SUFFIXES[i];
-        if (!Game.flags[candidate]) {
-            return candidate;
-        }
-    }
-    return '';
-}
-
-function updateRoomThreatFlags(room) {
-    const roomName = room.name;
-    const skRoomFlag = Game.flags[roomName + "SKRoom"];
-    const noSkRoomFlag = Game.flags[roomName + "NoSKRoom"];
-    const shouldBeSkRoom = isSourceKeeperRoomName(roomName);
-    const anchorPos = room.controller ? room.controller.pos : new RoomPosition(25, 25, roomName);
-
-    if (shouldBeSkRoom) {
-        if (!skRoomFlag) {
-            room.createFlag(anchorPos.x, anchorPos.y, roomName + "SKRoom");
-        }
-        if (noSkRoomFlag) {
-            noSkRoomFlag.remove();
-        }
-    } else {
-        if (!noSkRoomFlag) {
-            room.createFlag(anchorPos.x, anchorPos.y, roomName + "NoSKRoom");
-        }
-        if (skRoomFlag) {
-            skRoomFlag.remove();
-        }
-    }
-}
-
-function isSourceKeeperRoomName(roomName) {
-    const roomMatch = /^([WE])(\d+)([NS])(\d+)$/.exec(roomName);
-    if (!roomMatch) return false;
-
-    let x = parseInt(roomMatch[2], 10);
-    let y = parseInt(roomMatch[4], 10);
-    if (roomMatch[1] === 'W') x = -x - 1;
-    if (roomMatch[3] === 'N') y = -y - 1;
-
-    const xMod = Math.abs(x) % 10;
-    const yMod = Math.abs(y) % 10;
-    return xMod >= 4 && xMod <= 6 && yMod >= 4 && yMod <= 6;
 }
 
 module.exports = creep_farScout;
