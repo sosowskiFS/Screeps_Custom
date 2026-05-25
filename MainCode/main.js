@@ -41,6 +41,7 @@ var spawn_BuildInstruction = require('spawn.BuildInstruction');
 var spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
 var Traveler = require('traveler');
 var bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
+const REMOTE_OPERATION_SUFFIXES = ['', '2', '3', '4', '5', '6', '7', '8', '9'];
 //var roomReference = Game.spawns['Spawn_Capital'].room;
 
 //Base Generator
@@ -988,12 +989,7 @@ function processFarMiningSpawn(spawn, thisRoom, energyIndex, spawnRoleCache) {
         return; // Skip far mining creep production to reduce CPU usage
     }
     
-    const farMiningFlags = [
-        "FarMining", "FarGuard", "FarMining2", "FarMining3", 
-        "FarMining4", "FarMining5", "FarMining6", "FarMining7", "FarMining8"
-    ];
-    
-    const hasFarMiningFlag = farMiningFlags.some(flag => Game.flags[roomName + flag]);
+    const hasFarMiningFlag = REMOTE_OPERATION_SUFFIXES.some(suffix => Game.flags[roomName + "FarMining" + suffix]);
     
     if (hasFarMiningFlag) {
         const runningAssaultFlag = Game.flags[roomName + "RunningAssault"];
@@ -1779,6 +1775,10 @@ function handleObservedRoomOperations(thisRoom, observedRoom, roomName, observed
     
     // Handle harasser operations for reserved controllers
     handleHarasserOperations(thisRoom, observedRoom, roomName, observedRoomName);
+
+    // Fully automated remote mining and expansion setup from observer intel
+    handleRemoteMiningAutomation(thisRoom, observedRoom, roomName, observedRoomName);
+    handleExpansionAutomation(thisRoom, observedRoom, roomName, observedRoomName);
 }
 
 function handlePowerBankOperations(thisRoom, observedRoom, roomName) {
@@ -2968,4 +2968,156 @@ function getRoomAtOffset(xOffset, yOffset, roomName) {
     }
 
     return xName + yName;
+}
+
+function handleRemoteMiningAutomation(thisRoom, observedRoom, roomName, observedRoomName) {
+    if (Game.time % 25 !== 0) return;
+    if (observedRoomName === roomName || !observedRoom.controller) return;
+    if (Game.cpu.bucket < 1500) return;
+    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] > 300000) return;
+
+    const controller = observedRoom.controller;
+    if (controller.owner && controller.owner.username !== "Montblanc") return;
+    if (controller.reservation && !Memory.whiteList.includes(controller.reservation.username) && controller.reservation.username !== "Invader") return;
+
+    const remoteSources = observedRoom.find(FIND_SOURCES);
+    if (remoteSources.length === 0) return;
+
+    updateRemoteRoomThreatFlags(observedRoom);
+
+    const existingMiningFlags = getRemoteFlagsForObservedRoom(roomName, observedRoomName, "FarMining");
+    const existingGuardFlags = getRemoteFlagsForObservedRoom(roomName, observedRoomName, "FarGuard");
+    let createdThisTick = 0;
+
+    if (existingGuardFlags.length === 0) {
+        const guardFlagName = getFirstOpenRemoteFlagName(roomName, "FarGuard");
+        if (guardFlagName) {
+            observedRoom.createFlag(25, 25, guardFlagName);
+            createdThisTick++;
+        }
+    }
+
+    const flagPosKey = {};
+    for (let i = 0; i < existingMiningFlags.length; i++) {
+        const flag = existingMiningFlags[i];
+        flagPosKey[flag.pos.x + ":" + flag.pos.y] = true;
+    }
+
+    for (let i = 0; i < remoteSources.length && createdThisTick < 2; i++) {
+        const source = remoteSources[i];
+        const sourceKey = source.pos.x + ":" + source.pos.y;
+        if (flagPosKey[sourceKey]) continue;
+
+        const miningFlagName = getFirstOpenRemoteFlagName(roomName, "FarMining");
+        if (!miningFlagName) break;
+        observedRoom.createFlag(source.pos.x, source.pos.y, miningFlagName);
+        createdThisTick++;
+        flagPosKey[sourceKey] = true;
+    }
+
+    if (!controller.reservation || controller.reservation.username !== "Montblanc" || controller.reservation.ticksToEnd < 2000) {
+        Memory.FarClaimerNeeded[observedRoomName] = true;
+    }
+}
+
+function handleExpansionAutomation(thisRoom, observedRoom, roomName, observedRoomName) {
+    if (Game.time % 100 !== 0) return;
+    if (observedRoomName === roomName || !observedRoom.controller) return;
+    if (!thisRoom.storage || thisRoom.storage.store[RESOURCE_ENERGY] < 350000) return;
+    if (Game.cpu.bucket < 7000) return;
+
+    const avgCpu = Memory.CPUAverages && Memory.CPUAverages.TotalCPU ? Memory.CPUAverages.TotalCPU.CPU : 0;
+    if (avgCpu >= Game.cpu.limit * 0.85) return;
+    if (Game.flags[roomName + "ClaimThis"]) return;
+    if (isRoomAlreadyClaimTarget(observedRoomName)) return;
+
+    const controlledRooms = _.filter(Game.rooms, room => room.controller && room.controller.my);
+    if (controlledRooms.length >= Game.gcl.level) return;
+
+    const controller = observedRoom.controller;
+    if (controller.owner) return;
+    if (controller.reservation && !Memory.whiteList.includes(controller.reservation.username) && controller.reservation.username !== "Invader") return;
+    if (isSourceKeeperRoomName(observedRoomName)) return;
+
+    const sources = observedRoom.find(FIND_SOURCES);
+    if (sources.length < 2) return;
+
+    observedRoom.createFlag(controller.pos.x, controller.pos.y, roomName + "ClaimThis");
+    Memory.LastNotification = Game.time + " : Auto expansion candidate selected by " + roomName + " -> " + observedRoomName;
+}
+
+function getFirstOpenRemoteFlagName(homeRoomName, prefix) {
+    for (let i = 0; i < REMOTE_OPERATION_SUFFIXES.length; i++) {
+        const suffix = REMOTE_OPERATION_SUFFIXES[i];
+        const candidate = homeRoomName + prefix + suffix;
+        if (!Game.flags[candidate]) {
+            return candidate;
+        }
+    }
+    return '';
+}
+
+function getRemoteFlagsForObservedRoom(homeRoomName, observedRoomName, prefix) {
+    const flags = [];
+    for (let i = 0; i < REMOTE_OPERATION_SUFFIXES.length; i++) {
+        const flagName = homeRoomName + prefix + REMOTE_OPERATION_SUFFIXES[i];
+        const flag = Game.flags[flagName];
+        if (flag && flag.pos.roomName === observedRoomName) {
+            flags.push(flag);
+        }
+    }
+    return flags;
+}
+
+function isRoomAlreadyClaimTarget(roomName) {
+    for (let flagName in Game.flags) {
+        if (flagName.endsWith("ClaimThis") && Game.flags[flagName].pos.roomName === roomName) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function updateRemoteRoomThreatFlags(observedRoom) {
+    const roomName = observedRoom.name;
+    const skRoomFlag = Game.flags[roomName + "SKRoom"];
+    const noSkRoomFlag = Game.flags[roomName + "NoSKRoom"];
+    const shouldBeSkRoom = isSourceKeeperRoomName(roomName);
+    const anchorPos = observedRoom.controller ? observedRoom.controller.pos : new RoomPosition(25, 25, roomName);
+
+    if (shouldBeSkRoom) {
+        if (!skRoomFlag) {
+            observedRoom.createFlag(anchorPos.x, anchorPos.y, roomName + "SKRoom");
+        }
+        if (noSkRoomFlag) {
+            noSkRoomFlag.remove();
+        }
+    } else {
+        if (!noSkRoomFlag) {
+            observedRoom.createFlag(anchorPos.x, anchorPos.y, roomName + "NoSKRoom");
+        }
+        if (skRoomFlag) {
+            skRoomFlag.remove();
+        }
+    }
+}
+
+function isSourceKeeperRoomName(roomName) {
+    const coords = parseRoomCoordinates(roomName);
+    if (!coords) return false;
+
+    const xMod = Math.abs(coords.x) % 10;
+    const yMod = Math.abs(coords.y) % 10;
+    return xMod >= 4 && xMod <= 6 && yMod >= 4 && yMod <= 6;
+}
+
+function parseRoomCoordinates(roomName) {
+    const roomMatch = /^([WE])(\d+)([NS])(\d+)$/.exec(roomName);
+    if (!roomMatch) return null;
+
+    let x = parseInt(roomMatch[2], 10);
+    let y = parseInt(roomMatch[4], 10);
+    if (roomMatch[1] === 'W') x = -x - 1;
+    if (roomMatch[3] === 'N') y = -y - 1;
+    return { x: x, y: y };
 }
