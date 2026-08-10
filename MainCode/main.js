@@ -220,7 +220,7 @@ function cleanupCreepMemory() {
 function handleCPUUnlocking() {
     if (Game.shard.name == 'shard2') {
         let today = new Date();
-        if ((Game.cpu.unlockedTime - 600000) <= today.valueOf()) {
+        if (!Game.cpu.unlockedTime || (Game.cpu.unlockedTime - 600000) <= today.valueOf()) {
             Game.cpu.unlock()
             
             let date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate() + ' | ' + today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
