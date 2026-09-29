@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var spawn_BuildInstruction = {
     run: function(spawn, instruction, params, energyIndex, thisRoom = '', params2 = '') {
         // Cache frequently used values
@@ -6,7 +7,7 @@ var spawn_BuildInstruction = {
         
         switch (instruction) {
             case 'claim':
-                const claimers = _.filter(Game.creeps, (creep) => 
+                const claimers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
                     creep.memory.priority == 'claimer' && creep.memory.homeRoom == roomName
                 );
                 if (claimers.length < 1) {
@@ -22,7 +23,7 @@ var spawn_BuildInstruction = {
                 break;
                 
             case 'helper':
-                const helpers = _.filter(Game.creeps, (creep) => 
+                const helpers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
                     creep.memory.priority == 'helper' && creep.memory.homeRoom == roomName
                 );
                 if (helpers.length < 6) {
@@ -31,7 +32,7 @@ var spawn_BuildInstruction = {
                 break;
                 
             case 'loot':
-                const looters = _.filter(Game.creeps, (creep) => 
+                const looters = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
                     creep.memory.priority == 'looter' && creep.memory.homeRoom == roomName
                 );
                 if (looters.length < 3) {
@@ -173,17 +174,17 @@ var spawn_BuildInstruction = {
     
     // Optimized method to handle assault spawning
     handleAssaultSpawn: function(spawn, params, energyIndex, params2, roomName) {
-        const attackers = _.filter(Game.creeps, (creep) => 
+        const attackers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && 
             creep.memory.homeRoom == roomName
         );
-        const healerlessAttackers = _.filter(Game.creeps, (creep) => 
+        const healerlessAttackers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && 
             !creep.memory.healerID && 
             creep.memory.homeRoom == roomName && 
             !creep.memory.isReserved
         );
-        const healers = _.filter(Game.creeps, (creep) => 
+        const healers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'asshealer' && creep.memory.homeRoom == roomName
         );
         
@@ -294,7 +295,7 @@ var spawn_BuildInstruction = {
     
     // Optimized method to spawn rangers
     spawnRanger: function(spawn, instruction, params, energyIndex, params2, roomName) {
-        const rangers = _.filter(Game.creeps, (creep) => 
+        const rangers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == instruction && creep.memory.homeRoom == roomName
         );
         
@@ -338,10 +339,10 @@ var spawn_BuildInstruction = {
     
     // Optimized method to handle power attack spawn
     handlePowerAttackSpawn: function(spawn, params, energyIndex, roomName) {
-        const powerAttackers = _.filter(Game.creeps, (creep) => 
+        const powerAttackers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'powerAttack' && creep.memory.homeRoom == roomName
         );
-        const powerHealers = _.filter(Game.creeps, (creep) => 
+        const powerHealers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'powerHeal' && creep.memory.homeRoom == roomName
         );
         
@@ -396,7 +397,7 @@ var spawn_BuildInstruction = {
     
     // Optimized method to spawn power collectors with high priority
     spawnPowerCollector: function(spawn, params, energyIndex, params2, roomName) {
-        const powerCollectors = _.filter(Game.creeps, (creep) => 
+        const powerCollectors = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'powerCollector' && creep.memory.homeRoom == roomName
         );
         
@@ -424,7 +425,7 @@ var spawn_BuildInstruction = {
     
     // Optimized method to spawn energy suppliers
     spawnEnergySupplier: function(spawn, params, energyIndex, params2, roomName) {
-        const energySuppliers = _.filter(Game.creeps, (creep) => 
+        const energySuppliers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'distantSupplier' && creep.memory.homeRoom == roomName
         );
         
@@ -450,7 +451,7 @@ var spawn_BuildInstruction = {
     
     // Optimized method to spawn far scouts
     spawnFarScout: function(spawn, energyIndex, roomName) {
-        const mScouts = _.filter(Game.creeps, (creep) => 
+        const mScouts = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'farScout' && creep.memory.homeRoom == roomName
         );
         
@@ -480,7 +481,7 @@ var spawn_BuildInstruction = {
     
     // Method to spawn harassers
     spawnHarasser: function(spawn, params, energyIndex, roomName) {
-        const harassers = _.filter(Game.creeps, (creep) => 
+        const harassers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'harasser' && 
             creep.memory.homeRoom == roomName &&
             creep.memory.destination == params
@@ -508,7 +509,7 @@ var spawn_BuildInstruction = {
     
     // Method to spawn highway patrol units
     spawnHighwayPatrol: function(spawn, energyIndex, roomName) {
-        const patrollers = _.filter(Game.creeps, (creep) => 
+        const patrollers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'highwayPatrol' && 
             creep.memory.homeRoom == roomName
         );

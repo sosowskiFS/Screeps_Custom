@@ -86,7 +86,7 @@ var creep_farMiner = {
 
             if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
             	let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 1, {
-            		filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                    filter: { structureType: STRUCTURE_CONTAINER }
             	});
             	
             	if (containers.length) {

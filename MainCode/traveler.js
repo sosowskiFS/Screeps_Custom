@@ -3,6 +3,7 @@
  * Example: var Traveler = require('Traveler.js');
  */
 "use strict";
+const runtimeCache = require('runtime.cache');
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
@@ -438,10 +439,44 @@ class Traveler {
             if (Traveler._structureMatrixCache && Traveler._structureMatrixCache[key]) {
                 return Traveler._structureMatrixCache[key];
             }
-            let matrix = new PathFinder.CostMatrix();
-            matrix = Traveler.addStructuresToMatrix(room, matrix, 1);
-            Traveler._structureMatrixCache[key] = matrix;
-            return matrix;
+            // Validate topology every used tick; retain only matrices/signatures,
+            // never last tick's structure objects. Hits/energy do not affect paths.
+            const structures = runtimeCache.find(room, FIND_STRUCTURES);
+            const sites = runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES);
+            let entry = Traveler._topologyCache[key];
+            let unchanged = entry && entry.structures.length === structures.length && entry.sites.length === sites.length;
+            // Compare primitive records without allocating signatures every tick.
+            if (unchanged) {
+                for (let i = 0; i < structures.length; i++) {
+                    const now = structures[i], previous = entry.structures[i];
+                    if (now.pos.x !== previous.x || now.pos.y !== previous.y || now.structureType !== previous.type ||
+                        !!now.my !== previous.my || !!now.isPublic !== previous.public) { unchanged = false; break; }
+                }
+            }
+            if (unchanged) {
+                for (let i = 0; i < sites.length; i++) {
+                    const now = sites[i], previous = entry.sites[i];
+                    if (now.pos.x !== previous.x || now.pos.y !== previous.y || now.structureType !== previous.type) { unchanged = false; break; }
+                }
+            }
+            if (!unchanged) {
+                entry = {
+                    structures: structures.map(s => ({ x: s.pos.x, y: s.pos.y, type: s.structureType, my: !!s.my, public: !!s.isPublic })),
+                    sites: sites.map(s => ({ x: s.pos.x, y: s.pos.y, type: s.structureType })),
+                    matrix: Traveler.addStructuresToMatrix(room, new PathFinder.CostMatrix(), 1),
+                };
+                Traveler._topologyCache[key] = entry;
+            }
+            entry.lastUsed = Game.time;
+            // Bound heap growth while scouting; expire unused rooms lazily.
+            if (Game.time - Traveler._lastTopologyCleanup >= 100) {
+                for (const name in Traveler._topologyCache) {
+                    if (Game.time - Traveler._topologyCache[name].lastUsed > 100) delete Traveler._topologyCache[name];
+                }
+                Traveler._lastTopologyCleanup = Game.time;
+            }
+            Traveler._structureMatrixCache[key] = entry.matrix;
+            return entry.matrix;
         }
         /**
          * build a cost matrix based on creeps and structures in the room. Will be cached for one tick. Requires vision.
@@ -473,7 +508,7 @@ class Traveler {
          */
     static addStructuresToMatrix(room, matrix, roadCost) {
             let impassibleStructures = [];
-            for (let structure of room.find(FIND_STRUCTURES)) {
+            for (let structure of runtimeCache.find(room, FIND_STRUCTURES)) {
                 if (structure instanceof StructureRampart) {
                     if (!structure.my && !structure.isPublic) {
                         impassibleStructures.push(structure);
@@ -486,7 +521,7 @@ class Traveler {
                     impassibleStructures.push(structure);
                 }
             }
-            for (let site of room.find(FIND_MY_CONSTRUCTION_SITES)) {
+            for (let site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
                 if (site.structureType === STRUCTURE_CONTAINER || site.structureType === STRUCTURE_ROAD || site.structureType === STRUCTURE_RAMPART) {
                     continue;
                 }
@@ -504,7 +539,7 @@ class Traveler {
          * @returns {CostMatrix}
          */
     static addCreepsToMatrix(room, matrix) {
-            room.find(FIND_CREEPS).forEach((creep) => matrix.set(creep.pos.x, creep.pos.y, 0xff));
+            runtimeCache.find(room, FIND_CREEPS).forEach((creep) => matrix.set(creep.pos.x, creep.pos.y, 0xff));
             return matrix;
         }
         /**
@@ -626,6 +661,8 @@ const REPORT_CPU_THRESHOLD = 1000;
 const DEFAULT_MAXOPS = 20000;
 const DEFAULT_STUCK_VALUE = 5;
 // Internal caches (reset each tick)
+Traveler._topologyCache = Object.create(null);
+Traveler._lastTopologyCleanup = 0;
 Traveler._cacheTick = -1;
 Traveler._structureMatrixCache = {};
 Traveler._creepMatrixCache = {};

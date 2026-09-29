@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 // filepath: e:\Git\Screeps\Screeps_Custom\MainCode\creep.highwayPatrol.js
 var creep_highwayPatrol = {
     
@@ -22,7 +23,7 @@ var creep_highwayPatrol = {
         let targetRoom = this.getPatrolTarget(creep);
         
         // Combat logic - prioritize combat over patrol
-        let hostiles = creep.room.find(FIND_HOSTILE_CREEPS, {
+        let hostiles = runtimeCache.find(creep.room, FIND_HOSTILE_CREEPS, {
             filter: (target) => !Memory.whiteList.includes(target.owner.username)
         });
         

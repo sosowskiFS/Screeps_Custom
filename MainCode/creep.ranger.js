@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_ranger = {
 
     /** @param {Creep} creep **/
@@ -71,7 +72,7 @@ var creep_ranger = {
             }
 
             let eSpawns = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                filter: (structure) => (structure.structureType == STRUCTURE_SPAWN)
+                filter: { structureType: STRUCTURE_SPAWN }
             });
             let eSites = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, {
                 filter: (site) => (site.progress > 0)
@@ -128,7 +129,7 @@ var creep_ranger = {
                 }
             } else {
             	//Find structures that don't have a rampart on them
-                let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+                let allStruct = runtimeCache.find(creep.room, FIND_HOSTILE_STRUCTURES, {
                     filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR && structure.structureType != STRUCTURE_TERMINAL && structure.structureType != STRUCTURE_STORAGE)
                 });
                 let targetFound = false;

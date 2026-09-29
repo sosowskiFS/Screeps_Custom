@@ -1,7 +1,8 @@
+const runtimeCache = require('runtime.cache');
 var spawn_BuildFarCreeps = {
     run: function(spawn, thisRoom, energyIndex) {
         if (!spawn.spawning && !global.isSpawnBusy(spawn) && thisRoom.storage && Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1) {
-            let controlledCreeps = Game.creeps;
+            let controlledCreeps = runtimeCache.homeCreeps(thisRoom.name);
 
             let Flag25 = false;
             let Flag50 = false;

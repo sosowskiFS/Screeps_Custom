@@ -5,7 +5,7 @@ This workspace contains automation scripts for the coding game **Screeps World**
 ## Code Style
 - Use CommonJS modules (`require`, `module.exports`) and match existing role-object patterns.
 - Keep edits stylistically consistent with nearby files (mixed `var`/`let`/`const` and pragmatic comparisons are already in use).
-- Follow existing filename domains and module ids: `creep.*`, `spawn.*`, `tower.*`, `market.*` (see `main.js`).
+- Follow existing filename domains and module ids: `creep.*`, `spawn.*`, `tower.*`, `market.*`, `system.*`, `runtime.*`, `config.*` (see `main.js`).
 - Prefer small, surgical changes in the target module over broad refactors.
 
 Examples:
@@ -16,12 +16,12 @@ Examples:
 
 ## Architecture
 - Entry point is `module.exports.loop` in `main.js`; it orchestrates room/tower ops, spawn planning, market behavior, and per-creep dispatch.
-- Creep behavior is dispatched from `creep.memory.priority` to the corresponding role module in `main.js`; keep spawn-assigned priorities aligned with dispatch cases.
+- Creep behavior is dispatched by `system.creeps.js` through `creep.registry.js`; keep spawn-assigned priorities and NearDeath aliases aligned. Mature logistics roles are split into `creep.mule`, `creep.distributor`, and `creep.mineralMiner`.
 - Spawn flow is multi-phase (base, RCL5+, far/mining specialists) and room-state dependent (`spawn.BuildCreeps*.js`, `spawn.BuildFarCreeps.js`).
 - Room flags and room memory are core control inputs for operations and remote activities.
 
 ## Build and Test
-There is no discovered `package.json` or test runner in this folder.
+Run `npm test` for mocked Screeps regression tests and `npm run check` for all runtime syntax/module references. No package installation is needed. Tests include frozen legacy dispatch, logistics, and industry fixtures; keep those unchanged as behavioral references.
 
 Use syntax validation before handoff:
 - `node --check main.js`
@@ -33,7 +33,7 @@ Use syntax validation before handoff:
 - Assume Screeps globals exist at runtime (`Game`, `Memory`, `RawMemory`, constants like `WORK`, `CARRY`, `MOVE`). Do not replace them with browser/Node alternatives.
 - Keep `creep.memory.priority` string values stable across spawn modules and main dispatch.
 - Preserve room-flag naming patterns used in operations (room-based prefix/suffix conventions in `main.js` and `spawn.BuildFarCreeps.js`).
-- CPU and bucket-aware throttling in `main.js` is intentional; avoid adding unbounded per-tick scans.
+- CPU and bucket-aware throttling in `creep.registry.js` is intentional. Use `runtime.cache` for shared tick queries; dynamic predicates must be reevaluated and construction-site membership must remain live. Never persist Game objects across ticks. See README.md for cache contracts and phase profiling.
 
 ## Integration Points
 - `traveler.js` provides travel/pathing behavior used by creeps (`travelTo` integration).
@@ -44,5 +44,5 @@ Use syntax validation before handoff:
 ## Security
 - `Memory` and room-level state are high-impact; validate assumptions before writing/changing shared keys.
 - Market operations can spend credits quickly; keep trade logic guarded and conservative.
-- Flag-triggered operations can start expensive behaviors; keep command conditions explicit.
+- Flag-triggered operations can start expensive behaviors; keep command conditions explicit. Recipe definitions and priority order are in `config.production.js`.
 - Be careful with performance-sensitive memory/CPU optimizations (e.g., `RawMemory` usage patterns in `main.js`).

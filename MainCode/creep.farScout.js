@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_farScout = {
 
     /** @param {Creep} creep **/
@@ -38,7 +39,7 @@ var creep_farScout = {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
                 } else {
                     //Flag sources, remove room from path, step back.
-                    let roomSources = creep.room.find(FIND_SOURCES);
+                    let roomSources = runtimeCache.find(creep.room, FIND_SOURCES);
                     let sourceCounter = 0;
                     while (roomSources[sourceCounter]) {
                         CreateNewMiningFlag(creep, roomSources[sourceCounter].pos.x, roomSources[sourceCounter].pos.y)

@@ -31,7 +31,7 @@ let creep_farMule = {
                 const canDoScan = doExcessWork || (Game.time % 5 == 0);
                 if (canDoScan && targetFlag && targetFlag.room) {
                     let containers = targetFlag.pos.findInRange(FIND_STRUCTURES, 3, {
-                        filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                        filter: { structureType: STRUCTURE_CONTAINER }
                     });
                     if (containers.length > 0) {
                         creep.memory.containerTarget = containers[0].id;

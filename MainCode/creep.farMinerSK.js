@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_farMinerSK = {
 
     /** @param {Creep} creep **/
@@ -35,7 +36,7 @@ var creep_farMinerSK = {
         var Foe = [];
 
         if (Game.time % 5 == 0) {
-            Foe = creep.room.find(FIND_HOSTILE_CREEPS, {
+            Foe = runtimeCache.find(creep.room, FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
             });
 
@@ -123,7 +124,7 @@ var creep_farMinerSK = {
                     if (mineTarget) {
                         if (creep.pos.inRangeTo(mineTarget, 2)) {
                             var containers = creep.pos.findInRange(FIND_STRUCTURES, 2, {
-                                filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                                filter: { structureType: STRUCTURE_CONTAINER }
                             });
                             if (containers.length) {
                                 if (creep.transfer(containers[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {

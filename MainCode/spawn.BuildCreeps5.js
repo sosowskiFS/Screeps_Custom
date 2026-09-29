@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
         // Cache frequently used values
@@ -102,7 +103,7 @@ var spawn_BuildCreeps5 = {
         const supplyFlag = Game.flags[thisRoom.name + "Supply"];
         if (supplyFlag) {
             const isAutoBuild = Memory.autoBuildRooms.indexOf(thisRoom.name) > -1;
-            const spawnCount = thisRoom.find(FIND_MY_STRUCTURES, { filter: s => s.structureType === STRUCTURE_SPAWN }).length;
+            const spawnCount = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_SPAWN } }).length;
             const restrictToSupplySpawn = isAutoBuild && spawnCount >= 3;
 
             if (restrictToSupplySpawn) {
@@ -169,7 +170,7 @@ var spawn_BuildCreeps5 = {
                 }
             }
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 6) {
-            let Foe = thisRoom.find(FIND_HOSTILE_CREEPS, {
+            let Foe = runtimeCache.find(thisRoom, FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });
 
@@ -1032,7 +1033,7 @@ Object.assign(spawn_BuildCreeps5, {
         // Check for construction sites
         const room = Game.rooms[roomName];
         if (room) {
-            const constructionSites = room.find(FIND_CONSTRUCTION_SITES);
+            const constructionSites = runtimeCache.find(room, FIND_CONSTRUCTION_SITES);
             if (constructionSites.length) {
                 config.muleMax = 2; // Need builders
             }

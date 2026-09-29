@@ -1,0 +1,141 @@
+function placeRoadOnPath(creep) {
+    // Only attempt if we have an active travel path
+    if (!creep.memory._trav || !creep.memory._trav.path || creep.memory._trav.path.length === 0) {
+        return;
+    }
+
+    if (Game.cpu && Game.cpu.bucket < 1000) {
+        return;
+    }
+
+    if (Game.constructionSites && Object.keys(Game.constructionSites).length >= MAX_CONSTRUCTION_SITES) {
+        return;
+    }
+
+    // Try to place road at current position
+    let nextDir = parseInt(creep.memory._trav.path[0], 10);
+    let nextPos = nextDir ? positionAtDirection(creep.pos, nextDir) : undefined;
+    let nextNextPos = undefined;
+    if (nextPos && creep.memory._trav.path.length > 1) {
+        let nextNextDir = parseInt(creep.memory._trav.path[1], 10);
+        if (nextNextDir) {
+            nextNextPos = positionAtDirection(nextPos, nextNextDir);
+        }
+    }
+    tryCreateRoadAt(creep.pos, nextPos);
+
+    // Try to place road at next step in the path
+    if (nextPos) {
+        tryCreateRoadAt(nextPos, nextNextPos);
+    }
+}
+
+function tryCreateRoadAt(pos, nextPosAfterTarget) {
+    if (!pos || !pos.roomName) {
+        return;
+    }
+
+    const terrain = pos.lookFor(LOOK_TERRAIN);
+    if (terrain && terrain.includes("wall")) {
+        return;
+    }
+
+    let structures = pos.lookFor(LOOK_STRUCTURES);
+    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_RAMPART)) {
+        return;
+    }
+
+    let sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+    if (sites.length) {
+        return;
+    }
+
+    // If the next position after this target already has a road/site,
+    // avoid placing a road here when there is another road/site adjacent
+    // that is not the next position.
+    if (nextPosAfterTarget && hasRoadOrSiteAt(nextPosAfterTarget)) {
+        let adjacentPositions = getAdjacentPositions(pos);
+        let hasOtherAdjacentRoad = adjacentPositions.some((adj) => {
+            if (nextPosAfterTarget && adj.isEqualTo(nextPosAfterTarget)) {
+                return false;
+            }
+            return hasRoadOrSiteAt(adj);
+        });
+        if (hasOtherAdjacentRoad) {
+            return;
+        }
+    }
+
+    pos.createConstructionSite(STRUCTURE_ROAD);
+}
+
+function hasRoadOrSiteAt(pos) {
+    if (!pos || !pos.roomName) {
+        return false;
+    }
+
+    let structures = pos.lookFor(LOOK_STRUCTURES);
+    if (structures.some(s => s.structureType === STRUCTURE_ROAD)) {
+        return true;
+    }
+
+    let sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);
+    return sites.some(s => s.structureType === STRUCTURE_ROAD);
+}
+
+function getAdjacentPositions(pos) {
+    const offsets = [
+        { x: 0, y: -1 },
+        { x: 1, y: -1 },
+        { x: 1, y: 0 },
+        { x: 1, y: 1 },
+        { x: 0, y: 1 },
+        { x: -1, y: 1 },
+        { x: -1, y: 0 },
+        { x: -1, y: -1 }
+    ];
+
+    let positions = [];
+    for (let i = 0; i < offsets.length; i++) {
+        let x = pos.x + offsets[i].x;
+        let y = pos.y + offsets[i].y;
+        if (x >= 0 && x <= 49 && y >= 0 && y <= 49) {
+            positions.push(new RoomPosition(x, y, pos.roomName));
+        }
+    }
+    return positions;
+}
+
+function positionAtDirection(pos, direction) {
+    const offsets = {
+        1: { x: 0, y: -1 },
+        2: { x: 1, y: -1 },
+        3: { x: 1, y: 0 },
+        4: { x: 1, y: 1 },
+        5: { x: 0, y: 1 },
+        6: { x: -1, y: 1 },
+        7: { x: -1, y: 0 },
+        8: { x: -1, y: -1 }
+    };
+
+    let offset = offsets[direction];
+    if (!offset) {
+        return undefined;
+    }
+
+    let x = pos.x + offset.x;
+    let y = pos.y + offset.y;
+    if (x < 0 || x > 49 || y < 0 || y > 49) {
+        return undefined;
+    }
+
+    return new RoomPosition(x, y, pos.roomName);
+}
+
+function clearTravelMemory(creep) {
+    if (creep.memory && creep.memory._trav) {
+        delete creep.memory._trav;
+    }
+}
+
+module.exports = { placeRoadOnPath, tryCreateRoadAt, hasRoadOrSiteAt, getAdjacentPositions, positionAtDirection, clearTravelMemory };

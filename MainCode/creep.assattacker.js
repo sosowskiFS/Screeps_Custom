@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_assattacker = {
 
     /** @param {Creep} creep **/
@@ -85,22 +86,22 @@ var creep_assattacker = {
             }
 
             if (Game.flags[creep.memory.homeRoom + "DoBoost"] && creep.pos.roomName == creep.memory.homeRoom && (unboostedMove > 0 || unboostedTough > 0 || unboostedAttack > 0 || unboostedWork > 0 || unboostedRanged > 0 || unboostedHeal > 0)) {
-                let MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let MoveLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
                 });
-                let ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let ToughLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
                 });
-                let AttackLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let AttackLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_UTRIUM_ACID)
                 });
-                let WorkLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let WorkLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ACID)
                 });
-                let RangedLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let RangedLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                 });
-                let HealLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let HealLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
                 });
                 let hasTraveled = false;
@@ -293,7 +294,7 @@ var creep_assattacker = {
                             }
                         } else {
                             //Find structures that don't have a rampart on them
-                            /*let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+                            /*let allStruct = runtimeCache.find(creep.room, FIND_HOSTILE_STRUCTURES, {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                             });*/
                             let targetFound = false;
@@ -385,7 +386,7 @@ var creep_assattacker = {
                         var thisPortal = undefined;
                         if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                             var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                                filter: { structureType: STRUCTURE_PORTAL }
                             });
                         }
                         if (thisPortal) {
@@ -430,7 +431,7 @@ var creep_assattacker = {
                     var thisPortal = undefined;
                     if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                         var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                            filter: { structureType: STRUCTURE_PORTAL }
                         });
                     }
                     if (thisPortal) {

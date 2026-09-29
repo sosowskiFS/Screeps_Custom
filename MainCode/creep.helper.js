@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_Helper = {
     run: function(creep) {
 
@@ -9,7 +10,7 @@ var creep_Helper = {
             var thisPortal = undefined;
             if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                 var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                    filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                    filter: { structureType: STRUCTURE_PORTAL }
                 });
             }
             if (thisPortal) {
@@ -84,7 +85,7 @@ var creep_Helper = {
                         }
                     }
                 } else {
-                    let roomSources = creep.room.find(FIND_SOURCES, {
+                    let roomSources = runtimeCache.find(creep.room, FIND_SOURCES, {
                         filter: (tSource) => (tSource.energy >= creep.carryCapacity)
                     });
                     if (roomSources.length) {

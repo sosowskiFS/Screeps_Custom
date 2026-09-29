@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var tool_generateBase = {
     // Constants for direction mappings and structure layouts
     DIRECTIONS: {
@@ -37,7 +38,7 @@ var tool_generateBase = {
 
     run: function(thisRoom) {
         const terrain = new Room.Terrain(thisRoom.name);
-        const roomSources = thisRoom.find(FIND_SOURCES);
+        const roomSources = runtimeCache.find(thisRoom, FIND_SOURCES);
         
         // Early return if no sources
         if (!roomSources.length) return;
@@ -726,7 +727,7 @@ var tool_generateBase = {
         if (!thisRoom.controller || !thisRoom.controller.my || thisRoom.controller.level < 6) return;
 
         // Rooms in Screeps have at most one mineral
-        const mineral = thisRoom.find(FIND_MINERALS)[0];
+        const mineral = runtimeCache.find(thisRoom, FIND_MINERALS)[0];
         if (!mineral) return;
 
         // Skip if extractor or construction site already present
@@ -988,11 +989,11 @@ var tool_generateBase = {
         
         if (!roomVis) {
             // Count existing extensions only in generation mode
-            const existingExtensions = thisRoom.find(FIND_MY_STRUCTURES, {
-                filter: s => s.structureType === STRUCTURE_EXTENSION
+            const existingExtensions = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_EXTENSION }
             }).length;
-            const plannedExtensions = thisRoom.find(FIND_MY_CONSTRUCTION_SITES, {
-                filter: s => s.structureType === STRUCTURE_EXTENSION
+            const plannedExtensions = runtimeCache.find(thisRoom, FIND_MY_CONSTRUCTION_SITES, {
+                filter: { structureType: STRUCTURE_EXTENSION }
             }).length;
             
             extensionsPlaced = existingExtensions + plannedExtensions;
@@ -1105,11 +1106,11 @@ var tool_generateBase = {
         
         if (!roomVis) {
             // Count existing labs only in generation mode
-            const existingLabs = thisRoom.find(FIND_MY_STRUCTURES, {
-                filter: s => s.structureType === STRUCTURE_LAB
+            const existingLabs = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_LAB }
             }).length;
-            const plannedLabs = thisRoom.find(FIND_MY_CONSTRUCTION_SITES, {
-                filter: s => s.structureType === STRUCTURE_LAB
+            const plannedLabs = runtimeCache.find(thisRoom, FIND_MY_CONSTRUCTION_SITES, {
+                filter: { structureType: STRUCTURE_LAB }
             }).length;
             
             labsPlaced = existingLabs + plannedLabs;
@@ -1247,11 +1248,11 @@ var tool_generateBase = {
         if (roomVis) {
             return labsPlaced > 0; // In visualization mode, return true if we visualized any labs
         } else {
-            const existingLabs = thisRoom.find(FIND_MY_STRUCTURES, {
-                filter: s => s.structureType === STRUCTURE_LAB
+            const existingLabs = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_LAB }
             }).length;
-            const plannedLabs = thisRoom.find(FIND_MY_CONSTRUCTION_SITES, {
-                filter: s => s.structureType === STRUCTURE_LAB
+            const plannedLabs = runtimeCache.find(thisRoom, FIND_MY_CONSTRUCTION_SITES, {
+                filter: { structureType: STRUCTURE_LAB }
             }).length;
             return (existingLabs + plannedLabs) > labsPlaced; // Return true if we placed any labs in generation mode
         }
@@ -1390,11 +1391,11 @@ var tool_generateBase = {
         
         if (!roomVis) {
             // Only count in generation mode
-            existingLinks = thisRoom.find(FIND_MY_STRUCTURES, {
-                filter: s => s.structureType === STRUCTURE_LINK
+            existingLinks = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
+                filter: { structureType: STRUCTURE_LINK }
             }).length;
-            plannedLinks = thisRoom.find(FIND_MY_CONSTRUCTION_SITES, {
-                filter: s => s.structureType === STRUCTURE_LINK
+            plannedLinks = runtimeCache.find(thisRoom, FIND_MY_CONSTRUCTION_SITES, {
+                filter: { structureType: STRUCTURE_LINK }
             }).length;
         }
         
@@ -1754,11 +1755,11 @@ var tool_generateBase = {
         let labsPlaced = 0;
         
         // Count existing labs
-        const existingLabs = thisRoom.find(FIND_MY_STRUCTURES, {
-            filter: s => s.structureType === STRUCTURE_LAB
+        const existingLabs = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
+            filter: { structureType: STRUCTURE_LAB }
         }).length;
-        const plannedLabs = thisRoom.find(FIND_MY_CONSTRUCTION_SITES, {
-            filter: s => s.structureType === STRUCTURE_LAB
+        const plannedLabs = runtimeCache.find(thisRoom, FIND_MY_CONSTRUCTION_SITES, {
+            filter: { structureType: STRUCTURE_LAB }
         }).length;
         
         labsPlaced = existingLabs + plannedLabs;

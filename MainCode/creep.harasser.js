@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_harasser = {
     
     run: function(creep) {
@@ -28,7 +29,7 @@ var creep_harasser = {
         }
         
         // Find hostile creeps in the room (excluding whitelisted players)
-        let hostiles = creep.room.find(FIND_HOSTILE_CREEPS, {
+        let hostiles = runtimeCache.find(creep.room, FIND_HOSTILE_CREEPS, {
             filter: (target) => !Memory.whiteList.includes(target.owner.username)
         });
         

@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_assranger = {
 
     /** @param {Creep} creep **/
@@ -75,13 +76,13 @@ var creep_assranger = {
             }
 
             if (Game.flags[creep.memory.homeRoom + "DoBoost"] && creep.pos.roomName == creep.memory.homeRoom && (unboostedMove > 0 || unboostedTough > 0 || unboostedRanged > 0)) {
-                let MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let MoveLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
                 });
-                let ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let ToughLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
                 });
-                let RangedLab = creep.room.find(FIND_MY_STRUCTURES, {
+                let RangedLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                 });
                 let hasTraveled = false;
@@ -207,7 +208,7 @@ var creep_assranger = {
                             }
                         } else {
                             //Find structures that don't have a rampart on them
-                            /*let allStruct = creep.room.find(FIND_HOSTILE_STRUCTURES, {
+                            /*let allStruct = runtimeCache.find(creep.room, FIND_HOSTILE_STRUCTURES, {
                                 filter: (structure) => (structure.structureType != STRUCTURE_CONTROLLER && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART && structure.structureType != STRUCTURE_KEEPER_LAIR && structure.structureType != STRUCTURE_EXTRACTOR)
                             });*/
 let targetFound = false;
@@ -292,7 +293,7 @@ let targetFound = false;
                         var thisPortal = undefined;
                         if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                             var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                                filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                                filter: { structureType: STRUCTURE_PORTAL }
                             });
                         }
                         if (thisPortal) {
@@ -337,7 +338,7 @@ let targetFound = false;
                     var thisPortal = undefined;
                     if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                         var thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                            filter: { structureType: STRUCTURE_PORTAL }
                         });
                     }
                     if (thisPortal) {

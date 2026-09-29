@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var spawn_BuildCreeps = {
     run: function(spawn, bestWorker, thisRoom, RoomCreeps, energyIndex) {
 
@@ -47,7 +48,7 @@ var spawn_BuildCreeps = {
 
         // Dynamic creep limits based on room level and available energy
         let harvesterMax = Math.min(2, strSources.length);
-        let builderMax = thisRoom.find(FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0;
+        let builderMax = runtimeCache.find(thisRoom, FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0;
         let upgraderMax = getUpgraderMax(thisRoom);
         let repairMax = getRepairMax(thisRoom);
         let supplierMax = 0;
@@ -278,7 +279,7 @@ function getUpgraderMax(room) {
 
 function getRepairMax(room) {
     // Only spawn repairers when there are damaged structures
-    const damagedStructures = room.find(FIND_STRUCTURES, {
+    const damagedStructures = runtimeCache.find(room, FIND_STRUCTURES, {
         filter: (structure) => structure.hits < structure.hitsMax && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART
     });
     return damagedStructures.length > 0 ? 1 : 0;

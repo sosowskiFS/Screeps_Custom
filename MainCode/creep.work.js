@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_work = {
 
     /** @param {Creep} creep **/
@@ -241,7 +242,7 @@ var creep_work = {
                         creep.memory.structureTarget = undefined;
                     }
                 } else {
-                    var closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+                    var closestDamagedStructure = runtimeCache.find(creep.room, FIND_STRUCTURES, {
                         filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
                     });
                     if (closestDamagedStructure.length > 0) {

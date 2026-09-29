@@ -1,0 +1,243 @@
+var creep_work = require('creep.work');
+var creep_workV2 = require('creep.workV2');
+var creep_work5 = require('creep.work5');
+var creep_salvager = require('creep.salvager');
+var creep_supplier = require('creep.supplier');
+var creep_upSupplier = require('creep.upsupplier');
+var creep_miner = require('creep.miner');
+var creep_upgrader = require('creep.upgrader');
+var creep_repair = require('creep.repair');
+var creep_labWorker = require('creep.labWorker');
+var creep_baseOp = require('creep.baseOp');
+var creep_farMining = require('creep.farMining');
+var creep_farMule = require('creep.farMule');
+var creep_farMiner = require('creep.farMiner');
+var creep_farMinerSK = require('creep.farMinerSK');
+var creep_combat = require('creep.combat');
+var creep_claimer = require('creep.claimer');
+var creep_vandal = require('creep.vandal');
+var creep_Helper = require('creep.helper');
+var creep_looter = require('creep.looter');
+var creep_assattacker = require('creep.assattacker');
+var creep_asshealer = require('creep.asshealer');
+var creep_assranger = require('creep.assranger');
+var creep_powerAttack = require('creep.powerAttack');
+var creep_powerHeal = require('creep.powerHeal');
+var creep_powerPickup = require('creep.powerCollect');
+var creep_scraper = require('creep.scraper');
+var creep_distantSupplier = require('creep.distantSupplier');
+var creep_ranger = require('creep.ranger');
+var creep_farScout = require('creep.farScout');
+var creep_highwayPatrol = require('creep.highwayPatrol');
+var creep_harasser = require('creep.harasser');
+function handleCreepOperations() {
+    // Remote creep CPU throttle: if bucket is low (<1000), skip execution for
+    // heavy remote roles every other tick to reduce CPU usage.
+    const remoteThrottleActive = (Game.cpu.bucket < 1000) && (Game.time % 2 === 1);
+    const roomsAt5Map = {};
+    if (Memory.RoomsAt5 && Memory.RoomsAt5.length) {
+        for (let i = 0; i < Memory.RoomsAt5.length; i++) {
+            roomsAt5Map[Memory.RoomsAt5[i]] = true;
+        }
+    }
+    for (var name in Game.creeps) {
+        var creep = Game.creeps[name];
+        const isRoomAt5 = !!roomsAt5Map[creep.room.name];
+        if (!creep.spawning) {
+            switch (creep.memory.priority) {
+                case 'farMule':
+                case 'farMuleNearDeath':
+                    var doExcessWork = true;
+                    if (Game.cpu.bucket < 500) {
+                        doExcessWork = false;
+                    }
+                    creep_farMule.run(creep, doExcessWork);
+                    break;
+                case 'farMiner':
+                case 'farMinerNearDeath':
+                    if (remoteThrottleActive) { break; }
+                    //Change to if (creep.memory.jobSpecific) after new wave is out
+                    if (creep.getActiveBodyparts(HEAL) > 0) {
+                        //SK Miner (TEMP, MAKE OWN FILE)
+                        //Make new memory detail on SK miner spawn too, so don't have to make this check
+                        creep_farMinerSK.run(creep);
+                    } else {
+                        //Normal miner
+                        creep_farMiner.run(creep);
+                    }
+                    break;
+                case 'farClaimer':
+                case 'farGuard':
+                case 'SKAttackGuard':
+                case 'SKHealGuard':
+                case 'farClaimerNearDeath':
+                case 'farGuardNearDeath':
+                case 'SKAttackGuardNearDeath':
+                case 'SKHealGuardNearDeath':
+                case 'farMineralMiner':
+                    if (remoteThrottleActive) { break; }
+                    var doExcessWork = true;
+                    if (Game.cpu.bucket < 500) {
+                        doExcessWork = false;
+                    }
+                    creep_farMining.run(creep, doExcessWork);
+                    break;
+                case 'miner':
+                case 'minerNearDeath':
+                    if (isRoomAt5) {
+                        creep_miner.run(creep);
+                    } else {
+                        creep_workV2.run(creep, 25);
+                    }
+                    break;
+                case 'upgrader':
+                case 'upgraderNearDeath':
+                    if (isRoomAt5) {
+                        creep_upgrader.run(creep);
+                    } else {
+                        creep_workV2.run(creep, 25);
+                    }
+                    break;
+                case 'repair':
+                case 'repairNearDeath':
+                    if (remoteThrottleActive) { break; }
+                    if (isRoomAt5) {
+                        creep_repair.run(creep);
+                    } else {
+                        creep_workV2.run(creep, 25);
+                    }
+                    break;
+                case 'scraper':
+                case 'scraperNearDeath':
+                    if (remoteThrottleActive) { break; }
+                    creep_scraper.run(creep);
+                    break;
+                case 'salvager':
+                case 'salvagerNearDeath':
+                    if (remoteThrottleActive) { break; }
+                    creep_salvager.run(creep);
+                    break;
+                case 'supplier':
+                case 'supplierNearDeath':
+                    creep_supplier.run(creep);
+                    break;
+                case 'upSupplier':
+                case 'upSupplierNearDeath':
+                    if (remoteThrottleActive) { break; }
+                    creep_upSupplier.run(creep);
+                    break;
+                case 'labWorker':
+                case 'labWorkerNearDeath':
+                    if (remoteThrottleActive) { break; }
+                    creep_labWorker.run(creep);
+                    break;
+                case 'claimer':
+                    creep_claimer.run(creep);
+                    break;
+                case 'looter':
+                    creep_looter.run(creep);
+                    break;
+                case 'vandal':
+                    creep_vandal.run(creep);
+                    break;
+                case 'helper':
+                    creep_Helper.run(creep);
+                    break;
+                case 'defender':
+                    creep_combat.run(creep);
+                    break;
+                case 'assattacker':
+                case 'assattackerNearDeath':
+                    creep_assattacker.run(creep);
+                    break;
+                case 'assranger':
+                case 'assrangerNearDeath':
+                    creep_assranger.run(creep);
+                    break;
+                case 'asshealer':
+                case 'asshealerNearDeath':
+                case 'targetlessHealer':
+                    creep_asshealer.run(creep);
+                    break;
+                case 'powerAttack':
+                case 'powerAttackNearDeath':
+                    creep_powerAttack.run(creep);
+                    break;
+                case 'powerHeal':
+                case 'powerHealNearDeath':
+                    creep_powerHeal.run(creep);
+                    break;
+                case 'powerCollector':
+                    creep_powerPickup.run(creep);
+                    break;
+                case 'distantSupplier':
+                    creep_distantSupplier.run(creep);
+                    break;
+                case 'ranger':
+                case 'ranger2':
+                case 'PowerGuard':
+                case 'rangerNearDeath':
+                    creep_ranger.run(creep);
+                    break;
+                case 'farScout':
+                    creep_farScout.run(creep);
+                    break;
+                case 'highwayPatrol':
+                case 'highwayPatrolNearDeath':
+                    creep_highwayPatrol.run(creep);
+                    break;
+                case 'harasser':
+                case 'harasserNearDeath':
+                    if (Game.cpu.bucket >= 750) {
+                        creep_harasser.run(creep);
+                    } else {
+                        creep.say("\u2716\uFE0F", false);
+                    }
+                    break;
+                default:
+                    if (!creep.memory.priority) {
+                        creep.memory.priority = 'helper';
+                        var creepPath = 'E30N43;E29N43'.split(";");
+                        creep.memory.path = creepPath;
+                        creep.memory.destination = 'E29N43';
+                        creep.memory.homeRoom = 'E29N43';
+                        creep.memory.previousPriority = 'helper';
+                    }
+                    if (!isRoomAt5) {
+                        if (!remoteThrottleActive || Memory.warMode) {
+                            creep_workV2.run(creep, 25);
+                        } else {
+                            creep.say("\u2716\uFE0F", false);
+                        }
+                    } else {
+                        if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
+                            //In case of emergency
+                            creep_workV2.run(creep, 25);
+                        } else {
+                            if ((!remoteThrottleActive || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
+                                creep_work5.run(creep);
+                            } else {
+                                creep.say("\u2716\uFE0F", false);
+                            }
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+    for (let pName in Game.powerCreeps) {
+        let creep = Game.powerCreeps[pName];
+        if (creep.shard == Game.shard.name) {
+            switch (creep.memory.priority) {
+                case 'baseOp':
+                    creep_baseOp.run(creep);
+                    break;
+                default:
+                    //Only one style for now.
+                    creep.memory.priority = 'baseOp';
+                    break;
+            }
+        }
+    }
+}
+module.exports = { handleCreepOperations };

@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_farMining = {
 
     /** @param {Creep} creep **/
@@ -90,7 +91,7 @@ var creep_farMining = {
                         }
                     } else if (creep.room.name == creep.memory.destination) {
                         //Find mineral target
-                        let mineralLocations = creep.room.find(FIND_DEPOSITS, {
+                        let mineralLocations = runtimeCache.find(creep.room, FIND_DEPOSITS, {
                             filter: (eStruct) => (eStruct.lastCooldown < 28)
                         });
                         if (mineralLocations.length) {
@@ -332,7 +333,7 @@ var creep_farMining = {
                     } else {
                         // Only heal allies if they're nearby - cache search every 5 ticks
                         if (!creep.memory.lastAllyCheck || Game.time - creep.memory.lastAllyCheck >= 5) {
-                            creep.memory.hurtAllies = creep.room.find(FIND_MY_CREEPS, {
+                            creep.memory.hurtAllies = runtimeCache.find(creep.room, FIND_MY_CREEPS, {
                                 filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
                             });
                             creep.memory.lastAllyCheck = Game.time;
@@ -445,8 +446,8 @@ var creep_farMining = {
                                 });
                             }
                         } else {
-                            var SKLairs = creep.room.find(FIND_STRUCTURES, {
-                                filter: (structure) => structure.structureType == STRUCTURE_KEEPER_LAIR
+                            var SKLairs = runtimeCache.find(creep.room, FIND_STRUCTURES, {
+                                filter: { structureType: STRUCTURE_KEEPER_LAIR }
                             });
                             if (SKLairs.length) {
                                 SKLairs.sort(SKCompare);

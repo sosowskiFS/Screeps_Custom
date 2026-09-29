@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_repair = {
 
     /** @param {Creep} creep **/
@@ -9,7 +10,7 @@ var creep_repair = {
         if (!creep.memory.hasBoosted && creep.room.controller.level >= 6 && Memory.labList[creep.room.name].length >= 3 && !creep.memory.previousPriority) {
             var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
             var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
-            var repairLab = creep.room.find(FIND_MY_STRUCTURES, {
+            var repairLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ACID)
             });
             if (repairLab.length && repairLab[0].mineralAmount >= mineralCost && repairLab[0].energy >= energyCost) {

@@ -1,3 +1,5 @@
+const { leastHits } = require('util.common');
+const runtimeCache = require('runtime.cache');
 var tower_Operate = {
     run: function(tower, attackDuration, towerNum, roomIntel) {
         //My bit that computes "how much damage could my towers do to creep x?" counted inactive towers
@@ -48,13 +50,13 @@ var tower_Operate = {
 
         let UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
         if (UnderAttackPos >= 0 && tower.energy > 0) {
-            //Memory.roomCreeps[thisRoom.name];
+            //runtimeCache.current().roomCreeps[thisRoom.name];
             //Only if no salvager flag
             let didHeal = false
             let salvagerPos = Memory.roomsPrepSalvager.indexOf(thisRoom.name);
             let hostileCount = 1;
 
-            let defenders = _.filter(Memory.roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
+            let defenders = _.filter(runtimeCache.current().roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 
             let closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
             if (!closestHostile) {
@@ -68,14 +70,14 @@ var tower_Operate = {
                     pHostiles = roomIntel.pHostiles.filter((eCreep) => !isBorderPos(eCreep.pos));
                     allTowers = roomIntel.allTowers;
                 } else {
-                    allHostiles = tower.room.find(FIND_HOSTILE_CREEPS, {
+                    allHostiles = runtimeCache.find(tower.room, FIND_HOSTILE_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
                     });
-                    pHostiles = tower.room.find(FIND_HOSTILE_POWER_CREEPS, {
+                    pHostiles = runtimeCache.find(tower.room, FIND_HOSTILE_POWER_CREEPS, {
                         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && !isBorderPos(eCreep.pos))
                     });
-                    allTowers = tower.room.find(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_TOWER)
+                    allTowers = runtimeCache.find(tower.room, FIND_STRUCTURES, {
+                        filter: { structureType: STRUCTURE_TOWER }
                     });
                 }
                 hostileCount = 0
@@ -317,7 +319,7 @@ var tower_Operate = {
             }
 
             //Heal only if the target isn't taking damage
-            if (Memory.roomCreeps[thisRoom.name] && (!closestHostile || closestHostile.hits > (closestHostile.hitsMax - 500))) {
+            if (runtimeCache.current().roomCreeps[thisRoom.name] && (!closestHostile || closestHostile.hits > (closestHostile.hitsMax - 500))) {
                 if (Game.flags[thisRoom.name + "RoomOperator"]) {
                     powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
                     if (powerCreep && powerCreep.hits < powerCreep.hitsMax) {
@@ -327,7 +329,7 @@ var tower_Operate = {
                 }
                 let topInjured = roomIntel && roomIntel.mostInjuredCreep ? roomIntel.mostInjuredCreep : undefined;
                 if (!topInjured || (topInjured.hits >= topInjured.hitsMax)) {
-                    let allCreeps = Memory.roomCreeps[thisRoom.name];
+                    let allCreeps = runtimeCache.current().roomCreeps[thisRoom.name];
                     if (allCreeps && allCreeps.length) {
                         for (let i = 0; i < allCreeps.length; i++) {
                             if (!topInjured || (allCreeps[i].hitsMax - allCreeps[i].hits) > (topInjured.hitsMax - topInjured.hits)) {
@@ -374,12 +376,15 @@ var tower_Operate = {
                 }
             }
         } else if ((tower.energy > (tower.energyCapacity * 0.5)) && (Game.time % checkDelay == 0)) {
-            var criticalRoads = tower.room.find(FIND_STRUCTURES, {
-                filter: (structure) => (structure.structureType == STRUCTURE_ROAD && structure.hits < (structure.hitsMax / 2))
-            });
-            if (criticalRoads.length) {
-                criticalRoads.sort(repairCompare);
-                tower.repair(criticalRoads[0]);
+            // All towers see the same tick snapshot; choose this target once.
+            const intel = roomIntel || {};
+            if (!Object.prototype.hasOwnProperty.call(intel, 'criticalRoad')) {
+                intel.criticalRoad = leastHits(runtimeCache.find(tower.room, FIND_STRUCTURES, {
+                    filter: structure => structure.structureType == STRUCTURE_ROAD && structure.hits < structure.hitsMax / 2
+                })) || null;
+            }
+            if (intel.criticalRoad) {
+                tower.repair(intel.criticalRoad);
             } else if (Memory.repairTarget[tower.room.name]) {
                 let decayingRampart = Game.getObjectById(Memory.repairTarget[tower.room.name]);
                 if (decayingRampart && decayingRampart.hits != decayingRampart.hitsMax) {
@@ -401,7 +406,7 @@ var tower_Operate = {
             }
             let topInjured = roomIntel && roomIntel.mostInjuredCreep ? roomIntel.mostInjuredCreep : undefined;
             if (!topInjured || (topInjured.hits >= topInjured.hitsMax)) {
-                let allCreeps = Memory.roomCreeps[thisRoom.name];
+                let allCreeps = runtimeCache.current().roomCreeps[thisRoom.name];
                 if (allCreeps && allCreeps.length) {
                     for (let i = 0; i < allCreeps.length; i++) {
                         if (!topInjured || (allCreeps[i].hitsMax - allCreeps[i].hits) > (topInjured.hitsMax - topInjured.hits)) {

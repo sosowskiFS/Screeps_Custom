@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var market_buyers = {
 
     run: function(thisRoom, thisTerminal, thisMineral) {
@@ -152,7 +153,7 @@ var market_buyers = {
 
             /*if (!hasSent && Game.market.credits >= 100000) {
                 //Buy GCL juice
-                let XGH2OSellers = Game.market.getAllOrders(order => order.resourceType == RESOURCE_CATALYZED_GHODIUM_ACID && order.amount >= 100 && order.price <= 4.0 && order.type == ORDER_SELL && Game.market.calcTransactionCost(order.amount, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
+                let XGH2OSellers = runtimeCache.marketOrders(RESOURCE_CATALYZED_GHODIUM_ACID, ORDER_SELL, order => order.resourceType == RESOURCE_CATALYZED_GHODIUM_ACID && order.amount >= 100 && order.price <= 4.0 && order.type == ORDER_SELL && Game.market.calcTransactionCost(order.amount, thisRoom.name, order.roomName) <= TerminalEnergy && Memory.ordersFilled.indexOf(order.id) == -1)
                 if (XGH2OSellers.length) {
                     XGH2OSellers.sort(orderBuyCompare);
                     if (Game.market.deal(XGH2OSellers[0].id, XGH2OSellers[0].amount, thisRoom.name) == OK) {
@@ -187,7 +188,7 @@ var market_buyers = {
                             Memory.PriceList[mineral] = 0;
                         }
                         
-                        const FilteredOrders = Game.market.getAllOrders(order => 
+                        const FilteredOrders = runtimeCache.marketOrders(mineral, ORDER_BUY, order =>
                             order.resourceType === mineral && 
                             order.amount >= 100 && 
                             order.type === ORDER_BUY && 

@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_baseOp = {
 
     /** @param {Creep} creep **/
@@ -122,7 +123,7 @@ var creep_baseOp = {
 function setupCreepMemory(creep) {
     // Initialize spawn list
     if (!creep.memory.spawnList || Game.time % 10000 == 0) {
-        const roomSpawns = creep.room.find(FIND_MY_STRUCTURES, {
+        const roomSpawns = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
             filter: { structureType: STRUCTURE_SPAWN }
         });
         creep.memory.spawnList = roomSpawns.map(spawn => spawn.id);
@@ -130,7 +131,7 @@ function setupCreepMemory(creep) {
 
     // Initialize tower list
     if (!creep.memory.towerList || Game.time % 10000 == 0) {
-        const roomTowers = creep.room.find(FIND_MY_STRUCTURES, {
+        const roomTowers = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
             filter: { structureType: STRUCTURE_TOWER }
         });
         creep.memory.towerList = roomTowers.map(tower => tower.id);

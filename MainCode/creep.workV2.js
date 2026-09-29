@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_workV2 = {
 
     /** @param {Creep} creep **/
@@ -29,7 +30,7 @@ var creep_workV2 = {
                     }
                 } else {
                     // Fallback: find the closest source if sourceLocation is not set
-                    let sources = creep.room.find(FIND_SOURCES);
+                    let sources = runtimeCache.find(creep.room, FIND_SOURCES);
                     if (sources.length > 0) {
                         mineTarget = creep.pos.findClosestByPath(sources);
                         if (mineTarget) {
@@ -64,11 +65,11 @@ var creep_workV2 = {
                     }
                 } else if (!creep.memory.storageUnit && mineTarget && creep.pos.inRangeTo(mineTarget, 1)) {
                     let containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 2, {
-                        filter: (structure) => structure.structureType == STRUCTURE_STORAGE
+                        filter: { structureType: STRUCTURE_STORAGE }
                     });
                     if (!containers.length) {
                         containers = mineTarget.pos.findInRange(FIND_STRUCTURES, 2, {
-                            filter: (structure) => structure.structureType == STRUCTURE_CONTAINER
+                            filter: { structureType: STRUCTURE_CONTAINER }
                         });
                     }
                     if (containers.length) {
@@ -504,7 +505,7 @@ function findNewRepairTarget(creep, creepEnergy) {
         }
     } else {
         var closestDamagedStructure = [];
-        closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+        closestDamagedStructure = runtimeCache.find(creep.room, FIND_STRUCTURES, {
             filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
         });
 
@@ -529,7 +530,7 @@ function findNewRepairTarget(creep, creepEnergy) {
 
 function moveToNewTarget(creep) {
     var closestDamagedStructure = [];
-    closestDamagedStructure = creep.room.find(FIND_STRUCTURES, {
+    closestDamagedStructure = runtimeCache.find(creep.room, FIND_STRUCTURES, {
         filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
     });
 

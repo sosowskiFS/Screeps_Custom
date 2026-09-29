@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_powerHeal = {
 
     /** @param {Creep} creep **/
@@ -29,7 +30,7 @@ var creep_powerHeal = {
         } else {
             //Main loop
             if (!creep.memory.targetAttacker) {
-                const attackers = creep.room.find(FIND_MY_CREEPS, {
+                const attackers = runtimeCache.find(creep.room, FIND_MY_CREEPS, {
                     filter: (roomCreep) => roomCreep.memory.priority === 'powerAttack' && roomCreep.memory.homeRoom === homeRoom
                 });
                 if (attackers.length) {

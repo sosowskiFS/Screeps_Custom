@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_combat = {
 
     /** @param {Creep} creep **/
@@ -39,7 +40,7 @@ var creep_combat = {
                     });
                 }
                 if (boostFlag && creep.room.controller.level >= 6) {
-                    var attackLab = creep.room.find(FIND_MY_STRUCTURES, {
+                    var attackLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                         filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                     });
                     var mineralCost = creep.getActiveBodyparts(RANGED_ATTACK) * LAB_BOOST_MINERAL;
@@ -66,7 +67,7 @@ var creep_combat = {
             var rFound = false;
             var rangeToFoe = creep.pos.getRangeTo(closeFoe);
             if (creep.memory.needBoosts && unboostedAttack > 0) {
-                var thisLab = creep.room.find(FIND_MY_STRUCTURES, {
+                var thisLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                     filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
                 });
                 if (thisLab.length) {

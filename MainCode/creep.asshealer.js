@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 var creep_asshealer = {
 
     /** @param {Creep} creep **/
@@ -25,13 +26,13 @@ var creep_asshealer = {
         }
 
         if (Game.flags[creep.memory.homeRoom + "DoBoost"] && Game.flags[creep.memory.homeRoom + "RunningAssault"] && (unboostedMove > 0 || unboostedTough > 0 || unboostedHeal > 0)) {
-            let MoveLab = creep.room.find(FIND_MY_STRUCTURES, {
+            let MoveLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE)
             });
-            let ToughLab = creep.room.find(FIND_MY_STRUCTURES, {
+            let ToughLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ALKALIDE)
             });
-            let HealLab = creep.room.find(FIND_MY_STRUCTURES, {
+            let HealLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE)
             });
             let hasTraveled = false;
@@ -98,7 +99,7 @@ var creep_asshealer = {
                 let thisPortal = undefined;
                 if (Game.flags["TakePortal"] && Game.flags["TakePortal"].pos.roomName == creep.pos.roomName) {
                     let thisPortal = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                        filter: (structure) => (structure.structureType == STRUCTURE_PORTAL)
+                        filter: { structureType: STRUCTURE_PORTAL }
                     });
                 }
                 if (thisPortal) {
