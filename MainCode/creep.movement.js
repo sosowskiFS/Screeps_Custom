@@ -1,3 +1,4 @@
+const runtimeCache = require('runtime.cache');
 function placeRoadOnPath(creep) {
     // Only attempt if we have an active travel path
     if (!creep.memory._trav || !creep.memory._trav.path || creep.memory._trav.path.length === 0) {
@@ -8,7 +9,12 @@ function placeRoadOnPath(creep) {
         return;
     }
 
-    if (Game.constructionSites && Object.keys(Game.constructionSites).length >= MAX_CONSTRUCTION_SITES) {
+    // Game.constructionSites does not change during a tick; count it once.
+    const tick = runtimeCache.current();
+    if (tick.siteCount === undefined) {
+        tick.siteCount = Game.constructionSites ? Object.keys(Game.constructionSites).length : 0;
+    }
+    if (tick.siteCount >= MAX_CONSTRUCTION_SITES) {
         return;
     }
 
@@ -35,14 +41,24 @@ function tryCreateRoadAt(pos, nextPosAfterTarget) {
         return;
     }
 
-    const terrain = pos.lookFor(LOOK_TERRAIN);
-    if (terrain && terrain.includes("wall")) {
+    // Several creeps walk the same tiles; inspect each tile at most once per tick.
+    const checked = runtimeCache.current().roadChecked || (runtimeCache.current().roadChecked = new Set());
+    const key = pos.roomName + ':' + (pos.x * 50 + pos.y);
+    if (checked.has(key)) {
+        return;
+    }
+    checked.add(key);
+
+    if (Game.map.getRoomTerrain(pos.roomName).get(pos.x, pos.y) & TERRAIN_MASK_WALL) {
         return;
     }
 
+    // In a built-up base nearly every step is already a road: stop after one lookup.
     let structures = pos.lookFor(LOOK_STRUCTURES);
-    if (structures.length && !structures.every(s => s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_RAMPART)) {
-        return;
+    for (const structure of structures) {
+        if (structure.structureType !== STRUCTURE_RAMPART) {
+            return;
+        }
     }
 
     let sites = pos.lookFor(LOOK_CONSTRUCTION_SITES);

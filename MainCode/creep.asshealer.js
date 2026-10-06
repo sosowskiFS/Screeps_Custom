@@ -1,3 +1,4 @@
+const speech = require('creep.speech');
 const runtimeCache = require('runtime.cache');
 var creep_asshealer = {
 
@@ -163,12 +164,12 @@ var creep_asshealer = {
                 }
                 if ((IAmInDanger && targetAttacker.hits == targetAttacker.hitsMax) || creep.hits < targetAttacker.hits) {
                     creep.heal(creep);
-                    creep.say("(=\u2716\u11BD\u2716=)", true);
+                    speech.say(creep, "(=\u2716\u11BD\u2716=)", true);
                 } else {
                     if (Game.time % 2 == 0) {
-                        creep.say("(=\u25D5\u11BD\u25D5\u0E3A=)", true);
+                        speech.say(creep, "(=\u25D5\u11BD\u25D5\u0E3A=)", true);
                     } else {
-                        creep.say("(=\u229D\u11BD\u229D=)", true);
+                        speech.say(creep, "(=\u229D\u11BD\u229D=)", true);
                     }
 
                     let hurtAlly = creep.pos.findInRange(FIND_CREEPS, 3, {

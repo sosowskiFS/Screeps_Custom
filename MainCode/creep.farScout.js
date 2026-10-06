@@ -1,105 +1,41 @@
-const runtimeCache = require('runtime.cache');
+const remoteMining = require('system.remoteMining');
+
+// 1-MOVE scout for remote-mining intel. It visits each room its home needs looked at
+// (unknown/stale intel, or a disabled remote due a safety check), records it on arrival,
+// and retires when done. Source flags are placed by system.remoteMining, not by the scout.
 var creep_farScout = {
 
     /** @param {Creep} creep **/
-
-    //Need : creep.memory.homeRoom
     run: function(creep) {
-        if (!creep.memory.path) {
-            let roomExits = Game.map.describeExits(creep.room.name);
-            let destArray = [];
-            if (roomExits[TOP]) {
-                destArray.push(roomExits[TOP]);
-            }
-            if (roomExits[LEFT]) {
-                destArray.push(roomExits[LEFT]);
-            }
-            if (roomExits[RIGHT]) {
-                destArray.push(roomExits[RIGHT]);
-            }
-            if (roomExits[BOTTOM]) {
-                destArray.push(roomExits[BOTTOM]);
-            }
-            creep.memory.path = destArray;
+        if (!creep.memory.targets) {
+            creep.memory.targets = remoteMining.scoutTargets(creep.memory.homeRoom);
+        }
+        const targets = creep.memory.targets;
+
+        // Whatever room we are in is visible now: record it once per visit (covers rooms on the way too).
+        const record = Memory.remoteIntel && Memory.remoteIntel[creep.room.name];
+        if (!record || Game.time - record.t > 50) {
+            remoteMining.recordIntel(creep.room);
+        }
+        while (targets.length && targets[0] === creep.room.name) {
+            targets.shift();
         }
 
-        //Check all rooms in path, flag remote sources if unclaimed.
-        if (creep.memory.path && creep.memory.path.length) {
-            if (creep.room.name != creep.memory.path[0]) {
-                creep.travelTo(new RoomPosition(25, 25, creep.memory.path[0]));
-            } else {
-                //In destination
-                if (!creep.room.controller) {
-                    //Not a room to mine
-                    creep.memory.path.splice(0, 1);
-                    creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
-                } else if (creep.room.controller.reservation || creep.room.controller.owner) {
-                    //Reserved/Owned. Not a room to mine.
-                    creep.memory.path.splice(0, 1);
-                    creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
-                } else {
-                    //Flag sources, remove room from path, step back.
-                    let roomSources = runtimeCache.find(creep.room, FIND_SOURCES);
-                    let sourceCounter = 0;
-                    while (roomSources[sourceCounter]) {
-                        CreateNewMiningFlag(creep, roomSources[sourceCounter].pos.x, roomSources[sourceCounter].pos.y)
-                        sourceCounter++;
-                    }
-                    CreateNewGuardFlag(creep);
-                    creep.memory.path.splice(0, 1);
-                    creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
-                }
+        if (!targets.length) {
+            Memory.scoutedMiningRooms = Memory.scoutedMiningRooms || [];
+            if (Memory.scoutedMiningRooms.indexOf(creep.memory.homeRoom) === -1) {
+                Memory.scoutedMiningRooms.push(creep.memory.homeRoom);
             }
-        } else {
-            //Done, suicide. Mark global var that scouting is done.
-            Memory.scoutedMiningRooms.push(creep.memory.homeRoom);
             creep.suicide();
+            return;
+        }
+
+        const result = creep.travelTo(new RoomPosition(25, 25, targets[0]), { range: 20, allowHostile: false, maxOps: 4000 });
+        if (result === ERR_NO_PATH) {
+            // Unreachable (walled off or blocked): skip it rather than walking in place.
+            targets.shift();
         }
     }
 };
-
-function CreateNewMiningFlag(creep, x, y) {
-    if (!Game.flags[creep.memory.homeRoom + "FarMining"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining2"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining2");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining3"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining3");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining4"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining4");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining5"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining5");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining6"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining6");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining7"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining7");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining8"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining8");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarMining9"]) {
-        creep.room.createFlag(x, y, creep.memory.homeRoom + "FarMining9");
-    }
-}
-
-function CreateNewGuardFlag(creep) {
-	if (!Game.flags[creep.memory.homeRoom + "FarGuard"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard2"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard2");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard3"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard3");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard4"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard4");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard5"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard5");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard6"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard6");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard7"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard7");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard8"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard8");
-    } else if (!Game.flags[creep.memory.homeRoom + "FarGuard9"]) {
-        creep.room.createFlag(25, 25, creep.memory.homeRoom + "FarGuard9");
-    }
-}
 
 module.exports = creep_farScout;

@@ -11,7 +11,7 @@ function harness(overrides = {}) {
         ...constants, console: { log() {} },
         WORK: 'work', CARRY: 'carry', MOVE: 'move', HEAL: 'heal', ATTACK: 'attack', RANGED_ATTACK: 'ranged_attack', CLAIM: 'claim', TOUGH: 'tough',
         TOP: 1, TOP_RIGHT: 2, RIGHT: 3, BOTTOM_RIGHT: 4, BOTTOM: 5, BOTTOM_LEFT: 6, LEFT: 7, TOP_LEFT: 8,
-        OK: 0, MAX_CONSTRUCTION_SITES: 100, CPU_UNLOCK: 'cpuUnlock', PIXEL: 'pixel', POWER_CLASS: { OPERATOR: 'operator' },
+        OK: 0, MAX_CONSTRUCTION_SITES: 100, EXTRACTOR_COOLDOWN: 5, CONTAINER_CAPACITY: 2000, TERRAIN_MASK_WALL: 1, CPU_UNLOCK: 'cpuUnlock', PIXEL: 'pixel', POWER_CLASS: { OPERATOR: 'operator' },
         Creep: class {}, PowerCreep: class {}, Room: class {},
         StructureRampart: class {}, StructureRoad: class {}, StructureContainer: class {},
         _: {

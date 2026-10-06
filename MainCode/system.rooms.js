@@ -87,7 +87,11 @@ function manageRoomStructures(thisRoom) {
     manageNukerOperations(thisRoom);
 
     // Find repair target for room
-    if (Game.time % 1000 == 0 || !Memory.repairTarget[thisRoom.name]) {
+    // An empty result is stored as "" (falsy), which used to force a full structure scan
+    // every tick in rooms with nothing to repair. Retry those rooms every 50 ticks instead.
+    // Repair creeps clear the target with `undefined`, which still rescans immediately.
+    if (Game.time % 1000 == 0 || Memory.repairTarget[thisRoom.name] === undefined ||
+        (Memory.repairTarget[thisRoom.name] === "" && Game.time % 50 == 0)) {
         Memory.repairTarget[thisRoom.name] = "";
         const repairTarget = leastHits(runtimeCache.find(thisRoom, FIND_STRUCTURES, {
             filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)

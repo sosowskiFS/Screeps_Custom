@@ -1,4 +1,4 @@
-const { withdrawEnergy, getStorageTarget, handleMovementCoordination } = require('creep.logistics');
+const { withdrawEnergy, getStorageTarget, findEnergySink, handleMovementCoordination } = require('creep.logistics');
 
 module.exports = {
     run: function(creep) {
@@ -37,7 +37,10 @@ module.exports = {
                 if (savedTarget) {
                     if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
                         //Only other blocker is build.
-                        creep.repair(savedTarget);
+                        // repair() returns OK (and is billed) even on full-hit targets in range.
+                        if (savedTarget.hits < savedTarget.hitsMax) {
+                            creep.repair(savedTarget);
+                        }
 
                         if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
                             //Storing in spawn/extension/tower/link
@@ -93,44 +96,8 @@ module.exports = {
                 }
                 //Immediately find a new target if previous transfer worked
                 if (!creep.memory.structureTarget) {
-                    var targets = undefined;
-                    if (Memory.warMode) {
-                        if (getNewStructure) {
-                            targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN ||
-                                        structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                                }
-                            });
-                        } else {
-                            targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN ||
-                                        structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
-                                }
-                            });
-                        }
-                    } else {
-                        if (getNewStructure) {
-                            targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN ||
-                                        structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                                }
-                            });
-                        } else {
-                            targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                                filter: (structure) => {
-                                    return (structure.structureType == STRUCTURE_EXTENSION ||
-                                        structure.structureType == STRUCTURE_SPAWN ||
-                                        structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
-                                }
-                            });
-                        }
-                    }
+                    // Same target set in war and peace; skip the structure just filled.
+                    var targets = findEnergySink(creep, undefined, getNewStructure ? savedTarget.id : undefined);
 
                     if (targets) {
                         creep.memory.structureTarget = targets.id;

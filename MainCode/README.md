@@ -41,6 +41,73 @@ Room structure lists refresh every 50 ticks, including rooms with no links; miss
 
 Initialization now works on a fresh Memory and preserves observer pointers across global resets. Scratch spawn accounting resets at tick start so CPU interruption cannot carry a stale room energy budget into the next tick. A power-creep-only attack no longer dereferences a nonexistent ordinary hostile. These are explicit robustness fixes.
 
+## Creep CPU settings
+
+Every successful creep action, including `creep.say`, is billed (~0.2 CPU). To keep creep CPU low, these cosmetic features are **off by default**:
+
+```js
+// Decorative/status speech (upgrader emotes, guard idles, lab-worker debug codes, ✖️ throttle marks):
+Memory.settings = Object.assign(Memory.settings || {}, { creepSpeech: true });
+// Traveler path lines and stuck/fatigue circles (global.TRAVELER_VISUALIZE still overrides):
+Memory.settings.travelerVisuals = true;
+```
+
+Movement-coordination speech (`x;y` step-aside requests and the 💦 reply) always stays on because creeps read it.
+
+Role-level CPU behavior worth knowing when debugging:
+- Mules, distributors and post-withdraw refills choose the next spawn/extension/lab **by range** from a per-tick typed list (`findEnergySink` in `creep.logistics.js`); Traveler still does the real pathing.
+- Far mules parked at a container wait until it holds enough to fill them (or half a container, 25 ticks, or low TTL) instead of withdrawing every tick.
+- Pre-RCL5 workers look for energy by range and back off 5 ticks when nothing qualifies.
+- Lab workers that find no work sleep 10 ticks (still stepping aside for others).
+- `placeRoadOnPath` stops after one lookup on existing roads and checks each tile once per tick.
+- Traveler caches `findRoute` results for 300 ticks (except calls with a custom `routeCallback`).
+- Rooms with nothing to repair rescan every 50 ticks instead of every tick.
+- One creep throwing no longer stops the rest: errors are caught per creep and logged once per role per 100 ticks.
+
+## Remote combat
+
+`combat.intel.js` assesses each creep and room once per tick. It counts only working body parts, applies boosts (boosted TOUGH raises effective HP), adds enemy towers in hostile-owned rooms, and compares how fast each side kills the other. The resulting verdict is `win`, `even` or `lose`; one side must be 1.3× faster to count as decisive. Source Keepers are ignored; the SK roles handle them.
+
+`combat.tactics.js` turns that into behavior:
+- **Fighters** (`farGuard`, ranger/`PowerGuard`) share one focus target per room per tick: anything killable this tick first, then the target with the most (damage + 2×healing) per effective HP, so healers behind boosted tanks get focused. Ramparted enemies and `TANK` bait are skipped.
+- **Modes**: `engage` (winning: close in, kiters stay at range 3 unless the target is unarmed), `hold` (even: don't advance into melee) and `retreat` (losing, or under 35% HP / about to die). A retreat flees all nearby threats in one pathfinding search, then heads home and regroups for 50 ticks. A losing fight marks the room in `Memory.FarRoomsOutmatched` for 1,500 ticks, and the far-creep spawner sends a second guard while it is set.
+- **Actions never cancel each other**: heal before damage lands, attack + ranged attack, or heal + ranged attack. Mass attack when it out-damages a single shot. Melee gives way to healing only when the creep (or an adjacent ally) is below half health after incoming damage.
+- **Civilians** (remote miners, haulers, claimers, remote mineral miners, power collectors) step out of reach of armed hostiles. They leave or wait outside a room whose fight isn't clearly `win`, and keep treating it as dangerous for 50 ticks after last seeing it. Danger also adds the room to `Memory.FarRoomsUnderAttack`, which is what triggers guard spawns.
+- **Power banks**: rival players at the bank create the `PowerGuard` flag and record `Memory.powerContested[homeRoom]`. The attackers abandon the bank if the verdict is `lose`. They also hold the final hits while rivals are present and none of our collectors are in the room. Rooms contested in the last 20,000 ticks get the escort flag together with the next `PowerAttack` flag.
+
+## Automatic remote mining
+
+`system.remoteMining.js` (phase `remoteMining`) places remote-mining flags for every home room with storage.
+
+- **Intel.** Rooms within 2 of a home are summarised in `Memory.remoteIntel`: sources, owner, reservation, keeper lairs, hostile towers. Vision comes from observer sweeps, our own creeps (visible rooms refresh every 1,000 ticks), or a 1-MOVE scout (50 energy). The scout spawns automatically for homes without an observer when nearby intel is missing or older than 20,000 ticks. A `MineScout` flag still forces one.
+- **Selection.** A source qualifies when one max-size far mule (capacity scales with the home's energy) can carry at least 85% of a reserved source's 10 energy/tick home. The round trip comes from a terrain path from home storage that pays swamp cost when loaded, and is cached per source. Excluded: owned rooms, player-reserved rooms, Source Keeper rooms, rooms with towers, `Memory.blockedRooms`, rooms in a different novice/respawn area, sources another home mines, and rooms with 4+ strikes.
+- **Flags.** Qualifying sources fill free `FarMining` slots nearest-first, so the 25M/50M rampart caps drop the farthest first. Each mined room gets one `FarGuard` flag at its centre. Manual flags are never moved or removed. Auto flags are tracked in `Memory.remoteAuto` and removed when their source leaves the plan. Plans refresh every 2,000 ticks, at most one home and 10 new path searches per tick.
+- **Opt out:** `Memory.settings.autoRemote = false` (all homes) or a `<home>NoAutoRemote` flag (one home).
+
+**Disabling unsafe remotes** (`Memory.remoteStatus`). A strike is registered when a player attacks a miner, when player fighters appear and our forces there aren't clearly winning, or when the room is claimed. Repeats within 100 ticks count as the same incident. A strike disables the **whole room**: every source, mule, reserver and guard. The back-off doubles per strike (1,500 → 3,000 → 6,000 … up to 50,000 ticks). Remote creeps assigned to a disabled room wait at home instead of walking in.
+
+When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its auto flags) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.
+
+## Room defense
+
+`defense.watch.js` keeps a small per-room record (`Memory.defenseWatch`) of how hostiles use the room. It tracks entries, ticks present, and ticks with every hostile within 3 tiles of an exit. A room is **draining** when hostiles stay at the border at least 80% of the time and have re-entered 3+ times or loitered 50+ ticks. A hostile that pushes deeper, or uses WORK/ATTACK against a wall or our structure, ends drain mode immediately.
+
+While draining:
+- No defenders are spawned, and the economy is not locked out of spawning.
+- The bouncer does not advance the empire-wide war-mode timer.
+- Towers ignore drain bait: creeps within 2 tiles of an exit that they can't kill within 2 ticks, unless the creep is damaging structures.
+
+Always, not only while draining:
+- A room leaves "under attack" only after 20 quiet ticks, so ramparts no longer open and close on every bounce.
+- "Towers have no target" requests defenders only if a hostile is inside the room or sieging.
+- Boosted player attackers are now recognised (`determineCreepThreat` used to always return false), so defenders spawn for them straight away.
+
+Defenders (`creep.combat.js`) fight from ramparts. Each claims the free walkable rampart closest to the towers' current target; posts are claimed once per room per tick, and a defender keeps its post unless another is clearly better. They path only along ramparts or through tiles out of hostile reach. They leave the ramparts only to hunt unarmed intruders, and never while draining. Actions use the shared combat logic.
+
+Tower fixes:
+- Power-creep OPERATE/DISRUPT_TOWER effects are now applied to damage estimates.
+- A remembered target that left the room or reached the border is dropped immediately.
+
 ## Measure in-game CPU
 
 Normal behavior and existing visuals remain enabled by default. In the Screeps console:

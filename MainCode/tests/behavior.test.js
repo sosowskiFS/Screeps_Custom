@@ -15,7 +15,7 @@ test('all role aliases match legacy dispatch across bucket, war, RCL, HEAL and s
     function setup(old) {
         const calls = [];
         const overrides = new Proxy({}, {
-            getOwnPropertyDescriptor: (_, id) => id.startsWith('creep.') && id !== 'creep.registry' ? { configurable: true, enumerable: true } : undefined,
+            getOwnPropertyDescriptor: (_, id) => id.startsWith('creep.') && id !== 'creep.registry' && id !== 'creep.speech' ? { configurable: true, enumerable: true } : undefined,
             get: (_, id) => ({ run(creep, arg) { calls.push([id, arg]); } }),
         });
         const h = harness(overrides);
@@ -33,7 +33,8 @@ test('all role aliases match legacy dispatch across bucket, war, RCL, HEAL and s
             h.calls.length = 0;
             h.context.Game.time = time;
             h.context.Game.cpu.bucket = bucket;
-            h.context.Memory = { RoomsAt5: at5 ? ['A'] : [], warMode: war };
+            // Speech is opt-in now; enable it here so dispatch is compared exactly with legacy.
+            h.context.Memory = { RoomsAt5: at5 ? ['A'] : [], warMode: war, settings: { creepSpeech: true } };
             const creep = { memory: { priority: role }, room: { name: 'A' }, spawning,
                 getActiveBodyparts: () => heal, say: (...args) => h.calls.push(['say', ...args]) };
             h.context.Game.creeps = { unit: creep };
@@ -165,7 +166,8 @@ test('extracted mature-room roles preserve legacy actions and memory transitions
         return plain({ calls, memory: creep.memory });
     }
     let scenarios = 0;
-    for (const role of ['mule', 'muleNearDeath', 'distributor', 'distributorNearDeath', 'mineralMiner', 'mineralMinerNearDeath'])
+    // mineralMiner was intentionally rewritten (stuck/never-suicide fix); see its own tests below.
+    for (const role of ['mule', 'muleNearDeath', 'distributor', 'distributorNearDeath'])
     for (const carried of [0, 10, 100]) for (const stored of [0, 49, 50, 599, 600, 1000])
     for (const nearDeath of [false, true]) for (const outOfRange of [false, true]) for (const returnToLabs of [false, true]) {
         assert.deepEqual(run(false, role, carried, stored, nearDeath, outOfRange, returnToLabs), run(true, role, carried, stored, nearDeath, outOfRange, returnToLabs),
@@ -173,4 +175,125 @@ test('extracted mature-room roles preserve legacy actions and memory transitions
         scenarios++;
     }
     console.log(`Compared ${scenarios} legacy logistics scenarios.`);
+});
+
+// Minimal creep/room mocks for the CPU-focused role changes.
+function roleHarness() {
+    const h = harness(), g = h.context, calls = [];
+    h.load('runtime.memory').ensureInitialized();
+    g.RESOURCE_ENERGY = 'energy';
+    const pos = (x, y) => ({ x, y, roomName: 'A',
+        isEqualTo: other => other.x === x && other.y === y,
+        isNearTo: other => Math.max(Math.abs((other.pos || other).x - x), Math.abs((other.pos || other).y - y)) <= 1,
+        getRangeTo: other => Math.max(Math.abs((other.pos || other).x - x), Math.abs((other.pos || other).y - y)),
+        findInRange: () => [], lookFor: () => [],
+        findClosestByRange: list => list.slice().sort((a, b) => Math.max(Math.abs(a.pos.x - x), Math.abs(a.pos.y - y)) - Math.max(Math.abs(b.pos.x - x), Math.abs(b.pos.y - y)))[0] });
+    const objects = {};
+    g.Game.getObjectById = id => objects[id] || null;
+    const room = { name: 'A', find: () => [], createConstructionSite: (...args) => calls.push(['site', ...args]) };
+    g.Game.rooms.A = room;
+    function creep(memory, at = pos(25, 25)) {
+        const unit = { id: 'unit', name: 'unit', room, pos: at, ticksToLive: 1000, body: [], memory,
+            store: { energy: 0, getFreeCapacity: () => 100 }, carry: {} };
+        for (const method of ['harvest', 'withdraw', 'travelTo', 'suicide', 'say', 'move', 'repair', 'transfer']) {
+            unit[method] = (...args) => { calls.push([method, ...args.map(a => a && a.id || a)]); return unit.results && unit.results[method] !== undefined ? unit.results[method] : g.OK; };
+        }
+        return unit;
+    }
+    return { h, g, calls, pos, objects, room, creep };
+}
+
+test('mineral miner settles on its container, suicides when depleted, survives a missing mineral', () => {
+    const { h, calls, pos, objects, creep } = roleHarness();
+    const miner = h.load('creep.mineralMiner');
+    objects.mineral = { id: 'mineral', mineralAmount: 1000, pos: pos(10, 10) };
+    objects.box = { id: 'box', pos: pos(10, 11), store: { getFreeCapacity: () => 1000 } };
+
+    // Not on the container yet: walk there instead of harvesting from the wrong tile.
+    const unit = creep({ mineralID: 'mineral', storageUnit: 'box', nextMine: 0 }, pos(9, 11));
+    miner.run(unit);
+    assert.deepEqual(plain(calls), [['travelTo', 'box']]);
+
+    // On the container: the old `pos != pos` check never set onPoint; now it does.
+    calls.length = 0;
+    unit.pos = pos(10, 11);
+    miner.run(unit);
+    assert.equal(unit.memory.onPoint, true);
+    assert.deepEqual(plain(calls), [['harvest', 'mineral']]);
+    assert.equal(unit.memory.nextMine, 1 + 5 + 1);
+
+    // Cooldown ticks do no work at all.
+    calls.length = 0;
+    miner.run(unit);
+    assert.deepEqual(plain(calls), []);
+
+    // Depleted: suicide instead of idling until death.
+    objects.mineral.mineralAmount = 0;
+    miner.run(unit);
+    assert.deepEqual(plain(calls), [['suicide']]);
+
+    // Missing/unseen mineral no longer throws.
+    calls.length = 0;
+    const lost = creep({ mineralID: 'gone', homeRoom: 'A' });
+    assert.doesNotThrow(() => miner.run(lost));
+});
+
+test('decorative speech is silent unless Memory.settings.creepSpeech is enabled', () => {
+    const { h, g, calls, creep } = roleHarness();
+    const speech = h.load('creep.speech');
+    const unit = creep({});
+    speech.say(unit, 'hi', true);
+    assert.deepEqual(plain(calls), []);
+    g.Memory.settings = { creepSpeech: true };
+    speech.say(unit, 'hi', true);
+    assert.deepEqual(plain(calls), [['say', 'hi', true]]);
+});
+
+test('energy sinks are picked by range from typed lists, skipping full and just-filled targets', () => {
+    const { h, g, pos, room, creep } = roleHarness();
+    const { findEnergySink } = h.load('creep.logistics');
+    const sink = (id, structureType, x, free) => ({ id, structureType, pos: pos(x, 25), store: { getFreeCapacity: () => free } });
+    const structures = [sink('far', g.STRUCTURE_EXTENSION, 40, 50), sink('full', g.STRUCTURE_EXTENSION, 26, 0), sink('near', g.STRUCTURE_SPAWN, 28, 300),
+        sink('lab', g.STRUCTURE_LAB, 30, 100), sink('tower', g.STRUCTURE_TOWER, 25, 500)];
+    room.find = type => type === g.FIND_MY_STRUCTURES ? structures : [];
+    const unit = creep({});
+    assert.equal(findEnergySink(unit).id, 'near', 'full extension and towers are ignored');
+    assert.equal(findEnergySink(unit, undefined, 'near').id, 'lab', 'the target just filled is excluded');
+});
+
+test('far mules wait for a worthwhile load instead of withdrawing every tick', () => {
+    const { h, g, calls, pos, objects, creep } = roleHarness();
+    const farMule = h.load('creep.farMule');
+    objects.box = { id: 'box', pos: pos(26, 25), store: { energy: 100 } };
+    const unit = creep({ priority: 'farMule', containerTarget: 'box', storing: false, deathWarn: 0 });
+    unit.getActiveBodyparts = () => 10;
+    unit.store.getUsedCapacity = () => 0;
+    unit.store.getCapacity = () => 1000;
+    farMule.run(unit, true);
+    assert.deepEqual(plain(calls), [], 'small container: wait');
+    g.Game.time += 25;
+    farMule.run(unit, true);
+    assert.deepEqual(plain(calls), [['withdraw', 'box', 'energy']], 'waited long enough: take what is there');
+    calls.length = 0;
+    objects.box.store.energy = 1000;
+    farMule.run(unit, true);
+    assert.deepEqual(plain(calls), [['withdraw', 'box', 'energy']], 'enough to fill: withdraw immediately');
+});
+
+test('road placement stops at existing roads and inspects each tile once per tick', () => {
+    const { h, g, pos, creep } = roleHarness();
+    const { placeRoadOnPath } = h.load('creep.movement');
+    let lookups = 0, sites = 0;
+    g.Game.map.getRoomTerrain = () => ({ get: () => 0 });
+    g.RoomPosition = function (x, y) { return Object.assign(pos(x, y), {
+        lookFor: type => { lookups++; return type === g.LOOK_STRUCTURES ? [{ structureType: g.STRUCTURE_ROAD }] : []; },
+        createConstructionSite: () => sites++ }); };
+    const at = Object.assign(pos(25, 25), { lookFor: type => { lookups++; return type === g.LOOK_STRUCTURES ? [{ structureType: g.STRUCTURE_ROAD }] : []; },
+        createConstructionSite: () => sites++ });
+    const first = creep({ _trav: { path: '33' } }, at);
+    placeRoadOnPath(first);
+    assert.equal(lookups, 2, 'one structure lookup per road tile, no neighbour scan');
+    assert.equal(sites, 0);
+    placeRoadOnPath(creep({ _trav: { path: '33' } }, at));
+    assert.equal(lookups, 2, 'second creep on the same tiles this tick does no lookups');
 });

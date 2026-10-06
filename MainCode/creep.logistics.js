@@ -1,4 +1,5 @@
 const { placeRoadOnPath } = require('creep.movement');
+const runtimeCache = require('runtime.cache');
 
 function withdrawEnergy(creep, source, opts = {}) {
     if (source && source.store[RESOURCE_ENERGY] >= 600 && creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
@@ -30,28 +31,27 @@ function getStorageTarget(creep) {
     return storageTarget;
 }
 
+const SPAWN_ENERGY_SINKS = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_LAB];
+
+// Nearest (by range) structure of the given types that still has room for energy.
+// Haulers call this after nearly every delivery. findClosestByPath ran a pathfinder
+// search here and travelTo then searched again; range plus Traveler's cached path is
+// much cheaper and picks the same target in open base layouts.
+function findEnergySink(creep, types = SPAWN_ENERGY_SINKS, excludeId) {
+    const candidates = [];
+    for (const type of types) {
+        for (const structure of runtimeCache.find(creep.room, FIND_MY_STRUCTURES, { filter: { structureType: type } })) {
+            if (structure.id !== excludeId && structure.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+                candidates.push(structure);
+            }
+        }
+    }
+    return candidates.length ? creep.pos.findClosestByRange(candidates) : null;
+}
+
 function findAndMoveToDistributionTarget(creep) {
     // Find the nearest structure that needs energy
-    let target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: (structure) => {
-            return (structure.structureType == STRUCTURE_EXTENSION ||
-                structure.structureType == STRUCTURE_SPAWN ||
-                structure.structureType == STRUCTURE_LAB) &&
-                structure.energy < structure.energyCapacity;
-        }
-    });
-
-    if (!target) {
-        // Fallback to range if path finding fails
-        target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-            filter: (structure) => {
-                return (structure.structureType == STRUCTURE_EXTENSION ||
-                    structure.structureType == STRUCTURE_SPAWN ||
-                    structure.structureType == STRUCTURE_LAB) &&
-                    structure.energy < structure.energyCapacity;
-            }
-        });
-    }
+    const target = findEnergySink(creep);
 
     if (target) {
         creep.memory.structureTarget = target.id;
@@ -104,4 +104,4 @@ function handleMovementCoordination(creep) {
     }
 }
 
-module.exports = { withdrawEnergy, transferEnergy, getStorageTarget, findAndMoveToDistributionTarget, handleMovementCoordination };
+module.exports = { withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, handleMovementCoordination };

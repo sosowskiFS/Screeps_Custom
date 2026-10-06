@@ -1,3 +1,4 @@
+const combat = require('combat.tactics');
 let creep_farMule = {
     run: function(creep, doExcessWork) {
         const targetFlag = Game.flags[creep.memory.targetFlag];
@@ -22,6 +23,12 @@ let creep_farMule = {
             creep.memory.storing = false;
         }
 
+        // Stay out of fights our guards are not winning; only the outbound trip targets the remote room.
+        const workRoom = targetFlag ? targetFlag.pos.roomName : creep.memory.destination;
+        if (combat.avoidDanger(creep, creep.memory.storing ? null : workRoom)) {
+            return;
+        }
+
         if (!creep.memory.storing) {
             // Mode: Go to remote room and collect energy
             
@@ -40,7 +47,10 @@ let creep_farMule = {
             }
 
             let targetContainer = Game.getObjectById(creep.memory.containerTarget);
-            if (targetContainer) {
+            if (targetContainer && creep.pos.isNearTo(targetContainer) && !readyToWithdraw(creep, targetContainer, carryCapacity - carryUsed)) {
+                // Parked at a container the miner is still filling: wait instead of
+                // paying for a small withdraw every tick.
+            } else if (targetContainer) {
                 // Withdraw from container
                 let withdrawResult = creep.withdraw(targetContainer, RESOURCE_ENERGY);
                 if (withdrawResult == ERR_NOT_IN_RANGE) {
@@ -96,6 +106,28 @@ let creep_farMule = {
         }
     }
 };
+
+// One withdraw per useful load. Takes whatever is there once enough has built up to
+// fill the mule (or half a container), when the mule has waited 25 ticks, or when it
+// must head home soon.
+function readyToWithdraw(creep, container, freeCapacity) {
+    const energy = container.store[RESOURCE_ENERGY];
+    if (energy <= 0) {
+        return false;
+    }
+    if (energy >= freeCapacity || energy >= CONTAINER_CAPACITY / 2 || creep.ticksToLive <= 150) {
+        delete creep.memory.waitSince;
+        return true;
+    }
+    if (!creep.memory.waitSince) {
+        creep.memory.waitSince = Game.time;
+    }
+    if (Game.time - creep.memory.waitSince >= 25) {
+        delete creep.memory.waitSince;
+        return true;
+    }
+    return false;
+}
 
 function getUsedCarry(creep) {
     if (creep.store && creep.store.getUsedCapacity) {

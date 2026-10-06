@@ -1,4 +1,5 @@
 const runtimeCache = require('runtime.cache');
+const defenseWatch = require('defense.watch');
 // system.defense — Screeps tick subsystem.
 const tower_Operate = require('tower.Operate');
 
@@ -41,6 +42,7 @@ function processTowerRoom(tower) {
         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
     });
 
+    defenseWatch.update(tower.room, hostiles.concat(pHostiles));
     RampartDirection = handleHostileDetection(tower.room, hostiles, pHostiles);
     handleRampartControl(tower.room, hostiles, pHostiles);
     controlRamparts(RampartDirection, tower);
@@ -62,12 +64,16 @@ function handleHostileDetection(room, hostiles, pHostiles) {
     const roomName = room.name;
     let RampartDirection = "";
 
-    if ((hostiles.length > 0 || pHostiles.length > 0) && Memory.roomsUnderAttack.indexOf(roomName) === -1) {
+    const present = hostiles.length > 0 || pHostiles.length > 0;
+    const draining = defenseWatch.isDraining(roomName);
+    if (present && Memory.roomsUnderAttack.indexOf(roomName) === -1) {
         Memory.roomsUnderAttack.push(roomName);
-        if (hostiles.length && !determineCreepThreat(hostiles[0], hostiles.length)) {
+        if (hostiles.length && !determineCreepThreat(hostiles[0], hostiles.length) && Memory.roomsPrepSalvager.indexOf(roomName) === -1) {
             Memory.roomsPrepSalvager.push(roomName);
         }
-    } else if ((hostiles.length == 0 && pHostiles.length == 0) && Memory.roomsUnderAttack.indexOf(roomName) != -1) {
+    } else if (!present && Memory.roomsUnderAttack.indexOf(roomName) != -1 && defenseWatch.isQuiet(roomName)) {
+        // Only stand down after a quiet period. A creep bouncing on the border used to flip the
+        // room in and out of "under attack" (and open/close every rampart) on each bounce.
         var UnderAttackPos = Memory.roomsUnderAttack.indexOf(roomName);
         var salvagerPos = Memory.roomsPrepSalvager.indexOf(roomName);
         var nukes = runtimeCache.find(room, FIND_NUKES);
@@ -83,7 +89,8 @@ function handleHostileDetection(room, hostiles, pHostiles) {
     }
 
     if (Memory.roomsUnderAttack.indexOf(roomName) > -1 && !room.controller.safeMode) {
-        if (hostiles.length && (hostiles[0].owner.username != 'Invader')) {
+        // A border drainer is not a siege: don't let it push the whole empire into war mode.
+        if (hostiles.length && (hostiles[0].owner.username != 'Invader') && !draining) {
             Memory.attackDuration = Memory.attackDuration + 1;
             if (Memory.attackDuration >= 250 && !Memory.warMode) {
                 Memory.warMode = true;
@@ -201,19 +208,13 @@ function controlRamparts(RampartDirection, thisTower) {
     }
 }
 
+// True for boosted player creeps (towers alone may not hold). The old version returned from
+// inside forEach, so it always answered false and boosted attackers were never recognised.
 function determineCreepThreat(eCreep, totalHostiles) {
     if ((eCreep.owner.username == 'Invader' || eCreep.name.indexOf('Drainer') >= 0) || (eCreep.hitsMax <= 1000 && totalHostiles <= 1)) {
         return false;
-    } else {
-        //Determine if this creep is boosted.
-        eCreep.body.forEach(function(thisPart) {
-            if (thisPart.boost) {
-                return true;
-            }
-        });
-        //unboosted threat, not a problem.
-        return false;
     }
+    return eCreep.body.some(thisPart => thisPart.boost);
 }
 
 module.exports = { handleTowersAndRooms, processTowerRoom, handleHostileDetection, handleRampartControl, controlRamparts, determineCreepThreat };

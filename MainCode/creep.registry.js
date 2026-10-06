@@ -1,3 +1,4 @@
+const speech = require('creep.speech');
 // Role aliases, dispatch policy and fallback. Add roles here; keep priorities stable.
 const creep_workV2 = require('creep.workV2');
 const creep_work5 = require('creep.work5');
@@ -202,7 +203,7 @@ register(['harasser', 'harasserNearDeath'], (creep, isRoomAt5, remoteThrottleAct
     if (Game.cpu.bucket >= 750) {
         creep_harasser.run(creep);
     } else {
-        creep.say("\u2716\uFE0F", false);
+        speech.say(creep, "\u2716\uFE0F", false);
     }
     return;
 });
@@ -220,7 +221,7 @@ function fallback(creep, isRoomAt5, remoteThrottleActive) {
         if (!remoteThrottleActive || Memory.warMode) {
             creep_workV2.run(creep, 25);
         } else {
-            creep.say("\u2716\uFE0F", false);
+            speech.say(creep, "\u2716\uFE0F", false);
         }
     } else {
         if (creep.memory.priority == 'harvester' || creep.memory.priority == 'builder') {
@@ -230,7 +231,7 @@ function fallback(creep, isRoomAt5, remoteThrottleActive) {
             if ((!remoteThrottleActive || Memory.warMode) || creep.memory.priority == 'upgrader' || creep.memory.priority == 'upgraderNearDeath' || creep.memory.priority == 'miner' || creep.memory.priority == 'minerNearDeath') {
                 creep_work5.run(creep);
             } else {
-                creep.say("\u2716\uFE0F", false);
+                speech.say(creep, "\u2716\uFE0F", false);
             }
         }
     }

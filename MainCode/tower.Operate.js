@@ -1,5 +1,6 @@
 const { leastHits } = require('util.common');
 const runtimeCache = require('runtime.cache');
+const defenseWatch = require('defense.watch');
 var tower_Operate = {
     run: function(tower, attackDuration, towerNum, roomIntel) {
         //My bit that computes "how much damage could my towers do to creep x?" counted inactive towers
@@ -59,6 +60,10 @@ var tower_Operate = {
             let defenders = _.filter(runtimeCache.current().roomCreeps[thisRoom.name], (creep) => creep.memory.priority == 'defender');
 
             let closestHostile = Game.getObjectById(Memory.towerPickedTarget[thisRoom.name]);
+            if (closestHostile && (closestHostile.pos.roomName != thisRoom.name || isBorderPos(closestHostile.pos))) {
+                closestHostile = null;
+                Memory.towerPickedTarget[thisRoom.name] = '';
+            }
             if (!closestHostile) {
                 //Find new target to shoot at.
                 let allHostiles = [];
@@ -109,9 +114,9 @@ var tower_Operate = {
                             }
                             thisTowerDamage -= thisTowerDamage * TOWER_FALLOFF * (thisRange - TOWER_OPTIMAL_RANGE) / (TOWER_FALLOFF_RANGE - TOWER_OPTIMAL_RANGE);
                         }
-                        if (thisTower.effects) {
-                            for (let thisPower in thisTower.effects) {
-                                let powerEffect = thisTower.effects[thisPower];
+                        if (allTowers[thisTower].effects) {
+                            for (let thisPower in allTowers[thisTower].effects) {
+                                let powerEffect = allTowers[thisTower].effects[thisPower];
                                 if (powerEffect.effect == PWR_OPERATE_TOWER || powerEffect.effect == PWR_DISRUPT_TOWER) {
                                     thisTowerDamage *= POWER_INFO[powerEffect.effect].effect[powerEffect.level - 1];
                                 }
@@ -195,7 +200,7 @@ var tower_Operate = {
                     }
 
                     //Determine if this beats the best
-                    if ((flatDamage - damageReduction) > damageRecord) {
+                    if ((flatDamage - damageReduction) > damageRecord && !isDrainBait(allHostiles[thisHostile], flatDamage - damageReduction)) {
                         damageRecord = (flatDamage - damageReduction);
                         targetToShoot = allHostiles[thisHostile];
                     }
@@ -217,9 +222,9 @@ var tower_Operate = {
                             }
                             thisTowerDamage -= thisTowerDamage * TOWER_FALLOFF * (thisRange - TOWER_OPTIMAL_RANGE) / (TOWER_FALLOFF_RANGE - TOWER_OPTIMAL_RANGE);
                         }
-                        if (thisTower.effects) {
-                            for (let thisPower in thisTower.effects) {
-                                let powerEffect = thisTower.effects[thisPower];
+                        if (allTowers[thisTower].effects) {
+                            for (let thisPower in allTowers[thisTower].effects) {
+                                let powerEffect = allTowers[thisTower].effects[thisPower];
                                 if (powerEffect.effect == PWR_OPERATE_TOWER || powerEffect.effect == PWR_DISRUPT_TOWER) {
                                     thisTowerDamage *= POWER_INFO[powerEffect.effect].effect[powerEffect.level - 1];
                                 }
@@ -304,7 +309,7 @@ var tower_Operate = {
                         }
 
                         //Determine if this beats the best
-                        if ((flatDamage - damageReduction) > damageRecord) {
+                        if ((flatDamage - damageReduction) > damageRecord && !isDrainBait(pHostiles[thisHostile], flatDamage - damageReduction)) {
                             damageRecord = (flatDamage - damageReduction);
                             targetToShoot = pHostiles[thisHostile];
                         }
@@ -321,7 +326,7 @@ var tower_Operate = {
             //Heal only if the target isn't taking damage
             if (runtimeCache.current().roomCreeps[thisRoom.name] && (!closestHostile || closestHostile.hits > (closestHostile.hitsMax - 500))) {
                 if (Game.flags[thisRoom.name + "RoomOperator"]) {
-                    powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
+                    const powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
                     if (powerCreep && powerCreep.hits < powerCreep.hitsMax) {
                         tower.heal(powerCreep);
                         didHeal = true;
@@ -350,7 +355,9 @@ var tower_Operate = {
                 if (salvagerPos >= 0) {
                     //Verify that it's still not worth the time
                     //RETUNE - this could possibly spawn defenders if a big enough invader wave attacks
-                    if (!closestHostile || determineCreepThreat(closestHostile, hostileCount.length)) {
+                    // No target only escalates when a hostile is inside the room (towers cannot hurt it) or
+                    // sieging. Untargetable creeps sitting on the exit are drain bait.
+                    if ((!closestHostile && defenseWatch.hasInnerHostile(thisRoom.name)) || (closestHostile && determineCreepThreat(closestHostile, hostileCount))) {
                         //BAD TIMES
                         Memory.roomsPrepSalvager.splice(salvagerPos, 1);
                         salvagerPos = -1;
@@ -398,7 +405,7 @@ var tower_Operate = {
             //Check for damaged creeps & repair
             let didHeal = false;
             if (Game.flags[thisRoom.name + "RoomOperator"]) {
-                powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
+                const powerCreep = tower.pos.findClosestByRange(FIND_MY_POWER_CREEPS);
                 if (powerCreep && powerCreep.hits < powerCreep.hitsMax) {
                     tower.heal(powerCreep);
                     didHeal = true;
@@ -453,23 +460,27 @@ function healCompare(a, b) {
     return 0;
 }
 
+// True for boosted player creeps. (The old version returned from inside forEach: always false.)
 function determineCreepThreat(eCreep, totalHostiles) {
+    if (!eCreep.body) return false; // power creeps
     if ((eCreep.owner.username == 'Invader' || eCreep.name.indexOf('Drainer') >= 0) || (eCreep.hitsMax <= 1000 && totalHostiles <= 1)) {
         return false;
-    } else {
-        //Determine if this creep is boosted.
-        eCreep.body.forEach(function(thisPart) {
-            if (thisPart.boost) {
-                return true;
-            }
-        });
-        //unboosted threat, not a problem.
-        return false;
     }
+    return eCreep.body.some(thisPart => thisPart.boost);
+}
+
+// Tower-drain bait: within 2 tiles of an exit (it steps out to heal before dying) and not
+// killable within 2 ticks. Shooting it only spends energy. Creeps damaging structures are
+// always worth shooting.
+function isDrainBait(hostile, netDamage) {
+    if (defenseWatch.edgeDistance(hostile.pos) > 2) return false;
+    if (netDamage * 2 >= hostile.hits) return false;
+    return !defenseWatch.isSieging(hostile);
 }
 
 function isBorderPos(pos) {
     return pos && (pos.x === 0 || pos.x === 49 || pos.y === 0 || pos.y === 49);
 }
 
+tower_Operate.isDrainBait = isDrainBait; // exposed for tests
 module.exports = tower_Operate;

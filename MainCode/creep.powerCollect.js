@@ -1,3 +1,4 @@
+const combat = require('combat.tactics');
 var creep_powerCollect = {
 
     /** @param {Creep} creep **/
@@ -13,6 +14,11 @@ var creep_powerCollect = {
             creep.memory.mode = 0;
         }
         
+        // Haulers carrying power are the prize: never walk into a bank room we are losing.
+        if (combat.avoidDanger(creep, creep.memory.mode == 0 ? creep.memory.destination : null)) {
+            return;
+        }
+
         if (creep.memory.mode == 0) {
             //Pick up
             if (creep.room.name != creep.memory.destination) {

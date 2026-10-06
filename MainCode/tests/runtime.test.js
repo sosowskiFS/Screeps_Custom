@@ -9,7 +9,8 @@ test('full module graph: fresh memory, interval boundaries, global reset', () =>
         h.context.Game.time = time;
         main.loop();
         assert.ok(h.context.Memory.CPUAverages.TotalCPU.ticks > 0);
-        assert.equal(h.context.Memory.roomCreeps, undefined);
+        // Kept as an empty object so rolling back to Nightmare cannot crash its tower phase.
+        assert.deepEqual(plain(h.context.Memory.roomCreeps), {});
     }
     const next = harness();
     next.context.Memory = plain(h.context.Memory);

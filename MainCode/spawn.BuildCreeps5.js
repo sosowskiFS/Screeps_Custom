@@ -1,4 +1,5 @@
 const runtimeCache = require('runtime.cache');
+const defenseWatch = require('defense.watch');
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
         // Cache frequently used values
@@ -169,7 +170,8 @@ var spawn_BuildCreeps5 = {
                     global.setSpawnBusy(spawn);
                 }
             }
-        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 6) {
+        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 6 && !defenseWatch.isDraining(thisRoom.name)) {
+            // Skipped while a border drainer is bouncing: no defenders for it and no economy lockout.
             let Foe = runtimeCache.find(thisRoom, FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
             });

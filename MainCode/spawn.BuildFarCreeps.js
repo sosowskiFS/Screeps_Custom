@@ -1,4 +1,6 @@
 const runtimeCache = require('runtime.cache');
+const combatIntel = require('combat.intel');
+const remoteMining = require('system.remoteMining');
 var spawn_BuildFarCreeps = {
     run: function(spawn, thisRoom, energyIndex) {
         if (!spawn.spawning && !global.isSpawnBusy(spawn) && thisRoom.storage && Memory.roomsUnderAttack.indexOf(thisRoom.name) == -1) {
@@ -125,10 +127,13 @@ var spawn_BuildFarCreeps = {
             for (let config of guardConfigs) {
                 const guardFlagName = thisRoom.name + config.flag;
                 const tempFlagName = thisRoom.name + config.temp;
-                if (config.condition && prioritizedRole === '' && 
+                // Disabled remotes (player attacks) get no guards either: that fight was already lost.
+                if (config.condition && prioritizedRole === '' && !(Game.flags[guardFlagName] && remoteMining.isDisabled(Game.flags[guardFlagName].pos.roomName)) &&
                     ((Game.flags[guardFlagName] && Memory.FarRoomsUnderAttack.indexOf(Game.flags[guardFlagName].pos.roomName) != -1) || Game.flags[tempFlagName])) {
                     const guards = miningOps.farGuards[config.index] || [];
-                    if (guards.length < 1 && Game.flags[guardFlagName] && blockedRole != 'farGuard') {
+                    // A guard that judged its fight unwinnable marks the room outmatched: send a second one.
+                    const guardTarget = Game.flags[guardFlagName] && combatIntel.isOutmatched(Game.flags[guardFlagName].pos.roomName) ? 2 : 1;
+                    if (guards.length < guardTarget && Game.flags[guardFlagName] && blockedRole != 'farGuard') {
                         prioritizedRole = 'farGuard';
                         roomTarget = Game.flags[guardFlagName].pos.roomName;
                         flagName = Game.flags[guardFlagName].name;
@@ -154,7 +159,7 @@ var spawn_BuildFarCreeps = {
                 ];
 
                 for (let config of miningConfigs) {
-                    if (config.condition && Game.flags[thisRoom.name + config.flag]) {
+                    if (config.condition && Game.flags[thisRoom.name + config.flag] && !remoteMining.isDisabled(Game.flags[thisRoom.name + config.flag].pos.roomName)) {
                         const miners = (miningOps.farMining[config.index] && miningOps.farMining[config.index].miners) || [];
                         const mules = (miningOps.farMining[config.index] && miningOps.farMining[config.index].mules) || [];
                         const claimers = (miningOps.farMining[config.index] && miningOps.farMining[config.index].claimers) || [];

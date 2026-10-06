@@ -1,3 +1,4 @@
+const speech = require('creep.speech');
 const runtimeCache = require('runtime.cache');
 var creep_workV2 = {
 
@@ -73,7 +74,7 @@ var creep_workV2 = {
                         });
                     }
                     if (containers.length) {
-                        if (creep.pos != containers[0].pos && containers[0].structureType == STRUCTURE_CONTAINER) {
+                        if (!creep.pos.isEqualTo(containers[0].pos) && containers[0].structureType == STRUCTURE_CONTAINER) {
                             creep.travelTo(containers[0]);
                         }
                         creep.memory.storageUnit = containers[0].id;
@@ -172,11 +173,7 @@ var creep_workV2 = {
                             creep.signController(creep.room.controller, '\u300C\u8F1D\u304F\u732B\u300D(\uFF90\u24DB\u11BD\u24DB\uFF90)\u2727');
                         }
 
-                        if (Game.time % 2 == 0) {
-                            creep.say("\u261D\uD83D\uDE3C", true);
-                        } else {
-                            creep.say("\uD83D\uDC4C\uD83D\uDE39", true);
-                        }
+                        speech.say(creep, Game.time % 2 == 0 ? "\u261D\uD83D\uDE3C" : "\uD83D\uDC4C\uD83D\uDE39", true);
                     }
                 } else if (creep.memory.storageTarget) {
                     let thisTarget = Game.getObjectById(creep.memory.storageTarget);
@@ -558,15 +555,27 @@ function repairCompare(a, b) {
     return 0;
 }
 
+// Callers run this whenever their energy source runs low, often every tick in young
+// rooms, so avoid pathfinding: pre-filter storage/containers, pick the nearest by
+// range, and back off briefly when nothing qualifies.
 function findContainerWithEnergy(thisCreep, energyMin) {
-    let storageContainer = thisCreep.pos.findClosestByPath(FIND_STRUCTURES, {
-        filter: (structure) => (structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && _.sum(structure.store) >= energyMin
-    });
-    if (storageContainer) {
-        return storageContainer;
-    } else {
+    if (thisCreep.memory.energySearchAt && Game.time < thisCreep.memory.energySearchAt) {
         return undefined;
     }
+    const room = thisCreep.room;
+    const candidates = runtimeCache.find(room, FIND_STRUCTURES, {
+        filter: { structureType: STRUCTURE_CONTAINER }
+    }).filter(structure => _.sum(structure.store) >= energyMin);
+    if (room.storage && _.sum(room.storage.store) >= energyMin) {
+        candidates.push(room.storage);
+    }
+    const storageContainer = candidates.length ? thisCreep.pos.findClosestByRange(candidates) : undefined;
+    if (storageContainer) {
+        delete thisCreep.memory.energySearchAt;
+        return storageContainer;
+    }
+    thisCreep.memory.energySearchAt = Game.time + 5;
+    return undefined;
 }
 
 module.exports = creep_workV2;

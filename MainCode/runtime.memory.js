@@ -282,7 +282,8 @@ function ensureInitialized() {
     Memory.RoomsRun = [];
     Memory.NoSpawnNeeded = [];
     Memory.CurrentRoomEnergy = [];
-    delete Memory.roomCreeps;
+    // Unused here, but Nightmare writes into it without a guard; keep it so a rollback cannot crash.
+    Memory.roomCreeps = {};
     Memory.frameworkVersion = 1;
     initialized = true;
 }

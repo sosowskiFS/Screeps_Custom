@@ -456,7 +456,8 @@ var spawn_BuildInstruction = {
         );
         
         if (mScouts.length < 1) {
-            const mConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+            // MOVE parts never generate fatigue, so one is as fast as six (50 energy).
+            const mConfig = [MOVE];
             const configCost = calculateConfigCost(mConfig);
             
             if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {

@@ -1,3 +1,5 @@
+const remoteMining = require('system.remoteMining');
+const combat = require('combat.tactics');
 var creep_farMiner = {
     //For miner in SK rooms, see creep_farMinerSK
     /** @param {Creep} creep **/
@@ -16,8 +18,6 @@ var creep_farMiner = {
                 let hostile = hostiles[0];
                 if (hostile.owner.username != 'Invader' && hostile.owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
     				creep.attack(hostile);
-                	console.log(creep.memory.targetFlag + ' was removed due to an attack by ' + hostile.owner.username);
-                	Memory.LastNotification = Game.time.toString() + ' : ' + creep.memory.targetFlag + ' was removed due to an attack by ' + hostile.owner.username;
                 	
                 	if (!Memory.warMode) {
                 		Memory.warMode = true;
@@ -27,11 +27,16 @@ var creep_farMiner = {
                 		Memory.FarRoomsUnderAttack.push(creep.room.name);
                 	}
                 	
-                	let targetTime = Game.time + 750;
-                	creep.room.createFlag(Game.flags[creep.memory.targetFlag].pos, creep.memory.targetFlag + ";" + targetTime.toString());
-                	Game.flags[creep.memory.targetFlag].remove();
+                	// Disables the whole room (every source, mule, claimer and guard) with an escalating
+                	// back-off and a safety check, instead of renaming only this flag for a fixed 750 ticks.
+                	remoteMining.noteIncident(creep.room.name, 'miner attacked by ' + hostile.owner.username);
                 }
             }
+        }
+
+        // Leave (or don't enter) the mining room while our guards are not winning a fight there.
+        if (combat.avoidDanger(creep, creep.memory.destination)) {
+            return;
         }
 
         if (creep.room.name != creep.memory.destination) {

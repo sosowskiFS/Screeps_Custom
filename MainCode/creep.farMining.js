@@ -1,4 +1,6 @@
+const speech = require('creep.speech');
 const runtimeCache = require('runtime.cache');
+const combat = require('combat.tactics');
 var creep_farMining = {
 
     /** @param {Creep} creep **/
@@ -12,7 +14,8 @@ var creep_farMining = {
                     creep.memory.priority = 'farClaimerNearDeath';
                 }
 
-                var isEvading = evadeAttacker(creep, 4);
+                // Flees every armed threat in reach and waits outside rooms our guards are losing.
+                var isEvading = combat.avoidDanger(creep, creep.memory.destination);
 
                 if (!isEvading) {
                     if (creep.room.name != creep.memory.destination) {
@@ -68,6 +71,11 @@ var creep_farMining = {
                     creep.memory.storing = false;
                 }
 
+                // Replaces the old after-the-fact evade (which issued a second, conflicting move).
+                if (combat.avoidDanger(creep, creep.memory.storing ? null : creep.memory.destination)) {
+                    break;
+                }
+
                 if (!creep.memory.storing) {
                     //in farRoom, mine mineral
                     if (creep.memory.mineralTarget) {
@@ -80,11 +88,14 @@ var creep_farMining = {
                                 }
                                 creep.memory.storing = true;
                             } else {
-                                creep.travelTo(thisMineral);
+                                // travelTo on an adjacent target issues a (billed) move into it.
+                                if (!creep.pos.isNearTo(thisMineral)) {
+                                    creep.travelTo(thisMineral);
+                                }
                                 if (thisMineral.cooldown <= 0) {
                                     creep.harvest(thisMineral);
                                 }
-                            } 
+                            }
                         } else {
                             //Target isn't visible, go to room
                             creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
@@ -122,7 +133,6 @@ var creep_farMining = {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom));
                     }
                 }
-                evadeAttacker(creep, 4);
                 break;
             case 'farGuard':
             case 'farGuardNearDeath':
@@ -180,33 +190,23 @@ var creep_farMining = {
                     }
                 }
 
-                var Foe = [];
-                var closeFoe = undefined;
+                // Invader cores only matter in rooms we reserve (or nobody does).
                 let eCores = undefined;
-                if (Game.flags[creep.room.name + "SKRoom"]) {
-                    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Source Keeper")
-                    });
-                    closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && (eCreep.owner.username != "Source Keeper" || eCreep.hits < eCreep.hitsMax))
-                    });
-                } else {        
-                    closeFoe = creep.pos.findClosestByPath(FIND_HOSTILE_CREEPS, {
-                        filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                    });
-                    if (closeFoe) {
-                        Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
-                            filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
-                        });
-                    }
-                    if (creep.room.controller && ((creep.room.controller.reservation && creep.room.controller.reservation.username == 'Invader') || !creep.room.controller.reservation)) {
-                        eCores = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
-                            filter: (eStruct) => (eStruct.owner.username == 'Invader')
-                        })
-                    }
+                if (!Game.flags[creep.room.name + "SKRoom"] && creep.room.controller && ((creep.room.controller.reservation && creep.room.controller.reservation.username == 'Invader') || !creep.room.controller.reservation)) {
+                    eCores = creep.pos.findClosestByRange(FIND_HOSTILE_STRUCTURES, {
+                        filter: (eStruct) => (eStruct.owner.username == 'Invader')
+                    })
                 }
 
-                if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination) {
+                // Crossing another player's room: only fight what gets close, keep moving otherwise.
+                const passingThrough = creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc" && creep.room.name != creep.memory.destination;
+
+                if (combat.fight(creep, { transit: passingThrough })) {
+                    // Shared fight/kite/retreat logic: focus fire, numbers and boosts are all accounted for.
+                    speech.say(creep, "\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
+                } else if (combat.regroup(creep)) {
+                    // Pulled back from a fight we could not win; stay home briefly before returning.
+                } else if (passingThrough) {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.destination), {
                         reusePath: 50
                     });
@@ -214,50 +214,6 @@ var creep_farMining = {
                     if (creep.hits < creep.hitsMax && !hasNearbyEnemies()) {
                         creep.heal(creep);
                     }
-                } else if (closeFoe) {
-                    creep.say("\uFF08\u0E05\uFF3E\u30FB\uFECC\u30FB\uFF3E\uFF09\u0E05", true);
-                    
-                    // Simplified combat logic - cache body part counts
-                    if (!creep.memory.bodyParts) {
-                        let rangedParts = 0;
-                        let attackParts = 0;
-                        creep.body.forEach(function(thisPart) {
-                            if (thisPart.type == RANGED_ATTACK) rangedParts++;
-                            else if (thisPart.type == ATTACK) attackParts++;
-                        });
-                        creep.memory.bodyParts = { ranged: rangedParts, attack: attackParts };
-                    }
-
-                    let attackResult = creep.attack(closeFoe);
-                    
-                    // Simplified threat assessment
-                    let needToRetreat = false;
-                    if (Foe.length > 0) {
-                        for (let foe of Foe) {
-                            if (foe.getActiveBodyparts(ATTACK) > creep.memory.bodyParts.attack) {
-                                needToRetreat = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (needToRetreat) {
-                        creep.travelTo(closeFoe, { maxRooms: 1, range: 3 }, true);
-                        creep.rangedAttack(closeFoe);
-                    } else {
-                        creep.travelTo(closeFoe, { maxRooms: 1 });
-                        if (Foe.length >= 2) {
-                            creep.rangedMassAttack();
-                        } else {
-                            creep.rangedAttack(closeFoe);
-                        }
-                    }
-
-                    // Only heal if no melee attack was performed this tick (ranged attacks are allowed with healing)
-                    if (creep.hits < creep.hitsMax && attackResult != OK) {
-                        creep.heal(creep);
-                    }
-
                 } else if (eCores) {
                     let attackResult = creep.attack(eCores);
                     creep.rangedAttack(eCores);
@@ -276,9 +232,11 @@ var creep_farMining = {
                         }
                     }
 
-                    creep.travelTo(eCores, {
-                        maxRooms: 1
-                    });
+                    if (!creep.pos.isNearTo(eCores)) {
+                        creep.travelTo(eCores, {
+                            maxRooms: 1
+                        });
+                    }
                 } else if (creep.room.name != creep.memory.destination) {
                     if (targetFlagName.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
@@ -317,9 +275,9 @@ var creep_farMining = {
                 } else if (targetFlag) {
                     // Decorative idle animations
                     if (Game.time % 2 == 0) {
-                        creep.say("(=`ﾟ´=)", true);
+                        speech.say(creep, "(=`ﾟ´=)", true);
                     } else {
-                        creep.say("(=´ﾟ`=)", true);
+                        speech.say(creep, "(=´ﾟ`=)", true);
                     }
                     
                     // Simplified idle behavior
@@ -327,25 +285,30 @@ var creep_farMining = {
                         if (!hasNearbyEnemies()) {
                             creep.heal(creep);
                         }
-                        if (creep.pos != targetFlag.pos) {
+                        if (!creep.pos.isEqualTo(targetFlag.pos)) {
                             creep.travelTo(targetFlag, { maxRooms: 1 });
                         }
                     } else {
                         // Only heal allies if they're nearby - cache search every 5 ticks
                         if (!creep.memory.lastAllyCheck || Game.time - creep.memory.lastAllyCheck >= 5) {
+                            // Store IDs only; whole Creep objects bloat Memory serialization every tick.
                             creep.memory.hurtAllies = runtimeCache.find(creep.room, FIND_MY_CREEPS, {
                                 filter: (thisCreep) => thisCreep.hits < thisCreep.hitsMax
-                            });
+                            }).map(thisCreep => thisCreep.id);
                             creep.memory.lastAllyCheck = Game.time;
                         }
-                        
+
                         if (creep.memory.hurtAllies && creep.memory.hurtAllies.length > 0) {
-                            let ally = Game.getObjectById(creep.memory.hurtAllies[0].id);
+                            // Older entries may still be serialized creeps; accept either shape.
+                            const allyEntry = creep.memory.hurtAllies[0];
+                            let ally = Game.getObjectById(typeof allyEntry === 'string' ? allyEntry : allyEntry.id);
                             if (ally && ally.hits < ally.hitsMax) {
-                                creep.travelTo(ally);
+                                if (!creep.pos.isNearTo(ally)) {
+                                    creep.travelTo(ally);
+                                }
                                 creep.heal(ally);
                             }
-                        } else if (creep.pos != targetFlag.pos) {
+                        } else if (!creep.pos.isEqualTo(targetFlag.pos)) {
                             creep.travelTo(targetFlag, { maxRooms: 1 });
                         }
                     }
@@ -556,24 +519,6 @@ var creep_farMining = {
         }
     }
 };
-
-function evadeAttacker(creep, evadeRange) {
-    var Foe = undefined;
-
-    Foe = creep.pos.findInRange(FIND_HOSTILE_CREEPS, evadeRange, {
-        filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
-    });
-
-    if (Foe.length) {
-        creep.travelTo(Foe[0], {
-            range: 8
-        }, true);
-        creep.attack(Foe[0]);
-        return true;
-    }
-
-    return false;
-}
 
 function attackInvader(creep) {
     var Foe = undefined;

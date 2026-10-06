@@ -6,6 +6,7 @@ const spawn_BuildCreeps = require('spawn.BuildCreeps');
 const spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
 const spawn_BuildInstruction = require('spawn.BuildInstruction');
 const spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
+const remoteMining = require('system.remoteMining');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 
 function handleSpawning() {
@@ -85,6 +86,12 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
 
     if (!isSpawnBusy(spawn) && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
         processFarMiningSpawn(spawn, thisRoom, energyIndex, spawnRoleCache);
+    }
+
+    // Remote-mining intel: a 1-MOVE scout when nearby rooms are unknown/stale or a disabled
+    // remote is due its safety check (homes with an observer use that instead).
+    if (!isSpawnBusy(spawn) && remoteMining.needsScout(thisRoom)) {
+        spawn_BuildInstruction.run(spawn, 'farScout', '', energyIndex, thisRoom.name);
     }
 
     // Check for highway patrol unit spawning (every 1350 ticks, energy >= 400,000)

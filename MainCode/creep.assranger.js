@@ -1,3 +1,4 @@
+const speech = require('creep.speech');
 const runtimeCache = require('runtime.cache');
 var creep_assranger = {
 
@@ -145,9 +146,9 @@ var creep_assranger = {
                     //In target room
 
                     if (Game.time % 2 == 0) {
-                        creep.say("(=\uFF40\u03C9\u00B4=)", true);
+                        speech.say(creep, "(=\uFF40\u03C9\u00B4=)", true);
                     } else {
-                        creep.say("(=\u00B4\u2207\uFF40=)", true);
+                        speech.say(creep, "(=\u00B4\u2207\uFF40=)", true);
                     }
 
                     //Cancel this flag if room is in safe mode
@@ -456,9 +457,9 @@ let targetFound = false;
             creep.rangedMassAttack();
             //Dance party!
             if (Game.time % 2 == 0) {
-                creep.say("\u{266A}~ \u{1555}( \u{141B} )\u{1557}", true);
+                speech.say(creep, "\u{266A}~ \u{1555}( \u{141B} )\u{1557}", true);
             } else {
-                creep.say("\u{669}( \u{141B} )\u{648} ~\u{266A}", true);
+                speech.say(creep, "\u{669}( \u{141B} )\u{648} ~\u{266A}", true);
             }
             let otherHealers = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (mCreep) => ((mCreep.memory.priority == "asshealer" || mCreep.memory.priority == "targetlessHealer" || mCreep.memory.priority == "asshealerNearDeath") && mCreep.memory.attackerID == creep.id)

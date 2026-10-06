@@ -1,3 +1,5 @@
+const combatIntel = require('combat.intel');
+const runtimeCache = require('runtime.cache');
 var creep_powerAttack = {
 
     /** @param {Creep} creep **/
@@ -59,7 +61,25 @@ var creep_powerAttack = {
                 } else if (creep.hits >= 2500) {
                     var thisBank = Game.getObjectById(creep.memory.targetBank);
                     if (thisBank) {
-                        let attackResult = creep.attack(thisBank);
+                        const contest = assessContest(creep, homeRoom, thisBank);
+                        if (contest.abort) {
+                            // Rivals here would win the fight: stop feeding them power and creeps.
+                            const message = Game.time + ' : ' + creep.room.name + ' power bank abandoned, outmatched by ' + contest.owner;
+                            console.log(message);
+                            Memory.LastNotification = message;
+                            powerAttackFlag.remove();
+                            const powerGuardFlag = Game.flags[homeRoom + "PowerGuard"];
+                            if (powerGuardFlag) {
+                                powerGuardFlag.remove();
+                            }
+                            return;
+                        }
+                        let attackResult = ERR_BUSY;
+                        if (!contest.holdKill) {
+                            attackResult = creep.attack(thisBank);
+                        } else if (!creep.pos.isNearTo(thisBank)) {
+                            attackResult = ERR_NOT_IN_RANGE;
+                        }
                         if (attackResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisBank);
                         } else if (attackResult == OK && thisBank.hits >= 1500000) {
@@ -82,7 +102,7 @@ var creep_powerAttack = {
         
         // Handle enemy interactions (moved outside main logic for better performance)
         if (creep.memory.checkForOwnership) {
-            var AgreementList = ["slowmotionghost", "Digital"];
+            var AgreementList = AGREEMENT_LIST;
 
             let inRangeEnemy = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 2, {
                 filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.getActiveBodyparts(ATTACK) > 0)
@@ -124,5 +144,38 @@ var creep_powerAttack = {
     }
 
 };
+
+// Players we have agreements with: they keep banks they reached first.
+const AGREEMENT_LIST = ["slowmotionghost", "Digital"];
+
+// Rival players at the bank: call the escort, remember the room is contested, and decide
+// whether to give up (losing fight) or hold the final hit (bank would drop power for them).
+function assessContest(creep, homeRoom, bank) {
+    const intel = combatIntel.roomIntel(creep.room);
+    const rivals = intel.threats.filter(c => c.owner.username !== 'Invader' && !AGREEMENT_LIST.includes(c.owner.username));
+    if (!rivals.length) {
+        return {};
+    }
+    if (!Memory.powerContested) Memory.powerContested = {};
+    Memory.powerContested[homeRoom] = Game.time;
+    if (!Game.flags[homeRoom + "PowerGuard"]) {
+        creep.room.createFlag(25, 25, homeRoom + "PowerGuard");
+    }
+    if (intel.verdict === 'lose') {
+        return { abort: true, owner: rivals[0].owner.username };
+    }
+    // Breaking the bank drops the power on the ground for whoever is standing there.
+    let bankDps = 0;
+    for (const friend of intel.friends) {
+        if (friend.memory.priority === 'powerAttack' || friend.memory.priority === 'powerAttackNearDeath') {
+            bankDps += combatIntel.assess(friend).melee;
+        }
+    }
+    const collectorsHere = runtimeCache.find(creep.room, FIND_MY_CREEPS, {
+        filter: c => c.memory.priority === 'powerCollector'
+    }).length > 0;
+    const holdKill = !collectorsHere && bank.hits <= bankDps * 3 && bank.ticksToDecay > 50;
+    return { holdKill };
+}
 
 module.exports = creep_powerAttack;

@@ -1,5 +1,5 @@
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
-const { withdrawEnergy, transferEnergy, getStorageTarget, findAndMoveToDistributionTarget } = require('creep.logistics');
+const { withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget } = require('creep.logistics');
 const { DoResourceCheck } = require('creep.production');
 
 module.exports = {
@@ -133,40 +133,8 @@ module.exports = {
                 creep.memory.structureTarget = undefined;
             }
             if (!creep.memory.structureTarget) {
-                var target = undefined;
-                if (getNewStructure) {
-                    target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                        filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_EXTENSION ||
-                                structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                        }
-                    });
-                } else {
-                    target = creep.pos.findClosestByPath(FIND_STRUCTURES, {
-                        filter: (structure) => {
-                            return (structure.structureType == STRUCTURE_EXTENSION ||
-                                structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
-                        }
-                    });
-                }
-                if (!target) {
-                    //Find closest by path will not return anything if path is blocked
-                    if (getNewStructure) {
-                        target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => {
-                                return (structure.structureType == STRUCTURE_EXTENSION ||
-                                    structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity && structure.id != savedTarget.id;
-                            }
-                        });
-                    } else {
-                        target = creep.pos.findClosestByRange(FIND_STRUCTURES, {
-                            filter: (structure) => {
-                                return (structure.structureType == STRUCTURE_EXTENSION ||
-                                    structure.structureType == STRUCTURE_SPAWN || structure.structureType == STRUCTURE_LAB) && structure.energy < structure.energyCapacity;
-                            }
-                        });
-                    }
-                }
+                // Skip the structure just filled; its store does not update until next tick.
+                var target = findEnergySink(creep, undefined, getNewStructure ? savedTarget.id : undefined);
 
                 if (target) {
                     if (getNewStructure) {

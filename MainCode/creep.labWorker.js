@@ -1,3 +1,4 @@
+const speech = require('creep.speech');
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
 const runtimeCache = require('runtime.cache');
 /*
@@ -44,6 +45,15 @@ var creep_labWorker = {
 
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'labWorkerNearDeath') {
             creep.memory.priority = 'labWorkerNearDeath';
+        }
+
+        // A full scan just found nothing to do: stay out of the way and rescan later.
+        if (creep.memory.idleUntil) {
+            if (Game.time < creep.memory.idleUntil && _.sum(creep.carry) == 0) {
+                handleMovementCoordination(creep);
+                return;
+            }
+            delete creep.memory.idleUntil;
         }
 
         if (!creep.memory.nextResourceCheck) {
@@ -152,6 +162,9 @@ var creep_labWorker = {
 
         if (!foundWork) {
             debugSay(creep, "idle");
+            if (creep.memory.priority == 'labWorker' || creep.memory.priority == 'labWorkerNearDeath') {
+                creep.memory.idleUntil = Game.time + 10;
+            }
         }
 
         handleMovementCoordination(creep);
@@ -1074,7 +1087,7 @@ function debugSay(creep, message) {
     if (!creep || !message) {
         return;
     }
-    creep.say(message, false);
+    speech.say(creep, message, false);
 }
 
 module.exports = creep_labWorker;

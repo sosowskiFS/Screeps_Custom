@@ -204,7 +204,7 @@ class Traveler {
          * @param opacity
          */
     static circle(pos, color, opacity) {
-            if (!TRAVELER_VISUALIZE) return;
+            if (!travelerVisualize()) return;
             new RoomVisual(pos.roomName).circle(pos, {
                 radius: .45,
                 fill: "transparent",
@@ -344,6 +344,16 @@ class Traveler {
          */
     static findRoute(origin, destination, options = {}, doFlee = false) {
             let restrictDistance = options.restrictDistance || Game.map.getRoomLinearDistance(origin, destination) + 10;
+            // Remote creeps repath across the same rooms constantly; reuse recent routes.
+            // Custom route callbacks can depend on caller state, so those are never cached.
+            const cacheKey = options.routeCallback ? undefined : [origin, destination, restrictDistance,
+                options.preferHighway ? (options.highwayBias || 2.5) : 0, options.allowHostile ? 1 : 0, options.allowSK ? 1 : 0].join('|');
+            if (cacheKey) {
+                const cached = Traveler._routeCache[cacheKey];
+                if (cached && Game.time - cached.tick < ROUTE_CACHE_TTL) {
+                    return cached.rooms;
+                }
+            }
             let allowedRooms = {
                 [origin]: true, [destination]: true
             };
@@ -403,6 +413,9 @@ class Traveler {
             }
             for (let value of ret) {
                 allowedRooms[value.room] = true;
+            }
+            if (cacheKey) {
+                Traveler._routeCache[cacheKey] = { tick: Game.time, rooms: allowedRooms };
             }
             return allowedRooms;
         }
@@ -472,6 +485,9 @@ class Traveler {
             if (Game.time - Traveler._lastTopologyCleanup >= 100) {
                 for (const name in Traveler._topologyCache) {
                     if (Game.time - Traveler._topologyCache[name].lastUsed > 100) delete Traveler._topologyCache[name];
+                }
+                for (const key in Traveler._routeCache) {
+                    if (Game.time - Traveler._routeCache[key].tick >= ROUTE_CACHE_TTL) delete Traveler._routeCache[key];
                 }
                 Traveler._lastTopologyCleanup = Game.time;
             }
@@ -552,10 +568,11 @@ class Traveler {
     static serializePath(startPos, path, color = "orange") {
             let serializedPath = "";
             let lastPosition = startPos;
-            if (TRAVELER_VISUALIZE) this.circle(startPos, color);
+            const visualize = travelerVisualize();
+            if (visualize) this.circle(startPos, color);
             for (let position of path) {
                 if (position.roomName === lastPosition.roomName) {
-                    if (TRAVELER_VISUALIZE) {
+                    if (visualize) {
                         new RoomVisual(position.roomName)
                             .line(position, lastPosition, {
                                 color: color,
@@ -651,10 +668,13 @@ class Traveler {
 //Traveler.structureMatrixCache = {};
 //Traveler.creepMatrixCache = {};
 exports.Traveler = Traveler;
-// Visualization toggle for Traveler pathing; set global.TRAVELER_VISUALIZE=false to reduce CPU spent on visuals
-const TRAVELER_VISUALIZE = (typeof global !== 'undefined' && typeof global.TRAVELER_VISUALIZE !== 'undefined')
-    ? !!global.TRAVELER_VISUALIZE
-    : true;
+// Path/stuck visuals are off by default (they are drawn on every repath and every fatigued
+// tick). Enable with Memory.settings.travelerVisuals = true; global.TRAVELER_VISUALIZE still overrides.
+const { travelerVisualsEnabled } = require('runtime.config');
+function travelerVisualize() {
+    if (typeof global !== 'undefined' && typeof global.TRAVELER_VISUALIZE !== 'undefined') return !!global.TRAVELER_VISUALIZE;
+    return travelerVisualsEnabled();
+}
 // this might be higher than you wish, setting it lower is a great way to diagnose creep behavior issues. When creeps
 // need to repath to often or they aren't finding valid paths, it can sometimes point to problems elsewhere in your code
 const REPORT_CPU_THRESHOLD = 1000;
@@ -662,6 +682,8 @@ const DEFAULT_MAXOPS = 20000;
 const DEFAULT_STUCK_VALUE = 5;
 // Internal caches (reset each tick)
 Traveler._topologyCache = Object.create(null);
+Traveler._routeCache = Object.create(null);
+const ROUTE_CACHE_TTL = 300;
 Traveler._lastTopologyCleanup = 0;
 Traveler._cacheTick = -1;
 Traveler._structureMatrixCache = {};

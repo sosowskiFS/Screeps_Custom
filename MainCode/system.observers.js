@@ -3,6 +3,7 @@ const runtimeCache = require('runtime.cache');
 const { getEnergyIndex } = require('spawn.state');
 const { getRoomAtOffset } = require('util.common');
 const spawn_BuildInstruction = require('spawn.BuildInstruction');
+const remoteMining = require('system.remoteMining');
 
 function handleRoomOperations(thisRoom) {
     const roomName = thisRoom.name;
@@ -30,7 +31,8 @@ function handleRoomOperations(thisRoom) {
 
     // Operate observers every 20 ticks
     if (Game.time % 20 === 0 && observationPointer && Memory.observerList[roomName] && Memory.observerList[roomName].length > 0) {
-        operateObserver(roomName, observedRoomName);
+        // A disabled remote due its safety check takes priority over the normal sweep.
+        operateObserver(roomName, remoteMining.observeRequest(roomName) || observedRoomName);
     }
 
     // Monitor for power creep operators and respawn if needed
@@ -40,6 +42,9 @@ function handleRoomOperations(thisRoom) {
 }
 
 function handleObservedRoomOperations(thisRoom, observedRoom, roomName, observedRoomName) {
+    // Feed remote-mining intel (sources, owner, reservation) from every observer sweep.
+    remoteMining.recordIntel(observedRoom);
+
     // Handle power bank operations
     handlePowerBankOperations(thisRoom, observedRoom, roomName);
 
@@ -69,6 +74,12 @@ function handlePowerBankOperations(thisRoom, observedRoom, roomName) {
         if (powerBanks.length > 0) {
             const powerBank = powerBanks[0];
             observedRoom.createFlag(powerBank.pos.x, powerBank.pos.y, roomName + "PowerAttack");
+            // Rivals contested one of this room's banks recently: send the escort with the first
+            // wave instead of after they show up (the ranger spawns before the attackers).
+            const lastContested = Memory.powerContested && Memory.powerContested[roomName];
+            if (lastContested && Game.time - lastContested < 20000 && !Game.flags[roomName + "PowerGuard"]) {
+                observedRoom.createFlag(25, 25, roomName + "PowerGuard");
+            }
         }
     }
 }

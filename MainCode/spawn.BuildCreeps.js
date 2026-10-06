@@ -1,4 +1,5 @@
 const runtimeCache = require('runtime.cache');
+const defenseWatch = require('defense.watch');
 var spawn_BuildCreeps = {
     run: function(spawn, bestWorker, thisRoom, RoomCreeps, energyIndex) {
 
@@ -121,7 +122,7 @@ var spawn_BuildCreeps = {
             }
 
             global.setSpawnBusy(spawn);
-        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenderCount < 2 && harvesterCount >= harvesterMax) {
+        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenderCount < 2 && harvesterCount >= harvesterMax && !defenseWatch.isDraining(thisRoom.name)) {
             //Try to produce millitary units
                  var ToughCount = 0;
                 var MoveCount = 0;
