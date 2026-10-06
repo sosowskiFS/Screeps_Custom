@@ -2,6 +2,7 @@ const runtimeCache = require('runtime.cache');
 // system.flags â€” Screeps tick subsystem.
 const { memCheck } = require('runtime.memory');
 const tool_generateBase = require('tool.generateBase');
+const baseBuilder = require('base.builder');
 const roomCpu = require('runtime.roomCpu');
 
 function handleGameFlags() {
@@ -22,7 +23,6 @@ function handleGameFlags() {
     const removeSitesFlag = flags["RemoveSites"];
     const toggleWarFlag = flags["ToggleWar"];
     const resetLinksFlag = flags["resetLinks"];
-    const visualizeBaseFlag = flags["VisualizeBase"];
 
     //Set defaults on various memory values
     if (Game.time % 10000 == 0 || checkMemoryFlag) {
@@ -72,6 +72,8 @@ function handleGameFlags() {
     }
 
     if (addAutobuildFlag) {
+        // Opt back in to automatic layout (every room is in by default).
+        if (Memory.baseBuildOff) delete Memory.baseBuildOff[addAutobuildFlag.room.name];
         if (Memory.autoBuildRooms.indexOf(addAutobuildFlag.room.name) == -1) {
             Memory.autoBuildRooms.push(addAutobuildFlag.room.name)
         }
@@ -79,6 +81,8 @@ function handleGameFlags() {
     }
 
     if (removeAutobuildFlag) {
+        // Opt this room out of automatic layout.
+        baseBuilder.optOut(removeAutobuildFlag.room.name);
         if (Memory.autoBuildRooms.indexOf(removeAutobuildFlag.room.name) != -1) {
             var thisRoomIndex = Memory.autoBuildRooms.indexOf(removeAutobuildFlag.room.name)
             Memory.autoBuildRooms.splice(thisRoomIndex, 1);
@@ -180,33 +184,7 @@ function handleGameFlags() {
         resetLinksFlag.remove();
     }
 
-    // Visualize base plan for debugging - now integrated into main generation function
-    if (visualizeBaseFlag) {
-        const roomName = visualizeBaseFlag.pos.roomName;
-        const roomLevel = parseInt(visualizeBaseFlag.name.split('_')[1]) || 8; // Extract level from flag name or default to 8
-
-        // Check if room exists and run the unified generation function
-        const room = Game.rooms[roomName];
-        if (room) {
-            console.log(`Visualizing base plan for ${roomName} at controller level ${roomLevel}`);
-            // Create a mock room with the specified controller level for visualization
-            const mockRoom = {
-                ...room,
-                controller: {
-                    ...room.controller,
-                    level: roomLevel
-                },
-                // Ensure the find method is available for the mock room
-                find: room.find.bind(room)
-            };
-            tool_generateBase.run(mockRoom);
-        } else {
-            console.log(`Cannot visualize ${roomName} - no room access. Try running the base generation tool in a room you have vision of.`);
-        }
-
-        // Don't remove flag automatically - let user remove it manually when done viewing
-        console.log(`Base visualization complete. Remove the VisualizeBase flag to stop visualization and return to normal base generation.`);
-    }
+    // VisualizeBase: base.builder draws the room's plan (cheap; previews rooms not yet owned).
 }
 
 function checkTimedOutFlags() {

@@ -1,61 +1,11 @@
 const runtimeCache = require('runtime.cache');
 // system.construction — Screeps tick subsystem.
-const tool_generateBase = require('tool.generateBase');
-const roomCpu = require('runtime.roomCpu');
+const baseBuilder = require('base.builder');
 
+// Every owned room gets the automatic base layout (base.builder): plans one room per tick at
+// most when the CPU governor allows, builds one room per tick at most (CPU charged to the room).
 function handleAutoBuildRoomsRegeneration() {
-    // Initialize memory objects if they don't exist
-    if (!Memory.autoBuildRooms) {
-        Memory.autoBuildRooms = [];
-    }
-    if (!Memory.autoBuildRegenIndex) {
-        Memory.autoBuildRegenIndex = 0;
-    }
-    if (!Memory.lastAutoBuildRegen) {
-        Memory.lastAutoBuildRegen = 0;
-    }
-
-    // Early return if no autoBuildRooms exist
-    if (Memory.autoBuildRooms.length === 0) {
-        return;
-    }
-
-    // Run regeneration every 5000 ticks (offset from the main rampart/road generation)
-    if (Game.time - Memory.lastAutoBuildRegen >= 5000) {
-        // Get the current room to process
-        const roomName = Memory.autoBuildRooms[Memory.autoBuildRegenIndex];
-        const room = Game.rooms[roomName];
-
-        // Only process if we have vision of the room
-        if (room && room.controller && room.controller.my) {
-            console.log(`AutoBuild regeneration: Processing ${roomName} (${Memory.autoBuildRegenIndex + 1}/${Memory.autoBuildRooms.length})`);
-
-            // Clear existing road construction sites before regenerating
-            const roadSites = runtimeCache.find(room, FIND_CONSTRUCTION_SITES, {
-                filter: { structureType: STRUCTURE_ROAD }
-            });
-            roadSites.forEach(site => site.remove());
-
-            // Run the base generation tool
-            const cpu = roomCpu.timer();
-            tool_generateBase.run(room);
-            cpu.lap(roomName);
-        } else if (room) {
-            console.log(`AutoBuild regeneration: Skipping ${roomName} - no controller ownership`);
-        } else {
-            console.log(`AutoBuild regeneration: Skipping ${roomName} - no room vision`);
-        }
-
-        // Move to next room index
-        Memory.autoBuildRegenIndex++;
-
-        // Reset index if we've processed all rooms
-        if (Memory.autoBuildRegenIndex >= Memory.autoBuildRooms.length) {
-            Memory.autoBuildRegenIndex = 0;
-            Memory.lastAutoBuildRegen = Game.time;
-            console.log(`AutoBuild regeneration cycle completed. Next cycle in ${50000} ticks.`);
-        }
-    }
+    baseBuilder.run();
 }
 
 // O(structures + sites + room area), instead of thousands of position lookups.

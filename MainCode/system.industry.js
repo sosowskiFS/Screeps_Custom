@@ -1,5 +1,6 @@
 const labPlanner = require('system.labs');
 const runtimeCache = require('runtime.cache');
+const baseBuilder = require('base.builder');
 // system.industry — Screeps tick subsystem.
 
 
@@ -70,6 +71,14 @@ function updateRoomStructureLists(thisRoom) {
     const labs = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
         filter: { structureType: STRUCTURE_LAB }
     });
+    // Planned rooms: boost labs, then the two reagent labs, then outputs (labWorker and
+    // manageLabOperations read roles by index). Only when every lab is a planned one.
+    const labOrder = baseBuilder.labOrder(roomName);
+    if (labOrder) {
+        const rank = new Map(labOrder.map((tile, n) => [tile, n]));
+        const key = lab => lab.pos.x * 50 + lab.pos.y;
+        if (labs.every(lab => rank.has(key(lab)))) labs.sort((a, b) => rank.get(key(a)) - rank.get(key(b)));
+    }
     Memory.labList[roomName] = labs.map(lab => lab.id);
 
     const powerSpawns = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {

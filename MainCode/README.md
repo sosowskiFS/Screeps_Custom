@@ -21,7 +21,8 @@ This is a flat CommonJS Screeps World project. Upload **all root-level `.js` fil
 | Observers and remote opportunity detection | `system.observers.js` |
 | Market policy and room trading | `system.market.js`, `market.FindBuyers.js` |
 | Flags and periodic empire state | `system.flags.js`, `system.state.js` |
-| Construction scheduling and extension roads | `system.construction.js`, `tool.generateBase.js` |
+| Base layout planning and building | `base.planner.js` (pure planner), `base.builder.js` (Memory, sites, visuals), `base.migrate.js` (moving established rooms onto it) |
+| Construction scheduling and extension roads | `system.construction.js` |
 | Visuals and CPU measurements | `system.visuals.js`, `runtime.metrics.js` |
 | Memory initialization and shared tick queries | `runtime.memory.js`, `runtime.cache.js` |
 
@@ -130,6 +131,72 @@ Counts are kept low by putting work into bodies, not creeps:
 
 Rooms below RCL5 are limited by spawn energy rather than creep count. Their worker bodies already use nearly all available energy, so they keep the existing counts.
 
+## Automatic base layout
+
+Every owned room is laid out automatically. Rooms no longer opt in. `base.planner.js` is a pure planner: it works on terrain and structure arrays only, with no PathFinder. `base.builder.js` stores the plan and places sites. `tool.generateBase.js`, the old 2,500-line generator, is now a small wrapper.
+
+- **Only hard requirement:** a free 3x3 next to a source.
+  - Centre: the Supply tile, where the supplier stands.
+  - Ring: storage, spawn and 6 towers. The spawn keeps a free tile outside the core for its other creeps; the supplier spawns straight onto the Supply tile.
+  - Outside the core: the storageMiner tile, touching both the storage and the source.
+  - The storage also keeps a free neighbour for haulers.
+
+  Every placement that fits is scored by the open space around it and its distance to the controller. A Supply flag, a hand-placed first spawn, or core towers/storage already on matching tiles are kept.
+- **Everything else is packed into the space connected to the core:**
+  - A diagonal road lattice anchored on the core: roads where (dx+dy)%4 or (dx−dy)%4 is 0. That makes 62.5% of tiles buildable, and every buildable tile touches a road.
+  - Structures take the nearest free slots, found by flooding outward from the core, so walls just shape the base instead of ruling the room out.
+  - Spawns go first, then towers, terminal, storage link, factory and power spawn near the storage, boost labs near the spawn, 60 extensions, nuker and observer.
+  - A final reachability check drops and refills any structure that a 1-wide gap would cut off.
+- **Kept-clear paths:** from the core to the controller, both sources, the mineral and every exit, so no structure can block them. They are not built as roads here; `system.roads` routes and builds those.
+- **Labs:**
+  - **Reaction labs:** a 3x3 stamp of 7 labs around a road tile, with one ring tile left as the entrance. Every output is within range 2 of both inputs, and the lab worker reaches all 7 from the centre.
+  - **Boost labs:** 3 separate labs.
+  - **Lab list order:** `labList` follows the plan's roles: boost 0–2, reagents 3–4, outputs 5+. This only applies when every lab in the room is a planned one, so hand-built lab sets keep their order.
+- **Links** are placed so `updateRoomStructureLists` assigns their roles correctly:
+  - controller link within 2 of the controller
+  - storage link within 3 of the storage and more than 4 from the controller
+  - two source links beside the upgradeMiner tile, more than 4 from the controller and more than 3 from the storage
+- **Building:**
+  - Sites for whatever the RCL allows, in priority order, at most 10 per pass, leaving headroom under the 100-site cap.
+  - Base roads only beside built or planned structures.
+  - The Supply, storageMiner and upgradeMiner flags.
+  - Ramparts over finished planned structures and the core's creep tiles, from RCL 2 as before.
+  - The extractor from RCL 6.
+- **What it never touches:** existing structures are never destroyed. The one exception, in fresh layouts only, is a road on a tile reserved for a building.
+- **Rooms with a storage are adopted:** the storage and core stay, flags aren't moved, and the plan only fills gaps around existing structures. Their roads are never removed.
+- **CPU:** a plan is computed once and kept in `Memory.basePlan` (a few ms per room). At most one room is planned per tick, and only when the CPU governor allows path-heavy work, so a deploy with every room unplanned spreads over several ticks. At most one room is built per tick: on an RCL change, otherwise every ~1,000 ticks (staggered). Both are charged to the room's CPU. A room where no core fits is retried after 20,000 ticks.
+- **Flags:**
+  - `RemoveAutobuildRoom`: opt this room out.
+  - `AddAutobuildRoom`: opt it back in.
+  - `InitAutoBuild`: replan now.
+  - `VisualizeBase`: draw the plan, including a preview for rooms not owned yet. It no longer runs the generator every tick.
+  - `Memory.settings.basePlanning = false` turns the whole system off.
+
+### Migrating established rooms
+
+Rooms with a storage start out adopted (see above), and then move onto the layout one structure at a time (`base.migrate.js`).
+
+- **Target:** planned once per room, as if the room were empty. Only immovables count: the storage (the core forms around it; a full storage can't realistically be moved), the nuker (its energy and ghodium can't be taken out), walls, sources and the controller. If no core fits around the storage, the room stays adopted and is retried after 20,000 ticks.
+- **One step at a time per room:**
+  1. Pick an out-of-place structure. Blockers go first: those on a tile the plan needs for something else, on a core creep tile, or on a kept-clear path.
+  2. Terminals, factories and labs that hold goods are emptied into the storage first, by the lab worker.
+  3. The structure is destroyed. The builder places the replacement site at its planned tile on the next tick.
+  4. Once the replacement is built, a 300-tick cooldown runs before the next step.
+
+  Stray construction sites of movable kinds are removed. Empire-wide, a new step starts at most every 20 ticks. A step that can't empty its target within 3,000 ticks is abandoned and retried later.
+- **Safety:**
+  - Nothing moves while hostiles are in the room, when construction sites are short (90+), or without twice the rebuild cost plus 30k energy in storage.
+  - A structure only goes if its replacement has a free planned tile. The exception is cheap blockers (extension, link, observer, lab, container), which may be cleared to make way.
+  - Spawns: never the last one, never one that is spawning.
+  - Towers: at least 2 always stay up.
+  - Spawns, towers, terminal, factory and power spawn only move when the room has no other construction sites, so builders rebuild them first.
+  - The power spawn only moves while the room's operator has 2,500+ ticks to live, enough to cover the rebuild.
+  - Terminal and factory only move if the storage can take their contents.
+- **Layout flags:** Supply and storageMiner move once their planned tile is clear. upgradeMiner moves once its new link is built. The miners are sent to the new spot, and the upgrade miner gets the new link.
+
+  Rooms on the auto-build supplier handling with 3+ spawns only make suppliers in the spawn beside the Supply flag. So the room stays off that handling until a spawn touches the moved Supply flag.
+- **Off switch:** `Memory.settings.baseMigration = false` stops it. Progress is kept in `Memory.baseMigrate`.
+
 ## Planned roads
 
 `system.roads.js` (phase `roads`) keeps a road plan per owned room in `Memory.roadPlan[room]`. It's refreshed every 5,000 ticks, at most one room per tick, and only when the CPU governor allows path-heavy work.
@@ -139,6 +206,7 @@ Rooms below RCL5 are limited by spawn energy rather than creep count. Their work
 - **Repair** (tower road repair, early-room workers) only touches planned roads. Everything else decays: about 50k ticks on plains, much longer on swamp/wall tiles.
 - **Building:** missing route tiles get road sites, 10 per pass, never on wall tiles, and only while there are under 90 construction sites in total.
 - **Walking creeps** no longer drop road sites in planned rooms. Rooms without a plan keep the old behavior.
+- **No tunnels:** a road on a wall tile costs 150x a plain road to build and maintain. Such tiles are never routed through, built, kept or repaired (towers, workers, helpers), in any room, so existing tunnels decay away.
 - `Memory.settings.roadCleanup = true` removes up to 20 off-plan roads per pass instead of waiting for decay (not while under attack).
 - `Memory.settings.roadPlanning = false` turns the system off.
 

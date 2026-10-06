@@ -128,6 +128,7 @@ test('three-spawn room runs management once, shares budgets and survives interru
     g.Game.structures.tower = { id: 'tower', room, structureType: g.STRUCTURE_TOWER };
     g.Game.rooms.A = room;
     g.Game.getObjectById = id => g.Game.spawns[id] || null;
+    g.Game.map.getRoomTerrain = () => ({ get: () => 0 });   // every owned room is base-planned now
     const main = h.load('main');
     g.Game.time = 30;
     main.loop();

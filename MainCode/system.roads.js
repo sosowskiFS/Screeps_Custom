@@ -17,6 +17,7 @@
 // Tile sets are packed one character per tile (x*50+y offset into printable range).
 const runtimeCache = require('runtime.cache');
 const governor = require('runtime.cpuGovernor');
+const baseBuilder = require('base.builder');
 
 const PLAN_INTERVAL = 5000;
 const BUILD_INTERVAL = 1000;
@@ -58,8 +59,18 @@ function hasPlan(roomName) {
     return !!(Memory.roadPlan && Memory.roadPlan[roomName]);
 }
 
-// Should the road at x,y be kept (repaired / built)? Rooms without a plan keep everything.
+// Roads on wall tiles (tunnels) cost 150x a plain road to build and maintain: never planned,
+// built or repaired anywhere, so existing ones decay away.
+const terrains = Object.create(null);   // heap: terrain never changes
+function isTunnel(roomName, x, y) {
+    const terrain = terrains[roomName] || (terrains[roomName] = Game.map.getRoomTerrain(roomName));
+    return (terrain.get(x, y) & TERRAIN_MASK_WALL) !== 0;
+}
+
+// Should the road at x,y be kept (repaired / built)? Rooms without a plan keep everything
+// except tunnels.
 function isPriority(roomName, x, y) {
+    if (isTunnel(roomName, x, y)) return false;
     const set = planSet(roomName);
     return !set || set.has(x * 50 + y);
 }
@@ -87,6 +98,8 @@ function planRoom(room) {
     for (const structure of structures) {
         const { x, y } = structure.pos;
         if (structure.structureType === STRUCTURE_ROAD) {
+            // Tunnels are not routed through (they would be kept and repaired).
+            if (terrain.get(x, y) & TERRAIN_MASK_WALL) continue;
             if (costs.get(x, y) !== 0xff) costs.set(x, y, ROAD_COST);
             roadTiles.push(structure);
         } else if (structure.structureType !== STRUCTURE_CONTAINER &&
@@ -117,6 +130,10 @@ function planRoom(room) {
     }
     for (const road of roadTiles) {
         if (nearCore[road.pos.x * 50 + road.pos.y]) priority.add(road.pos.x * 50 + road.pos.y);
+    }
+    // The base layout's own roads (lattice, lab stamp, core access) are always kept.
+    for (const tile of baseBuilder.roadTiles(room.name)) {
+        if (!(terrain.get((tile / 50) | 0, tile % 50) & TERRAIN_MASK_WALL)) priority.add(tile);
     }
 
     // Routes from the anchor.
@@ -151,6 +168,7 @@ function planRoom(room) {
         for (const step of result.path) {
             if (step.roomName !== room.name) continue;
             if (step.x <= 0 || step.x >= 49 || step.y <= 0 || step.y >= 49) continue; // exits can't hold roads
+            if (terrain.get(step.x, step.y) & TERRAIN_MASK_WALL) continue;            // never a tunnel
             const index = step.x * 50 + step.y;
             priority.add(index);
             routes.add(index);
@@ -219,4 +237,4 @@ function run() {
     }
 }
 
-module.exports = { run, planRoom, buildMissing, cleanup, isPriority, hasPlan, pack, unpack };
+module.exports = { run, planRoom, buildMissing, cleanup, isPriority, isTunnel, hasPlan, pack, unpack };

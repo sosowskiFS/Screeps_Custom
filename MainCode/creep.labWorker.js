@@ -2,6 +2,7 @@ const speech = require('creep.speech');
 const { operatorPresent } = require('creep.baseOp');
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
 const labPlanner = require('system.labs');
+const baseMigrate = require('base.migrate');
 /*
 LabWorker breakpoint reference (overflow + notable thresholds)
 
@@ -46,6 +47,14 @@ var creep_labWorker = {
 
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'labWorkerNearDeath') {
             creep.memory.priority = 'labWorkerNearDeath';
+        }
+
+        // Base migration: empty the terminal/factory/lab about to be moved into the storage first.
+        const evacuateId = baseMigrate.evacuationTarget(roomName);
+        if (evacuateId && evacuate(creep, Game.getObjectById(evacuateId), storage)) {
+            debugSay(creep, "evac");
+            handleMovementCoordination(creep);
+            return;
         }
 
         // A full scan just found nothing to do: stay out of the way and rescan later.
@@ -400,6 +409,27 @@ function handleFactoryOverflow(creep, terminal, storage) {
         clearTravelMemory(creep);
     }
 
+    return true;
+}
+
+// Carry everything out of `target` into the storage, one load at a time. False when there is
+// nothing left to move (or nowhere to put it).
+function evacuate(creep, target, storage) {
+    if (!target || !storage || storage.store.getFreeCapacity() <= 0) return false;
+    clearInstructions(creep);
+    creep.memory.idleUntil = undefined;
+    const carried = Object.keys(creep.store).find(res => creep.store[res] > 0);
+    if (carried) {
+        if (creep.transfer(storage, carried) == ERR_NOT_IN_RANGE) {
+            creep.travelTo(storage, { maxRooms: 1, ignoreRoads: true });
+        }
+        return true;
+    }
+    const resource = Object.keys(target.store).find(res => target.store[res] > 0);
+    if (!resource) return false;
+    if (creep.withdraw(target, resource) == ERR_NOT_IN_RANGE) {
+        creep.travelTo(target, { maxRooms: 1, ignoreRoads: true });
+    }
     return true;
 }
 

@@ -1,4 +1,5 @@
 const runtimeCache = require('runtime.cache');
+const roads = require('system.roads');
 var creep_Helper = {
     run: function(creep) {
 
@@ -194,7 +195,9 @@ var creep_Helper = {
                     creep.memory.currentState = 1;
                 } else {
                     let someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
-                    if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 800)) {
+                    // Never pour energy into a tunnel (road on a wall tile).
+                    if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 800) &&
+                        !(someStructure[0].structureType == STRUCTURE_ROAD && roads.isTunnel(creep.room.name, creep.pos.x, creep.pos.y))) {
                         creep.repair(someStructure[0]);
                     }
                 }
