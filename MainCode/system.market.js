@@ -13,6 +13,7 @@ const FEE = 0.05;                 // MARKET_FEE
 const TICK = 0.001;               // price step used to undercut / outbid
 const RAISE_MIN_FRACTION = 0.01;  // only pay the fee to raise a price by at least 1%
 const MIN_COMPETITOR = 100;       // ignore crumbs of compounds when pricing (pixels/unlocks: 1)
+const DEPTH_FRACTION = 0.25;      // competing volume that sets our price: 25% of what one of our orders offers
 const FLOOR_FRACTION = 0.7;       // never list below 70% of the recent average price
 const MIN_SELL_PRICE = 0.5;       // absolute floor for compounds (previous behaviour)
 const HISTORY_TTL = 1000;         // ticks between Game.market.getHistory refreshes
@@ -77,24 +78,53 @@ function round(price) {
     return Math.round(price * 1000) / 1000;
 }
 
-// Ask price: just under the cheapest other seller, never under the floor. Without competition
-// keep the current price (or open at the reference price).
-function sellPrice(resource, minAmount, absoluteFloor, current) {
-    const ref = referencePrice(resource);
-    const floor = Math.max(absoluteFloor, ref ? ref * FLOOR_FRACTION : 0);
-    const low = lowestPrice(competitors(resource, ORDER_SELL, minAmount));
-    if (low === Infinity) return round(Math.max(floor, current || ref || floor));
-    return round(Math.max(floor, low - TICK));
+// Price level of the competition that matters for an order of `volume`. Other sellers' orders
+// are walked cheapest first and the level is where their combined amount reaches
+// DEPTH_FRACTION of our volume. A token order (500 units against our 40,000) placed a tick
+// under us to drag our price down is skipped: buyers clear it in one deal and then still
+// pay our price. Infinity when nobody offers meaningful volume.
+function competitiveLevel(resource, minAmount, volume) {
+    const orders = competitors(resource, ORDER_SELL, minAmount).sort((a, b) => a.price - b.price);
+    const needed = Math.max(minAmount, (volume || 0) * DEPTH_FRACTION);
+    let depth = 0;
+    for (const order of orders) {
+        depth += order.amount;
+        if (depth >= needed) return order.price;
+    }
+    return Infinity;
 }
 
-// Move an order to `target`. Cuts are free; raises cost FEE x increase x remaining, so only
-// when the gain is worth an intent and the credits are there.
-function reprice(order, target) {
+// Ask price for an order of `volume`: just under the competition that matters, never under the
+// floor. Without meaningful competition: the current price, or the recent average if that is
+// higher (recovers from a price dragged down by bait orders).
+function sellPrice(resource, minAmount, absoluteFloor, current, volume) {
+    const ref = referencePrice(resource);
+    const floor = Math.max(absoluteFloor, ref ? ref * FLOOR_FRACTION : 0);
+    const level = competitiveLevel(resource, minAmount, volume);
+    if (level === Infinity) return round(Math.max(floor, current || 0, ref || 0));
+    return round(Math.max(floor, level - TICK));
+}
+
+// Credits that raises may spend this run; shared so several orders cannot each pass the check
+// against the same balance. Keeps CREDIT_RESERVE for unlocks and listing fees.
+function raiseBudget() {
+    return { credits: Game.market.credits - CREDIT_RESERVE };
+}
+
+// Move an order to `target`. Cuts are free; raises cost FEE x increase x remaining (on a 40,000
+// order a +400 raise is 800,000 credits), so only when the gain is worth an intent and the
+// budget covers it.
+function reprice(order, target, budget) {
     const diff = round(target - order.price);
     if (diff === 0) return false;
     if (diff > 0) {
         if (diff < order.price * RAISE_MIN_FRACTION) return false;
-        if (Game.market.credits < diff * order.remainingAmount * FEE) return false;
+        const fee = diff * order.remainingAmount * FEE;
+        const available = budget ? budget.credits : Game.market.credits - CREDIT_RESERVE;
+        if (available < fee) return false;
+        if (Game.market.changeOrderPrice(order.id, target) !== OK) return false;
+        if (budget) budget.credits -= fee;
+        return true;
     }
     return Game.market.changeOrderPrice(order.id, target) === OK;
 }
@@ -164,7 +194,7 @@ function buyCpuUnlocks() {
 function sellPixels() {
     const owned = Game.resources[PIXEL] || 0;
     const order = myOrders(PIXEL, ORDER_SELL)[0];
-    const ask = sellPrice(PIXEL, 1, 0, order && order.price);
+    const ask = sellPrice(PIXEL, 1, 0, order && order.price, order ? order.remainingAmount : owned);
     if (!(ask > 0)) return;
 
     // A bid close to our ask: sell into it now instead of waiting.
@@ -177,7 +207,7 @@ function sellPixels() {
     }
 
     if (order) {
-        reprice(order, ask);
+        reprice(order, ask, raiseBudget());
         if (owned - order.remainingAmount >= PIXEL_MIN_LOT) {
             Game.market.extendOrder(order.id, owned - order.remainingAmount);
         }
@@ -189,12 +219,22 @@ function sellPixels() {
 // Surplus T3 compounds above the planner's keep level, listed from the room holding the most.
 function sellCompounds() {
     const stock = labPlanner.empireStock();
+    const budget = raiseBudget();
     for (const resource of labPlanner.SELLABLE) {
         const orders = myOrders(resource, ORDER_SELL);
         const surplus = labPlanner.surplus(resource, stock);
         if (orders.length) {
-            const ask = sellPrice(resource, MIN_COMPETITOR, MIN_SELL_PRICE, orders[0].price);
-            for (const order of orders) reprice(order, ask);
+            // Volume of our biggest order: our orders sell one at a time, cheapest first.
+            let volume = 0;
+            let current = 0;
+            for (const order of orders) {
+                volume = Math.max(volume, order.remainingAmount);
+                current = Math.max(current, order.price);
+            }
+            const ask = sellPrice(resource, MIN_COMPETITOR, MIN_SELL_PRICE, current, volume);
+            // Smallest first: cheapest raises, so a short budget still moves the most orders.
+            orders.sort((a, b) => a.remainingAmount - b.remainingAmount);
+            for (const order of orders) reprice(order, ask, budget);
             continue;
         }
         if (surplus < 2000) continue;
@@ -206,8 +246,9 @@ function sellCompounds() {
         }
         const amount = room ? Math.min(surplus, room.terminal.store[resource] || 0) : 0;
         if (amount < 1000) continue;
-        const ask = sellPrice(resource, MIN_COMPETITOR, MIN_SELL_PRICE);
-        if (Game.market.credits >= ask * amount * FEE) {
+        const ask = sellPrice(resource, MIN_COMPETITOR, MIN_SELL_PRICE, 0, amount);
+        if (budget.credits >= ask * amount * FEE) {
+            budget.credits -= ask * amount * FEE;
             Game.market.createOrder({ type: ORDER_SELL, resourceType: resource, price: ask, totalAmount: amount, roomName: room.name });
         }
     }
@@ -237,4 +278,4 @@ function handleCPUUnlocking() {
     }
 }
 
-module.exports = { handleMarketOperations, handleCPUUnlocking, sellPrice, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice };
+module.exports = { handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice };

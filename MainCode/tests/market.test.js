@@ -38,7 +38,7 @@ test('repricing: cuts are free, raises only when worth the fee', () => {
     m.reprice({ id: 'o', price: 2, remainingAmount: 1000 }, 2.01);   // +0.5%: not worth an intent
     m.reprice({ id: 'o', price: 2, remainingAmount: 1000 }, 2.5);    // fee 25 credits, have 1
     assert.deepEqual(plain(calls), [['price', 'o', 1.5]]);
-    const rich = market({ credits: 100 });
+    const rich = market({ credits: 5000 + 100 });   // the credit reserve is never spent on raises
     rich.m.reprice({ id: 'o', price: 2, remainingAmount: 1000 }, 2.5);
     assert.deepEqual(plain(rich.calls), [['price', 'o', 2.5]]);
 });
@@ -90,4 +90,44 @@ test('CPU unlock is not attempted (or notified) without a token', () => {
     g.Game.resources.cpuUnlock = 2;
     m.handleCPUUnlocking();
     assert.equal(unlocks, 1);
+});
+
+// Order books from the live market: our rooms at the shared price, plus a token 500-unit order
+// placed a tick above (it had dragged us down to just under it).
+const XUH2O_BOOK = (res = 'XUH2O') => {
+    const ours = ['E13N22', 'E28N31', 'E23N39', 'E23N28', 'E42N31', 'E12N15', 'E22N34', 'E8N14']
+        .map((room, i) => sell('mine' + i, 2207.72, 40000 + i * 100, res));
+    return { ours, orders: [...ours, sell('bait', 2207.721, 500, res), sell('real', 2590.664, 20133, res)] };
+};
+
+test('token orders far below our volume do not set our price; real depth does', () => {
+    const { ours, orders } = XUH2O_BOOK();
+    const { m } = market({ orders, mine: Object.fromEntries(ours.map(o => [o.id, o])) });
+    assert.equal(m.competitiveLevel('XUH2O', 100, 40000), 2590.664, '500 units against 40,000 are ignored');
+    assert.equal(m.sellPrice('XUH2O', 100, 0.5, 2207.72, 40000), 2590.663);
+    assert.equal(m.competitiveLevel('XUH2O', 100, 1000), 2207.721, 'a small seller of ours would still compete with it');
+
+    // Many small orders that add up to real volume do count.
+    const crowd = Array.from({ length: 30 }, (_, i) => sell('c' + i, 2300 + i, 500, 'XUH2O'));
+    const crowded = market({ orders: [...ours, ...crowd], mine: Object.fromEntries(ours.map(o => [o.id, o])) });
+    assert.equal(crowded.m.competitiveLevel('XUH2O', 100, 40000), 2319, '20 x 500 reaches 25% of 40,000');
+});
+
+test('no meaningful competition: hold the price (XKHO2 vs a 5,000 order), or recover to the average', () => {
+    const ours = sell('mine', 2893.349, 40848, 'XKHO2');
+    const { m } = market({ orders: [ours, sell('small', 2893.35, 5000, 'XKHO2')], mine: { mine: ours } });
+    assert.equal(m.sellPrice('XKHO2', 100, 0.5, 2893.349, 40848), 2893.349);
+    const dragged = market({ orders: [ours, sell('small', 2000.001, 500, 'XKHO2')], mine: { mine: ours },
+        history: { XKHO2: [{ avgPrice: 2900, volume: 100 }] } });
+    assert.equal(dragged.m.sellPrice('XKHO2', 100, 0.5, 2000, 40848), 2900);
+});
+
+test('raises across many orders share one credit budget, smallest orders first', () => {
+    const { ours, orders } = XUH2O_BOOK('RESOURCE_CATALYZED_UTRIUM_ACID');
+    // ~383 x 40,000 x 5% = ~766k per order: credits for two raises plus the reserve.
+    const { m, calls } = market({ orders, mine: Object.fromEntries(ours.map(o => [o.id, o])), credits: 5000 + 1540000 });
+    m.sellCompounds();
+    const raised = plain(calls).filter(c => c[0] === 'price');
+    assert.deepEqual(raised.map(c => c[1]), ['mine0', 'mine1'], 'only what the budget covers');
+    assert.ok(raised.every(c => c[2] === 2590.663));
 });
