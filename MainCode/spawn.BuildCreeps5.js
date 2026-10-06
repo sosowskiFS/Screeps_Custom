@@ -1,4 +1,5 @@
 const runtimeCache = require('runtime.cache');
+const { operatorPresent } = require('creep.baseOp');
 const defenseWatch = require('defense.watch');
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
@@ -48,6 +49,12 @@ var spawn_BuildCreeps5 = {
         if (thisRoom.energyCapacityAvailable >= 1550) {
             upgraderMax--;
         }
+
+        // Salvager on demand: tombstones or dropped resources worth collecting, or a weak
+        // attack being prepared for (roomsPrepSalvager).
+        if (salvagerMax > 0 && !this.hasSalvage(thisRoom)) {
+            salvagerMax = 0;
+        }
         
         // Apply room-specific configurations
         this.applyRoomConfigurations(roomConfig, thisRoom, creepCounts);
@@ -65,7 +72,7 @@ var spawn_BuildCreeps5 = {
             repairMax = 3;
             upSupplierMax = 0;
             supplierMax = 1;
-            if (Game.flags[thisRoom.name + "RoomOperator"]) {
+            if (operatorPresent(thisRoom.name)) {
                 //The RoomOperator is robust enough to make up for multiple roles
                 if (pNeedDist) {
                     distributorMax = 1;
@@ -256,7 +263,7 @@ var spawn_BuildCreeps5 = {
                 Memory.creepInQue.splice(purgeIDs[j], 4);
             }
 
-            if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !Game.flags[thisRoom.name + "RoomOperator"]) {
+            if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !operatorPresent(thisRoom.name)) {
                 prioritizedRole = 'mule';
                 storageID = thisRoom.storage.id;
                 if (strLinks.length >= 4) {
@@ -335,7 +342,7 @@ var spawn_BuildCreeps5 = {
                     global.setSpawnBusy(spawn);
                     let minePower = 5 * HARVEST_POWER;
                     let minerConfig = [MOVE, MOVE, MOVE, WORK, WORK, WORK, WORK, WORK, CARRY];
-                    if (Game.flags[thisRoom.name + "RoomOperator"] && regenPower > 0) {
+                    if (operatorPresent(thisRoom.name) && regenPower > 0) {
                         //source totals per level (300ticks) - 4000, 5000, 6000, 7000, 8000
                         switch (regenPower) {
                         case 1:
@@ -485,7 +492,14 @@ var spawn_BuildCreeps5 = {
                 } else if (prioritizedRole == 'repair') {
                     global.setSpawnBusy(spawn);
                     let repairConfig = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
-                    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
+                    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3300) {
+                        // Full 50 parts: 16 WORK / 17 CARRY / 17 MOVE. Three of these match four of the
+                        // old 42-part (12 WORK) body, so the top tier needs one creep fewer.
+                        repairConfig = [];
+                        for (let i = 0; i < 16; i++) repairConfig.push(WORK);
+                        for (let i = 0; i < 17; i++) repairConfig.push(CARRY);
+                        for (let i = 0; i < 17; i++) repairConfig.push(MOVE);
+                    } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 450000 && thisRoom.energyCapacityAvailable >= 3000) {
                         repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 300000 && thisRoom.energyCapacityAvailable >= 1800) {
                         repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -507,7 +521,7 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'supplier') {
                     global.setSpawnBusy(spawn);
-                    let supplierConfig = [MOVE, CARRY, CARRY, CARRY];
+                    let supplierConfig = this.supplierBody(thisRoom.energyCapacityAvailable);
                     let configCost = calculateConfigCost(supplierConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -526,7 +540,10 @@ var spawn_BuildCreeps5 = {
                 } else if (prioritizedRole == 'distributor') {
                     global.setSpawnBusy(spawn);
                     let distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE];
-                    if (thisRoom.storage && thisRoom.energyCapacityAvailable >= 1200) {
+                    if (thisRoom.storage && thisRoom.energyCapacityAvailable >= 2400) {
+                        // 32 CARRY / 16 MOVE (1600 capacity): a full RCL8 refill in ~8 trips instead of ~13.
+                        distributorConfig = this.distributorBody(thisRoom.energyCapacityAvailable);
+                    } else if (thisRoom.storage && thisRoom.energyCapacityAvailable >= 1200) {
                         distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     } else if (thisRoom.controller.level > 7) {
                         distributorConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
@@ -766,7 +783,7 @@ var spawn_BuildCreeps5 = {
                     }
                 }
             }
-        } else if (mules.length == 0 && !Game.flags[thisRoom.name + "RoomOperator"]) {
+        } else if (mules.length == 0 && !operatorPresent(thisRoom.name)) {
             var blockedRole = '';
             var blockedSubRole = '';
 
@@ -988,7 +1005,7 @@ Object.assign(spawn_BuildCreeps5, {
         }
 
         // Power creep adjustments
-        if (Game.flags[roomName + "RoomOperator"]) {
+        if (operatorPresent(roomName)) {
             this.configurePowerCreepRoom(config, roomName, storage);
         }
     },
@@ -1000,21 +1017,17 @@ Object.assign(spawn_BuildCreeps5, {
         config.muleMax = 0;
         config.repairMax = 2;
 
-        // Check power creep abilities
-        for (let pName in Game.powerCreeps) {
-            const pCreep = Game.powerCreeps[pName];
-            if (pCreep.memory.homeRoom === roomName) {
-                // Check extension fill capacity
-                if (!pCreep.powers[PWR_OPERATE_EXTENSION] || 
-                    pCreep.powers[PWR_OPERATE_EXTENSION].level < 5) {
-                    config.pNeedDist = true;
-                    config.distributorMax = 1;
-                }
-                // Check regen source strength
-                if (pCreep.powers[PWR_REGEN_SOURCE]) {
-                    config.regenPower = pCreep.powers[PWR_REGEN_SOURCE].level;
-                }
-                break;
+        // Abilities of the operator actually in the room (only called when one is present).
+        const pCreep = operatorPresent(roomName);
+        if (pCreep) {
+            // Below level 5, OPERATE_EXTENSION fills only part of the extensions: keep a distributor.
+            if (!pCreep.powers[PWR_OPERATE_EXTENSION] || pCreep.powers[PWR_OPERATE_EXTENSION].level < 5) {
+                config.pNeedDist = true;
+                config.distributorMax = 1;
+            }
+            // Regen source strength sizes the miners.
+            if (pCreep.powers[PWR_REGEN_SOURCE]) {
+                config.regenPower = pCreep.powers[PWR_REGEN_SOURCE].level;
             }
         }
 
@@ -1028,7 +1041,8 @@ Object.assign(spawn_BuildCreeps5, {
                 config.repairMax = 0;
                 config.upgraderMax = 0;
             } else if (storage.store[RESOURCE_ENERGY] >= 700000) {
-                config.repairMax = 4;
+                // 3 x 16 WORK (50-part repairers) = the old 4 x 12 WORK.
+                config.repairMax = 3;
             }
         }
 
@@ -1051,7 +1065,11 @@ Object.assign(spawn_BuildCreeps5, {
         }
         if (energy >= 225000) {
             config.upgraderMax++;
-            config.muleMax++;
+            // A second mule is only useful for building; otherwise it mostly upgraded as an
+            // energy sink. Skip it and let storage grow into the 525k upgrader tier instead.
+            if (storage.room && runtimeCache.find(storage.room, FIND_CONSTRUCTION_SITES).length) {
+                config.muleMax++;
+            }
         }
         if (energy >= 375000) {
             config.repairMax++;
@@ -1178,6 +1196,36 @@ Object.assign(spawn_BuildCreeps5, {
             miner.memory.ignoreTravel = false;
             miner.memory.atSpot = false;
         }
+    },
+
+    // Tombstones/drops worth a salvager trip, or a weak attack whose drops will need collecting.
+    hasSalvage: function(room) {
+        if (Memory.roomsPrepSalvager.indexOf(room.name) !== -1) return true;
+        for (const tombstone of runtimeCache.find(room, FIND_TOMBSTONES)) {
+            if (tombstone.store.getUsedCapacity() >= 200) return true;
+        }
+        let dropped = 0;
+        for (const resource of runtimeCache.find(room, FIND_DROPPED_RESOURCES)) dropped += resource.amount;
+        return dropped >= 1000;
+    },
+
+    // Supplier: 2 CARRY per MOVE (full speed on roads), up to 400 capacity. The old fixed
+    // 150-capacity body needed ~7 withdraw/transfer round trips per tower refill.
+    supplierBody: function(energyCapacity) {
+        const units = Math.max(1, Math.min(4, Math.floor(energyCapacity / 150)));
+        const body = [];
+        for (let i = 0; i < units; i++) body.push(CARRY, CARRY);
+        for (let i = 0; i < units; i++) body.push(MOVE);
+        return body;
+    },
+
+    // Distributor: 2 CARRY per MOVE up to 32/16 (48 parts, 1600 capacity).
+    distributorBody: function(energyCapacity) {
+        const units = Math.max(1, Math.min(16, Math.floor(energyCapacity / 150)));
+        const body = [];
+        for (let i = 0; i < units; i++) body.push(CARRY, CARRY);
+        for (let i = 0; i < units; i++) body.push(MOVE);
+        return body;
     },
 
     // Build optimal defender configuration

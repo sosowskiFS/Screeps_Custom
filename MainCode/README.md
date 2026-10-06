@@ -88,6 +88,36 @@ Role-level CPU behavior worth knowing when debugging:
 
 When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its auto flags) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.
 
+## Room staffing (RCL5+)
+
+Counts are kept low by putting work into bodies, not creeps:
+- Upgraders turn extra count into 12-WORK modules on one body (`GetUpgraderConfig`), so a higher upgrader count usually means larger upgraders, not more of them.
+- Repairers use a full 50-part body (16 WORK / 17 CARRY / 17 MOVE) once storage is at 450k+ and the room can afford it. Operator rooms with 700k+ storage staff 3 of them, matching the old 4 × 12 WORK.
+- The distributor (32 CARRY / 16 MOVE) and supplier (8 CARRY / 4 MOVE) scale with room energy, for fewer round trips per refill.
+- The second mule (storage ≥ 225k) is staffed only while there are construction sites.
+- The salvager (RCL5-7) is staffed only when there's something to collect: tombstones with ≥ 200 resources, ≥ 1,000 dropped resources, or a weak attack in progress (`roomsPrepSalvager`).
+
+Rooms below RCL5 are limited by spawn energy rather than creep count. Their worker bodies already use nearly all available energy, so they keep the existing counts.
+
+## Power creep (base operator)
+
+`creep.baseOp.js` runs one job at a time from a priority list. Conditions are checked lazily, and an idle operator re-checks every 5 ticks (every tick while the room is under attack):
+
+1. `OPERATE_TOWER` (under attack)
+2. `OPERATE_EXTENSION`
+3. `FILL_SPAWNS` (level-5 extensions: only when *spawns* lack energy)
+4. `OPERATE_SPAWN`
+5. `REGEN_SOURCE`
+6. `OPERATE_LAB`
+7. `OPERATE_POWER`
+8. `FILL_POWER`
+
+With no job it does busywork: terminal, labs, factory, overflow link to storage, power spawn/nuker. It rests 5 ticks when nothing needs energy.
+
+Intents are never doubled. Ops are generated only on ticks no other power was used, and a finished job hands over to the next one on the following tick. Armed hostiles in reach are handled last, so they override the job's movement: hold position on a rampart, else move to the nearest rampart without crossing hostile reach, else flee every threat. Renewal is postponed while threatened unless TTL < 60.
+
+Spawn staffing (`configurePowerCreepRoom`, mule/miner rules) and the lab worker's switch to distributor use `operatorPresent(room)`: the room's operator spawned there with TTL > 100. The `RoomOperator` flag alone no longer counts, so a dead or deleted operator no longer leaves the room without haulers.
+
 ## Room defense
 
 `defense.watch.js` keeps a small per-room record (`Memory.defenseWatch`) of how hostiles use the room. It tracks entries, ticks present, and ticks with every hostile within 3 tiles of an exit. A room is **draining** when hostiles stay at the border at least 80% of the time and have re-entered 3+ times or loitered 50+ ticks. A hostile that pushes deeper, or uses WORK/ATTACK against a wall or our structure, ends drain mode immediately.

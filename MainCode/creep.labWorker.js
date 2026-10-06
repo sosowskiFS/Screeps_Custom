@@ -1,4 +1,5 @@
 const speech = require('creep.speech');
+const { operatorPresent } = require('creep.baseOp');
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
 const runtimeCache = require('runtime.cache');
 /*
@@ -153,7 +154,7 @@ var creep_labWorker = {
             }
         }
 
-        if (!foundWork && !Game.flags[roomName + "RoomOperator"]) {
+        if (!foundWork && !operatorPresent(roomName)) {
             creep.memory.previousPriority = 'labWorker';
             creep.memory.priority = 'distributor';
             creep.memory.hasDistributed = false;

@@ -181,4 +181,8 @@ function idle(creep) {
     }
 }
 
+// Shared with the power creep (taking cover on ramparts).
+creep_combat.rampartPosts = rampartPosts;
+creep_combat.exposeThreatZones = exposeThreatZones;
+
 module.exports = creep_combat;
