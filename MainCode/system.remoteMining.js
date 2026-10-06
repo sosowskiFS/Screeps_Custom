@@ -179,6 +179,33 @@ function interestRooms() {
     return rooms;
 }
 
+// ---------------------------------------------------------------- flag placement
+
+// RoomPosition.createFlag throws in rooms without vision. Rooms waiting for a flag are queued
+// here (heap; re-queued by the next applyPlan after a global reset) and get vision from the
+// observer or the scout; run() places their flags on the first tick they are visible.
+const pendingFlags = Object.create(null); // roomName -> Set(homeName)
+
+function queueFlag(roomName, homeName) {
+    (pendingFlags[roomName] || (pendingFlags[roomName] = new Set())).add(homeName);
+}
+
+function placeFlag(x, y, roomName, name, homeName) {
+    if (!Game.rooms[roomName]) {
+        queueFlag(roomName, homeName);
+        return false;
+    }
+    return new RoomPosition(x, y, roomName).createFlag(name) === name;
+}
+
+function pendingRoomsFor(homeName) {
+    const rooms = [];
+    for (const roomName in pendingFlags) {
+        if (pendingFlags[roomName].has(homeName)) rooms.push(roomName);
+    }
+    return rooms;
+}
+
 // ---------------------------------------------------------------- planning
 
 function muleCapacity(energyCapacity) {
@@ -310,14 +337,14 @@ function applyPlan(home) {
         if (!covered.has(flagKey(entry.r, entry.x, entry.y))) {
             const name = freeSlot('FarMining');
             if (!name) break;
-            if (new RoomPosition(entry.x, entry.y, entry.r).createFlag(name) === name) {
+            if (placeFlag(entry.x, entry.y, entry.r, name, home.name)) {
                 auto[name] = entry.id;
                 covered.add(flagKey(entry.r, entry.x, entry.y));
             }
         }
         if (!guarded.has(entry.r)) {
             const name = freeSlot('FarGuard');
-            if (name && new RoomPosition(25, 25, entry.r).createFlag(name) === name) {
+            if (name && placeFlag(25, 25, entry.r, name, home.name)) {
                 auto[name] = 'room:' + entry.r;
                 guarded.add(entry.r);
             }
@@ -342,7 +369,8 @@ function scoutTargets(homeName) {
     for (const roomName of nearbyRooms(homeName)) {
         const record = intel[roomName];
         const unknown = !record || Game.time - record.t >= INTEL_STALE;
-        if ((unknown && !(record && record.o && record.o !== ME)) || needsProbe(roomName)) targets.push(roomName);
+        const awaitingFlag = pendingFlags[roomName] && pendingFlags[roomName].has(homeName);
+        if ((unknown && !(record && record.o && record.o !== ME)) || needsProbe(roomName) || awaitingFlag) targets.push(roomName);
     }
     targets.sort((a, b) => Game.map.getRoomLinearDistance(homeName, a) - Game.map.getRoomLinearDistance(homeName, b));
     return targets;
@@ -364,13 +392,24 @@ function observeRequest(homeName) {
     for (const roomName of nearbyRooms(homeName)) {
         if (needsProbe(roomName)) return roomName;
     }
-    return undefined;
+    const awaiting = pendingRoomsFor(homeName);
+    return awaiting.length ? awaiting[0] : undefined;
 }
 
 // ---------------------------------------------------------------- tick
 
 function run() {
     if (Game.time % 100 === 0) refreshVisibleIntel();
+
+    for (const roomName in pendingFlags) {
+        if (!Game.rooms[roomName]) continue;
+        const homes = pendingFlags[roomName];
+        delete pendingFlags[roomName];
+        for (const homeName of homes) {
+            const home = Game.rooms[homeName];
+            if (home && home.controller && home.controller.my) applyPlan(home);
+        }
+    }
 
     for (const roomName of interestRooms()) {
         const room = Game.rooms[roomName];
@@ -398,5 +437,5 @@ function run() {
 
 module.exports = {
     run, recordIntel, noteIncident, isDisabled, needsProbe, needsScout, scoutTargets, observeRequest,
-    planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE,
+    planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE, pendingRoomsFor,
 };

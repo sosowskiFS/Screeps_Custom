@@ -162,18 +162,18 @@ var creep_farMining = {
                 // Simplified guard flag management - only check every 10 ticks
                 if (Game.time % 10 == 0) {
                     if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100) {
-                        if (targetFlag && !tempTargetFlag) {
-                            targetFlag.pos.createFlag(tempTargetFlagName);
+                        // createFlag needs vision of the flag's room; only remove the original once the
+                        // replacement exists, so a failed swap can never lose the guard flag.
+                        if (targetFlag && !tempTargetFlag && Game.rooms[targetFlag.pos.roomName] &&
+                            targetFlag.pos.createFlag(tempTargetFlagName) === tempTargetFlagName) {
                             targetFlag.remove();
                             var homePosition = new RoomPosition(25, 25, creep.memory.homeRoom);
                             homePosition.createFlag(targetFlagName);
                         }
                     } else if (tempTargetFlag && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) == -1) {
-                        if (tempTargetFlag) {
-                            try {
-                                tempTargetFlag.pos.createFlag(targetFlagName);
-                                tempTargetFlag.remove();
-                            } catch (e) {}
+                        if (Game.rooms[tempTargetFlag.pos.roomName] &&
+                            tempTargetFlag.pos.createFlag(targetFlagName) === targetFlagName) {
+                            tempTargetFlag.remove();
                         }
                     }
                 }

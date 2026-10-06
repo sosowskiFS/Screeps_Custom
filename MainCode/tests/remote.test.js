@@ -21,6 +21,8 @@ function world(extraCost = {}) {
     g.RoomPosition = function (x, y, roomName) {
         this.x = x; this.y = y; this.roomName = roomName;
         this.createFlag = name => {
+            // Like the real engine: flags can only be created in rooms with vision.
+            if (!g.Game.rooms[roomName]) throw new Error('Could not access room ' + roomName);
             if (g.Game.flags[name]) return g.ERR_NAME_EXISTS;
             g.Game.flags[name] = { name, pos: { x, y, roomName }, remove() { delete g.Game.flags[name]; } };
             return name;
@@ -64,6 +66,8 @@ test('flags fill free slots nearest-first, keep manual flags, add one guard per 
     const { g, home, intel, remote } = world({ 'E5N6:20': 30 });
     intel('E6N5', [['a', 10, 10], ['b', 40, 40]]);
     intel('E5N6', [['c', 20, 20]]);
+    g.Game.rooms.E6N5 = { name: 'E6N5' };
+    g.Game.rooms.E5N6 = { name: 'E5N6' };
     // Manual flag already in slot 1 on some other source: untouched, slot skipped.
     g.Game.flags.E5N5FarMining = { name: 'E5N5FarMining', pos: { x: 1, y: 1, roomName: 'E4N5' } };
     remote.planHome(home);
@@ -170,4 +174,24 @@ test('round trips are cached and a large first plan spreads its path searches ov
     assert.equal(searches, 12, 'only the two remaining sources are searched');
     remote.planHome(home);
     assert.equal(searches, 12, 'fully cached');
+});
+
+test('flags for rooms without vision are queued, requested from observer/scout, and placed once visible', () => {
+    const { g, home, intel, remote } = world();
+    g.Game.cpu.bucket = 9000;
+    intel('E6N5', [['a', 10, 10]], { t: 1 });
+    remote.planHome(home);
+    assert.doesNotThrow(() => remote.applyPlan(home), 'no vision: no exception');
+    assert.equal(g.Game.flags.E5N5FarMining, undefined);
+    assert.deepEqual([...remote.pendingRoomsFor('E5N5')], ['E6N5']);
+    assert.ok(remote.scoutTargets('E5N5').includes('E6N5'), 'scout route includes it');
+    assert.equal(remote.observeRequest('E5N5'), 'E6N5', 'observer looks at it');
+
+    // Vision arrives (scout or observer): the next tick places the flags.
+    g.Game.rooms.E6N5 = { name: 'E6N5', find: () => [] };
+    g.Game.rooms.E5N5 = Object.assign(home, { controller: { my: true }, find: () => [] });
+    g.Game.spawns = {};
+    remote.run();
+    assert.deepEqual([g.Game.flags.E5N5FarMining.pos.roomName, g.Game.flags.E5N5FarGuard.pos.roomName], ['E6N5', 'E6N5']);
+    assert.deepEqual([...remote.pendingRoomsFor('E5N5')], []);
 });
