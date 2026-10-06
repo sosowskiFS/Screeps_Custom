@@ -4,6 +4,7 @@ const { getEnergyIndex } = require('spawn.state');
 const { getRoomAtOffset } = require('util.common');
 const spawn_BuildInstruction = require('spawn.BuildInstruction');
 const remoteMining = require('system.remoteMining');
+const governor = require('runtime.cpuGovernor');
 
 function handleRoomOperations(thisRoom) {
     const roomName = thisRoom.name;
@@ -159,7 +160,7 @@ function handleHarasserOperations(thisRoom, observedRoom, roomName, observedRoom
             filter: (creep) => creep.memory.priority === 'harasser'
         });
 
-        if (!existingHarasser && harasserInRoom.length === 0 && Game.cpu.bucket >= 750) {
+        if (!existingHarasser && harasserInRoom.length === 0 && governor.allows('harasser')) {
             // Spawn a harasser to disrupt the reservation
             const spawns = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
                 filter: { structureType: STRUCTURE_SPAWN }

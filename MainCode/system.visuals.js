@@ -103,6 +103,24 @@ function DisplayBoostTotals() {
         strokeWidth: 0.15
     });
 
+    // CPU governor: shown only while it is shedding work (see runtime.cpuGovernor).
+    const governorState = Memory.cpuGov;
+    if (governorState && governorState.shed > 0) {
+        new RoomVisual().rect(36.5, 44.8, 8, 1, {
+            fill: '#9c6a2d',
+            stroke: '#FFFFFF',
+            opacity: 0.15,
+            strokeWidth: 0.15
+        });
+        new RoomVisual().text("CPU SHED " + governorState.shed + " : " + (Math.round(governorState.ema * 10) / 10), 36.7, 45.5, {
+            align: 'left',
+            font: '0.7 Courier New',
+            color: '#ffd38e',
+            stroke: '#000000',
+            strokeWidth: 0.15
+        });
+    }
+
     if (Memory.warMode) {
         new RoomVisual().rect(6.5, 46, 7.1, 1, {
             fill: fillColor,

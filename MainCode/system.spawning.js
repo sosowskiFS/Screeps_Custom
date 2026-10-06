@@ -8,6 +8,7 @@ const spawn_BuildInstruction = require('spawn.BuildInstruction');
 const spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
 const remoteMining = require('system.remoteMining');
 const roomCpu = require('runtime.roomCpu');
+const governor = require('runtime.cpuGovernor');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 
 function handleSpawning() {
@@ -89,7 +90,7 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
         processNormalSpawning(spawn, thisRoom, energyIndex);
     }
 
-    if (!isSpawnBusy(spawn) && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && Game.cpu.bucket >= 1000) {
+    if (!isSpawnBusy(spawn) && thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] <= 900000 && governor.allows('remoteSpawning')) {
         processFarMiningSpawn(spawn, thisRoom, energyIndex, spawnRoleCache);
     }
 

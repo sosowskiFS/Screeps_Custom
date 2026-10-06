@@ -1,4 +1,5 @@
-const { roles, fallback } = require('creep.registry');
+const { roles, fallback, tierOf } = require('creep.registry');
+const governor = require('runtime.cpuGovernor');
 const creep_baseOp = require('creep.baseOp');
 const roomCpu = require('runtime.roomCpu');
 
@@ -13,17 +14,18 @@ function report(kind, name, role, error) {
 }
 
 function handleCreepOperations() {
-    const remoteThrottleActive = Game.cpu.bucket < 1000 && Game.time % 2 === 1;
     const roomsAt5 = new Set(Memory.RoomsAt5 || []);
     // Each creep's CPU is charged to its home room (remote creeps count toward their base).
     const cpu = roomCpu.timer();
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
-        if (!creep.spawning) {
+        // Over budget, the governor thins optional (then economy) creeps on a staggered share of
+        // ticks; essential creeps always run.
+        if (!creep.spawning && governor.shouldRun(name, tierOf(creep))) {
             const home = creep.memory.homeRoom || creep.room.name;
             const run = roles[creep.memory.priority] || fallback;
             try {
-                run(creep, roomsAt5.has(creep.room.name), remoteThrottleActive);
+                run(creep, roomsAt5.has(creep.room.name));
             } catch (error) {
                 report('creep', name, creep.memory.priority, error);
             }

@@ -1,6 +1,7 @@
 // runtime.metrics — Screeps tick subsystem.
 const { DisplayBoostTotals } = require('system.visuals');
 const roomCpu = require('runtime.roomCpu');
+const governor = require('runtime.cpuGovernor');
 
 function updateCPUAverages() {
     //Total Usage - only track overall CPU usage
@@ -9,6 +10,8 @@ function updateCPUAverages() {
     Memory.CPUAverages.TotalCPU.CPU = Memory.CPUAverages.TotalCPU.CPU + ((totalCPU - Memory.CPUAverages.TotalCPU.CPU) / Memory.CPUAverages.TotalCPU.ticks);
     // Per-room averages (creeps by home room + that room's structures).
     roomCpu.updateAverages();
+    // Same reading feeds the CPU governor's moving average and shed level.
+    governor.update(totalCPU);
 }
 
 function cleanupTickMemory() {

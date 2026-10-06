@@ -56,7 +56,7 @@ test('creeps are charged to their home room, including remote creeps in other ro
     const { g, advance } = setup();
     const ran = [];
     const overrides = {
-        'creep.registry': { roles: { work: creep => { ran.push(creep.name); advance(creep.cost); } }, fallback() {} },
+        'creep.registry': { roles: { work: creep => { ran.push(creep.name); advance(creep.cost); } }, fallback() {}, tierOf: () => 'essential' },
         'creep.baseOp': { run() {} },
     };
     // Separate module graph with stubbed roles, sharing this test's Game/Memory.

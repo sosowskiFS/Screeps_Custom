@@ -12,6 +12,7 @@ const minerals = require('system.minerals');
 const construction = require('system.construction');
 const remoteMining = require('system.remoteMining');
 const metrics = require('runtime.metrics');
+const governor = require('runtime.cpuGovernor');
 
 const phases = [
     ['flags', flags.handleGameFlags],
@@ -35,7 +36,8 @@ module.exports.loop = function () {
     spawnState.cleanupSpawnTracking();
     market.handleCPUUnlocking();
     metrics.runPhases(phases);
-    if (Game.cpu.bucket >= 9000) Game.cpu.generatePixel();
+    // Only with a full bucket, nothing shed, CPU comfortably under the limit and no fight on.
+    governor.maybeGeneratePixel();
     metrics.cleanupTickMemory();
     metrics.updateCPUAverages();
 };

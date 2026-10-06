@@ -1,11 +1,13 @@
 const runtimeCache = require('runtime.cache');
+const governor = require('runtime.cpuGovernor');
 function placeRoadOnPath(creep) {
     // Only attempt if we have an active travel path
     if (!creep.memory._trav || !creep.memory._trav.path || creep.memory._trav.path.length === 0) {
         return;
     }
 
-    if (Game.cpu && Game.cpu.bucket < 1000) {
+    // First optional work shed when CPU runs over budget.
+    if (!governor.allows('roads')) {
         return;
     }
 

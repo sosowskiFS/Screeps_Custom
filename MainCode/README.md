@@ -155,6 +155,29 @@ delete Memory.phaseCPU;
 
 Each phase records count, average and maximum CPU. Profiling adds no per-phase CPU reads when disabled. `spawningAndRooms` includes room management and its terminal trading; the `market` phase is empire account-resource trading. Total CPU averaging now includes final dashboard rendering. The visuals setting controls the empire/room dashboards; explicit tower/base debug visualizations and role speech keep their existing controls. Low-energy notifications remain active when dashboards are disabled.
 
+### CPU governor (low-CPU behavior)
+
+`runtime.cpuGovernor.js` replaces the old bucket thresholds (the odd-tick skip at bucket < 1,000, and the 500/750/2,000/3,000 cut-offs). It steers on **average CPU vs. the limit**, not the bucket level:
+- **Average.** `Memory.cpuGov.ema` is a ~100-tick moving average of CPU used per tick.
+- **Shed level.** `shed` (0-3) moves at most one step per 100 ticks: up while the average is over the limit, down once it's under 90% of the limit. Between those it holds, so it can't flip-flop.
+- **Emergency.** A bucket under 500 with no recent pixel jumps straight to 3.
+- **Pixels** are generated only with a full 10,000 bucket, `shed` at 0, the average at or under 90% of the limit, and no room under attack. For 2,000 ticks after a pixel a low bucket is treated as expected, not as an emergency.
+
+| Creep tier | Runs on (of every 4 ticks) at shed 0 / 1 / 2 / 3 |
+|---|---|
+| essential: miners, upgraders, mules, distributors, suppliers, defenders, guards, combat/power roles, young-room workers, keeper-room miners | 4 / 4 / 4 / 4 |
+| economy: far mules/miners/claimers, mineral miners, helpers, scouts | 4 / 4 / 3 / 2 |
+| optional: repairers, lab worker, controller supplier, scrapers, salvagers, patrols, harassers | 4 / 3 / 2 / 1 |
+
+Thinned creeps are staggered by name so each tick sheds about the same share. Some creeps are promoted to essential when their work is urgent: repairers while the room is under attack, the lab worker while boosts are staged (`WarBoosts`/`RunningAssault`), and the controller supplier when the controller is under 20,000 ticks from downgrading.
+
+Features stop as the shed level rises:
+- **Shed 1:** road placement and remote-hauler re-scans stop.
+- **Shed 2:** scouting, harasser spawns and remote planning stop.
+- **Shed 3:** remote spawning stops.
+
+Planning and scouting also wait for a 1,000 bucket so a spike can't exceed the tick limit. While shedding, the dashboard shows `CPU SHED n : average` above the TIME box.
+
 ### Per-room CPU
 
 `runtime.roomCpu.js` charges CPU to the room that owns the work and keeps `Memory.roomCPU[room] = { a, n, l }` (average, samples, last tick charged):

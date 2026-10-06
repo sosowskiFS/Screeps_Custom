@@ -14,6 +14,7 @@
 const runtimeCache = require('runtime.cache');
 const combatIntel = require('combat.intel');
 const { getRoomAtOffset } = require('util.common');
+const governor = require('runtime.cpuGovernor');
 
 const ME = 'Montblanc';
 const REMOTE_RANGE = 2;            // rooms (linear) from home considered for mining
@@ -344,7 +345,7 @@ function hasObserver(homeName) {
 
 // Called from spawning. Homes with an observer never need scouts.
 function needsScout(home) {
-    if (!home.storage || hasObserver(home.name) || !enabled(home.name) || Game.cpu.bucket < 2000) return false;
+    if (!home.storage || hasObserver(home.name) || !enabled(home.name) || !governor.allows('scouting')) return false;
     return scoutTargets(home.name).length > 0;
 }
 
@@ -367,7 +368,7 @@ function run() {
         if (room) inspectRoom(room);
     }
 
-    if (Game.cpu.bucket < 3000) return;
+    if (!governor.allows('planning')) return;
     const homes = homeRooms();
     const plans = mem('remotePlan');
     let planned = false;

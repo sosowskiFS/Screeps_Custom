@@ -25,7 +25,9 @@ test('all role aliases match legacy dispatch across bucket, war, RCL, HEAL and s
     const before = setup(true), after = setup(false);
     const roleNames = Object.keys(after.load('creep.registry').roles).concat(['mule', 'builder', 'harvester', 'distributor', 'mineralMiner', 'unknown', undefined]);
     let scenarios = 0;
-    for (const role of roleNames) for (const bucket of [400, 749, 750, 999, 1000, 9000])
+    // Low-bucket odd-tick throttling was replaced by the CPU governor (tests/governor.test.js);
+    // without throttling, dispatch must still match legacy exactly.
+    for (const role of roleNames) for (const bucket of [1000, 5000, 9000])
     for (const time of [1, 2]) for (const war of [false, true]) for (const at5 of [false, true])
     for (const heal of [0, 1]) for (const spawning of [false, true]) {
         const results = [];
