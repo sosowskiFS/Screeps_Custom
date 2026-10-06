@@ -2,6 +2,7 @@ const runtimeCache = require('runtime.cache');
 // system.flags â€” Screeps tick subsystem.
 const { memCheck } = require('runtime.memory');
 const tool_generateBase = require('tool.generateBase');
+const roomCpu = require('runtime.roomCpu');
 
 function handleGameFlags() {
     // Cache flags to avoid repeated Game.flags lookups
@@ -144,6 +145,7 @@ function handleGameFlags() {
         Memory.CPUAverages.SpawnCPU.ticks = 0;
         Memory.CPUAverages.SpawnCPU.CPU = 0;
         if (resetAveragesFlag) {
+            roomCpu.reset(); // ResetAverages also clears the per-room averages
             resetAveragesFlag.remove();
         }
     }

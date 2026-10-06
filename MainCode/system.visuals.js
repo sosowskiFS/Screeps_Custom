@@ -1,4 +1,5 @@
 const { visualsEnabled } = require('runtime.config');
+const roomCpu = require('runtime.roomCpu');
 // system.visuals — Screeps tick subsystem.
 
 
@@ -21,6 +22,13 @@ function displayRoomInfo(thisRoom) {
         return;
     }
     let roomVis = new RoomVisual(thisRoom.name);
+
+    // Room CPU: this base's creeps (by home room) plus its structures, next to the shard Average.
+    if (roomCpu.enabled()) {
+        const roomAverage = roomCpu.average(thisRoom.name);
+        drawPie(roomVis, Math.round(roomAverage * 100) / 100, Game.cpu.limit, 'Room CPU',
+            getColourByPercentage(Math.min(1, roomAverage / Game.cpu.limit), false), 5, 1.5);
+    }
 
     //Controller Progress + Storage Amount + CPU Average
     if (thisRoom.storage) {

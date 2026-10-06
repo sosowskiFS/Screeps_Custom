@@ -155,6 +155,22 @@ delete Memory.phaseCPU;
 
 Each phase records count, average and maximum CPU. Profiling adds no per-phase CPU reads when disabled. `spawningAndRooms` includes room management and its terminal trading; the `market` phase is empire account-resource trading. Total CPU averaging now includes final dashboard rendering. The visuals setting controls the empire/room dashboards; explicit tower/base debug visualizations and role speech keep their existing controls. Low-energy notifications remain active when dashboards are disabled.
 
+### Per-room CPU
+
+`runtime.roomCpu.js` charges CPU to the room that owns the work and keeps `Memory.roomCPU[room] = { a, n, l }` (average, samples, last tick charged):
+- **Creeps and power creeps** → `memory.homeRoom` (remote creeps count toward their base).
+- **Towers and defense** (rampart control, threat detection) → the tower's room.
+- **Spawns and room management** (links, labs, power spawn, factory, nuker, observer, terminal market, spawn logic) → the spawn's room.
+- **Base auto-build** → the room being built.
+
+Shared work (flags, empire state, account market, dashboards, Memory parsing) isn't attributed, so room averages add up to somewhat less than the shard Average. The average is a plain mean for the first 500 samples, then an exponential average over ~500 ticks; idle ticks count as zero. Rooms unused for 10,000 ticks are dropped, and the `ResetAverages` flag clears them.
+
+Each base room's dashboard shows a **Room CPU** pie next to the shard **Average** pie (same CPU-limit scale). Measuring costs one `Game.cpu.getUsed()` per creep/tower/spawn; disable it with `Memory.settings.roomCpu = false`.
+
+```js
+JSON.stringify(_.mapValues(Memory.roomCPU, r => r.a)); // all rooms at a glance
+```
+
 Compare live averages over the same number of ticks and similar creep/room populations; include 50/1,000/5,000/10,000-tick maintenance boundaries. Reset averages between comparisons. This workspace has no live shard connection, so no production CPU percentage or deployment success is claimed.
 
 ## Validation

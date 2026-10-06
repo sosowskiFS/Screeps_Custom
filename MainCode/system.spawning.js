@@ -7,6 +7,7 @@ const spawn_BuildCreeps5 = require('spawn.BuildCreeps5');
 const spawn_BuildInstruction = require('spawn.BuildInstruction');
 const spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
 const remoteMining = require('system.remoteMining');
+const roomCpu = require('runtime.roomCpu');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 
 function handleSpawning() {
@@ -21,8 +22,12 @@ function handleSpawning() {
         roomSpawnCache[roomName].push(Game.spawns[spawnName]);
     }
 
+    // Room management (links, labs, power spawn, factory, nuker, observer, terminal market)
+    // and spawn logic are charged to the spawn's room.
+    const cpu = roomCpu.timer();
     for (const i in Game.spawns) {
         processSpawn(Game.spawns[i], spawnRoleCache, roomSpawnCache);
+        cpu.lap(Game.spawns[i].room.name);
     }
 
     processSpawningCleanup();

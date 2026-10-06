@@ -2,11 +2,14 @@ const runtimeCache = require('runtime.cache');
 const defenseWatch = require('defense.watch');
 // system.defense — Screeps tick subsystem.
 const tower_Operate = require('tower.Operate');
+const roomCpu = require('runtime.roomCpu');
 
 function handleTowersAndRooms() {
     var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
     if (towers.length) {
         var roomIntel = {};
+        // Tower targeting, healing, repair and room threat handling are charged to the tower's room.
+        const cpu = roomCpu.timer();
         for (var y = 0; y < towers.length; y++) {
             if (towers[y].room.controller.owner && towers[y].room.controller.owner.username == "Montblanc") {
                 const roomName = towers[y].room.name;
@@ -14,6 +17,7 @@ function handleTowersAndRooms() {
                     roomIntel[roomName] = processTowerRoom(towers[y]);
                 }
                 tower_Operate.run(towers[y], Memory.attackDuration, y, roomIntel[roomName]);
+                cpu.lap(roomName);
             }
         }
     }

@@ -1,6 +1,7 @@
 const runtimeCache = require('runtime.cache');
 // system.construction — Screeps tick subsystem.
 const tool_generateBase = require('tool.generateBase');
+const roomCpu = require('runtime.roomCpu');
 
 function handleAutoBuildRoomsRegeneration() {
     // Initialize memory objects if they don't exist
@@ -36,7 +37,9 @@ function handleAutoBuildRoomsRegeneration() {
             roadSites.forEach(site => site.remove());
 
             // Run the base generation tool
+            const cpu = roomCpu.timer();
             tool_generateBase.run(room);
+            cpu.lap(roomName);
         } else if (room) {
             console.log(`AutoBuild regeneration: Skipping ${roomName} - no controller ownership`);
         } else {
