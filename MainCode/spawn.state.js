@@ -1,6 +1,26 @@
 const runtimeCache = require('runtime.cache');
 // spawn.state — Screeps tick subsystem.
 
+// Record every successful spawn order in this tick's census (runtime.cache notePending), whichever
+// module issued it, so a second spawn in the same room cannot order a duplicate. Installed once
+// per global; the wrapper only adds bookkeeping after a successful, non-dry-run order.
+function trackSpawnOrders() {
+    if (typeof StructureSpawn === 'undefined' || !StructureSpawn.prototype.spawnCreep) return;
+    const proto = StructureSpawn.prototype;
+    if (proto.spawnCreep.tracksPending) return;
+    const original = proto.spawnCreep;
+    const tracked = function (body, name, opts) {
+        const result = original.call(this, body, name, opts);
+        if (result === OK && !(opts && opts.dryRun)) {
+            runtimeCache.notePending(this, name, (opts && opts.memory) || {});
+        }
+        return result;
+    };
+    tracked.tracksPending = true;
+    proto.spawnCreep = tracked;
+}
+trackSpawnOrders();
+
 
 function initializeSpawnTracking() {
     if (!Memory.isSpawning || typeof Memory.isSpawning !== 'object' || Array.isArray(Memory.isSpawning)) {

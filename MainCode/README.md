@@ -108,6 +108,17 @@ Damage disables body parts front to back, and creeps never regenerate. A unit wh
 
 When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its auto flags) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.
 
+## One creep per job with several spawns
+
+Every spawn in a room runs its spawn checks on the same tick, but a creep ordered with `spawnCreep` only shows up in `Game.creeps` on the next tick. Each spawn used to see the job as unfilled, so a room with 3 spawns could order 3 remote miners for one source. The remote-spawn check that was meant to stop this compared a space-joined list with `!=` and never matched.
+
+`spawn.state.js` wraps `StructureSpawn.prototype.spawnCreep` once per global. After a successful order (dry runs excluded), it calls `runtime.cache.notePending`, which adds a placeholder creep (`pending: true`, `id: ''`, the ordered memory) to every census for the rest of the tick:
+- `homeCreeps(room)`: remote, power, scout, claimer, ranger, harasser and other special spawns
+- the room creep list used by the room spawners
+- the per-role counts in `buildSpawnRoleCache`
+
+So a job one spawn already took counts as filled for the other spawns, for every role, including roles added later. Assault healers are never paired with a placeholder (it has no id yet). The `creepInQue` queue still blocks repeated orders until the spawn finishes.
+
 ## Room staffing (RCL5+)
 
 Counts are kept low by putting work into bodies, not creeps:

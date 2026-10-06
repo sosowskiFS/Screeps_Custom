@@ -246,7 +246,9 @@ function processNormalSpawning(spawn, thisRoom, energyIndex) {
     const doNotBuildFlag = Game.flags["DoNotBuild"];
     if (!doNotBuildFlag) {
         if (!runtimeCache.current().roomCreeps[thisRoom.name]) {
-            runtimeCache.current().roomCreeps[thisRoom.name] = runtimeCache.find(thisRoom, FIND_MY_CREEPS);
+            // Include creeps another spawn already ordered this tick.
+            runtimeCache.current().roomCreeps[thisRoom.name] = runtimeCache.find(thisRoom, FIND_MY_CREEPS)
+                .concat(runtimeCache.pendingCreeps(thisRoom.name));
         }
 
         if (Memory.RoomsAt5.indexOf(thisRoom.name) == -1) {
@@ -323,6 +325,15 @@ function buildSpawnRoleCache() {
             }
             healerlessAssaultByRoom[homeRoom]++;
         }
+    }
+
+    // Creeps ordered earlier this tick (before the census was first needed).
+    for (const ghost of runtimeCache.pendingCreeps()) {
+        const homeRoom = ghost.memory.homeRoom;
+        const role = ghost.memory.priority;
+        if (!homeRoom || !role) continue;
+        const counts = roleByRoom[homeRoom] || (roleByRoom[homeRoom] = {});
+        counts[role] = (counts[role] || 0) + 1;
     }
 
     return {

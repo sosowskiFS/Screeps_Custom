@@ -16,7 +16,8 @@ var spawn_BuildInstruction = {
                 break;
                 
             case 'vandalize':
-                const vandals = _.filter(Game.creeps, (creep) => creep.memory.priority == 'vandal');
+                const vandals = _.filter(Game.creeps, (creep) => creep.memory.priority == 'vandal')
+                    .concat(runtimeCache.pendingCreeps().filter(creep => creep.memory.priority == 'vandal'));
                 if (vandals.length < 1) {
                     this.spawnVandal(spawn, energyIndex, roomName);
                 }
@@ -182,7 +183,8 @@ var spawn_BuildInstruction = {
             (creep.memory.priority == 'assattacker' || creep.memory.priority == 'assranger') && 
             !creep.memory.healerID && 
             creep.memory.homeRoom == roomName && 
-            !creep.memory.isReserved
+            !creep.memory.isReserved &&
+            !creep.pending  // ordered this tick: no id to pair a healer with yet
         );
         const healers = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'asshealer' && creep.memory.homeRoom == roomName

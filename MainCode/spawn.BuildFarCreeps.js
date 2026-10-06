@@ -81,13 +81,10 @@ var spawn_BuildFarCreeps = {
             var storageID = '';
             var healTarget;
 
-            var blockedRole = '';
-            // Check what roles are blocked by looking through the queue for this room
-            for (let i = 0; i < Memory.creepInQue.length; i += 4) {
-                if (Memory.creepInQue[i] === thisRoom.name) {
-                    blockedRole += ' ' + Memory.creepInQue[i + 1];
-                }
-            }
+            // Same-tick duplicates (several spawns in this room running this census on one tick)
+            // are prevented per job: creeps ordered this tick are already in controlledCreeps
+            // (runtime.cache notePending). The old role-wide blockedRole check compared a
+            // space-joined list with '!=' and never blocked anything.
 
             // Set up build directions, avoiding supplier spot in autobuild rooms
             let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
@@ -104,7 +101,7 @@ var spawn_BuildFarCreeps = {
             }
 
             if (Memory.warMode) {
-                if (miningOps.eFarGuards.length < 1 && Game.flags[thisRoom.name + "eFarGuard"] && blockedRole != 'farGuard') {
+                if (miningOps.eFarGuards.length < 1 && Game.flags[thisRoom.name + "eFarGuard"]) {
                     prioritizedRole = 'farGuard';
                     roomTarget = Game.flags[thisRoom.name + "eFarGuard"].pos.roomName;
                     flagName = Game.flags[thisRoom.name + "eFarGuard"].name;
@@ -142,7 +139,7 @@ var spawn_BuildFarCreeps = {
                     // A guard that judged its fight unwinnable marks the room outmatched: send a second one.
                     const guardTarget = Math.max(playerPlan ? playerPlan.count : 1,
                         Game.flags[guardFlagName] && combatIntel.isOutmatched(Game.flags[guardFlagName].pos.roomName) ? 2 : 1);
-                    if (guards.length < guardTarget && Game.flags[guardFlagName] && blockedRole != 'farGuard') {
+                    if (guards.length < guardTarget && Game.flags[guardFlagName]) {
                         prioritizedRole = 'farGuard';
                         roomTarget = Game.flags[guardFlagName].pos.roomName;
                         flagName = Game.flags[guardFlagName].name;
@@ -174,7 +171,7 @@ var spawn_BuildFarCreeps = {
                         const mules = (miningOps.farMining[config.index] && miningOps.farMining[config.index].mules) || [];
                         const claimers = (miningOps.farMining[config.index] && miningOps.farMining[config.index].claimers) || [];
                         
-                        if (miners.length < 1 && blockedRole != 'farMiner') {
+                        if (miners.length < 1) {
                             prioritizedRole = 'farMiner';
                             roomTarget = Game.flags[thisRoom.name + config.flag].pos.roomName;
                             flagName = Game.flags[thisRoom.name + config.flag].name;
@@ -190,13 +187,13 @@ var spawn_BuildFarCreeps = {
                                 farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                             }
                             break;
-                        } else if (mules.length < 1 && blockedRole != 'farMule') {
+                        } else if (mules.length < 1) {
                             prioritizedRole = 'farMule';
                             roomTarget = Game.flags[thisRoom.name + config.flag].pos.roomName;
                             flagName = Game.flags[thisRoom.name + config.flag].name;
                             storageID = thisRoom.storage.id;
                             break;
-                        } else if (claimers.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + config.flag].pos.roomName] && blockedRole != 'farClaimer') {
+                        } else if (claimers.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + config.flag].pos.roomName]) {
                             prioritizedRole = 'farClaimer';
                             roomTarget = Game.flags[thisRoom.name + config.flag].pos.roomName;
                             flagName = Game.flags[thisRoom.name + config.flag].name;
@@ -216,7 +213,7 @@ var spawn_BuildFarCreeps = {
 
                 for (let config of mineralConfigs) {
                     const miners = miningOps.farMineralMiners[config.index] || [];
-                    if (Game.flags[thisRoom.name + config.flag] && miners.length < 1 && blockedRole != 'farMineralMiner') {
+                    if (Game.flags[thisRoom.name + config.flag] && miners.length < 1) {
                         prioritizedRole = 'farMineralMiner';
                         roomTarget = Game.flags[thisRoom.name + config.flag].pos.roomName;
                         flagName = Game.flags[thisRoom.name + config.flag].name;
