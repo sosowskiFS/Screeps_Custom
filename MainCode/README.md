@@ -90,6 +90,11 @@ Role-level CPU behavior worth knowing when debugging:
 - **Guards against players:** `Memory.remoteThreat[room]` records the strongest enemy force seen in each remote room (damage, healing, effective HP, players; kept 1,500 ticks). The spawner sends the cheapest full-speed ranged/heal kiter that `verdictFor` says wins, or two of them if one can't. If even two max-size guards would lose, nothing is sent. Disabled rooms only get guards when such a plan exists. Invader-only threats keep the existing melee/ranged guards.
 - **Harassers:** 2-8 ATTACK/MOVE pairs plus a HEAL/MOVE pair. They hunt reservers first, then haulers carrying energy, then miners. Armed defenders go through the shared fight logic (engage only when winning, otherwise retreat and regroup). The CPU governor never thins them while hostiles are in their room.
 
+**Recovering lost resources.**
+- In their mining room, far mules first collect spilled energy, tombstones and ruins holding at least 200 energy (one shared lookup per room per tick). That covers spill from a late mule and haulers killed in PvP.
+- Home logistics creeps (mule, distributor, lab worker, controller supplier, supplier, scraper, salvager) spend their last 30 ticks depositing their load into storage (or the terminal) when they can still reach it. That includes minerals and power.
+- RCL8 and maintenance rooms also get the on-demand salvager, which retires after 100 idle ticks.
+
 **Disabling unsafe remotes** (`Memory.remoteStatus`). A strike is registered when a player attacks a miner, when player fighters appear and our forces there aren't clearly winning, or when the room is claimed. Repeats within 100 ticks count as the same incident. A strike disables the **whole room**: every source, mule, reserver and guard. The back-off doubles per strike (1,500 → 3,000 → 6,000 … up to 50,000 ticks). Remote creeps assigned to a disabled room wait at home instead of walking in.
 
 When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its auto flags) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.

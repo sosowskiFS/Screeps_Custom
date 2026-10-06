@@ -104,4 +104,21 @@ function handleMovementCoordination(creep) {
     }
 }
 
-module.exports = { withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, handleMovementCoordination };
+// Last ~30 ticks of life: carry the load into storage (or terminal) instead of dying with it
+// mid-task. Only when the creep is home and can still reach the target in time.
+const DEPOSIT_TTL = 30;
+function depositBeforeDeath(creep) {
+    if (!(creep.ticksToLive <= DEPOSIT_TTL) || !creep.store.getUsedCapacity()) return false;
+    if (creep.memory.homeRoom && creep.room.name !== creep.memory.homeRoom) return false;
+    let target = creep.room.storage;
+    if (!target || target.store.getFreeCapacity() < creep.store.getUsedCapacity()) target = creep.room.terminal;
+    if (!target || target.store.getFreeCapacity() < creep.store.getUsedCapacity()) return false;
+    if (creep.pos.getRangeTo(target) > creep.ticksToLive) return false; // can't make it
+    const resource = Object.keys(creep.store).find(type => creep.store[type] > 0);
+    if (creep.transfer(target, resource) === ERR_NOT_IN_RANGE) {
+        creep.travelTo(target, { maxRooms: 1 });
+    }
+    return true;
+}
+
+module.exports = { depositBeforeDeath, withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, handleMovementCoordination };

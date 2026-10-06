@@ -15,7 +15,7 @@ test('all role aliases match legacy dispatch across bucket, war, RCL, HEAL and s
     function setup(old) {
         const calls = [];
         const overrides = new Proxy({}, {
-            getOwnPropertyDescriptor: (_, id) => id.startsWith('creep.') && id !== 'creep.registry' && id !== 'creep.speech' ? { configurable: true, enumerable: true } : undefined,
+            getOwnPropertyDescriptor: (_, id) => id.startsWith('creep.') && id !== 'creep.registry' && id !== 'creep.speech' && id !== 'creep.logistics' ? { configurable: true, enumerable: true } : undefined,
             get: (_, id) => ({ run(creep, arg) { calls.push([id, arg]); } }),
         });
         const h = harness(overrides);

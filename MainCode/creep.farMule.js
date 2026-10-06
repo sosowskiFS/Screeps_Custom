@@ -1,4 +1,5 @@
 const combat = require('combat.tactics');
+const runtimeCache = require('runtime.cache');
 let creep_farMule = {
     run: function(creep, doExcessWork) {
         const targetFlag = Game.flags[creep.memory.targetFlag];
@@ -31,6 +32,12 @@ let creep_farMule = {
 
         if (!creep.memory.storing) {
             // Mode: Go to remote room and collect energy
+
+            // Energy lost in the mining room first: spill beside a full container (late or dead
+            // mule), tombstones of haulers killed there, ruins. One shared lookup per room per tick.
+            if (creep.room.name === workRoom && carryCapacity - carryUsed >= 100 && collectSalvage(creep)) {
+                return;
+            }
             
             // Find container target if not already set
             if (!creep.memory.containerTarget) {
@@ -127,6 +134,37 @@ function readyToWithdraw(creep, container, freeCapacity) {
         return true;
     }
     return false;
+}
+
+const SALVAGE_MIN = 200;
+
+function salvageIn(room) {
+    const tick = runtimeCache.current();
+    const cache = tick.remoteSalvage || (tick.remoteSalvage = Object.create(null));
+    if (!cache[room.name]) {
+        const list = runtimeCache.find(room, FIND_DROPPED_RESOURCES, {
+            filter: r => r.resourceType === RESOURCE_ENERGY && r.amount >= SALVAGE_MIN
+        });
+        for (const type of [FIND_TOMBSTONES, FIND_RUINS]) {
+            for (const holder of runtimeCache.find(room, type)) {
+                if (holder.store[RESOURCE_ENERGY] >= SALVAGE_MIN) list.push(holder);
+            }
+        }
+        cache[room.name] = list;
+    }
+    return cache[room.name];
+}
+
+function collectSalvage(creep) {
+    const list = salvageIn(creep.room);
+    if (!list.length) return false;
+    const target = creep.pos.findClosestByRange(list);
+    if (!target) return false;
+    const result = target.amount !== undefined ? creep.pickup(target) : creep.withdraw(target, RESOURCE_ENERGY);
+    if (result === ERR_NOT_IN_RANGE) {
+        creep.travelTo(target, { maxRooms: 1 });
+    }
+    return result === OK || result === ERR_NOT_IN_RANGE;
 }
 
 function getUsedCarry(creep) {

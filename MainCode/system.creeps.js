@@ -2,6 +2,12 @@ const { roles, fallback, tierOf } = require('creep.registry');
 const governor = require('runtime.cpuGovernor');
 const creep_baseOp = require('creep.baseOp');
 const roomCpu = require('runtime.roomCpu');
+const { depositBeforeDeath } = require('creep.logistics');
+
+// Home logistics roles that can die carrying a full load (energy, minerals, power).
+const BANK_BEFORE_DEATH = new Set(['mule', 'muleNearDeath', 'distributor', 'distributorNearDeath',
+    'labWorker', 'labWorkerNearDeath', 'upSupplier', 'upSupplierNearDeath', 'supplier', 'supplierNearDeath',
+    'scraper', 'scraperNearDeath', 'salvager', 'salvagerNearDeath']);
 
 // One failing creep must not stop every creep after it. Log each error once per
 // 100 ticks per role so a persistent bug cannot flood the console or burn CPU.
@@ -25,7 +31,9 @@ function handleCreepOperations() {
             const home = creep.memory.homeRoom || creep.room.name;
             const run = roles[creep.memory.priority] || fallback;
             try {
-                run(creep, roomsAt5.has(creep.room.name));
+                if (!(BANK_BEFORE_DEATH.has(creep.memory.priority) && depositBeforeDeath(creep))) {
+                    run(creep, roomsAt5.has(creep.room.name));
+                }
             } catch (error) {
                 report('creep', name, creep.memory.priority, error);
             }

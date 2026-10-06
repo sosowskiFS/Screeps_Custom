@@ -13,7 +13,17 @@ var creep_salvager = {
 
         var newTarget = false;
         var foundObject = findTarget(creep, 0);
+        if (foundObject) {
+            delete creep.memory.idleSince;
+        }
         if (!foundObject) {
+            // Spawned on demand: once there is nothing left to salvage, retire instead of idling
+            // (and running every tick) for the rest of its life.
+            if (!creep.memory.idleSince) creep.memory.idleSince = Game.time;
+            if (Game.time - creep.memory.idleSince >= 100 && !creep.store.getUsedCapacity()) {
+                creep.suicide();
+                return;
+            }
             //Idle
             if (!creep.pos.isNearTo(creep.room.controller)) {
                 creep.travelTo(creep.room.controller, {

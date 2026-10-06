@@ -993,7 +993,7 @@ Object.assign(spawn_BuildCreeps5, {
         config.upSupplierMax = 1;
         config.supplierMax = 1;
         config.distributorMax = 1;
-        config.salvagerMax = 0;
+        config.salvagerMax = 1; // only spawned when hasSalvage() finds tombstones/drops worth it
 
         // Adjust based on repair caps
         if (Game.flags[roomName + "25mCap"] || Game.flags[roomName + "50mCap"]) {
@@ -1225,7 +1225,6 @@ Object.assign(spawn_BuildCreeps5, {
             const operator = operatorPresent(room.name);
             result.minerMax = 0;
             result.repairMax = 0;
-            result.salvagerMax = 0;
             result.muleMax = operator ? 0 : 1;                       // one hauler fills extensions too
             result.distributorMax = operator && limits.pNeedDist ? 1 : 0;
         }
