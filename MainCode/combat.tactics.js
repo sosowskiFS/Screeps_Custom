@@ -9,6 +9,7 @@
 const intel = require('combat.intel');
 const { Traveler } = require('traveler');
 const remoteMining = require('system.remoteMining');
+const runtimeCache = require('runtime.cache');
 
 const REGROUP_TICKS = 50;  // how long a retreating fighter stays back before returning
 const LOW_HEALTH = 0.35;   // retreat below this fraction of max hits
@@ -241,4 +242,56 @@ function avoidDanger(creep, workRoom) {
     return false;
 }
 
-module.exports = { fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage };
+// ---------------------------------------------------------------- damaged creeps
+// Damage disables body parts front to back and creeps never regenerate, so a creep whose
+// working parts are all disabled stays useless (and keeps blocking its replacement) until
+// something heals it.
+
+// Has parts of this type, all disabled.
+function crippled(creep, type) {
+    if (creep.hits >= creep.hitsMax) return false;
+    let has = false;
+    for (const part of creep.body) {
+        if (part.type !== type) continue;
+        if (part.hits > 0) return false;
+        has = true;
+    }
+    return has;
+}
+
+function healerNear(creep, range) {
+    return creep.pos.findInRange(FIND_MY_CREEPS, range, {
+        filter: c => c.id !== creep.id && c.getActiveBodyparts(HEAL) > 0
+    }).length > 0;
+}
+
+// Cannot move: only a healer beside it can save it. Wait for one, else suicide so the spawn
+// logic sends a replacement (anything carried stays in the tombstone for collectors).
+// True when it has handled the tick.
+function stranded(creep) {
+    if (!crippled(creep, MOVE)) return false;
+    if (!healerNear(creep, 3)) creep.suicide();
+    return true;
+}
+
+// Towers stop healing at hitsMax - 199: close enough to go back to work.
+function repaired(creep) {
+    return creep.hits > creep.hitsMax - 200;
+}
+
+// Go home and wait by storage for the towers to heal us. A home without towers, or too little
+// life left to make another trip worthwhile, ends in suicide instead of loitering.
+function seekRepair(creep) {
+    if (stranded(creep)) return true;
+    if (goHome(creep)) return true;
+    const towers = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
+    if (!towers.length || creep.ticksToLive < 200) {
+        creep.suicide();
+        return true;
+    }
+    const anchor = creep.room.storage || towers[0];
+    if (!creep.pos.inRangeTo(anchor, 3)) creep.travelTo(anchor, { range: 3 });
+    return true;
+}
+
+module.exports = { fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };

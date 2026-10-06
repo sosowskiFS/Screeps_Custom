@@ -1,7 +1,7 @@
 const speech = require('creep.speech');
 const { operatorPresent } = require('creep.baseOp');
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
-const runtimeCache = require('runtime.cache');
+const labPlanner = require('system.labs');
 /*
 LabWorker breakpoint reference (overflow + notable thresholds)
 
@@ -16,10 +16,10 @@ Overflow breakpoints
 - Factory overflow destination: send to terminal first if terminal free > 20,000, else storage.
 
 Notable non-overflow breakpoints
-- Resource check cadence: every 50 ticks via nextResourceCheck.
-- Resource check failover/suicide gate: resourceChecks >= 15.
-- Production stop/market gate: when terminal[mineral6] >= 40,000.
-- Market price floor: minimum sell price = 0.5.
+- Reaction (mineral4/5/6..10) re-synced every tick from the empire planner (system.labs);
+  labs holding the previous reaction's minerals are emptied by withdrawWrongMineral.
+- Production stop gate: reagents are not fed while terminal[mineral6] >= 40,000.
+- Selling surplus compounds is handled by system.market.
 - Boost/reagent lab refill threshold: refill when lab mineralAmount <= 2,500.
 - Reagent feed allowed while terminal[mineral6] < 40,000.
 - Result lab withdraw threshold: withdraw when lab mineralAmount >= carryCapacity.
@@ -57,11 +57,7 @@ var creep_labWorker = {
             delete creep.memory.idleUntil;
         }
 
-        if (!creep.memory.nextResourceCheck) {
-            creep.memory.nextResourceCheck = Game.time + 50;
-        }
-
-        handleResourceCheck(creep, terminal);
+        syncReaction(creep);
 
         creep.memory.storeProduced = (
             creep.memory.mineral1 == creep.memory.mineral6 ||
@@ -175,14 +171,6 @@ var creep_labWorker = {
         }
     }
 };
-
-function orderPriceCompareBuying(a, b) {
-    if (a.price < b.price)
-        return -1;
-    if (a.price > b.price)
-        return 1;
-    return 0;
-}
 
 function NotOverLimit(thisTerminal) {
     //Determines if there's too many unsold bars in the terminal
@@ -327,44 +315,6 @@ function handleTerminalOverflow(creep) {
     return false;
 }
 
-function handleResourceCheck(creep, terminal) {
-    if (Game.time < creep.memory.nextResourceCheck || !Game.flags[creep.memory.primaryFlag] || !creep.memory.lab4) {
-        if (Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
-            Game.flags[creep.memory.primaryFlag].remove();
-        } else if (Game.flags[creep.memory.backupFlag] && creep.memory.resourceChecks >= 15 && _.sum(creep.carry) == 0) {
-            creep.suicide();
-        }
-        return;
-    }
-
-    creep.memory.nextResourceCheck = Game.time + 50;
-
-    if (creep.memory.resourceChecks >= 15) {
-        if (!Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
-            creep.room.createFlag(Game.flags[creep.memory.primaryFlag].pos, creep.memory.backupFlag, COLOR_CYAN);
-            Game.flags[creep.memory.primaryFlag].remove();
-        } else if (Game.flags[creep.memory.backupFlag] && Game.flags[creep.memory.primaryFlag]) {
-            Game.flags[creep.memory.primaryFlag].remove();
-        }
-        return;
-    }
-
-    const lab4 = Game.getObjectById(creep.memory.lab4);
-    const lab5 = Game.getObjectById(creep.memory.lab5);
-
-    if (terminal.store[creep.memory.mineral6] >= 40000) {
-        creep.memory.resourceChecks = 15;
-        if (creep.memory.mineral5 == RESOURCE_CATALYST && creep.memory.mineral6 != RESOURCE_CATALYZED_GHODIUM_ACID) {
-            handleMarketOrder(creep, terminal);
-        }
-        return;
-    }
-
-    if (lab4 && lab5 && (lab4.mineralAmount < creep.carryCapacity || lab5.mineralAmount < creep.carryCapacity) && _.sum(creep.carry) == 0) {
-        creep.memory.resourceChecks = creep.memory.resourceChecks + 1;
-    }
-}
-
 function handleFactoryOverflow(creep, terminal, storage) {
     const thisFactory = creep.memory.factory ? Game.getObjectById(creep.memory.factory) : undefined;
     if (!thisFactory) {
@@ -453,52 +403,25 @@ function handleFactoryOverflow(creep, terminal, storage) {
     return true;
 }
 
-function handleMarketOrder(creep, terminal) {
-    const foundOrder = _.findKey(Game.market.orders, {
-        'roomName': creep.room.name,
-        'resourceType': creep.memory.mineral6
-    });
-
-    if (!foundOrder) {
-        const comparableOrders = runtimeCache.marketOrders(creep.memory.mineral6, ORDER_SELL, order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
-        if (comparableOrders.length > 0) {
-            comparableOrders.sort(orderPriceCompareBuying);
-            let targetPrice = comparableOrders[0].price;
-            if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
-                targetPrice = targetPrice - 0.001;
-            }
-            if (targetPrice < 0.5) {
-                targetPrice = 0.5;
-            }
-            Game.market.createOrder(ORDER_SELL, creep.memory.mineral6, targetPrice, terminal.store[creep.memory.mineral6], creep.room.name);
-        }
+// Follow the planner's reaction for this room. Cheap string compares on every tick; when the
+// reaction changes, labs still holding the old minerals count as "wrong" and get emptied.
+function syncReaction(creep) {
+    if (!creep.memory.lab4 || creep.memory.lab4 == 'XXX') {
         return;
     }
-
-    const thisOrder = Game.market.orders[foundOrder];
-    const comparableOrders = runtimeCache.marketOrders(creep.memory.mineral6, ORDER_SELL, order => order.resourceType == creep.memory.mineral6 && order.type == ORDER_SELL);
-
-    if (comparableOrders.length > 0) {
-        comparableOrders.sort(orderPriceCompareBuying);
-        let targetPrice = comparableOrders[0].price;
-        if (Memory.RoomsAt5.indexOf(comparableOrders[0].roomName) == -1) {
-            if ((thisOrder.price - 0.5) > targetPrice) {
-                targetPrice = thisOrder.Price;
-            } else {
-                targetPrice = targetPrice - 0.001;
-            }
-        }
-        if (targetPrice < 0.5) {
-            targetPrice = 0.5;
-        }
-        Game.market.changeOrderPrice(foundOrder, targetPrice);
-    } else if (thisOrder.price < 0.5) {
-        Game.market.changeOrderPrice(foundOrder, 0.5);
+    const job = labPlanner.jobFor(creep.room.name);
+    const a = job ? job.a : '';
+    const b = job ? job.b : '';
+    const p = job ? job.p : '';
+    if (creep.memory.mineral4 === a && creep.memory.mineral5 === b && creep.memory.mineral6 === p) {
+        return;
     }
-
-    if (thisOrder.remainingAmount < 40000) {
-        Game.market.extendOrder(foundOrder, terminal.store[creep.memory.mineral6] - thisOrder.remainingAmount);
+    creep.memory.mineral4 = a;
+    creep.memory.mineral5 = b;
+    for (let i = 6; i <= 10; i++) {
+        creep.memory['mineral' + i] = p;
     }
+    creep.memory.idleUntil = undefined;
 }
 
 function buildLabContext(creep) {

@@ -1,4 +1,5 @@
 const combat = require('combat.tactics');
+const runtimeCache = require('runtime.cache');
 var creep_powerCollect = {
 
     /** @param {Creep} creep **/
@@ -14,8 +15,24 @@ var creep_powerCollect = {
             creep.memory.mode = 0;
         }
         
+        // Damaged: power healers are almost always on site, so go to the nearest one and wait
+        // until fully healed (damaged CARRY parts shrink capacity and drop cargo).
+        const medic = creep.hits < creep.hitsMax ? this.findMedic(creep) : undefined;
+
+        // Every MOVE part disabled and no healer here to come to it: make room for a replacement.
+        if (!medic && combat.stranded(creep)) {
+            return;
+        }
+
         // Haulers carrying power are the prize: never walk into a bank room we are losing.
         if (combat.avoidDanger(creep, creep.memory.mode == 0 ? creep.memory.destination : null)) {
+            return;
+        }
+
+        if (medic) {
+            if (!creep.pos.isNearTo(medic)) {
+                creep.travelTo(medic, { maxRooms: 1, range: 1 });
+            }
             return;
         }
 
@@ -89,6 +106,22 @@ var creep_powerCollect = {
         }
     },
     
+    // Nearest power healer in this room that can still heal.
+    findMedic: function(creep) {
+        let medic;
+        let best = Infinity;
+        for (const other of runtimeCache.find(creep.room, FIND_MY_CREEPS)) {
+            if ((other.memory.priority !== 'powerHeal' && other.memory.priority !== 'powerHealNearDeath') ||
+                other.getActiveBodyparts(HEAL) <= 0) continue;
+            const range = creep.pos.getRangeTo(other);
+            if (range < best) {
+                best = range;
+                medic = other;
+            }
+        }
+        return medic;
+    },
+
     // Optimized method to find the best pickup target
     findPickupTarget: function(creep) {
         // Check for ruins first (highest priority - power bank ruins)

@@ -61,44 +61,65 @@ var creep_farMining = {
 
                 break;
             case 'farMineralMiner':
-                if (creep.store.getCapacity() <= 0) {
+                // Highway deposit miner. Its body is WORK-first, so damage disables WORK before
+                // anything else: a miner that can no longer harvest goes home (unloading first)
+                // for the towers to heal it, instead of standing at the deposit until it dies.
+                if (combat.stranded(creep)) {
+                    break;
+                }
+                if (creep.store.getCapacity() <= 0 && creep.store.getUsedCapacity() == 0) {
                     //Too damaged, can't carry anything. suicide.
                     creep.suicide();
+                    break;
                 }
-                if ((creep.store.getFreeCapacity() <= 0 || (creep.store.getUsedCapacity() > 0 && creep.ticksToLive <= 200)) && !creep.memory.storing) {
+                if (!creep.memory.repairing && combat.crippled(creep, WORK)) {
+                    creep.memory.repairing = true;
+                } else if (creep.memory.repairing && combat.repaired(creep)) {
+                    creep.memory.repairing = false;
+                }
+
+                if ((creep.store.getFreeCapacity() <= 0 || (creep.store.getUsedCapacity() > 0 && (creep.ticksToLive <= 200 || creep.memory.repairing || creep.memory.retire))) && !creep.memory.storing) {
                     creep.memory.storing = true;
                 } else if (creep.store.getUsedCapacity() == 0 && creep.memory.storing) {
                     creep.memory.storing = false;
                 }
 
                 // Replaces the old after-the-fact evade (which issued a second, conflicting move).
-                if (combat.avoidDanger(creep, creep.memory.storing ? null : creep.memory.destination)) {
+                if (combat.avoidDanger(creep, creep.memory.storing || creep.memory.repairing || creep.memory.retire ? null : creep.memory.destination)) {
                     break;
                 }
 
                 if (!creep.memory.storing) {
+                    if (creep.memory.retire) {
+                        // Deposit gone or too slow and everything is unloaded: nothing left to do.
+                        creep.suicide();
+                        break;
+                    }
+                    if (creep.memory.repairing) {
+                        combat.seekRepair(creep);
+                        break;
+                    }
                     //in farRoom, mine mineral
-                    if (creep.memory.mineralTarget) {
-                        let thisMineral = Game.getObjectById(creep.memory.mineralTarget);
-                        if (thisMineral) {
-                            if (thisMineral.lastCooldown >= 28) {
-                                //Too much time to spend on harvesting this
-                                if (Game.flags[creep.memory.targetFlag]) {
-                                    Game.flags[creep.memory.targetFlag].remove();
-                                }
-                                creep.memory.storing = true;
-                            } else {
-                                // travelTo on an adjacent target issues a (billed) move into it.
-                                if (!creep.pos.isNearTo(thisMineral)) {
-                                    creep.travelTo(thisMineral);
-                                }
-                                if (thisMineral.cooldown <= 0) {
-                                    creep.harvest(thisMineral);
-                                }
+                    let thisMineral = creep.memory.mineralTarget ? Game.getObjectById(creep.memory.mineralTarget) : undefined;
+                    if (creep.memory.mineralTarget && !thisMineral && creep.room.name == creep.memory.destination) {
+                        // In the room and the deposit is gone (decayed): look again below.
+                        creep.memory.mineralTarget = undefined;
+                    }
+                    if (thisMineral) {
+                        if (thisMineral.lastCooldown >= 28) {
+                            //Too much time to spend on harvesting this
+                            if (Game.flags[creep.memory.targetFlag]) {
+                                Game.flags[creep.memory.targetFlag].remove();
                             }
+                            creep.memory.retire = true;
                         } else {
-                            //Target isn't visible, go to room
-                            creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
+                            // travelTo on an adjacent target issues a (billed) move into it.
+                            if (!creep.pos.isNearTo(thisMineral)) {
+                                creep.travelTo(thisMineral);
+                            }
+                            if (thisMineral.cooldown <= 0) {
+                                creep.harvest(thisMineral);
+                            }
                         }
                     } else if (creep.room.name == creep.memory.destination) {
                         //Find mineral target
@@ -113,19 +134,21 @@ var creep_farMining = {
                             if (Game.flags[creep.memory.targetFlag]) {
                                 Game.flags[creep.memory.targetFlag].remove();
                             }
+                            creep.memory.retire = true;
                         }
                     } else {
                         creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
                     }
                 } else {
-                    //in home room, drop off energy
+                    //in home room, drop off
                     var storageUnit = Game.getObjectById(creep.memory.storageSource)
                     if (storageUnit) {
-                        if (Object.keys(creep.carry).length > 1) {
-                            if (creep.transfer(storageUnit, Object.keys(creep.carry)[1]) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(storageUnit);
-                            }
-                        } else if (creep.transfer(storageUnit, Object.keys(creep.carry)[0]) == ERR_NOT_IN_RANGE) {
+                        const carried = Object.keys(creep.store).find(res => creep.store[res] > 0);
+                        // A full terminal would otherwise keep the miner waiting beside it forever.
+                        if (storageUnit.store.getFreeCapacity(carried) <= 0 && creep.room.storage && creep.room.storage.store.getFreeCapacity(carried) > 0) {
+                            storageUnit = creep.room.storage;
+                        }
+                        if (creep.transfer(storageUnit, carried) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(storageUnit);
                         }
                     } else {

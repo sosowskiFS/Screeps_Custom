@@ -8,7 +8,7 @@ const defense = require('system.defense');
 const spawning = require('system.spawning');
 const market = require('system.market');
 const creeps = require('system.creeps');
-const minerals = require('system.minerals');
+const labs = require('system.labs');
 const construction = require('system.construction');
 const remoteMining = require('system.remoteMining');
 const roads = require('system.roads');
@@ -23,7 +23,7 @@ const phases = [
     ['market', market.handleMarketOperations],
     ['creeps', creeps.handleCreepOperations],
     ['remoteMining', remoteMining.run],
-    ['minerals', minerals.handleMineralFlagDistribution],
+    ['minerals', labs.run],
     ['construction', construction.handleAutoBuildRoomsRegeneration],
     ['roads', roads.run],
 ];

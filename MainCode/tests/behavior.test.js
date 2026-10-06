@@ -70,6 +70,10 @@ test('industry link priorities and lab recipes produce legacy intents', () => {
         g.Memory.labList.A = ['l1', 'l2', 'l3', 'l4', 'l5', 'l6'];
         g.Game.getObjectById = id => objects[id];
         if (recipe) g.Game.flags['A' + recipe + (recipe === 'OH' ? 'Producer(3)' : 'Producer')] = {};
+        // The planner replaced producer flags; same recipe through Memory.labJobs.
+        if (recipe) g.Memory.labJobs = { A: recipe === 'OH'
+            ? { p: g.RESOURCE_HYDROXIDE, a: g.RESOURCE_HYDROGEN, b: g.RESOURCE_OXYGEN }
+            : { p: g.RESOURCE_CATALYZED_GHODIUM_ACID, a: g.RESOURCE_GHODIUM_ACID, b: g.RESOURCE_CATALYST } };
         const industry = old ? legacy(h, 'legacy-industry') : h.load('system.industry');
         industry.manageLinkOperations(room);
         industry.manageLabOperations(room);

@@ -1,15 +1,10 @@
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
 const { withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget } = require('creep.logistics');
-const { DoResourceCheck } = require('creep.production');
 
 module.exports = {
     run: function(creep) {
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
             creep.memory.priority = 'distributorNearDeath';
-        }
-
-        if (creep.memory.previousPriority == 'labWorker' && Game.time >= creep.memory.nextResourceCheck && Game.flags[creep.memory.primaryFlag] && creep.memory.lab4) {
-            DoResourceCheck(creep);
         }
 
         if (_.sum(creep.carry) <= 0) {

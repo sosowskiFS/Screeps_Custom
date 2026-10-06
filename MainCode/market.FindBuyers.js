@@ -1,4 +1,5 @@
 const runtimeCache = require('runtime.cache');
+const labPlanner = require('system.labs');
 var market_buyers = {
 
     run: function(thisRoom, thisTerminal, thisMineral) {
@@ -7,7 +8,6 @@ var market_buyers = {
 
         const neededMinerals = [];
         let GH2OPriority = -1;
-        let ForNuker = true;
         let HydroxidePriority = -1;
 
         // Always requested minerals for boosts
@@ -23,64 +23,20 @@ var market_buyers = {
             neededMinerals.push(RESOURCE_GHODIUM);
         }
 
-        // Mineral production flag mapping
-        const flagMinerals = {
-            "WarBoosts": [RESOURCE_CATALYZED_UTRIUM_ACID, RESOURCE_CATALYZED_KEANIUM_ALKALIDE, 
-                         RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, RESOURCE_CATALYZED_ZYNTHIUM_ACID,
-                         RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, RESOURCE_CATALYZED_GHODIUM_ALKALIDE],
-            "UHProducer": [RESOURCE_UTRIUM, RESOURCE_HYDROGEN],
-            "UH2OProducer": [RESOURCE_UTRIUM_HYDRIDE, RESOURCE_HYDROXIDE],
-            "ZKProducer": [RESOURCE_ZYNTHIUM, RESOURCE_KEANIUM],
-            "ZOProducer": [RESOURCE_ZYNTHIUM, RESOURCE_OXYGEN],
-            "ZHProducer": [RESOURCE_ZYNTHIUM, RESOURCE_HYDROGEN],
-            "LHProducer": [RESOURCE_LEMERGIUM, RESOURCE_HYDROGEN],
-            "LOProducer": [RESOURCE_LEMERGIUM, RESOURCE_OXYGEN],
-            "ULProducer": [RESOURCE_UTRIUM, RESOURCE_LEMERGIUM],
-            "GHProducer": [RESOURCE_GHODIUM, RESOURCE_HYDROGEN],
-            "GOProducer": [RESOURCE_GHODIUM, RESOURCE_OXYGEN],
-            "GHO2Producer": [RESOURCE_GHODIUM_OXIDE, RESOURCE_HYDROXIDE],
-            "GH2OProducer": [RESOURCE_GHODIUM_HYDRIDE, RESOURCE_HYDROXIDE],
-            "LH2OProducer": [RESOURCE_LEMERGIUM_HYDRIDE, RESOURCE_HYDROXIDE],
-            "ZH2OProducer": [RESOURCE_ZYNTHIUM_HYDRIDE, RESOURCE_HYDROXIDE],
-            "ZHO2Producer": [RESOURCE_ZYNTHIUM_OXIDE, RESOURCE_HYDROXIDE],
-            "LHO2Producer": [RESOURCE_LEMERGIUM_OXIDE, RESOURCE_HYDROXIDE],
-            "XUH2OProducer": [RESOURCE_UTRIUM_ACID, RESOURCE_CATALYST],
-            "XZH2OProducer": [RESOURCE_ZYNTHIUM_ACID, RESOURCE_CATALYST],
-            "XZHO2Producer": [RESOURCE_ZYNTHIUM_ALKALIDE, RESOURCE_CATALYST],
-            "XGH2OProducer": [RESOURCE_GHODIUM_ACID, RESOURCE_CATALYST],
-            "KOProducer": [RESOURCE_OXYGEN, RESOURCE_KEANIUM],
-            "KHO2Producer": [RESOURCE_KEANIUM_OXIDE, RESOURCE_HYDROXIDE],
-            "XKHO2Producer": [RESOURCE_KEANIUM_ALKALIDE, RESOURCE_CATALYST],
-            "XGHO2Producer": [RESOURCE_GHODIUM_ALKALIDE, RESOURCE_CATALYST],
-            "XLH2OProducer": [RESOURCE_LEMERGIUM_ACID, RESOURCE_CATALYST],
-            "XLHO2Producer": [RESOURCE_LEMERGIUM_ALKALIDE, RESOURCE_CATALYST]
-        };
-
-        // Check for production flags and request accordingly
-        for (const [flagName, minerals] of Object.entries(flagMinerals)) {
-            if (Game.flags[thisRoom.name + flagName] || 
-                (flagName === "OHProducer" && (Game.flags[thisRoom.name + "OHProducer(3)"] || Game.flags[thisRoom.name + "OHProducer(9)"])) ||
-                (flagName === "GProducer" && (Game.flags[thisRoom.name + "GProducer(4)"] || Game.flags[thisRoom.name + "GProducer(9)"]))) {
-                
-                neededMinerals.push(...minerals);
-                
-                // Set special flags
-                if (flagName === "UH2OProducer" || flagName === "GH2OProducer") {
-                    HydroxidePriority = 0;
-                } else if (flagName.includes("HO2Producer") || flagName.includes("H2OProducer")) {
-                    HydroxidePriority = 2;
-                } else if (flagName === "GHProducer" || flagName === "GOProducer") {
-                    ForNuker = false;
-                }
-                break;
-            }
+        // War boost staging
+        if (Game.flags[thisRoom.name + "WarBoosts"]) {
+            neededMinerals.push(RESOURCE_CATALYZED_UTRIUM_ACID, RESOURCE_CATALYZED_KEANIUM_ALKALIDE,
+                RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE, RESOURCE_CATALYZED_ZYNTHIUM_ACID,
+                RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, RESOURCE_CATALYZED_GHODIUM_ALKALIDE);
         }
 
-        // Handle special cases
-        if (Game.flags[thisRoom.name + "OHProducer(3)"] || Game.flags[thisRoom.name + "OHProducer(9)"]) {
-            neededMinerals.push(RESOURCE_OXYGEN, RESOURCE_HYDROGEN);
-        } else if (Game.flags[thisRoom.name + "GProducer(4)"] || Game.flags[thisRoom.name + "GProducer(9)"]) {
-            neededMinerals.push(RESOURCE_UTRIUM_LEMERGITE, RESOURCE_ZYNTHIUM_KEANITE);
+        // Reagents for the reaction the planner gave this room
+        const job = labPlanner.jobFor(thisRoom.name);
+        if (job) {
+            neededMinerals.push(job.a, job.b);
+            if (job.a === RESOURCE_HYDROXIDE || job.b === RESOURCE_HYDROXIDE) {
+                HydroxidePriority = 0;
+            }
         }
 
         // Process mineral needs
@@ -106,6 +62,15 @@ var market_buyers = {
             }
         }
 
+        // Reactions change hands now: withdraw requests for reagents this room no longer uses.
+        for (const mineral in Memory.mineralNeed) {
+            if (neededMinerals.includes(mineral)) continue;
+            const staleIndex = Memory.mineralNeed[mineral].indexOf(thisRoom.name);
+            if (staleIndex !== -1) {
+                Memory.mineralNeed[mineral].splice(staleIndex, 1);
+            }
+        }
+
         if (TerminalEnergy >= 5000) {
             const currentMineral = Game.getObjectById(thisMineral);
 
@@ -120,9 +85,8 @@ var market_buyers = {
                         break;
                     } else if (Memory.mineralNeed[mineral].length) {
                         const isNeeded = neededMinerals.includes(mineral);
-                        const isGhodium = mineral === RESOURCE_GHODIUM;
                         
-                        hasSent = sendMineral(mineral, thisTerminal, Memory.mineralNeed[mineral][0], isNeeded, isGhodium && ForNuker);
+                        hasSent = sendMineral(mineral, thisTerminal, Memory.mineralNeed[mineral][0], isNeeded);
                     }
                 }
             }
@@ -222,7 +186,7 @@ var market_buyers = {
 
 module.exports = market_buyers;
 
-function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag, nukerLimit) {
+function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
     if (thisTerminal.store[thisMineral] && Game.rooms[targetRoom]) {
         const targetTerminal = Game.rooms[targetRoom].terminal;
         let amountAvailable = thisTerminal.store[thisMineral];

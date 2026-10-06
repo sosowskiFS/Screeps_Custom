@@ -17,10 +17,10 @@ This is a flat CommonJS Screeps World project. Upload **all root-level `.js` fil
 | Spawn reservations and shared energy accounting | `spawn.state.js` |
 | Spawn bodies and staffing policies | Existing `spawn.Build*` modules |
 | Links, labs, power processing, factories and nukers | `system.industry.js` |
-| Lab recipes and producer-flag priority | `config.production.js` |
+| Reaction planning (what each room's labs make) | `system.labs.js` |
 | Observers and remote opportunity detection | `system.observers.js` |
 | Market policy and room trading | `system.market.js`, `market.FindBuyers.js` |
-| Flags and periodic empire state | `system.flags.js`, `system.state.js`, `system.minerals.js` |
+| Flags and periodic empire state | `system.flags.js`, `system.state.js` |
 | Construction scheduling and extension roads | `system.construction.js`, `tool.generateBase.js` |
 | Visuals and CPU measurements | `system.visuals.js`, `runtime.metrics.js` |
 | Memory initialization and shared tick queries | `runtime.memory.js`, `runtime.cache.js` |
@@ -74,6 +74,14 @@ Role-level CPU behavior worth knowing when debugging:
 - **Actions never cancel each other**: heal before damage lands, attack + ranged attack, or heal + ranged attack. Mass attack when it out-damages a single shot. Melee gives way to healing only when the creep (or an adjacent ally) is below half health after incoming damage.
 - **Civilians** (remote miners, haulers, claimers, remote mineral miners, power collectors) step out of reach of armed hostiles. They leave or wait outside a room whose fight isn't clearly `win`, and keep treating it as dangerous for 50 ticks after last seeing it. Danger also adds the room to `Memory.FarRoomsUnderAttack`, which is what triggers guard spawns.
 - **Power banks**: rival players at the bank create the `PowerGuard` flag and record `Memory.powerContested[homeRoom]`. The attackers abandon the bank if the verdict is `lose`. They also hold the final hits while rivals are present and none of our collectors are in the room. Rooms contested in the last 20,000 ticks get the escort flag together with the next `PowerAttack` flag.
+
+### Damaged highway units
+
+Damage disables body parts front to back, and creeps never regenerate. A unit whose working parts are all disabled used to stand still until it died, and since it still counted as alive it also blocked its replacement. Helpers in `combat.tactics.js`: `crippled(creep, type)`, `stranded`, `seekRepair`, `repaired`.
+- **Deposit miner** (`farMineralMiner`, WORK-first body): with every WORK part disabled it unloads at home, then waits by storage for the towers to heal it and goes back. It suicides instead if the home has no towers or it has under 200 ticks to live. A full terminal falls back to storage. A deposit that decayed, or got too slow, is unloaded once and then the miner suicides; it no longer waits in the room center or flips between states.
+- **Power healer:** picks one heal per tick, because a later self-heal used to cancel the attacker's heal. Order: itself below 50%, then its attacker (ranged at 2–3 tiles), then the most damaged friend within 3, then itself. With every HEAL part disabled it suicides (unless a healer is next to it) so a new healer spawns.
+- **Power collector:** when damaged, walks to the nearest power healer in the room that can still heal, and waits beside it until fully healed. Healers heal it whenever their attacker has 1,000 hits to spare. Once the bank falls, healers stay to heal damaged collectors in the room, and only suicide when nobody there needs healing.
+- **Any of these with every MOVE part disabled** waits if a healer is within 3 tiles (a collector waits for any working power healer in the room), otherwise suicides so a replacement spawns (its cargo stays in the tombstone for collectors). The power attacker waiting below 2,500 hits for its healers is unchanged.
 
 ## Automatic remote mining
 
@@ -161,6 +169,23 @@ With no job it does busywork: terminal, labs, factory, overflow link to storage,
 Intents are never doubled. Ops are generated only on ticks no other power was used, and a finished job hands over to the next one on the following tick. Armed hostiles in reach are handled last, so they override the job's movement: hold position on a rampart, else move to the nearest rampart without crossing hostile reach, else flee every threat. Renewal is postponed while threatened unless TTL < 60.
 
 Spawn staffing (`configurePowerCreepRoom`, mule/miner rules) and the lab worker's switch to distributor use `operatorPresent(room)`: the room's operator spawned there with TTL > 100. The `RoomOperator` flag alone no longer counts, so a dead or deleted operator no longer leaves the room without haulers.
+
+## Lab reactions
+
+`system.labs.js` replaces the per-room producer flags (`<room>XGHO2Producer` and the rest). The Overhaul branch ignores those flags, so they can stay for the Nightmare branch.
+
+- **Plan:** every 100 ticks the planner adds up terminal, storage and lab contents across all rooms and compares them with a target per lab room (T3 boosts, plus G for nukers; `TARGET_PER_ROOM`). It takes the end products furthest below target first and walks each one's recipe tree. Every reaction in that tree whose two inputs are in stock is a candidate.
+- **Assign:** each room with at least 6 labs (labs 4 and 5 are the reagents, 6+ are outputs) gets one reaction in `Memory.labJobs[room]`. A room keeps its reaction while it is still a candidate, or while its labs still hold a batch, so labs are not flushed every check. New assignments prefer reactions whose inputs are already in that room's terminal, which saves shipping. A product goes to at most 2 rooms, plus 1 room for every 6,000 missing.
+- **Surplus:** when every target is met and nothing is blocked, idle labs make T3 up to 2× target. The market sells anything above 1.5× target.
+- **Run:** the lab worker follows the room's current reaction every tick. When it changes, labs still holding the old minerals are emptied into the terminal. It no longer swaps flags, suicides to pick up a new recipe, or places sell orders. Terminal logistics request only the current reagents and withdraw requests for old ones.
+- **Manual:** `Memory.labOverride[room] = RESOURCE_...` pins a room to one product. `WarBoosts` still swaps the boost labs.
+
+## Market
+
+- **Sell orders** (surplus T3, pixels): one order per resource for the whole empire, priced 0.001 under the cheapest listing that isn't ours. Our own orders are recognised by order id, so rooms never undercut each other. Listings under 100 units don't count when pricing compounds. Price cuts are free and immediate. A raise costs 5% of the increase × remaining amount, so it only happens when the gap is at least 1% and the credits are there. Prices never go below 70% of the market history's volume-weighted average, or 0.5 for compounds.
+- **Pixels:** listed as a sell order instead of dumped into the highest buy order. A buy order within 5% of our ask is sold into directly.
+- **CPU unlocks:** a filled bid really costs bid × 1.05 (the order fee), so the market buys asks at or below that, or below the recent average, outright. That buys up to 3 asks per run, as many units as credits allow (5,000 credits are kept for fees). Otherwise it keeps one bid (5 units) 0.001 above the best other bid. The bid stays below the cheapest ask and never above 105% of the recent average, so the bot doesn't join bidding wars. A bid left higher than needed is cut for free.
+- **Cleanup:** filled orders are cancelled so they stop taking order slots. The daily unlock isn't attempted (or notified) without a token.
 
 ## Room defense
 

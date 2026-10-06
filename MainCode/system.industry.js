@@ -1,4 +1,4 @@
-const producerFlags = require('config.production');
+const labPlanner = require('system.labs');
 const runtimeCache = require('runtime.cache');
 // system.industry — Screeps tick subsystem.
 
@@ -184,27 +184,13 @@ function manageLabOperations(thisRoom) {
     const roomName = thisRoom.name;
     const labIds = Memory.labList[roomName];
 
-    if (!labIds || labIds.length < 3) return;
+    if (!labIds || labIds.length < 6) return;
+
+    // The empire planner (system.labs) decides what this room reacts.
+    const job = labPlanner.jobFor(roomName);
+    if (!job) return;
 
     const labs = labIds.map(id => Game.getObjectById(id)).filter(lab => lab);
-
-    if (labs.length < 3) return;
-
-    // Check for production flags to determine what to produce
-    const flags = Game.flags;
-    let productionType = null;
-
-    // Check for various producer flags
-
-
-    for (let producer of producerFlags) {
-        if (flags[roomName + producer.flag]) {
-            productionType = producer;
-            break;
-        }
-    }
-
-    if (!productionType) return;
 
     // Skip first 3 labs, use labs 4 and 5 as input labs (indices 3 and 4), rest as output labs
     if (labs.length < 6) return; // Need at least 6 labs (skip 3, use 2 for input, 1+ for output)
@@ -213,8 +199,8 @@ function manageLabOperations(thisRoom) {
     const outputLabs = labs.slice(5);   // Labs 6+ (indices 5+)
 
     // Check if input labs have correct resources
-    const input1 = productionType.inputs[0];
-    const input2 = productionType.inputs[1];
+    const input1 = job.a;
+    const input2 = job.b;
 
     if (inputLabs[0].mineralType != input1 || inputLabs[1].mineralType != input2) {
         // Need to load correct inputs - this would be handled by lab worker creeps
