@@ -1,6 +1,7 @@
 const runtimeCache = require('runtime.cache');
 const speech = require('creep.speech');
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
+const maintenance = require('system.maintenance');
 
 const IDLE_SAYINGS = ["☝😼", "👌😹"];
 
@@ -10,6 +11,12 @@ var creep_upgrader = {
     run: function(creep) {
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'upgraderNearDeath') {
             creep.memory.priority = 'upgraderNearDeath';
+        }
+
+        // RCL8 upkeep upgrader: retire once the downgrade timer is topped up.
+        if (creep.memory.upkeep && maintenance.upkeepDone(creep.room.controller)) {
+            creep.suicide();
+            return;
         }
 
         if (!creep.memory.hasBoosted && creep.room.controller.level >= 6 && Memory.labList[creep.room.name].length >= 3 && !creep.memory.previousPriority) {

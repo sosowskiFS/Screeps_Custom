@@ -11,6 +11,7 @@ const creeps = require('system.creeps');
 const minerals = require('system.minerals');
 const construction = require('system.construction');
 const remoteMining = require('system.remoteMining');
+const roads = require('system.roads');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
 
@@ -24,6 +25,7 @@ const phases = [
     ['remoteMining', remoteMining.run],
     ['minerals', minerals.handleMineralFlagDistribution],
     ['construction', construction.handleAutoBuildRoomsRegeneration],
+    ['roads', roads.run],
 ];
 module.exports.loop = function () {
     memory.ensureInitialized();

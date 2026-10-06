@@ -6,8 +6,11 @@ const { updateRoomStructureLists, manageLinkOperations, manageLabOperations, man
 const { displayRoomInfo } = require('system.visuals');
 const { leastHits } = require('util.common');
 const market_buyers = require('market.FindBuyers');
+const maintenance = require('system.maintenance');
 
 function processRoomManagement(thisRoom) {
+    // Enter/leave low-CPU maintenance mode (finished RCL8 rooms with a healthy stockpile).
+    maintenance.update(thisRoom);
     displayRoomInfo(thisRoom);
     manageRoomStructures(thisRoom);
     handleRoomFlags(thisRoom);

@@ -1,5 +1,6 @@
 const speech = require('creep.speech');
 const runtimeCache = require('runtime.cache');
+const roads = require('system.roads');
 var creep_workV2 = {
 
     /** @param {Creep} creep **/
@@ -8,7 +9,8 @@ var creep_workV2 = {
         if (creep.carry.energy > 0 && creep.memory.priority != 'harvester' && creep.memory.priority != 'harvesterNearDeath') {
             //All creeps check for road under them and repair if needed.
             var someStructure = creep.pos.lookFor(LOOK_STRUCTURES);
-            if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 600) && someStructure[0].structureType == STRUCTURE_ROAD) {
+            if (someStructure.length && (someStructure[0].hitsMax - someStructure[0].hits >= 600) && someStructure[0].structureType == STRUCTURE_ROAD &&
+                roads.isPriority(creep.room.name, creep.pos.x, creep.pos.y)) {
                 creep.repair(someStructure[0]);
             }
         }

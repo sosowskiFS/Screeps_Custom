@@ -9,6 +9,7 @@ const spawn_BuildFarCreeps = require('spawn.BuildFarCreeps');
 const remoteMining = require('system.remoteMining');
 const roomCpu = require('runtime.roomCpu');
 const governor = require('runtime.cpuGovernor');
+const maintenance = require('system.maintenance');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 
 function handleSpawning() {
@@ -58,6 +59,9 @@ function processSpawn(spawn, spawnRoleCache, roomSpawnCache) {
 
 function processSpawnLogic(spawn, thisRoom, spawnRoleCache) {
     var delay = thisRoom.controller.level == 8 ? 15 : 10;
+    if (maintenance.inMaintenance(thisRoom.name)) {
+        delay = 50; // staffing barely changes in maintenance; check spawns less often
+    }
     const runningAssaultFlag = Game.flags[thisRoom.name + "RunningAssault"];
     if (runningAssaultFlag) {
         delay = 3;
@@ -255,6 +259,11 @@ function processNormalSpawning(spawn, thisRoom, energyIndex) {
 
 function processFarMiningSpawn(spawn, thisRoom, energyIndex, spawnRoleCache) {
     const roomName = thisRoom.name;
+
+    // Established RCL8 rooms run on local sources; remote mining (path-heavy) only when short.
+    if (!maintenance.remoteMiningWanted(thisRoom)) {
+        return;
+    }
 
     // Block far mining creep production if storage energy exceeds 300,000
     if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] > 300000) {

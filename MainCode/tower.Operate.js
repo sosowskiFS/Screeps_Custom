@@ -1,6 +1,8 @@
 const { leastHits } = require('util.common');
 const runtimeCache = require('runtime.cache');
 const defenseWatch = require('defense.watch');
+const maintenance = require('system.maintenance');
+const roads = require('system.roads');
 var tower_Operate = {
     run: function(tower, attackDuration, towerNum, roomIntel) {
         //My bit that computes "how much damage could my towers do to creep x?" counted inactive towers
@@ -47,6 +49,9 @@ var tower_Operate = {
             }
         } else {
             checkDelay = 250;
+        }
+        if (maintenance.inMaintenance(thisRoom.name)) {
+            checkDelay = 100; // ramparts are already above the nuke threshold; roads decay slowly
         }
 
         let UnderAttackPos = Memory.roomsUnderAttack.indexOf(thisRoom.name);
@@ -387,7 +392,9 @@ var tower_Operate = {
             const intel = roomIntel || {};
             if (!Object.prototype.hasOwnProperty.call(intel, 'criticalRoad')) {
                 intel.criticalRoad = leastHits(runtimeCache.find(tower.room, FIND_STRUCTURES, {
-                    filter: structure => structure.structureType == STRUCTURE_ROAD && structure.hits < structure.hitsMax / 2
+                    // Planned roads only: unused roads are left to decay.
+                    filter: structure => structure.structureType == STRUCTURE_ROAD && structure.hits < structure.hitsMax / 2 &&
+                        roads.isPriority(structure.pos.roomName, structure.pos.x, structure.pos.y)
                 })) || null;
             }
             if (intel.criticalRoad) {

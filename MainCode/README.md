@@ -99,6 +99,38 @@ Counts are kept low by putting work into bodies, not creeps:
 
 Rooms below RCL5 are limited by spawn energy rather than creep count. Their worker bodies already use nearly all available energy, so they keep the existing counts.
 
+## Planned roads
+
+`system.roads.js` (phase `roads`) keeps a road plan per owned room in `Memory.roadPlan[room]`. It's refreshed every 5,000 ticks, at most one room per tick, and only when the CPU governor allows path-heavy work.
+
+- **Core:** existing roads next to our structures, i.e. the generated base layout (extension/lab fields, storage and spawn surroundings).
+- **Routes:** paths from storage (or a spawn) to every spawn, tower, lab, terminal, factory, power spawn, nuker and link, to extensions with no adjacent road, to the controller (range 3), sources, the mineral, and this room's `FarMining` flags. Existing roads cost 1, plains 3 and swamps 15, and each path lowers the cost of the tiles it uses, so routes merge into shared trunks.
+- **Repair** (tower road repair, early-room workers) only touches planned roads. Everything else decays: about 50k ticks on plains, much longer on swamp/wall tiles.
+- **Building:** missing route tiles get road sites, 10 per pass, never on wall tiles, and only while there are under 90 construction sites in total.
+- **Walking creeps** no longer drop road sites in planned rooms. Rooms without a plan keep the old behavior.
+- `Memory.settings.roadCleanup = true` removes up to 20 off-plan roads per pass instead of waiting for decay (not while under attack).
+- `Memory.settings.roadPlanning = false` turns the system off.
+
+## RCL8 maintenance mode and controller upkeep
+
+`system.maintenance.js` (evaluated during room management, `Memory.roomMode[room]`):
+- **Established:** RCL8, no construction sites, all spawns/extensions/towers/storage/terminal built, and every rampart at 25M+ hits (two nukes on the same tile).
+- **Maintenance:** established, storage energy ≥ 300k to enter (stays until it drops below 150k), not under attack, no nukes inbound. An attack or nuke ends it at once; everything else is re-checked every 100 ticks.
+
+In maintenance:
+- No miners (storage pays until 150k, then miners return) and no repairers.
+- One hauler instead of hauler + distributor (an operator covers it where present).
+- Supplier, lab worker and mineral miner are unchanged.
+- Spawn checks run every 50 ticks, and tower maintenance repair every 100.
+
+Remote mining and its path-heavy planning/scouting are skipped for any **established** room unless storage is below 100k. The dashboard labels the room pie `Room CPU (M)`.
+
+**Controller upkeep (all RCL8 rooms).** GCL isn't a goal, so there's no permanent upgrader. When `ticksToDowngrade` falls below 150k (of 200k), a 1-WORK upgrader (900 energy) draws from storage and tops the timer up at 100 ticks per upgrade tick, then retires about 1,000 short of full. Keeping the timer above half also keeps safe mode available. The controller supplier is then only spawned while there's power to process.
+
+Settings:
+- `Memory.settings.gclFocus = true` restores full-time upgraders.
+- `Memory.settings.maintenanceMode = false` (or a `<room>NoMaintenance` flag) disables maintenance mode.
+
 ## Power creep (base operator)
 
 `creep.baseOp.js` runs one job at a time from a priority list. Conditions are checked lazily, and an idle operator re-checks every 5 ticks (every tick while the room is under attack):

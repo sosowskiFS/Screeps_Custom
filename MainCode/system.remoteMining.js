@@ -15,6 +15,7 @@ const runtimeCache = require('runtime.cache');
 const combatIntel = require('combat.intel');
 const { getRoomAtOffset } = require('util.common');
 const governor = require('runtime.cpuGovernor');
+const maintenance = require('system.maintenance');
 
 const ME = 'Montblanc';
 const REMOTE_RANGE = 2;            // rooms (linear) from home considered for mining
@@ -345,7 +346,7 @@ function hasObserver(homeName) {
 
 // Called from spawning. Homes with an observer never need scouts.
 function needsScout(home) {
-    if (!home.storage || hasObserver(home.name) || !enabled(home.name) || !governor.allows('scouting')) return false;
+    if (!home.storage || hasObserver(home.name) || !enabled(home.name) || !governor.allows('scouting') || !maintenance.remoteMiningWanted(home)) return false;
     return scoutTargets(home.name).length > 0;
 }
 
@@ -374,7 +375,8 @@ function run() {
     let planned = false;
     for (let i = 0; i < homes.length; i++) {
         const home = homes[i];
-        if (!enabled(home.name)) continue;
+        // Established rooms that don't need remote income skip the (path-finding) planning.
+        if (!enabled(home.name) || !maintenance.remoteMiningWanted(home)) continue;
         // One (path-finding) plan per tick at most; plans are staggered across homes.
         if (!planned && (!plans[home.name] || Game.time - plans[home.name].t >= PLAN_INTERVAL)) {
             planHome(home);

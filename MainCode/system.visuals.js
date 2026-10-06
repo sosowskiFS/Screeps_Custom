@@ -1,5 +1,6 @@
 const { visualsEnabled } = require('runtime.config');
 const roomCpu = require('runtime.roomCpu');
+const maintenance = require('system.maintenance');
 // system.visuals — Screeps tick subsystem.
 
 
@@ -26,7 +27,7 @@ function displayRoomInfo(thisRoom) {
     // Room CPU: this base's creeps (by home room) plus its structures, next to the shard Average.
     if (roomCpu.enabled()) {
         const roomAverage = roomCpu.average(thisRoom.name);
-        drawPie(roomVis, Math.round(roomAverage * 100) / 100, Game.cpu.limit, 'Room CPU',
+        drawPie(roomVis, Math.round(roomAverage * 100) / 100, Game.cpu.limit, maintenance.inMaintenance(thisRoom.name) ? 'Room CPU (M)' : 'Room CPU',
             getColourByPercentage(Math.min(1, roomAverage / Game.cpu.limit), false), 5, 1.5);
     }
 

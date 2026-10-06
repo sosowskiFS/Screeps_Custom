@@ -1,6 +1,7 @@
 const runtimeCache = require('runtime.cache');
 const { operatorPresent } = require('creep.baseOp');
 const defenseWatch = require('defense.watch');
+const maintenance = require('system.maintenance');
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
         // Cache frequently used values
@@ -103,6 +104,11 @@ var spawn_BuildCreeps5 = {
         let upgraderResults = GetUpgraderConfig(upgraderMax, thisRoom.energyCapacityAvailable, thisRoom.controller.level)
             upgraderMax = upgraderResults[0]
             let upgraderConfig = upgraderResults[1]
+
+        // RCL8 controller upkeep and maintenance-mode staffing (see lowCpuStaffing).
+        const lowCpu = this.lowCpuStaffing(thisRoom, { upgraderMax, upgraderConfig, upSupplierMax, minerMax, repairMax, salvagerMax, muleMax, distributorMax, pNeedDist });
+        ({ upgraderMax, upgraderConfig, upSupplierMax, minerMax, repairMax, salvagerMax, muleMax, distributorMax } = lowCpu);
+        const controllerUpkeep = lowCpu.controllerUpkeep;
             let bareMinConfig = [MOVE, WORK, WORK, CARRY];
         let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
         let supplierDirection = [];
@@ -314,7 +320,8 @@ var spawn_BuildCreeps5 = {
             } else if (upgraders.length < upgraderMax && !blockedRole.includes('upgrader')) {
                 prioritizedRole = 'upgrader';
                 storageID = thisRoom.storage.id;
-                connectedLink = strLinks[1];
+                // Upkeep upgraders draw from storage; the controller link is no longer topped up.
+                connectedLink = controllerUpkeep ? thisRoom.storage.id : strLinks[1];
             } else if (upSuppliers.length < upSupplierMax && !blockedRole.includes('upSupplier')) {
                 prioritizedRole = 'upSupplier';
                 storageID = thisRoom.storage.id;
@@ -458,6 +465,8 @@ var spawn_BuildCreeps5 = {
                                 priority: prioritizedRole,
                                 linkSource: connectedLink,
                                 storageSource: storageID,
+                                upkeep: controllerUpkeep || undefined,
+                                hasBoosted: controllerUpkeep || undefined, // no lab boost for a 1-WORK upkeep run
                                 deathWarn: _.size(upgraderConfig) * 6,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
@@ -1196,6 +1205,31 @@ Object.assign(spawn_BuildCreeps5, {
             miner.memory.ignoreTravel = false;
             miner.memory.atSpot = false;
         }
+    },
+
+    // RCL8 without GCL focus: no permanent upgrader, only a small one while the downgrade timer
+    // needs topping up; the upSupplier is then only kept for power processing.
+    // Maintenance mode (finished RCL8 room, healthy stockpile, no threats): bare essentials.
+    // Storage pays for spawning until it drops to the exit level, then miners return.
+    lowCpuStaffing: function(room, limits) {
+        const result = Object.assign({}, limits, { controllerUpkeep: false });
+        if (room.controller.level == 8 && !maintenance.gclFocus()) {
+            result.controllerUpkeep = true;
+            result.upgraderMax = maintenance.upkeepDue(room.controller) ? 1 : 0;
+            result.upgraderConfig = maintenance.upkeepBody();
+            const powerSpawnIds = Memory.powerSpawnList[room.name] || [];
+            const powerToProcess = powerSpawnIds.length > 0 && room.storage && room.storage.store[RESOURCE_POWER] >= 100;
+            if (!powerToProcess) result.upSupplierMax = 0;
+        }
+        if (maintenance.inMaintenance(room.name)) {
+            const operator = operatorPresent(room.name);
+            result.minerMax = 0;
+            result.repairMax = 0;
+            result.salvagerMax = 0;
+            result.muleMax = operator ? 0 : 1;                       // one hauler fills extensions too
+            result.distributorMax = operator && limits.pNeedDist ? 1 : 0;
+        }
+        return result;
     },
 
     // Tombstones/drops worth a salvager trip, or a weak attack whose drops will need collecting.

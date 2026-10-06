@@ -1,8 +1,15 @@
 const runtimeCache = require('runtime.cache');
 const governor = require('runtime.cpuGovernor');
+const roads = require('system.roads');
 function placeRoadOnPath(creep) {
     // Only attempt if we have an active travel path
     if (!creep.memory._trav || !creep.memory._trav.path || creep.memory._trav.path.length === 0) {
+        return;
+    }
+
+    // Rooms with a road plan get their roads from it (system.roads); walking creeps used to
+    // turn every detour into a permanent road.
+    if (roads.hasPlan(creep.room.name)) {
         return;
     }
 
