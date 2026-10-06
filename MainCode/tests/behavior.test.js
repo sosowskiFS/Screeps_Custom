@@ -37,7 +37,7 @@ test('all role aliases match legacy dispatch across bucket, war, RCL, HEAL and s
             h.context.Game.cpu.bucket = bucket;
             // Speech is opt-in now; enable it here so dispatch is compared exactly with legacy.
             h.context.Memory = { RoomsAt5: at5 ? ['A'] : [], warMode: war, settings: { creepSpeech: true } };
-            const creep = { memory: { priority: role }, room: { name: 'A' }, spawning,
+            const creep = { memory: { priority: role }, room: { name: 'A', find: () => [] }, spawning,
                 getActiveBodyparts: () => heal, say: (...args) => h.calls.push(['say', ...args]) };
             h.context.Game.creeps = { unit: creep };
             h.run();

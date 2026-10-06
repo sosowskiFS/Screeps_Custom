@@ -84,6 +84,12 @@ Role-level CPU behavior worth knowing when debugging:
 - **Flags.** Qualifying sources fill free `FarMining` slots nearest-first, so the 25M/50M rampart caps drop the farthest first. Each mined room gets one `FarGuard` flag at its centre. Manual flags are never moved or removed. Auto flags are tracked in `Memory.remoteAuto` and removed when their source leaves the plan. Plans refresh every 2,000 ticks, at most one home and 10 new path searches per tick.
 - **Opt out:** `Memory.settings.autoRemote = false` (all homes) or a `<home>NoAutoRemote` flag (one home).
 
+**Remote bodies.**
+- **Far mules:** CARRY/MOVE 1:1 (full speed on unpaved plains even when full) with no ATTACK part. They're sized to the planned round trip: 10 energy/tick × trip × 1.15, between 4 and 25 pairs. Manually flagged sources get the maximum.
+- **Reservers:** CLAIM/MOVE pairs only.
+- **Guards against players:** `Memory.remoteThreat[room]` records the strongest enemy force seen in each remote room (damage, healing, effective HP, players; kept 1,500 ticks). The spawner sends the cheapest full-speed ranged/heal kiter that `verdictFor` says wins, or two of them if one can't. If even two max-size guards would lose, nothing is sent. Disabled rooms only get guards when such a plan exists. Invader-only threats keep the existing melee/ranged guards.
+- **Harassers:** 2-8 ATTACK/MOVE pairs plus a HEAL/MOVE pair. They hunt reservers first, then haulers carrying energy, then miners. Armed defenders go through the shared fight logic (engage only when winning, otherwise retreat and regroup). The CPU governor never thins them while hostiles are in their room.
+
 **Disabling unsafe remotes** (`Memory.remoteStatus`). A strike is registered when a player attacks a miner, when player fighters appear and our forces there aren't clearly winning, or when the room is claimed. Repeats within 100 ticks count as the same incident. A strike disables the **whole room**: every source, mule, reserver and guard. The back-off doubles per strike (1,500 → 3,000 → 6,000 … up to 50,000 ticks). Remote creeps assigned to a disabled room wait at home instead of walking in.
 
 When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its auto flags) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.

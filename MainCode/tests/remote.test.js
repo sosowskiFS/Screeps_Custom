@@ -33,7 +33,7 @@ function world(extraCost = {}) {
 
 test('planner keeps sources a max-size mule can keep up with, nearest first', () => {
     const { g, home, intel, remote } = world({ 'E6N5:40': 40, 'E5N6:20': 2 });
-    assert.equal(remote.muleCapacity(5600), 1200, '24 CARRY at full energy');
+    assert.equal(remote.muleCapacity(5600), 1250, '25 CARRY at full energy (no ATTACK part)');
     intel('E6N5', [['a', 10, 10], ['b', 40, 40]]);   // adjacent: round trips 56 and 136
     intel('E5N6', [['c', 20, 20]]);                  // adjacent: round trip 60
     intel('E7N5', [['far', 5, 5]]);                  // two rooms away: round trip 106
@@ -42,11 +42,11 @@ test('planner keeps sources a max-size mule can keep up with, nearest first', ()
     intel('E6N6', [['own', 5, 5]], { o: 'rival' });  // owned
     remote.planHome(home);
     const plan = plain(g.Memory.remotePlan.E5N5.list).map(e => e.id);
-    // 1200 / trip >= 8.5 energy/tick  ->  trip <= 141
+    // 1250 / trip >= 8.5 energy/tick  ->  trip <= 147
     assert.deepEqual(plan, ['a', 'c', 'far', 'b']);
 
     g.Memory.remotePlan = {};
-    const small = Object.assign({}, home, { energyCapacityAvailable: 1300 }); // 11 pairs = 550 carry -> trip <= 64
+    const small = Object.assign({}, home, { energyCapacityAvailable: 1300 }); // 13 pairs = 650 carry -> trip <= 76
     remote.planHome(small);
     assert.deepEqual(plain(g.Memory.remotePlan.E5N5.list).map(e => e.id), ['a', 'c'], 'smaller mules: two-room source is out of reach');
 });

@@ -182,8 +182,8 @@ function interestRooms() {
 // ---------------------------------------------------------------- planning
 
 function muleCapacity(energyCapacity) {
-    // Mirrors getMuleBuild in spawn.BuildFarCreeps: 1 ATTACK + 1 MOVE, then CARRY/MOVE pairs (max 24).
-    const pairs = Math.max(0, Math.min(24, Math.floor((energyCapacity - BODYPART_COST[ATTACK] - BODYPART_COST[MOVE]) / 100)));
+    // Mirrors getMuleBuild in spawn.BuildFarCreeps: CARRY/MOVE pairs only (max 25).
+    const pairs = Math.max(0, Math.min(25, Math.floor(energyCapacity / 100)));
     return pairs * CARRY_CAPACITY;
 }
 
@@ -325,6 +325,14 @@ function applyPlan(home) {
     }
 }
 
+// Round trip (ticks) the planner computed for the source under this flag, if it planned it.
+function tripFor(homeName, flag) {
+    const plan = Memory.remotePlan && Memory.remotePlan[homeName];
+    if (!plan || !flag) return undefined;
+    const entry = plan.list.find(e => e.r === flag.pos.roomName && e.x === flag.pos.x && e.y === flag.pos.y);
+    return entry ? entry.trip : undefined;
+}
+
 // ---------------------------------------------------------------- scouting
 
 // Rooms a home should look at: missing/stale intel, or disabled rooms due a safety check.
@@ -390,5 +398,5 @@ function run() {
 
 module.exports = {
     run, recordIntel, noteIncident, isDisabled, needsProbe, needsScout, scoutTargets, observeRequest,
-    planHome, applyPlan, roundTrip, muleCapacity, inspectRoom,
+    planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE,
 };

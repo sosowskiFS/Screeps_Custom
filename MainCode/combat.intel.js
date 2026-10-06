@@ -10,6 +10,7 @@ const COMBAT_ROLES = new Set([
     'highwayPatrol', 'highwayPatrolNearDeath', 'defender',
     'assattacker', 'assattackerNearDeath', 'assranger', 'assrangerNearDeath', 'asshealer', 'asshealerNearDeath',
     'powerAttack', 'powerAttackNearDeath', 'powerHeal', 'powerHealNearDeath',
+    'harasser', 'harasserNearDeath',
 ]);
 // One side must be this much faster at killing the other to call the fight won/lost.
 const DECISIVE = 1.3;
@@ -133,6 +134,7 @@ function roomIntel(room) {
         players: threats.some(c => c.owner.username !== 'Invader'),
     };
     if (threats.length && intel.verdict !== 'win') markDanger(room);
+    if (threats.length && !(room.controller && room.controller.my)) recordThreat(room.name, them, intel.players);
     cache[room.name] = intel;
     return intel;
 }
@@ -143,6 +145,27 @@ function markDanger(room) {
     if (!(room.controller && room.controller.my) && Memory.FarRoomsUnderAttack && Memory.FarRoomsUnderAttack.indexOf(room.name) === -1) {
         Memory.FarRoomsUnderAttack.push(room.name);
     }
+}
+
+// Last enemy force seen in a room we don't own: { d: dps, h: heal, e: effective HP, p: players, t }.
+// Guards for that room are sized from it.
+function recordThreat(roomName, them, players) {
+    if (!Memory.remoteThreat) Memory.remoteThreat = {};
+    const previous = Memory.remoteThreat[roomName];
+    // Keep the strongest force seen during an ongoing incident (enemies leave and return).
+    const keep = previous && Game.time - previous.t < 300 && previous.d + previous.h > them.dps + them.heal;
+    Memory.remoteThreat[roomName] = keep ? Object.assign(previous, { t: Game.time }) :
+        { d: Math.round(them.dps), h: Math.round(them.heal), e: Math.round(them.ehp), p: players ? 1 : 0, t: Game.time };
+}
+
+function remoteThreat(roomName, maxAge = 1500) {
+    const threat = Memory.remoteThreat && Memory.remoteThreat[roomName];
+    if (!threat) return undefined;
+    if (Game.time - threat.t > maxAge) {
+        delete Memory.remoteThreat[roomName];
+        return undefined;
+    }
+    return threat;
 }
 
 // Unwinnable fight in this room: let the spawner send a second guard for a while.
@@ -234,5 +257,5 @@ function focusTarget(room) {
 module.exports = {
     COMBAT_ROLES, MASS_FACTOR,
     assess, roomIntel, verdictFor, focusTarget, bestOf, onRampart,
-    isDangerous, markOutmatched, isOutmatched,
+    isDangerous, markOutmatched, isOutmatched, remoteThreat,
 };

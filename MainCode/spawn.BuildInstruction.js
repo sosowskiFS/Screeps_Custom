@@ -489,7 +489,13 @@ var spawn_BuildInstruction = {
         );
         
         if (harassers.length < 1) {
-            const harasserConfig = [MOVE, MOVE, ATTACK, ATTACK];
+            // Raider: 2-8 ATTACK/MOVE pairs by room energy plus HEAL/MOVE to recover between kills.
+            // Full speed off-road; 60-240 melee damage per tick against unarmed remote creeps.
+            const harasserPairs = Math.max(2, Math.min(8, Math.floor((spawn.room.energyCapacityAvailable - 300) / 130)));
+            const harasserConfig = [];
+            for (let i = 0; i < harasserPairs; i++) harasserConfig.push(ATTACK);
+            for (let i = 0; i <= harasserPairs; i++) harasserConfig.push(MOVE);
+            harasserConfig.push(HEAL);
             const configCost = calculateConfigCost(harasserConfig);
             
             if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {

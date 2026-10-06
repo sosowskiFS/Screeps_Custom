@@ -190,7 +190,7 @@ register(['highwayPatrol', 'highwayPatrolNearDeath'], (creep, isRoomAt5) => {
 });
 
 register(['harasser', 'harasserNearDeath'], (creep, isRoomAt5) => {
-    creep_harasser.run(creep); // thinned by the governor as an optional role
+    creep_harasser.run(creep); // thinned by the governor only while no hostiles are around
     return;
 });
 
@@ -235,8 +235,9 @@ tier(['upSupplier', 'upSupplierNearDeath'], creep => {
     const controller = creep.room.controller;
     return controller && controller.my && controller.ticksToDowngrade < 20000 ? ESSENTIAL : OPTIONAL;
 });
-tier(['scraper', 'scraperNearDeath', 'salvager', 'salvagerNearDeath', 'highwayPatrol', 'highwayPatrolNearDeath',
-    'harasser', 'harasserNearDeath'], OPTIONAL);
+tier(['scraper', 'scraperNearDeath', 'salvager', 'salvagerNearDeath', 'highwayPatrol', 'highwayPatrolNearDeath'], OPTIONAL);
+// Raiders are optional while travelling or waiting, but never thinned mid-fight.
+tier(['harasser', 'harasserNearDeath'], creep => creep.room.find(FIND_HOSTILE_CREEPS).length ? ESSENTIAL : OPTIONAL);
 tier(['mineralMiner', 'mineralMinerNearDeath'], ECONOMY);
 // Everything else (miners, upgraders, mules, distributors, suppliers, defenders, guards, claimers,
 // assault/power/ranger roles, young-room workers) is essential.

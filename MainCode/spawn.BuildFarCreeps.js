@@ -124,19 +124,29 @@ var spawn_BuildFarCreeps = {
                 { index: 8, flag: "FarGuard9", temp: "FarGuard9TEMP", condition: !Flag25 }
             ];
 
+            let sizedGuard = null;
             for (let config of guardConfigs) {
                 const guardFlagName = thisRoom.name + config.flag;
                 const tempFlagName = thisRoom.name + config.temp;
-                // Disabled remotes (player attacks) get no guards either: that fight was already lost.
-                if (config.condition && prioritizedRole === '' && !(Game.flags[guardFlagName] && remoteMining.isDisabled(Game.flags[guardFlagName].pos.roomName)) &&
+                // Against players, send the cheapest ranged/heal kiter the fight estimate says wins.
+                // If none is affordable, send nothing: a fixed-size guard would just be fed to them.
+                // Disabled remotes only get a guard when such a winning body exists.
+                const guardRoom = Game.flags[guardFlagName] && Game.flags[guardFlagName].pos.roomName;
+                const threat = guardRoom && combatIntel.remoteThreat(guardRoom);
+                const playerPlan = threat && threat.p ? guardPlanFor(threat, thisRoom.energyCapacityAvailable) : null;
+                const playerBody = playerPlan ? playerPlan.body : null;
+                if (threat && threat.p && !playerBody) continue;
+                if (config.condition && prioritizedRole === '' && !(guardRoom && remoteMining.isDisabled(guardRoom) && !playerBody) &&
                     ((Game.flags[guardFlagName] && Memory.FarRoomsUnderAttack.indexOf(Game.flags[guardFlagName].pos.roomName) != -1) || Game.flags[tempFlagName])) {
                     const guards = miningOps.farGuards[config.index] || [];
                     // A guard that judged its fight unwinnable marks the room outmatched: send a second one.
-                    const guardTarget = Game.flags[guardFlagName] && combatIntel.isOutmatched(Game.flags[guardFlagName].pos.roomName) ? 2 : 1;
+                    const guardTarget = Math.max(playerPlan ? playerPlan.count : 1,
+                        Game.flags[guardFlagName] && combatIntel.isOutmatched(Game.flags[guardFlagName].pos.roomName) ? 2 : 1);
                     if (guards.length < guardTarget && Game.flags[guardFlagName] && blockedRole != 'farGuard') {
                         prioritizedRole = 'farGuard';
                         roomTarget = Game.flags[guardFlagName].pos.roomName;
                         flagName = Game.flags[guardFlagName].name;
+                        sizedGuard = playerBody;
                         break;
                     }
                 }
@@ -259,7 +269,7 @@ var spawn_BuildFarCreeps = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMule') {
-                    var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable, thisRoom);
+                    var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable, thisRoom, remoteMining.tripFor(thisRoom.name, Game.flags[flagName]));
                     let configCost = calculateConfigCost(farMuleConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -279,6 +289,9 @@ var spawn_BuildFarCreeps = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farGuard') {
+                    if (sizedGuard) {
+                        farGuardConfig = sizedGuard;
+                    }
                     let configCost = calculateConfigCost(farGuardConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -300,7 +313,9 @@ var spawn_BuildFarCreeps = {
                         global.setSpawnBusy(spawn);
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
-                    Memory.guardType = !Memory.guardType;
+                    if (!sizedGuard) {
+                        Memory.guardType = !Memory.guardType; // invader guards still alternate melee/ranged
+                    }
                 } else if (prioritizedRole == 'farMineralMiner') {
                     let configCost = calculateConfigCost(farMinerConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -330,8 +345,8 @@ var spawn_BuildFarCreeps = {
 function getClaimerBuild(energyCap) {
     var thisConfig = [];
 
+    // CLAIM/MOVE pairs only: the old trailing MOVE + ATTACK was never used (claimers avoid fights).
     var ConfigCost = BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]
-    energyCap = energyCap - BODYPART_COST[ATTACK] - BODYPART_COST[MOVE];
 
     while ((energyCap / ConfigCost) >= 1) {
         thisConfig.push(CLAIM);
@@ -342,42 +357,59 @@ function getClaimerBuild(energyCap) {
         }
     }
     thisConfig.sort();
-    thisConfig.push(MOVE);
-    thisConfig.push(ATTACK);
     return thisConfig;
 }
 
-function getMuleBuild(energyCap, thisRoom) {
-    // New mule build: CARRY and MOVE parts for optimal off-road movement + 1 ATTACK + extra MOVE
-    // Ratio: 1 MOVE per 1 CARRY + 1 extra MOVE to compensate for ATTACK weight
-    
-    let carryParts = [];
-    let moveParts = [];
-    let attackParts = [ATTACK]; // Always include 1 ATTACK part for defense
-    
-    // Reserve energy for ATTACK + 1 extra MOVE part to compensate for ATTACK weight
-    let remainingEnergy = energyCap - BODYPART_COST[ATTACK] - BODYPART_COST[MOVE];
-    let costPerUnit = BODYPART_COST[CARRY] + BODYPART_COST[MOVE]; // 50 + 50 = 100
-    
-    // Calculate how many CARRY+MOVE pairs we can afford
-    let maxPairs = Math.floor(remainingEnergy / costPerUnit);
-    
-    // Cap at 48 total parts (50 part limit - 1 ATTACK - 1 extra MOVE = 48 pairs max)
-    maxPairs = Math.min(maxPairs, 24); // 24 pairs + 1 ATTACK + 1 extra MOVE = 50 parts max
-    
-    // Build CARRY and MOVE parts
-    for (let i = 0; i < maxPairs; i++) {
-        carryParts.push(CARRY);
-        moveParts.push(MOVE);
+// Far mule: CARRY/MOVE 1:1 (full speed on unpaved plains even when full; remote rooms have no
+// roads). Sized to the source: enough capacity for one round trip of output plus 15%, so close
+// sources don't get (and don't lose) a 2500-energy hauler. Unplanned (manual) flags get the max.
+// The old single ATTACK part was never used.
+function getMuleBuild(energyCap, thisRoom, trip) {
+    const affordable = Math.min(25, Math.floor(energyCap / (BODYPART_COST[CARRY] + BODYPART_COST[MOVE])));
+    let pairs = affordable;
+    if (trip) {
+        const needed = Math.ceil(remoteMining.SOURCE_RATE * trip * 1.15 / CARRY_CAPACITY);
+        pairs = Math.max(4, Math.min(affordable, needed));
     }
-    
-    // Add the extra MOVE part to compensate for ATTACK weight
-    moveParts.push(MOVE);
-    
-    // Combine all parts: MOVE parts first (for optimal ordering), then CARRY, then ATTACK
-    let finalConfig = [...carryParts, ...moveParts, ...attackParts];
-    
-    return finalConfig;
+    const body = [];
+    for (let i = 0; i < pairs; i++) body.push(CARRY);
+    for (let i = 0; i < pairs; i++) body.push(MOVE);
+    return body;
+}
+
+// Player threat in a remote room: the cheapest full-speed ranged/heal kiter that the shared fight
+// estimate (combat.intel.verdictFor) says beats the recorded force, alone or as a pair. Returns
+// { body, count } or null when even two max-size guards would lose (send nothing, don't feed).
+// Kiters can disengage, which a melee guard against players cannot.
+function guardPlanFor(threat, energyCap) {
+    const them = { dps: threat.d, heal: threat.h, ehp: threat.e };
+    for (const count of [1, 2]) {
+        let best = null;
+        for (let ranged = 1; ranged <= 25; ranged++) {
+            for (let heal = 0; ranged + heal <= 25; heal++) {
+                const cost = ranged * (BODYPART_COST[RANGED_ATTACK] + BODYPART_COST[MOVE]) + heal * (BODYPART_COST[HEAL] + BODYPART_COST[MOVE]);
+                if (cost > energyCap || (best && cost >= best.cost)) continue;
+                const us = { dps: count * ranged * 10, heal: count * heal * 12, ehp: count * (ranged + heal) * 2 * 100 };
+                if (combatIntel.verdictFor(us, them) === 'win') best = { cost, ranged, heal };
+            }
+        }
+        if (best) return { body: kiterBody(best.ranged, best.heal), count };
+    }
+    return null;
+}
+
+function guardBodyFor(threat, energyCap) {
+    const plan = guardPlanFor(threat, energyCap);
+    return plan ? plan.body : null;
+}
+
+function kiterBody(ranged, heal) {
+    // Ranged parts in front, MOVE in the middle, HEAL last (damage hits the front parts first).
+    const body = [];
+    for (let i = 0; i < ranged; i++) body.push(RANGED_ATTACK);
+    for (let i = 0; i < ranged + heal; i++) body.push(MOVE);
+    for (let i = 0; i < heal; i++) body.push(HEAL);
+    return body;
 }
 
 function calculateConfigCost(bodyConfig) {
@@ -531,4 +563,8 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
     return result;
 }
 
+spawn_BuildFarCreeps.getMuleBuild = getMuleBuild;   // exposed for tests
+spawn_BuildFarCreeps.guardBodyFor = guardBodyFor;
+spawn_BuildFarCreeps.guardPlanFor = guardPlanFor;
+spawn_BuildFarCreeps.getClaimerBuild = getClaimerBuild;
 module.exports = spawn_BuildFarCreeps;
