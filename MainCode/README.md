@@ -122,6 +122,16 @@ So a job one spawn already took counts as filled for the other spawns, for every
 
 ## Room staffing (RCL5+)
 
+**Essentials always spawn first** (`spawn.essentials.js`). A room with a storage needs three kinds of creep to keep its energy chain alive:
+- a distributor or mule, which refills spawns and extensions from the storage
+- a tower supplier, if it has towers
+- a storage miner, except in maintenance mode
+
+While any of these is missing:
+- **Other spawn paths stand down:** flag commands (power, claims, assaults, rangers), remote mining, scouts, highway patrol and observer harassers. Previously a harasser could take the first energy a collapsing room scraped together.
+- **Missing roles go first:** the room's staffing spawns them in this order: refill, supplier, miner.
+- **Body size:** bodies are sized to the energy actually in the spawns and extensions, not the room's capacity. Previously an RCL8 room with near-empty extensions waited forever for a 1,600-energy mule while it had no supplier.
+
 Counts are kept low by putting work into bodies, not creeps:
 - Upgraders turn extra count into 12-WORK modules on one body (`GetUpgraderConfig`), so a higher upgrader count usually means larger upgraders, not more of them.
 - Repairers use a full 50-part body (16 WORK / 17 CARRY / 17 MOVE) once storage is at 450k+ and the room can afford it. Operator rooms with 700k+ storage staff 3 of them, matching the old 4 × 12 WORK.

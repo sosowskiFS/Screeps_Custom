@@ -3,6 +3,7 @@ const { operatorPresent } = require('creep.baseOp');
 const defenseWatch = require('defense.watch');
 const maintenance = require('system.maintenance');
 const labPlanner = require('system.labs');
+const essentials = require('spawn.essentials');
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
         // Cache frequently used values
@@ -247,7 +248,25 @@ var spawn_BuildCreeps5 = {
                 Memory.creepInQue.splice(purgeIDs[j], 4);
             }
 
-            if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !operatorPresent(thisRoom.name)) {
+            // Recovery: a room missing its refill (distributor/mule), tower supplier or storage miner
+            // spawns those before anything else, sized to the energy on hand (spawn.essentials).
+            const missingEssentials = essentials.missing(thisRoom);
+            const recovering = missingEssentials.length > 0;
+            const recoveryBudget = Math.min(thisRoom.energyCapacityAvailable, Math.max(300, Memory.CurrentRoomEnergy[energyIndex] || 0));
+
+            if (missingEssentials.includes('refill') && !blockedRole.includes('distributor')) {
+                prioritizedRole = 'distributor';
+                if (strLinks.length >= 4) {
+                    connectedLink = strLinks[3];
+                }
+            } else if (missingEssentials.includes('supplier') && !blockedRole.includes('supplier') && supplierDirection.length > 0) {
+                prioritizedRole = 'supplier';
+            } else if (missingEssentials.includes('miner') && !blockedSubRole.includes('storageMiner')) {
+                prioritizedRole = 'miner';
+                creepSource = strSources[0];
+                connectedLink = thisRoom.storage.id;
+                jobSpecificPri = 'storageMiner';
+            } else if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !operatorPresent(thisRoom.name)) {
                 prioritizedRole = 'mule';
                 storageID = thisRoom.storage.id;
                 if (strLinks.length >= 4) {
@@ -358,6 +377,13 @@ var spawn_BuildCreeps5 = {
                         minePower = 2 * HARVEST_POWER;
                         minerConfig = [CARRY, WORK, WORK, MOVE];
                         configCost = 300
+                    } else if (recovering && configCost > recoveryBudget) {
+                        // Recovery: as many WORK as the energy on hand pays for (2..5).
+                        const works = Math.max(2, Math.min(5, Math.floor((recoveryBudget - 100) / 100)));
+                        minerConfig = [MOVE, CARRY];
+                        for (let i = 0; i < works; i++) minerConfig.push(WORK);
+                        minePower = works * HARVEST_POWER;
+                        configCost = calculateConfigCost(minerConfig);
                     }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -407,8 +433,8 @@ var spawn_BuildCreeps5 = {
                     }
 
                     let configCost = calculateConfigCost(muleConfig);
-                    if (configCost > thisRoom.energyCapacityAvailable) {
-                        //Took severe damage, assume cap of 300
+                    if (configCost > thisRoom.energyCapacityAvailable || (recovering && configCost > recoveryBudget)) {
+                        //Took severe damage (or recovering on little energy): 300
                         muleConfig = [MOVE, WORK, CARRY, CARRY, CARRY];
                         configCost = 300
                     }
@@ -508,7 +534,7 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'supplier') {
                     global.setSpawnBusy(spawn);
-                    let supplierConfig = this.supplierBody(thisRoom.energyCapacityAvailable);
+                    let supplierConfig = this.supplierBody(recovering ? recoveryBudget : thisRoom.energyCapacityAvailable);
                     let configCost = calculateConfigCost(supplierConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -540,6 +566,10 @@ var spawn_BuildCreeps5 = {
                         //Took severe damage, assume cap of 300
                         distributorConfig = [MOVE, MOVE, CARRY, CARRY, CARRY, CARRY];
                         configCost = 300
+                    } else if (recovering && configCost > recoveryBudget) {
+                        // Recovery: the biggest distributor the energy on hand pays for.
+                        distributorConfig = this.distributorBody(recoveryBudget);
+                        configCost = calculateConfigCost(distributorConfig);
                     }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;

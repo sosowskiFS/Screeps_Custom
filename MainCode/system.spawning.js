@@ -10,6 +10,7 @@ const remoteMining = require('system.remoteMining');
 const roomCpu = require('runtime.roomCpu');
 const governor = require('runtime.cpuGovernor');
 const maintenance = require('system.maintenance');
+const essentials = require('spawn.essentials');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 
 function handleSpawning() {
@@ -86,6 +87,15 @@ function processSpawnLogic(spawn, thisRoom, spawnRoleCache) {
 }
 
 function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
+    // Missing refill/supplier/miner creeps: the room's own staffing only, so no flag command,
+    // remote creep or scout takes the energy first (spawn.essentials).
+    if (!essentials.ok(thisRoom)) {
+        if (!isSpawnBusy(spawn)) {
+            processNormalSpawning(spawn, thisRoom, energyIndex);
+        }
+        return;
+    }
+
     // Process various spawn commands
     processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache);
 
