@@ -1,6 +1,7 @@
 const speech = require('creep.speech');
 const runtimeCache = require('runtime.cache');
 const roads = require('system.roads');
+const { returnIfEmptied } = require('creep.logistics');
 var creep_workV2 = {
 
     /** @param {Creep} creep **/
@@ -343,18 +344,21 @@ var creep_workV2 = {
                 } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable || !creep.room.storage || creep.room.name != creep.memory.homeRoom) {
                     var savedTarget = Game.getObjectById(creep.memory.structureTarget);
                     var getNewStructure = false;
+                    var headedBack = false;
                     if (savedTarget && savedTarget.energy < savedTarget.energyCapacity) {
-                        if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                        const transferResult = creep.transfer(savedTarget, RESOURCE_ENERGY);
+                        if (transferResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(savedTarget);
                         } else {
                             getNewStructure = true;
                             creep.memory.structureTarget = undefined;
+                            headedBack = transferResult == OK && returnDistributor(creep, savedTarget);
                         }
                     } else if (savedTarget) {
                         getNewStructure = true;
                         creep.memory.structureTarget = undefined;
                     }
-                    if (!creep.memory.structureTarget) {
+                    if (!creep.memory.structureTarget && !headedBack) {
                         var target = undefined;
                         if (getNewStructure) {
                             if (!creep.room.storage) {
@@ -414,9 +418,14 @@ var creep_workV2 = {
                             if (getNewStructure) {
                                 creep.travelTo(target);
                                 creep.memory.structureTarget = target.id;
-                            } else if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(target);
-                                creep.memory.structureTarget = target.id;
+                            } else {
+                                const transferResult = creep.transfer(target, RESOURCE_ENERGY);
+                                if (transferResult == ERR_NOT_IN_RANGE) {
+                                    creep.travelTo(target);
+                                    creep.memory.structureTarget = target.id;
+                                } else if (transferResult == OK) {
+                                    returnDistributor(creep, target);
+                                }
                             }
                         }
                     }
@@ -425,6 +434,14 @@ var creep_workV2 = {
         }
     }
 };
+
+// Young-room distributor emptied by this transfer: walk back to its container (or the next one
+// with energy) on the same tick.
+function returnDistributor(creep, target) {
+    let source = creep.memory.storageTarget ? Game.getObjectById(creep.memory.storageTarget) : null;
+    if (!source || _.sum(source.store) <= 100) source = findContainerWithEnergy(creep, 100);
+    return returnIfEmptied(creep, target, {}, 0, source);
+}
 
 function findNewRepairTarget(creep, creepEnergy) {
     if (creepEnergy <= 0) {

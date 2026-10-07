@@ -10,6 +10,7 @@ const remoteMining = require('system.remoteMining');
 const roomCpu = require('runtime.roomCpu');
 const governor = require('runtime.cpuGovernor');
 const maintenance = require('system.maintenance');
+const reachability = require('system.reachability');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
@@ -137,7 +138,7 @@ function processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCach
     const powerAttackFlag = Game.flags[roomName + "PowerAttack"];
     const powerPickupFlag = Game.flags[roomName + "PowerPickup"];
 
-    if (powerAttackFlag && powerPickupFlag) {
+    if (powerAttackFlag && powerPickupFlag && reachability.reachable(roomName, powerAttackFlag.pos.roomName)) {
         // Both flags exist - check if PowerAttack units need spawning
         const powerAttackers = getRoomRoleCount(spawnRoleCache, roomName, 'powerAttack');
         const powerHealers = getRoomRoleCount(spawnRoleCache, roomName, 'powerHeal');
@@ -169,7 +170,8 @@ function processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCach
 
     for (let command of commandMap) {
         const flag = Game.flags[command.flagName];
-        if (flag) {
+        // A flag in a room we cannot reach does not hold up the commands after it.
+        if (flag && (command.type === 'farScout' || reachability.reachable(roomName, flag.pos.roomName))) {
             command.flag = flag;
             handleSpecificSpawnCommand(spawn, thisRoom, energyIndex, command);
             break;

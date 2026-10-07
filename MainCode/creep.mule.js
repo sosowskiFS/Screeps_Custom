@@ -1,11 +1,13 @@
-const { withdrawEnergy, getStorageTarget, findEnergySink, handleMovementCoordination } = require('creep.logistics');
+const { withdrawEnergy, getStorageTarget, findEnergySink, handleMovementCoordination, returnIfEmptied } = require('creep.logistics');
+
+const REFILL_AT = 15;   // goes for more energy at this load or less
 
 module.exports = {
     run: function(creep) {
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'muleNearDeath') {
             creep.memory.priority = 'muleNearDeath';
         }
-        if (_.sum(creep.carry) <= 15) {
+        if (_.sum(creep.carry) <= REFILL_AT) {
             creep.memory.structureTarget = undefined;
             let linkTarget = creep.memory.linkSource ? Game.getObjectById(creep.memory.linkSource) : undefined;
             if (!withdrawEnergy(creep, linkTarget, { ignoreRoads: true })) {
@@ -34,6 +36,7 @@ module.exports = {
             } else {
                 var savedTarget = Game.getObjectById(creep.memory.structureTarget)
                 var getNewStructure = false;
+                var headedBack = false;
                 if (savedTarget) {
                     if (creep.build(savedTarget) == ERR_INVALID_TARGET) {
                         //Only other blocker is build.
@@ -44,7 +47,8 @@ module.exports = {
 
                         if (savedTarget.structureType != STRUCTURE_CONTAINER && savedTarget.structureType != STRUCTURE_STORAGE && savedTarget.structureType != STRUCTURE_CONTROLLER) {
                             //Storing in spawn/extension/tower/link
-                            if (creep.transfer(savedTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
+                            const transferResult = creep.transfer(savedTarget, RESOURCE_ENERGY);
+                            if (transferResult == ERR_NOT_IN_RANGE && savedTarget.energy < savedTarget.energyCapacity) {
                                 creep.travelTo(savedTarget, {
                                     maxRooms: 1
                                 });
@@ -52,6 +56,8 @@ module.exports = {
                                 //assumed OK, drop target
                                 creep.memory.structureTarget = undefined;
                                 getNewStructure = true;
+                                // Last of the load: head back for more now, not on to the next sink.
+                                headedBack = transferResult == OK && returnIfEmptied(creep, savedTarget, { maxRooms: 1 }, REFILL_AT);
                             }
                         } else {
                             //Upgrading controller
@@ -95,7 +101,7 @@ module.exports = {
                     creep.memory.structureTarget = undefined;
                 }
                 //Immediately find a new target if previous transfer worked
-                if (!creep.memory.structureTarget) {
+                if (!creep.memory.structureTarget && !headedBack) {
                     // Same target set in war and peace; skip the structure just filled.
                     var targets = findEnergySink(creep, undefined, getNewStructure ? savedTarget.id : undefined);
 
@@ -105,12 +111,16 @@ module.exports = {
                             creep.travelTo(targets, {
                                 maxRooms: 1
                             });
-                        } else if (creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(targets, {
-                                maxRooms: 1
-                            });
                         } else {
-                            creep.memory.structureTarget = undefined;
+                            const transferResult = creep.transfer(targets, RESOURCE_ENERGY);
+                            if (transferResult == ERR_NOT_IN_RANGE) {
+                                creep.travelTo(targets, {
+                                    maxRooms: 1
+                                });
+                            } else {
+                                creep.memory.structureTarget = undefined;
+                                if (transferResult == OK) returnIfEmptied(creep, targets, { maxRooms: 1 }, REFILL_AT);
+                            }
                         }
                     } else {
                         //Build construction sites (moved up in priority)

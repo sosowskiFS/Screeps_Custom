@@ -1,5 +1,8 @@
 const combat = require('combat.tactics');
 const combatIntel = require('combat.intel');
+const reachability = require('system.reachability');
+
+const ROUTE_CHECK = 25;   // ticks between "can I still get there" checks while travelling
 
 // Harasser: a fast melee raider sent (by observers) to rooms another player is reserving.
 // It can't touch the reservation itself (that needs CLAIM), so it attacks what keeps the
@@ -23,6 +26,14 @@ var creep_harasser = {
         }
 
         if (combat.regroup(creep)) {
+            return;
+        }
+
+        if (creep.memory.abandon || (creep.room.name !== creep.memory.destination && Game.time % ROUTE_CHECK === 0 &&
+            !reachability.reachable(creep.room.name, creep.memory.destination))) {
+            // Every way to the target crosses a claimed room: go home and recycle.
+            creep.memory.abandon = 1;
+            returnAndRecycle(creep);
             return;
         }
 
@@ -92,6 +103,23 @@ function pickPrey(creep, hostiles) {
         }
     }
     return best;
+}
+
+function returnAndRecycle(creep) {
+    const home = Game.rooms[creep.memory.homeRoom];
+    if (!home || creep.room.name !== home.name) {
+        if (!combat.fight(creep, { transit: true })) {
+            creep.travelTo(new RoomPosition(25, 25, creep.memory.homeRoom), { stuckValue: 2, allowSK: true });
+            selfHeal(creep);
+        }
+        return;
+    }
+    const spawn = creep.pos.findClosestByRange(FIND_MY_SPAWNS);
+    if (!spawn) {
+        creep.suicide();
+    } else if (spawn.recycleCreep(creep) === ERR_NOT_IN_RANGE) {
+        creep.travelTo(spawn);
+    }
 }
 
 function selfHeal(creep) {

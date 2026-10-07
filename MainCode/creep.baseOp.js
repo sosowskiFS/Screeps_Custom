@@ -2,7 +2,7 @@ const runtimeCache = require('runtime.cache');
 const combatIntel = require('combat.intel');
 const combat = require('combat.tactics');
 const defender = require('creep.combat');
-const { findEnergySink } = require('creep.logistics');
+const { findEnergySink, returnIfEmptied } = require('creep.logistics');
 
 // Base operator (power creep). Each tick:
 //   1. pick a job if idle (lazily checked, priority-ordered, re-checked every few ticks when idle)
@@ -423,7 +423,10 @@ function fillTargetStructures(creep) {
     }
     creep.memory.structureTarget = undefined;
     // Done once this spawn is filled and no other spawn still needs energy after it.
-    return spawnDeficit(creep.room) - Math.min(creep.store[RESOURCE_ENERGY], target.store.getFreeCapacity(RESOURCE_ENERGY)) <= 0;
+    const done = spawnDeficit(creep.room) - Math.min(creep.store[RESOURCE_ENERGY], target.store.getFreeCapacity(RESOURCE_ENERGY)) <= 0;
+    // More to fill but this emptied it: head back to storage on the same tick.
+    if (result == OK && !done) returnIfEmptied(creep, target, { ignoreRoads: true, maxRooms: 1 }, 0, creep.room.storage);
+    return done;
 }
 
 // One transfer per tick: a successful transfer ends the tick's maintenance (the old version

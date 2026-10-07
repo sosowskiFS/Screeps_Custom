@@ -96,6 +96,8 @@ function clean() {
         if (outmatched[room] <= Game.time) { delete outmatched[room]; removed++; }
     }
 
+    removed += require('system.reachability').prune();
+
     const homes = ownedRooms();
     const trips = Memory.remoteTrips || {};
     for (const home in trips) {

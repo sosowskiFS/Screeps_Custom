@@ -1,8 +1,19 @@
 const runtimeCache = require('runtime.cache');
+const reachability = require('system.reachability');
+
+// Instructions without a single target room (params): no route to check.
+const UNROUTED = new Set(['vandalize', 'farScout', 'highwayPatrol']);
+const ROOM_NAME = /^[WE]\d+[NS]\d+$/;
+
 var spawn_BuildInstruction = {
     run: function(spawn, instruction, params, energyIndex, thisRoom = '', params2 = '') {
         // Cache frequently used values
         const roomName = spawn.room.name;
+        // Never spawn for a room it cannot reach without crossing a claimed room.
+        if (!UNROUTED.has(instruction) && typeof params === 'string' && ROOM_NAME.test(params) &&
+            !reachability.reachable(roomName, params)) {
+            return;
+        }
         const currentRoomEnergy = Memory.CurrentRoomEnergy[energyIndex];
         
         switch (instruction) {

@@ -1,5 +1,5 @@
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
-const { withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget } = require('creep.logistics');
+const { withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, returnIfEmptied } = require('creep.logistics');
 const { operatorPresent } = require('creep.baseOp');
 
 const IDLE_RANGE = 3;              // idle wait distance from the home spawn
@@ -147,27 +147,8 @@ module.exports = {
                         clearTravelMemory(creep);
                     }
                     creep.memory.structureTarget = undefined;
-                    // Calculate remaining energy after transfer since creep.carry doesn't update immediately
-                    let transferAmount = Math.min(creep.carry[RESOURCE_ENERGY], savedTarget.energyCapacity - savedTarget.energy);
-                    let remainingEnergy = creep.carry[RESOURCE_ENERGY] - transferAmount;
-                    // If creep will be empty after transfer, immediately start moving back to energy source
-                    if (remainingEnergy <= 0) {
-                        // Immediately start moving back to energy source
-                        let linkTarget = creep.memory.linkSource ? Game.getObjectById(creep.memory.linkSource) : undefined;
-                        if (linkTarget && linkTarget.energy >= 600) {
-                            creep.travelTo(linkTarget, { ignoreRoads: true });
-                        } else {
-                            var storageTarget = creep.room.storage;
-                            if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
-                                storageTarget = creep.room.terminal;
-                            } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
-                                storageTarget = creep.room.terminal;
-                            }
-                            if (storageTarget) {
-                                creep.travelTo(storageTarget, { ignoreRoads: true });
-                            }
-                        }
-                    } else {
+                    // Emptied by this transfer: head straight back to the energy source.
+                    if (transferResult != OK || !returnIfEmptied(creep, savedTarget, { ignoreRoads: true })) {
                         getNewStructure = true;
                     }
                 }
@@ -192,6 +173,7 @@ module.exports = {
                             creep.memory.structureTarget = target.id;
                         } else if (transferResult == OK) {
                             clearTravelMemory(creep);
+                            returnIfEmptied(creep, target, { ignoreRoads: true });
                         }
                     }
                 }

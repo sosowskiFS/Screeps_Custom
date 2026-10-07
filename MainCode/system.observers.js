@@ -7,6 +7,7 @@ const remoteMining = require('system.remoteMining');
 const governor = require('runtime.cpuGovernor');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
+const reachability = require('system.reachability');
 
 function handleRoomOperations(thisRoom) {
     const roomName = thisRoom.name;
@@ -165,7 +166,8 @@ function handleHarasserOperations(thisRoom, observedRoom, roomName, observedRoom
         });
 
         // Never while the home room is missing its refill/supplier/miner creeps.
-        if (!existingHarasser && harasserInRoom.length === 0 && governor.allows('harasser') && essentials.ok(thisRoom)) {
+        if (!existingHarasser && harasserInRoom.length === 0 && governor.allows('harasser') && essentials.ok(thisRoom) &&
+            reachability.reachable(roomName, observedRoomName)) {
             // Spawn a harasser to disrupt the reservation
             const spawns = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
                 filter: { structureType: STRUCTURE_SPAWN }

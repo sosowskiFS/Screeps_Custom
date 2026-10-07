@@ -23,6 +23,7 @@ function transferEnergy(creep, target, opts = {}) {
 
 function getStorageTarget(creep) {
     let storageTarget = creep.room.storage;
+    if (!storageTarget) return creep.room.terminal || null;
     if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
         storageTarget = creep.room.terminal;
     } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
@@ -62,6 +63,30 @@ function findAndMoveToDistributionTarget(creep) {
     }
 
     return false;
+}
+
+// Load left after this tick's energy transfer to target (creep.store only updates next tick).
+function loadAfterTransfer(creep, target) {
+    const energy = creep.store[RESOURCE_ENERGY] || 0;
+    const free = target && target.store ? target.store.getFreeCapacity(RESOURCE_ENERGY) : 0;
+    return creep.store.getUsedCapacity() - Math.min(energy, Math.max(0, free));
+}
+
+// Where a home hauler refills: its link when that holds a load, else storage (or terminal).
+function refillSource(creep) {
+    const link = creep.memory.linkSource ? Game.getObjectById(creep.memory.linkSource) : undefined;
+    if (link && link.store[RESOURCE_ENERGY] >= 600) return link;
+    return getStorageTarget(creep);
+}
+
+// Call right after a transfer that returned OK. If it hands over the last of the load (at most
+// emptyAt left, the role's refill threshold), start walking back to the refill point on the same
+// tick instead of carrying on toward the next sink and then turning around. Returns true when it
+// turned back, so the caller does not pick a next target this tick.
+function returnIfEmptied(creep, target, opts = {}, emptyAt = 0, source = refillSource(creep)) {
+    if (!source || loadAfterTransfer(creep, target) > emptyAt) return false;
+    if (!creep.pos.isNearTo(source)) creep.travelTo(source, opts);
+    return true;
 }
 
 function handleMovementCoordination(creep) {
@@ -121,4 +146,5 @@ function depositBeforeDeath(creep) {
     return true;
 }
 
-module.exports = { depositBeforeDeath, withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, handleMovementCoordination };
+module.exports = { depositBeforeDeath, withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, handleMovementCoordination,
+    loadAfterTransfer, refillSource, returnIfEmptied };
