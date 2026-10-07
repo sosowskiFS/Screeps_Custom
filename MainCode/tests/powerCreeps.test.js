@@ -5,8 +5,12 @@ const { harness, plain } = require('./harness');
 const EARLY = [0, 2, 7, 14, 22];
 const LATE = [10, 11, 12, 14, 22];
 
-function setup({ shard = 'shard2', remote = {}, gpl = 0 } = {}) {
+const MIN = 60 * 1000;
+
+function setup({ shard = 'shard2', remote = {}, gpl = 0, silentFor = 31 * MIN } = {}) {
     const h = harness(), g = h.context;
+    const clock = { now: 1e12 };
+    g.Date = { now: () => clock.now };   // the module only reads Date.now()
     h.load('runtime.memory').ensureInitialized();
     g.Game.time = 1000;
     g.Game.shard = { name: shard };
@@ -19,7 +23,7 @@ function setup({ shard = 'shard2', remote = {}, gpl = 0 } = {}) {
     const local = { value: '' };
     g.InterShardMemory = {
         getLocal: () => local.value, setLocal: v => { local.value = v; },
-        getRemote: s => (remote[s] ? JSON.stringify({ pc: Object.assign({ t: Date.now() }, remote[s]) }) : null),
+        getRemote: s => (remote[s] ? JSON.stringify({ pc: Object.assign({ t: clock.now }, remote[s]) }) : null),
     };
     const spawns = [];
     const rooms = {};
@@ -36,9 +40,11 @@ function setup({ shard = 'shard2', remote = {}, gpl = 0 } = {}) {
     g.Game.rooms = rooms;
     g.Game.powerCreeps = pcs;
     g.Memory.powerCreeps = {};
+    // Shards without an entry: seen silent this long already (default: long enough to ignore).
+    g.Memory.pcSilent = { shardX: clock.now - silentFor, shard1: clock.now - silentFor, shard2: clock.now - silentFor, shard3: clock.now - silentFor };
     g.console = { log: () => {} };
     const pc = h.load('system.powerCreeps');
-    return { g, pc, spawns, addRoom, addPc, local, run: () => pc.assignmentPass() };
+    return { g, pc, spawns, addRoom, addPc, local, clock, remote, run: () => pc.assignmentPass() };
 }
 
 test('upgrade order reaches the full build (GENERATE_OPS 4, TOWER 3, LAB 5, EXTENSION 5, REGEN_SOURCE 5, OPERATE_POWER 3)', () => {
@@ -56,15 +62,43 @@ test('upgrade order reaches the full build (GENERATE_OPS 4, TOWER 3, LAB 5, EXTE
         PWR_GENERATE_OPS: 4, PWR_OPERATE_TOWER: 3, PWR_OPERATE_LAB: 5, PWR_OPERATE_EXTENSION: 5, PWR_REGEN_SOURCE: 5, PWR_OPERATE_POWER: 3 });
 });
 
-test('a free operator spawns in the first room with a power spawn but no operator', () => {
-    const { g, spawns, addRoom, addPc, run } = setup();
+test('a free operator is claimed for the first room with a power spawn but no operator, then spawned on a later pass', () => {
+    const { g, spawns, addRoom, addPc, run, clock, local } = setup();
     addRoom('A'); addRoom('B'); addRoom('C', false);
     addPc('home', { shard: 'shard2' });
     g.Memory.powerCreeps.home = { homeRoom: 'A', priority: 'baseOp' };
     addPc('free');
     run();
+    assert.deepEqual(plain(spawns), [], 'claimed, not spawned yet');
+    assert.deepEqual(plain(JSON.parse(local.value).pc.claims), ['free'], 'the claim is published');
+    clock.now += 11 * MIN;   // shard2 confirms after 2 x 5 min
+    run();
     assert.deepEqual(plain(spawns), [['free', 'B']]);
     assert.equal(g.Memory.powerCreeps.free.homeRoom, 'B');
+});
+
+test('the WhooDaddy race: shard1 does not take a free operator before shard2 has spoken, and yields to its claim', () => {
+    // Just deployed: shard2 has no entry yet. shard1 must wait, not assume shard2 is down.
+    const s = setup({ shard: 'shard1', silentFor: 0 });
+    s.g.Memory.pcSilent = { shardX: s.clock.now - 31 * MIN };   // shardX long silent: only shard2 is unknown
+    s.addRoom('E19N59');
+    s.addPc('WhooDaddy');
+    s.run();
+    assert.deepEqual(plain(s.g.Memory.pcClaims), {}, 'no claim while shard2 is unknown');
+    // shard2 reports rooms waiting: the free operator is shard2's, shard1 still claims nothing.
+    s.remote.shard2 = { need: 3, reserved: [], claims: [], assigned: 20 };
+    s.clock.now += 5 * MIN;
+    s.run();
+    assert.deepEqual(plain(s.g.Memory.pcClaims), {});
+    // Had shard1 claimed first, a later shard2 claim wins: shard1 drops it instead of spawning.
+    s.remote.shard2 = { need: 0, reserved: [], claims: [], assigned: 20 };
+    s.run();
+    assert.ok(s.g.Memory.pcClaims.WhooDaddy);
+    s.remote.shard2 = { need: 1, reserved: [], claims: ['WhooDaddy'], assigned: 20 };
+    s.clock.now += 20 * MIN;
+    s.run();
+    assert.deepEqual(plain(s.spawns), []);
+    assert.deepEqual(plain(s.g.Memory.pcClaims), {});
 });
 
 test('shard priority: shardX\'s waiting rooms get free operators before shard2', () => {

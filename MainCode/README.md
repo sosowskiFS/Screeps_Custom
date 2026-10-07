@@ -314,7 +314,10 @@ Intents are never doubled. Ops are generated only on ticks no other power was us
 - **Free operators** (unspawned, fully built, not reserved by any shard) go to rooms with a power spawn but no operator, shard by shard: shardX, then shard2, then shard1 (any other shard last). Within a shard, the first room that comes up wins.
 - **Moving to shardX:** when shardX has rooms waiting that the free operators (cooldowns included) don't cover, shard1 gives operators up first, then shard2 once shard1 has none. They are unassigned, suicided and spawned on shardX after their cooldown.
 - **New operators:** shard2 creates one when the account has 26 free power levels (1 to create + 25 levels). It upgrades it one level per tick to GENERATE_OPS 4, OPERATE_TOWER 3, OPERATE_LAB 5, OPERATE_EXTENSION 5, REGEN_SOURCE 5, OPERATE_POWER 3.
-- **Coordination:** shards share their state through InterShardMemory (`pc`: rooms waiting, reserved operators, how many assigned). A shard silent for 30 minutes counts as not running.
+- **Coordination:** shards share their state through InterShardMemory (`pc`: rooms waiting, reserved operators, claims, how many assigned). Shards run their passes at different moments, so handing out a free operator takes two passes:
+  - A shard first publishes a claim (operator → room).
+  - It spawns only 5 min × (priority rank + 1) later, and only if no higher-priority shard has claimed that operator meanwhile.
+  - A shard only claims once every higher-priority shard has published its state, or has been seen silent for 30 minutes. (Right after a deploy, shard1 once took a free operator because shard2 had not written its entry yet.)
 - **Retirement:** a retired room's operator is unassigned when the room is unclaimed.
 
 Spawn staffing (`configurePowerCreepRoom`, mule/miner rules) and the lab worker's switch to distributor use `operatorPresent(room)`: the room's operator spawned there with TTL > 100. The `RoomOperator` flag alone no longer counts, so a dead or deleted operator no longer leaves the room without haulers.

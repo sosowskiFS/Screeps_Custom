@@ -11,13 +11,19 @@
 //   4. Free creeps (unspawned, not reserved by any shard, fully built, cooldown over) go to the
 //      rooms with a power spawn but no creep, shard by shard in PRIORITY order: shardX, shard2,
 //      shard1 (other shards last). Within a shard, rooms in the order they come up.
+//      Shards run their passes at different moments, so this is two-phase: a shard first
+//      publishes a claim (creep -> room) and only spawns on a later pass, CONFIRM_MS x its rank
+//      after claiming, if no higher-priority shard has claimed the same creep meanwhile. A shard
+//      only claims once every higher-priority shard has either published fresh state or been
+//      seen silent for STALE_MS (a shard with no entry yet may simply not have run its pass).
 //   5. When shardX has rooms waiting and the free creeps (cooldowns included) don't cover them,
 //      shard1 gives up creeps first, then shard2 once shard1 has none: they are unassigned and
 //      suicided, become free after their spawn cooldown and then spawn on shardX.
 //   6. CREATOR_SHARD creates a new operator when the account has enough free power levels for
 //      a complete one (1 + the levels in BUILD) and upgrades it to BUILD, one level per tick.
 // Shards coordinate through InterShardMemory (key 'pc'): { t: Date.now(), need, reserved: [names],
-// assigned }. A shard whose entry is older than STALE_MS is treated as not running.
+// claims: [names], assigned }. A shard is treated as not running only after this shard has seen
+// it without a fresh entry for STALE_MS (Memory.pcSilent).
 const PRIORITY = ['shardX', 'shard2', 'shard1'];
 const RELEASE_ORDER = ['shard1', 'shard2'];          // who gives creeps up to shardX first
 const TOP_SHARD = 'shardX';
@@ -25,6 +31,8 @@ const CREATOR_SHARD = 'shard2';
 const RUN_EVERY = 100;
 const STALE_MS = 30 * 60 * 1000;
 const RELEASE_GAP_MS = 20 * 60 * 1000;               // between releases (lets the others catch up)
+const CONFIRM_MS = 5 * 60 * 1000;                    // x (priority rank + 1): wait before spawning a claim
+const CLAIM_TTL_MS = 60 * 60 * 1000;
 // The build in use: GENERATE_OPS 4, OPERATE_TOWER 3, OPERATE_LAB 5, OPERATE_EXTENSION 5,
 // REGEN_SOURCE 5, OPERATE_POWER 3 (25 levels).
 const BUILD = [['PWR_GENERATE_OPS', 4], ['PWR_OPERATE_TOWER', 3], ['PWR_OPERATE_LAB', 5], ['PWR_OPERATE_EXTENSION', 5],
@@ -75,11 +83,24 @@ function writeLocal(entry) {
 
 function otherShards() {
     const out = {};
+    if (!Memory.pcSilent) Memory.pcSilent = {};
     for (const shard of PRIORITY.concat(Object.keys(Game.cpu.shardLimits || {}))) {
         if (shard === Game.shard.name || out[shard] !== undefined) continue;
         out[shard] = readShard(shard);
+        if (out[shard]) delete Memory.pcSilent[shard];
+        else if (!Memory.pcSilent[shard]) Memory.pcSilent[shard] = Date.now();
     }
     return out;
+}
+
+// Every higher-priority shard has either told us its state or been silent long enough to count
+// as not running. Until then a lower shard does not claim free creeps.
+function settled(others, here) {
+    for (const shard in others) {
+        if (priorityOf(shard) >= priorityOf(here) || others[shard]) continue;
+        if (Date.now() - (Memory.pcSilent[shard] || Date.now()) < STALE_MS) return false;
+    }
+    return true;
 }
 
 // ---------------------------------------------------------------- rooms
@@ -192,24 +213,52 @@ function run() {
     const isFree = pc => unspawned(pc) && complete(pc) && pc.name !== building && !reservedElsewhere.has(pc.name) &&
         !reserved.includes(pc.name);
     const free = Object.keys(Game.powerCreeps).sort().map(n => Game.powerCreeps[n]).filter(isFree);
-    const freeReady = free.filter(ready);
-    const demand = [];
-    for (const shard in others) if (others[shard] && others[shard].need > 0) demand.push([shard, others[shard].need]);
-    demand.push([here, needing.length]);
-    demand.sort((a, b) => priorityOf(a[0]) - priorityOf(b[0]));
-    let offset = 0;
-    for (const [shard, need] of demand) {
-        const slice = freeReady.slice(offset, offset + need);
-        offset += need;
-        if (shard !== here) continue;
-        for (const pc of slice) {
-            const room = needing[0];
-            if (!room) break;
-            if (pc.spawn(rooms[room]) === OK) {
-                needing.shift();
-                assign(pc, room);
-                assigned++;
-                console.log('[powerCreeps] ' + pc.name + ' spawning in ' + room);
+    const claimedHigher = new Set();
+    for (const shard in others) {
+        if (!others[shard] || priorityOf(shard) >= priorityOf(here)) continue;
+        for (const name of others[shard].claims || []) claimedHigher.add(name);
+    }
+    const claims = Memory.pcClaims || (Memory.pcClaims = {});
+    // Drop claims that no longer hold; spawn the ones that have waited long enough.
+    const confirmAfter = CONFIRM_MS * (priorityOf(here) + 1);
+    for (const name in claims) {
+        const claim = claims[name];
+        const pc = Game.powerCreeps[name];
+        const stillNeeded = needing.includes(claim.r);
+        if (!pc || !isFree(pc) || claimedHigher.has(name) || !stillNeeded || Date.now() - claim.at > CLAIM_TTL_MS) {
+            delete claims[name];
+            continue;
+        }
+        if (Date.now() - claim.at < confirmAfter || !ready(pc)) continue;
+        if (pc.spawn(rooms[claim.r]) === OK) {
+            needing.splice(needing.indexOf(claim.r), 1);
+            assign(pc, claim.r);
+            assigned++;
+            delete claims[name];
+            console.log('[powerCreeps] ' + name + ' spawning in ' + claim.r);
+        }
+    }
+    // New claims: free creeps in shard priority order, once the higher shards are settled.
+    if (settled(others, here)) {
+        const available = free.filter(ready).filter(pc => !claimedHigher.has(pc.name));
+        const demand = [];
+        for (const shard in others) {
+            const entry = others[shard];
+            if (entry && entry.need > 0) demand.push([shard, Math.max(0, entry.need - (entry.claims || []).length)]);
+        }
+        const mine = Object.keys(claims);
+        const open = needing.filter(r => !mine.some(n => claims[n].r === r));
+        demand.push([here, open.length + mine.length]);
+        demand.sort((a, b) => priorityOf(a[0]) - priorityOf(b[0]));
+        let offset = 0;
+        for (const [shard, need] of demand) {
+            const slice = available.slice(offset, offset + need);
+            offset += need;
+            if (shard !== here) continue;
+            for (const pc of slice) {
+                if (claims[pc.name] || !open.length) continue;
+                claims[pc.name] = { r: open.shift(), at: Date.now() };
+                console.log('[powerCreeps] claimed ' + pc.name + ' for ' + claims[pc.name].r + '; spawning after ' + (confirmAfter / 60000) + ' min if no higher shard claims it');
             }
         }
     }
@@ -241,7 +290,7 @@ function run() {
     // 6. New creeps.
     if (here === CREATOR_SHARD) createIfAffordable();
     if (building) reserved.push(building);
-    writeLocal({ t: Date.now(), need: needing.length, reserved, assigned });
+    writeLocal({ t: Date.now(), need: needing.length, reserved, claims: Object.keys(Memory.pcClaims || {}), assigned });
 }
 
 // ---------------------------------------------------------------- creation
