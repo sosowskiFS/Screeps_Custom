@@ -44,7 +44,6 @@ var creep_assattacker = {
 
             if (creep.memory.previousRoom != creep.room.name) {
                 creep.memory.previousRoom = creep.room.name;
-                creep.memory._trav = undefined;
             }
 
             let wallFlag = Game.flags[creep.memory.homeRoom + "WallFlag"];

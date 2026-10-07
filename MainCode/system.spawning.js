@@ -11,6 +11,7 @@ const roomCpu = require('runtime.roomCpu');
 const governor = require('runtime.cpuGovernor');
 const maintenance = require('system.maintenance');
 const essentials = require('spawn.essentials');
+const badRooms = require('system.badRooms');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
 
 function handleSpawning() {
@@ -112,6 +113,15 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
     // remote is due its safety check (homes with an observer use that instead).
     if (!isSpawnBusy(spawn) && remoteMining.needsScout(thisRoom)) {
         spawn_BuildInstruction.run(spawn, 'farScout', '', energyIndex, thisRoom.name);
+    }
+
+    // Claimed rooms nobody has seen for a while and no observer reaches: a 1-MOVE scout checks
+    // whether they are still claimed (system.badRooms). Checked every 500 ticks.
+    if (!isSpawnBusy(spawn) && thisRoom.storage && Game.time % 500 === 0 && governor.allows('scouting')) {
+        const targets = badRooms.scoutTargets(thisRoom.name);
+        if (targets.length) {
+            spawn_BuildInstruction.run(spawn, 'farScout', targets, energyIndex, thisRoom.name);
+        }
     }
 
     // Check for highway patrol unit spawning (every 1350 ticks, energy >= 400,000)

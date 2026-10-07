@@ -11,10 +11,10 @@ const combatIntel = require('combat.intel');
 var creep_harasser = {
 
     run: function(creep) {
-        // Reset pathfinding memory when entering new room for better pathing
+        // Track the current room. The path used to be wiped here on every room change; Traveler
+        // now routes multi-room trips, and replanning from an exit tile sent creeps back.
         if (creep.memory.previousRoom != creep.room.name) {
             creep.memory.previousRoom = creep.room.name;
-            creep.memory._trav = undefined;
         }
 
         // Set NearDeath flag if creep is about to die

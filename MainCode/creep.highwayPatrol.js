@@ -3,10 +3,9 @@ const runtimeCache = require('runtime.cache');
 var creep_highwayPatrol = {
     
     run: function(creep) {
-        // Reset pathfinding memory when entering new room for better pathing
+        // Track the current room (the path is no longer wiped here: Traveler routes multi-room trips).
         if (creep.memory.previousRoom != creep.room.name) {
             creep.memory.previousRoom = creep.room.name;
-            creep.memory._trav = undefined;
         }
 
         // Set NearDeath flag if creep is about to die

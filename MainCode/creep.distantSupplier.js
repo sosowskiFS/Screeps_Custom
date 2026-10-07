@@ -9,7 +9,6 @@ var creep_distantSupplier = {
         
         if (creep.memory.previousRoom != creep.room.name) {
             creep.memory.previousRoom = creep.room.name;
-            creep.memory._trav = undefined;
         }
 
         if (creep.room.name != creep.memory.homeRoom && _.sum(creep.carry) <= 0) {

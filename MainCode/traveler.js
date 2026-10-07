@@ -3,7 +3,20 @@
  * Example: var Traveler = require('Traveler.js');
  */
 "use strict";
+// Changes from stock Traveler (see README "Travel"):
+//  - every trip to another room plans its room route first (Game.map.findRoute), not only trips
+//    over 2 rooms: without it PathFinder may route back through the room just left, so a creep
+//    stepping off an exit tile is sent straight back (exit bounce)
+//  - rooms claimed by non-whitelisted players (system.badRooms) are never routed through; only
+//    the trip's own start or destination room may be one
+//  - a route whose rooms are cut off by walls is widened to neighbouring rooms, then dropped,
+//    before giving up: long winding paths no longer end in a partial path walked back and forth
+//  - stuck behind one of our own creeps that is not moving and not parked at a work spot: swap
+//    places with it (head-on deadlocks in 1-wide corridors)
+//  - a repath around creeps that cannot reach the target is discarded: the creep waits and
+//    pushes instead of walking away from its goal and back again
 const runtimeCache = require('runtime.cache');
+const badRooms = require('system.badRooms');
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
@@ -38,6 +51,7 @@ class Traveler {
                             options.returnData.nextPos = destination;
                             options.returnData.path = direction.toString();
                         }
+                        Traveler.markMoved(creep);
                         return creep.move(direction);
                     }
                     return OK;
@@ -73,10 +87,12 @@ class Traveler {
             if (!options.stuckValue) {
                 options.stuckValue = DEFAULT_STUCK_VALUE;
             }
-            if (state.stuckCount >= options.stuckValue && Math.random() > .5) {
+            let aroundCreeps = false;
+            if (state.stuckCount >= options.stuckValue && travelData.path) {
                 options.ignoreCreeps = false;
                 options.freshMatrix = true;
                 delete travelData.path;
+                aroundCreeps = true;
             }
             // TODO:handle case where creep moved by some other function, but destination is still the same
             // delete path cache if destination is different
@@ -109,6 +125,12 @@ class Traveler {
                 state.destination = destination;
                 let cpu = Game.cpu.getUsed();
                 let ret = this.findTravelPath(creep.pos, destination, options, doFlee);
+                if (aroundCreeps && ret.incomplete) {
+                    // No way around the creeps in the way: keep the real path and wait/push
+                    // rather than walking off and coming straight back.
+                    options.ignoreCreeps = true;
+                    ret = this.findTravelPath(creep.pos, destination, options, doFlee);
+                }
                 let cpuUsed = Game.cpu.getUsed() - cpu;
                 state.cpu = _.round(cpuUsed + state.cpu);
                 if (state.cpu > REPORT_CPU_THRESHOLD) {
@@ -140,6 +162,10 @@ class Traveler {
                 travelData.path = travelData.path.substr(1);
             }
             let nextDirection = parseInt(travelData.path[0], 10);
+            if (state.stuckCount > 0 && nextDirection) {
+                Traveler.pushBlocker(creep, nextDirection);
+            }
+            Traveler.markMoved(creep);
             /*if (options.returnData) {
                 if (nextDirection) {
                     let nextPos = Traveler.positionAtDirection(creep.pos, nextDirection);
@@ -169,7 +195,35 @@ class Traveler {
          * @returns {RoomMemory|number}
          */
     static checkAvoid(roomName) {
-            return Memory.rooms && Memory.rooms[roomName] && Memory.rooms[roomName].avoid;
+            return badRooms.isBad(roomName) || !!(Memory.rooms && Memory.rooms[roomName] && Memory.rooms[roomName].avoid);
+        }
+        /**
+         * remember that a creep issued its own move this tick (pushBlocker leaves it alone)
+         */
+    static markMoved(creep) {
+            if (Traveler._movedTick !== Game.time) {
+                Traveler._movedTick = Game.time;
+                Traveler._moved = Object.create(null);
+            }
+            Traveler._moved[creep.name] = true;
+        }
+    static movedThisTick(creep) {
+            return Traveler._movedTick === Game.time && !!Traveler._moved[creep.name];
+        }
+        /**
+         * our own creep standing on the next tile and going nowhere: swap places with it. Creeps
+         * that run later this tick override this with their own move; parked workers (miners,
+         * the tower supplier, anything at its spot) are never pushed: the path goes around them
+         * after stuckValue ticks instead.
+         */
+    static pushBlocker(creep, direction) {
+            const next = Traveler.positionAtDirection(creep.pos, direction);
+            if (!next) return false;
+            const blocker = next.lookFor(LOOK_CREEPS)[0];
+            if (!blocker || !blocker.my || blocker.spawning || blocker.fatigue > 0 || Traveler.movedThisTick(blocker)) return false;
+            const memory = blocker.memory || {};
+            if (memory.atSpot || memory.onPoint || PARKED_ROLES.has(memory.priority)) return false;
+            return blocker.move(blocker.pos.getDirectionTo(creep.pos)) === OK;
         }
         /**
          * check if a position is an exit
@@ -256,7 +310,8 @@ class Traveler {
             // check to see whether findRoute should be used
             let roomDistance = Game.map.getRoomLinearDistance(origin.roomName, destination.roomName);
             let allowedRooms = options.route;
-            if (!allowedRooms && (options.useFindRoute || (options.useFindRoute === undefined && roomDistance > 2))) {
+            const crossRoom = originRoomName !== destRoomName && options.maxRooms !== 1;
+            if (!allowedRooms && (options.useFindRoute || (options.useFindRoute === undefined && crossRoom))) {
                 let route = this.findRoute(origin.roomName, destination.roomName, options, doFlee);
                 if (route) {
                     allowedRooms = route;
@@ -306,17 +361,31 @@ class Traveler {
                 }
                 return matrix;
             };
-            let ret = PathFinder.search(origin, {
+            const search = (maxOps) => PathFinder.search(origin, {
                 pos: destination,
                 range: options.range
             }, {
-                maxOps: options.maxOps,
+                maxOps: maxOps,
                 maxRooms: options.maxRooms,
                 plainCost: options.offRoad ? 1 : options.ignoreRoads ? 1 : 2,
                 swampCost: options.offRoad ? 1 : options.ignoreRoads ? 5 : 10,
                 flee: options.flee,
                 roomCallback: callback,
             });
+            let ret = search(options.maxOps);
+            if (ret.incomplete && allowedRooms && !options.route && !options.flee) {
+                // The route's rooms are cut off by walls (findRoute only knows room links):
+                // widen to the neighbours (never bad rooms), then search without a route.
+                allowedRooms = Traveler.widenRoute(allowedRooms, options);
+                const wider = search(options.maxOps);
+                if (!wider.incomplete) {
+                    ret = wider;
+                } else {
+                    allowedRooms = undefined;
+                    const open = search(options.maxOps * 2);
+                    if (!open.incomplete) ret = open;
+                }
+            }
             if (ret.incomplete && options.ensurePath) {
                 if (options.useFindRoute === undefined) {
                     // handle case where pathfinder failed at a short distance due to not using findRoute
@@ -342,12 +411,24 @@ class Traveler {
          * @param options
          * @returns {{}}
          */
+    static widenRoute(allowedRooms, options) {
+            const wider = Object.assign({}, allowedRooms);
+            for (const roomName in allowedRooms) {
+                const exits = Game.map.describeExits(roomName) || {};
+                for (const dir in exits) {
+                    const next = exits[dir];
+                    if (options.allowHostile || !Traveler.checkAvoid(next)) wider[next] = true;
+                }
+            }
+            return wider;
+        }
     static findRoute(origin, destination, options = {}, doFlee = false) {
             let restrictDistance = options.restrictDistance || Game.map.getRoomLinearDistance(origin, destination) + 10;
             // Remote creeps repath across the same rooms constantly; reuse recent routes.
             // Custom route callbacks can depend on caller state, so those are never cached.
             const cacheKey = options.routeCallback ? undefined : [origin, destination, restrictDistance,
-                options.preferHighway ? (options.highwayBias || 2.5) : 0, options.allowHostile ? 1 : 0, options.allowSK ? 1 : 0].join('|');
+                options.preferHighway ? (options.highwayBias || 2.5) : 0, options.allowHostile ? 1 : 0, options.allowSK ? 1 : 0,
+                badRooms.version()].join('|');
             if (cacheKey) {
                 const cached = Traveler._routeCache[cacheKey];
                 if (cached && Game.time - cached.tick < ROUTE_CACHE_TTL) {
@@ -686,6 +767,11 @@ Traveler._routeCache = Object.create(null);
 const ROUTE_CACHE_TTL = 300;
 Traveler._lastTopologyCleanup = 0;
 Traveler._cacheTick = -1;
+Traveler._movedTick = -1;
+Traveler._moved = Object.create(null);
+// Creeps working from a fixed tile: never pushed out of the way.
+const PARKED_ROLES = new Set(['supplier', 'supplierNearDeath', 'miner', 'minerNearDeath', 'mineralMiner',
+    'mineralMinerNearDeath', 'farMiner', 'farMinerNearDeath']);
 Traveler._structureMatrixCache = {};
 Traveler._creepMatrixCache = {};
 const STATE_PREV_X = 0;

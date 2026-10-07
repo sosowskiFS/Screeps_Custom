@@ -12,6 +12,7 @@ const labs = require('system.labs');
 const construction = require('system.construction');
 const remoteMining = require('system.remoteMining');
 const roads = require('system.roads');
+const badRooms = require('system.badRooms');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
 require('runtime.console');   // console commands: mem(), roomReport()
@@ -27,6 +28,7 @@ const phases = [
     ['minerals', labs.run],
     ['construction', construction.handleAutoBuildRoomsRegeneration],
     ['roads', roads.run],
+    ['badRooms', badRooms.update],
 ];
 module.exports.loop = function () {
     memory.ensureInitialized();

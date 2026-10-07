@@ -1,4 +1,5 @@
 const remoteMining = require('system.remoteMining');
+const badRooms = require('system.badRooms');
 
 // 1-MOVE scout for remote-mining intel. It visits each room its home needs looked at
 // (unknown/stale intel, or a disabled remote due a safety check), records it on arrival,
@@ -17,10 +18,15 @@ var creep_farScout = {
         if (!record || Game.time - record.t > 50) {
             remoteMining.recordIntel(creep.room);
         }
+        badRooms.record(creep.room);
         while (targets.length && targets[0] === creep.room.name) {
             targets.shift();
         }
 
+        if (!targets.length && creep.memory.badRoomCheck) {
+            creep.suicide();
+            return;
+        }
         if (!targets.length) {
             Memory.scoutedMiningRooms = Memory.scoutedMiningRooms || [];
             if (Memory.scoutedMiningRooms.indexOf(creep.memory.homeRoom) === -1) {

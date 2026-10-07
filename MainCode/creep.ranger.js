@@ -10,9 +10,8 @@ var creep_ranger = {
     /** @param {Creep} creep **/
     run: function(creep) {
         if (creep.memory.previousRoom != creep.room.name) {
-            //Reset pathfinding memory so a more relevant path gets calculated here.
+            // Track the current room (the path is no longer wiped here: Traveler routes multi-room trips).
             creep.memory.previousRoom = creep.room.name;
-            creep.memory._trav = undefined;
         }
 
         let flagName = 'Ranger';

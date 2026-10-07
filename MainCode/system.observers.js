@@ -6,6 +6,7 @@ const spawn_BuildInstruction = require('spawn.BuildInstruction');
 const remoteMining = require('system.remoteMining');
 const governor = require('runtime.cpuGovernor');
 const essentials = require('spawn.essentials');
+const badRooms = require('system.badRooms');
 
 function handleRoomOperations(thisRoom) {
     const roomName = thisRoom.name;
@@ -34,7 +35,8 @@ function handleRoomOperations(thisRoom) {
     // Operate observers every 20 ticks
     if (Game.time % 20 === 0 && observationPointer && Memory.observerList[roomName] && Memory.observerList[roomName].length > 0) {
         // A disabled remote due its safety check takes priority over the normal sweep.
-        operateObserver(roomName, remoteMining.observeRequest(roomName) || observedRoomName);
+        // ...then a claimed room nobody has looked at for a while (system.badRooms).
+        operateObserver(roomName, remoteMining.observeRequest(roomName) || badRooms.observeRequest(roomName) || observedRoomName);
     }
 
     // Monitor for power creep operators and respawn if needed
@@ -44,6 +46,7 @@ function handleRoomOperations(thisRoom) {
 }
 
 function handleObservedRoomOperations(thisRoom, observedRoom, roomName, observedRoomName) {
+    badRooms.record(observedRoom);
     // Feed remote-mining intel (sources, owner, reservation) from every observer sweep.
     remoteMining.recordIntel(observedRoom);
 

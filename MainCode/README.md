@@ -298,6 +298,21 @@ Tower fixes:
 - Power-creep OPERATE/DISRUPT_TOWER effects are now applied to damage estimates.
 - A remembered target that left the room or reached the border is dropped immediately.
 
+## Travel
+
+`traveler.js` (all `travelTo` calls) changes from stock Traveler:
+- **Room route first:** every trip into another room plans its room route before the tile path, not only trips of 3+ rooms. Without it, a creep stepping off an exit tile could be routed back through the room it just left and bounce at the border. Roles no longer wipe their path when they change rooms (harasser, highway patrol, ranger, distant supplier, assault units).
+- **Widening:** if walls cut off the rooms on the route, the search is widened to neighbouring rooms, then run without a room restriction (twice the ops) before giving up. Long, winding trips get a full path instead of a partial one that is walked back and forth.
+- **Head-on blocks:** a creep stuck behind one of our own creeps swaps places with it, as long as the other creep isn't moving this tick and isn't parked at a work spot (miners, the tower supplier, anything `atSpot`/`onPoint`). This clears head-on deadlocks in 1-wide corridors.
+- **Stuck repaths:** after `stuckValue` ticks the creep looks for a way around the other creeps. If none reaches the goal, it keeps its real path and waits/swaps instead of walking off and straight back. (Previously this repath happened at random, and the partial path that came back produced the "move, wait, move back" loop.)
+
+### Bad rooms
+
+`system.badRooms.js` keeps `Memory.badRooms[room] = { o: owner, t: last seen }` for rooms whose controller is **claimed** by a player not on `Memory.whiteList`. Reserved rooms don't count.
+- **Updates:** every visible room is checked every 5 ticks, plus each observer sweep and scout visit. Rooms that are no longer claimed (or are claimed by a friend) are dropped.
+- **Routing:** multi-room routes and path searches never enter a bad room; only the trip's own start or destination room may be one (attackers). The route cache refreshes when the list changes.
+- **Re-checks:** a bad room nobody has seen for 20,000 ticks is looked at again. An observer within 10 rooms picks it up after remote-mining requests. Otherwise the nearest home sends a 1-MOVE scout (checked every 500 ticks, up to 6 rooms away), so a room that lost its owner becomes passable again.
+
 ## Console debugging
 
 `runtime.console.js` defines these commands on `global` at load, so they work in the game console after every reset. Output is split into console-sized lines.

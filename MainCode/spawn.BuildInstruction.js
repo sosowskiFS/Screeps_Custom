@@ -64,7 +64,8 @@ var spawn_BuildInstruction = {
                 break;
                 
             case 'farScout':
-                this.spawnFarScout(spawn, energyIndex, roomName);
+                // params: preset target rooms (bad-room re-check), else remote-mining targets
+                this.spawnFarScout(spawn, energyIndex, roomName, Array.isArray(params) ? params : undefined);
                 break;
                 
             case 'harasser':
@@ -452,7 +453,7 @@ var spawn_BuildInstruction = {
     },
     
     // Optimized method to spawn far scouts
-    spawnFarScout: function(spawn, energyIndex, roomName) {
+    spawnFarScout: function(spawn, energyIndex, roomName, targets) {
         const mScouts = _.filter(runtimeCache.homeCreeps(roomName), (creep) =>
             creep.memory.priority == 'farScout' && creep.memory.homeRoom == roomName
         );
@@ -468,7 +469,9 @@ var spawn_BuildInstruction = {
                     memory: {
                         priority: 'farScout',
                         homeRoom: roomName,
-                        deathWarn: mConfig.length * 4
+                        deathWarn: mConfig.length * 4,
+                        targets: targets,
+                        badRoomCheck: targets ? true : undefined
                     }
                 });
                 global.setSpawnBusy(spawn);
