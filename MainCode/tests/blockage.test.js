@@ -85,3 +85,33 @@ test('a site that would leave a spawn exit tile cut off from the room is refused
     assert.equal(c.blocks(walkable, req, before, I(27, 12)), false, 'building on the exit tile itself is fine');
     assert.equal(c.blocks(walkable, req, before, I(29, 11)), false, 'an ordinary exit with other ways out');
 });
+
+// shard1 E19N59 (live snapshot): mid-migration, new extensions at 35,47 36,47 37,47 went down
+// while the old towers at 37,46 38,46 39,46 still stood, walling 37,47 into a dead corner.
+function e19() {
+    const h = harness();
+    const c = h.load('base.connectivity');
+    const room = require('./fixtures/E19N59.json');
+    const walkable = new Uint8Array(2500).fill(1);
+    for (const t of room.walls.concat(room.obstacles)) walkable[t] = 0;
+    walkable[38 * 50 + 43] = 0;   // Supply tile (parked supplier)
+    const req = c.requirements(walkable, Object.assign({}, room, { service: [38 * 50 + 43] }));
+    return { c, room, walkable, req };
+}
+
+test('E19N59: the walled-in extension at 37,47 is detected; its neighbours are fine', () => {
+    const { c, walkable, req } = e19();
+    assert.equal(c.accessible(walkable, req, 37 * 50 + 47), false);
+    assert.equal(c.accessible(walkable, req, 35 * 50 + 47), true);
+    assert.equal(c.accessible(walkable, req, 36 * 50 + 46), true);
+});
+
+test('E19N59: the extension site at 36,47 that sealed the corner would now be refused', () => {
+    const { c, walkable } = e19();
+    walkable[36 * 50 + 47] = 1;   // before 36,47 was built
+    const room = require('./fixtures/E19N59.json');
+    const req = c.requirements(walkable, Object.assign({}, room, { service: [38 * 50 + 43] }));
+    const before = c.status(walkable, req);
+    assert.equal(c.accessible(walkable, req, 37 * 50 + 47), true, '37,47 reachable through 36,47');
+    assert.equal(c.blocks(walkable, req, before, 36 * 50 + 47, true), true, 'cuts access to 37,47');
+});

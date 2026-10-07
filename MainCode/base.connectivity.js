@@ -8,6 +8,10 @@
 //     exit; a structure placed on that tile itself is fine (no creep spawns there then)
 //   - the storage, sources, mineral and controller stay reachable from the exits (the part of
 //     the room haulers walk; the enclosed Supply tile touching the storage does not count)
+//   - every structure a hauler has to reach (extensions, spawns, towers, labs, links, terminal,
+//     factory, power spawn, nuker) keeps a free neighbour reachable from the exits, unless it
+//     touches a parked work tile (Supply, storageMiner, upgradeMiner: the creep there serves it). A new site for such a
+//     structure must itself be reachable that way (blocks(..., needsAccess)).
 // Anything that was reachable before the site must still be reachable with it. Existing sites
 // that already cut such a path are found and removed (base.builder).
 //
@@ -41,7 +45,7 @@ function reach(walkable, seeds) {
 /**
  * The places that must stay reachable.
  * room: { spawns: [tile], storage: tile|undefined, sources: [tile], mineral: tile|undefined,
- *         controller: tile|undefined }
+ *         controller: tile|undefined, serviced: [tile], service: [tile] (parked work tiles) }
  * Returns { perSpawn: [{ seeds, groups, tile }], shared: { seeds, groups } } where each group is a
  * list of tiles (reachable = any of them reached). perSpawn has one entry per free tile next to a
  * spawn (tile = that tile).
@@ -61,12 +65,18 @@ function requirements(walkable, room) {
         }
         return out;
     };
+    const service = new Set(room.service || []);
     const perSpawnGroups = [exits];
     const shared = [];
     if (room.storage !== undefined) shared.push(around(room.storage, 1));
     for (const source of room.sources || []) shared.push(around(source, 1));
     if (room.mineral !== undefined) shared.push(around(room.mineral, 1));
     if (room.controller !== undefined) shared.push(around(room.controller, 3));
+    for (const tile of room.serviced || []) {
+        const next = around(tile, 1);
+        if (next.some(t => service.has(t))) continue;
+        shared.push(next);
+    }
     const perSpawn = [];
     const seen = new Set();
     for (const spawn of room.spawns || []) {
@@ -76,7 +86,7 @@ function requirements(walkable, room) {
             perSpawn.push({ seeds: [tile], groups: perSpawnGroups, tile });
         }
     }
-    return { perSpawn, shared: { seeds: exits, groups: shared } };
+    return { perSpawn, shared: { seeds: exits, groups: shared }, service };
 }
 
 // Connected-component label of every walkable tile (0 = not walkable).
@@ -100,8 +110,7 @@ function components(walkable) {
 }
 
 // Which groups are reachable: a flat list of booleans in a fixed order.
-function status(walkable, req) {
-    const label = components(walkable);
+function status(walkable, req, label = components(walkable)) {
     const linked = (seeds, group) => {
         const ids = new Set();
         for (const s of seeds) if (walkable[s]) ids.add(label[s]);
@@ -122,13 +131,23 @@ function keeps(before, after) {
     return before.every((ok, i) => !ok || after[i]);
 }
 
-// Would blocking `tile` cut anything? (walkable is restored before returning.)
-function blocks(walkable, req, before, tile) {
-    if (!walkable[tile]) return false;
-    walkable[tile] = 0;
-    const ok = keeps(before, status(walkable, req));
-    walkable[tile] = 1;
-    return !ok;
+// Can a creep serve a structure on `tile`: a free neighbour connected to the room exits, or a
+// parked work tile next to it?
+function accessible(walkable, req, tile, label = components(walkable)) {
+    const exitIds = new Set();
+    for (const e of req.shared.seeds) if (walkable[e]) exitIds.add(label[e]);
+    return neighbors(tile).some(n => req.service.has(n) || (walkable[n] && exitIds.has(label[n])));
 }
 
-module.exports = { requirements, status, keeps, blocks, reach };
+// Would blocking `tile` cut anything? With needsAccess, also refuse when the structure placed
+// there could not be reached itself. (walkable is restored before returning.)
+function blocks(walkable, req, before, tile, needsAccess = false) {
+    if (!walkable[tile]) return false;
+    walkable[tile] = 0;
+    const label = components(walkable);
+    const cut = !keeps(before, status(walkable, req, label)) || (needsAccess && !accessible(walkable, req, tile, label));
+    walkable[tile] = 1;
+    return cut;
+}
+
+module.exports = { requirements, status, keeps, blocks, reach, accessible, components };

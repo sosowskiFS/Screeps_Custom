@@ -61,6 +61,10 @@ function unpack(text) {
 
 const tileOf = pos => pos.x * 50 + pos.y;
 
+// Structures a hauler has to reach (filled or emptied by creeps).
+const SERVICED = new Set([STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_LINK, STRUCTURE_TERMINAL,
+    STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER]);
+
 // ---------------------------------------------------------------- planning
 
 // Kinds base.migrate can move; a migration target ignores them (they will be moved).
@@ -192,11 +196,13 @@ function liveState(room) {
         for (let y = 0; y < 50; y++) walkable[x * 50 + y] = terrain.get(x, y) & TERRAIN_MASK_WALL ? 0 : 1;
     }
     const spawns = [];
+    const serviced = [];
     let storage;
     for (const structure of runtimeCache.find(room, FIND_STRUCTURES)) {
         const tile = tileOf(structure.pos);
         const type = structure.structureType;
         if (type === STRUCTURE_SPAWN && structure.my) spawns.push(tile);
+        if (structure.my && SERVICED.has(type)) serviced.push(tile);
         if (type === STRUCTURE_STORAGE) storage = tile;
         if (type === STRUCTURE_ROAD || type === STRUCTURE_CONTAINER || (type === STRUCTURE_RAMPART && (structure.my || structure.isPublic))) continue;
         walkable[tile] = 0;
@@ -210,9 +216,13 @@ function liveState(room) {
     }
     // Work tiles of parked creeps (tower supplier, storage and upgrade miners) are occupied for
     // good: never count them as a way through.
+    const service = [];
     for (const kind of ['Supply', 'storageMiner', 'upgradeMiner']) {
         const flag = Game.flags[room.name + kind];
-        if (flag && flag.pos.roomName === room.name) walkable[tileOf(flag.pos)] = 0;
+        if (flag && flag.pos.roomName === room.name) {
+            walkable[tileOf(flag.pos)] = 0;
+            service.push(tileOf(flag.pos));
+        }
     }
     const mineral = runtimeCache.find(room, FIND_MINERALS)[0];
     const req = connectivity.requirements(walkable, {
@@ -220,6 +230,7 @@ function liveState(room) {
         sources: runtimeCache.find(room, FIND_SOURCES).map(s => tileOf(s.pos)),
         mineral: mineral ? tileOf(mineral.pos) : undefined,
         controller: room.controller && room.controller.pos ? tileOf(room.controller.pos) : undefined,
+        serviced, service,
     });
     return { walkable, req, blockingSites, spawns };
 }
@@ -257,6 +268,27 @@ function removeBlockingSites(room, live) {
     return removed;
 }
 
+// Extensions no hauler can reach any more (walled in by structures of two layouts during a
+// migration: E19N59 37,47). One per pass is destroyed; the builder only puts it back once its
+// tile is reachable again. Other kinds are only reported.
+function releaseSealed(room, live) {
+    if (!live.spawns.length) return 0;
+    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.indexOf(room.name) !== -1) return 0;
+    const label = connectivity.components(live.walkable);
+    for (const structure of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
+        if (!SERVICED.has(structure.structureType)) continue;
+        const tile = tileOf(structure.pos);
+        if (connectivity.accessible(live.walkable, live.req, tile, label)) continue;
+        const where = structure.structureType + ' at ' + structure.pos.x + ',' + structure.pos.y;
+        if (structure.structureType === STRUCTURE_EXTENSION && structure.destroy() === OK) {
+            console.log('[base] ' + room.name + ': removed ' + where + ' (walled in: no hauler can reach it); rebuilt once reachable');
+            return 1;
+        }
+        if (Game.time % 1000 < PATH_CHECK_EVERY) console.log('[base] ' + room.name + ': ' + where + ' is walled in');
+    }
+    return 0;
+}
+
 // A planned tile of this kind a site could go on right now without cutting a path (base.migrate
 // only moves a structure when its replacement can be placed).
 function replacementTile(room, plan, kind) {
@@ -269,7 +301,7 @@ function replacementTile(room, plan, kind) {
     for (const site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) occupied.add(tileOf(site.pos));
     for (const tile of (plan.structures[kind] || [])) {
         if (occupied.has(tile)) continue;
-        if (!connectivity.blocks(live.walkable, live.req, before, tile)) return tile;
+        if (!connectivity.blocks(live.walkable, live.req, before, tile, SERVICED.has(TYPES[kind]))) return tile;
     }
     return undefined;
 }
@@ -318,7 +350,7 @@ function buildRoom(room, plan) {
     const site = (tile, type) => {
         if (budget <= 0) return false;
         const blocksMovement = !PASSABLE.has(type);
-        if (blocksMovement && reachable && connectivity.blocks(live.walkable, live.req, reachable, tile)) return false;
+        if (blocksMovement && reachable && connectivity.blocks(live.walkable, live.req, reachable, tile, SERVICED.has(type))) return false;
         if (room.createConstructionSite((tile / 50) | 0, tile % 50, type) !== OK) return false;
         budget--;
         add({ x: (tile / 50) | 0, y: tile % 50 }, type);
@@ -433,7 +465,9 @@ function run() {
         // that seal a path, without waiting for the next build pass.
         if ((Game.time + index++ * 7) % PATH_CHECK_EVERY === 0) {
             const cpu = roomCpu.timer();
-            removeBlockingSites(room, liveState(room));
+            const live = liveState(room);
+            removeBlockingSites(room, live);
+            releaseSealed(room, live);
             cpu.lap(name);
         }
         if (!enabled(name)) continue;
@@ -553,4 +587,4 @@ function visualizeFlagged() {
     vis.text(`base plan (${plan.mode}${labs.length ? '' : ', no lab stamp fits'})`, 25, 1, { color: '#ffffff', font: 0.7 });
 }
 
-module.exports = { run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
+module.exports = { run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
