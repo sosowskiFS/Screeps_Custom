@@ -50,3 +50,27 @@ test('special spawn commands (power units, scouts) count creeps ordered earlier 
     assert.equal(cache.pendingCreeps().length, 0, 'next tick the real creep is in Game.creeps instead');
     assert.equal(orders.length, 2);
 });
+
+test('spawned creeps get opaque names: no role, no spawn, unique; dry runs untouched', () => {
+    const { h, g, spawns, orders } = setup();
+    for (let i = 0; i < 200; i++) spawns[i % 3].spawnCreep([], 'harasser_' + spawns[i % 3].name + '_' + g.Game.time, { memory: { priority: 'harasser', homeRoom: 'H' } });
+    const names = orders.map(o => o.name);
+    assert.equal(new Set(names).size, 200, 'unique, even many per tick');
+    for (const name of names) {
+        assert.match(name, /^[a-z0-9]{8}$/);
+        assert.ok(!/harasser|S1|S2|S3/.test(name));
+    }
+    assert.equal(orders[0].memory.priority, 'harasser', 'the role is still in memory');
+    // A name in use (alive or with memory left) is never handed out again: force the generator
+    // onto a taken name first and check it moves on.
+    g.Memory.creeps.aaaaaaaa = { priority: 'old' };
+    const SandboxMath = require('node:vm').runInContext('Math', g);
+    const realRandom = SandboxMath.random;
+    let calls = 0;
+    SandboxMath.random = () => (calls++ < 8 ? 0 : realRandom());   // first try: 'aaaaaaaa'
+    assert.notEqual(h.load('spawn.state').opaqueName(), 'aaaaaaaa');
+    SandboxMath.random = realRandom;
+    orders.length = 0;
+    spawns[0].spawnCreep([], 'probe', { dryRun: true });
+    assert.equal(orders[0].name, 'probe', 'dry runs keep their name');
+});

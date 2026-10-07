@@ -1,15 +1,32 @@
 const runtimeCache = require('runtime.cache');
 // spawn.state — Screeps tick subsystem.
 
+// Creep names are public. The spawn modules name creeps '<role>_<spawn>_<tick>', which tells an
+// opponent what every creep is for and where it came from. Every real spawn order gets an opaque
+// random name instead (the role lives in creep memory, which only we can read). Unique against
+// living creeps, leftover creep memory and names already ordered this tick.
+const NAME_CHARS = 'abcdefghijklmnopqrstuvwxyz0123456789';
+const NAME_LENGTH = 8;
+
+function opaqueName() {
+    const ordered = new Set(runtimeCache.pendingCreeps().map(c => c.name));
+    for (;;) {
+        let name = '';
+        for (let i = 0; i < NAME_LENGTH; i++) name += NAME_CHARS[Math.floor(Math.random() * NAME_CHARS.length)];
+        if (!Game.creeps[name] && !(Memory.creeps && Memory.creeps[name]) && !ordered.has(name)) return name;
+    }
+}
+
 // Record every successful spawn order in this tick's census (runtime.cache notePending), whichever
-// module issued it, so a second spawn in the same room cannot order a duplicate. Installed once
-// per global; the wrapper only adds bookkeeping after a successful, non-dry-run order.
+// module issued it, so a second spawn in the same room cannot order a duplicate, and give the
+// creep an opaque name (opaqueName). Installed once per global. Dry runs keep the given name.
 function trackSpawnOrders() {
     if (typeof StructureSpawn === 'undefined' || !StructureSpawn.prototype.spawnCreep) return;
     const proto = StructureSpawn.prototype;
     if (proto.spawnCreep.tracksPending) return;
     const original = proto.spawnCreep;
     const tracked = function (body, name, opts) {
+        if (!(opts && opts.dryRun)) name = opaqueName();
         const result = original.call(this, body, name, opts);
         if (result === OK && !(opts && opts.dryRun)) {
             runtimeCache.notePending(this, name, (opts && opts.memory) || {});
@@ -116,4 +133,4 @@ function getEnergyIndex(thisRoom) {
 global.setSpawnBusy = spawn => setSpawnStatus(spawn, true);
 global.isSpawnBusy = isSpawnBusy;
 
-module.exports = { initializeSpawnTracking, setSpawnStatus, isSpawnBusy, isAnySpawnBusyInRoom, getAvailableSpawnsInRoom, cleanupSpawnTracking, handleSpawnEnergyTracking, getEnergyIndex };
+module.exports = { opaqueName, initializeSpawnTracking, setSpawnStatus, isSpawnBusy, isAnySpawnBusyInRoom, getAvailableSpawnsInRoom, cleanupSpawnTracking, handleSpawnEnergyTracking, getEnergyIndex };

@@ -121,6 +121,8 @@ Every spawn in a room runs its spawn checks on the same tick, but a creep ordere
 
 So a job one spawn already took counts as filled for the other spawns, for every role, including roles added later. Assault healers are never paired with a placeholder (it has no id yet). The `creepInQue` queue still blocks repeated orders until the spawn finishes.
 
+**Opaque creep names.** Creep names are public, and the spawn modules name creeps `<role>_<spawn>_<tick>`, which tells an opponent what each creep does and where it came from. The same `spawnCreep` wrapper replaces every real order's name with 8 random letters and digits. Names are unique against living creeps, leftover creep memory and names already ordered this tick. The role stays in creep memory, which only we can read. Dry runs keep their name. Creeps spawned before this change keep their old names until they die.
+
 ## Room staffing (RCL5+)
 
 **Essentials always spawn first** (`spawn.essentials.js`). A room with a storage needs three kinds of creep to keep its energy chain alive:
