@@ -9,8 +9,8 @@ test('full module graph: fresh memory, interval boundaries, global reset', () =>
         h.context.Game.time = time;
         main.loop();
         assert.ok(h.context.Memory.CPUAverages.TotalCPU.ticks > 0);
-        // Kept as an empty object so rolling back to Nightmare cannot crash its tower phase.
-        assert.deepEqual(plain(h.context.Memory.roomCreeps), {});
+        // Rebuildable caches stay in heap: never serialized with Memory.
+        assert.ok(!('roomCreeps' in h.context.Memory) && !('labList' in h.context.Memory) && !('structureScanTick' in h.context.Memory));
     }
     const next = harness();
     next.context.Memory = plain(h.context.Memory);
@@ -133,13 +133,13 @@ test('three-spawn room runs management once, shares budgets and survives interru
     g.Game.time = 30;
     main.loop();
     assert.deepEqual(calls, [['tower', 'tower'], ['one', 500], ['two', 400], ['three', 300]]);
-    assert.equal(g.Memory.structureScanTick.A, 30);
+    assert.equal(h.load('runtime.heapMemory').get('structureScanTick').A, 30);
     calls.length = 0;
     g.Game.time = 31;
     g.Memory.RoomsRun = ['A']; g.Memory.CurrentRoomEnergy = ['A', 0];
     main.loop();
     assert.deepEqual(calls, [['tower', 'tower']]);
     assert.equal(h.load('runtime.cache').current().spawnRoles, undefined);
-    assert.equal(g.Memory.structureScanTick.A, 30, 'valid empty structure lists do not rebuild every tick');
+    assert.equal(h.load('runtime.heapMemory').get('structureScanTick').A, 30, 'valid empty structure lists do not rebuild every tick');
     assert.deepEqual(plain(g.Memory.CurrentRoomEnergy), []);
 });

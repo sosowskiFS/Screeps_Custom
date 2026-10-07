@@ -97,9 +97,9 @@ var creep_labWorker = {
         syncReaction(creep);
 
         creep.memory.storeProduced = (
-            creep.memory.mineral1 == creep.memory.mineral6 ||
-            creep.memory.mineral2 == creep.memory.mineral6 ||
-            creep.memory.mineral3 == creep.memory.mineral6
+            labView(creep).mineral1 == labView(creep).mineral6 ||
+            labView(creep).mineral2 == labView(creep).mineral6 ||
+            labView(creep).mineral3 == labView(creep).mineral6
         );
 
         const ctx = buildLabContext(creep);
@@ -556,69 +556,86 @@ function evacuate(creep, target, storage) {
     return true;
 }
 
-// Follow the planner's reaction for this room. Cheap string compares on every tick; when the
-// reaction changes, labs still holding the old minerals count as "wrong" and get emptied.
+// Lab ids and minerals are not stored in creep memory (they were ~20 fields per lab worker, and
+// went stale when base migration rebuilt labs). Each tick they come from the room:
+//   lab1..lab10       Memory.labList[room] (boost labs 0-2, reagents 3-4, outputs 5+)
+//   mineral1..3       the room's boost minerals (Memory.roomConfigs[room].mineralConfig)
+//   mineral4/5, 6..10 the planner's reaction for the room: inputs, product (system.labs)
+// Labs that do not exist read as 'XXX' (the old placeholder), so the checks below are unchanged.
+const labViews = Object.create(null);
+function labView(creep) {
+    let view = labViews[creep.name];
+    if (view && view.t === Game.time) return view;
+    const roomName = creep.room.name;
+    const ids = (Memory.labList && Memory.labList[roomName]) || [];
+    const config = (Memory.roomConfigs && Memory.roomConfigs[roomName] && Memory.roomConfigs[roomName].mineralConfig) || {};
+    const job = ids.length >= 6 ? labPlanner.jobFor(roomName) : null;
+    view = { t: Game.time };
+    for (let i = 1; i <= 10; i++) view['lab' + i] = ids[i - 1] || 'XXX';
+    view.mineral1 = config.min1 || RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    view.mineral2 = config.min2 || RESOURCE_CATALYZED_GHODIUM_ACID;
+    view.mineral3 = config.min3 || RESOURCE_CATALYZED_LEMERGIUM_ACID;
+    view.mineral4 = job ? job.a : '';
+    view.mineral5 = job ? job.b : '';
+    for (let i = 6; i <= 10; i++) view['mineral' + i] = job ? job.p : '';
+    labViews[creep.name] = view;
+    return view;
+}
+
+// A new reaction: rescan now rather than after an idle wait. Labs still holding the old
+// minerals count as "wrong" and get emptied.
 function syncReaction(creep) {
-    if (!creep.memory.lab4 || creep.memory.lab4 == 'XXX') {
+    const view = labView(creep);
+    const key = view.mineral4 + '|' + view.mineral5 + '|' + view.mineral6;
+    if (creep.memory.rx === key) {
         return;
     }
-    const job = labPlanner.jobFor(creep.room.name);
-    const a = job ? job.a : '';
-    const b = job ? job.b : '';
-    const p = job ? job.p : '';
-    if (creep.memory.mineral4 === a && creep.memory.mineral5 === b && creep.memory.mineral6 === p) {
-        return;
-    }
-    creep.memory.mineral4 = a;
-    creep.memory.mineral5 = b;
-    for (let i = 6; i <= 10; i++) {
-        creep.memory['mineral' + i] = p;
-    }
+    creep.memory.rx = key;
     creep.memory.idleUntil = undefined;
 }
 
 function buildLabContext(creep) {
     const labs = [];
     const minerals = [];
-    const lab1 = Game.getObjectById(creep.memory.lab1);
-    const lab2 = Game.getObjectById(creep.memory.lab2);
-    const lab3 = Game.getObjectById(creep.memory.lab3);
+    const lab1 = Game.getObjectById(labView(creep).lab1);
+    const lab2 = Game.getObjectById(labView(creep).lab2);
+    const lab3 = Game.getObjectById(labView(creep).lab3);
 
     labs.push(lab1, lab2, lab3);
-    minerals.push(creep.memory.mineral1, creep.memory.mineral2, creep.memory.mineral3);
+    minerals.push(labView(creep).mineral1, labView(creep).mineral2, labView(creep).mineral3);
 
     let lab4, lab5, lab6, lab7, lab8, lab9, lab10;
 
-    if (creep.memory.lab4) {
-        lab4 = Game.getObjectById(creep.memory.lab4);
-        lab5 = Game.getObjectById(creep.memory.lab5);
-        lab6 = Game.getObjectById(creep.memory.lab6);
+    if (labView(creep).lab4) {
+        lab4 = Game.getObjectById(labView(creep).lab4);
+        lab5 = Game.getObjectById(labView(creep).lab5);
+        lab6 = Game.getObjectById(labView(creep).lab6);
         labs.push(lab4, lab5, lab6);
-        minerals.push(creep.memory.mineral4, creep.memory.mineral5, creep.memory.mineral6);
+        minerals.push(labView(creep).mineral4, labView(creep).mineral5, labView(creep).mineral6);
     } else {
-        creep.memory.lab4 = 'XXX';
-        creep.memory.lab5 = 'XXX';
-        creep.memory.lab6 = 'XXX';
+        labView(creep).lab4 = 'XXX';
+        labView(creep).lab5 = 'XXX';
+        labView(creep).lab6 = 'XXX';
     }
 
-    if (creep.memory.lab7) {
-        lab7 = Game.getObjectById(creep.memory.lab7);
-        lab8 = Game.getObjectById(creep.memory.lab8);
-        lab9 = Game.getObjectById(creep.memory.lab9);
+    if (labView(creep).lab7) {
+        lab7 = Game.getObjectById(labView(creep).lab7);
+        lab8 = Game.getObjectById(labView(creep).lab8);
+        lab9 = Game.getObjectById(labView(creep).lab9);
         labs.push(lab7, lab8, lab9);
-        minerals.push(creep.memory.mineral7, creep.memory.mineral8, creep.memory.mineral9);
+        minerals.push(labView(creep).mineral7, labView(creep).mineral8, labView(creep).mineral9);
     } else {
-        creep.memory.lab7 = 'XXX';
-        creep.memory.lab8 = 'XXX';
-        creep.memory.lab9 = 'XXX';
+        labView(creep).lab7 = 'XXX';
+        labView(creep).lab8 = 'XXX';
+        labView(creep).lab9 = 'XXX';
     }
 
-    if (creep.memory.lab10) {
-        lab10 = Game.getObjectById(creep.memory.lab10);
+    if (labView(creep).lab10) {
+        lab10 = Game.getObjectById(labView(creep).lab10);
         labs.push(lab10);
-        minerals.push(creep.memory.mineral10);
+        minerals.push(labView(creep).mineral10);
     } else {
-        creep.memory.lab10 = 'XXX';
+        labView(creep).lab10 = 'XXX';
     }
 
     return {
@@ -778,28 +795,28 @@ function findLabWork(creep, ctx, terminal) {
         }
 
         if (warBoosts) {
-            if (lab.id == creep.memory.lab4 || lab.id == creep.memory.lab5 || lab.id == creep.memory.lab6 ||
-                lab.id == creep.memory.lab1 || lab.id == creep.memory.lab2 || lab.id == creep.memory.lab3) {
+            if (lab.id == labView(creep).lab4 || lab.id == labView(creep).lab5 || lab.id == labView(creep).lab6 ||
+                lab.id == labView(creep).lab1 || lab.id == labView(creep).lab2 || lab.id == labView(creep).lab3) {
                 return handleBoostLab(creep, lab, mineral, terminal);
             }
             continue;
         }
 
-        if (lab.id == creep.memory.lab4 || lab.id == creep.memory.lab5) {
+        if (lab.id == labView(creep).lab4 || lab.id == labView(creep).lab5) {
             if (handleReagentLab(creep, lab, mineral, terminal)) {
                 return true;
             }
             continue;
         }
 
-        if (lab.id == creep.memory.lab6 || lab.id == creep.memory.lab7 || lab.id == creep.memory.lab8 || lab.id == creep.memory.lab9 || lab.id == creep.memory.lab10) {
+        if (lab.id == labView(creep).lab6 || lab.id == labView(creep).lab7 || lab.id == labView(creep).lab8 || lab.id == labView(creep).lab9 || lab.id == labView(creep).lab10) {
             if (handleResultLab(creep, ctx, lab, mineral, terminal)) {
                 return true;
             }
             continue;
         }
 
-        if (lab.id == creep.memory.lab1 || lab.id == creep.memory.lab2 || lab.id == creep.memory.lab3) {
+        if (lab.id == labView(creep).lab1 || lab.id == labView(creep).lab2 || lab.id == labView(creep).lab3) {
             if (handleBoostLab(creep, lab, mineral, terminal)) {
                 return true;
             }
@@ -849,7 +866,7 @@ function handleBoostLab(creep, lab, mineral, terminal) {
 
 function handleReagentLab(creep, lab, mineral, terminal) {
     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-        if (terminal.store[creep.memory.mineral6] < 40000 || !terminal.store[creep.memory.mineral6]) {
+        if (terminal.store[labView(creep).mineral6] < 40000 || !terminal.store[labView(creep).mineral6]) {
             const source = mineralSource(creep, terminal, mineral);
             if (source && lab.mineralAmount < lab.mineralCapacity - creep.carryCapacity) {
                 creep.memory.structureTarget = source.id;
@@ -909,11 +926,11 @@ function handleResultLab(creep, ctx, lab, mineral, terminal) {
 
     if (creep.memory.storeProduced) {
         let labAmount = 9999;
-        if (mineral == creep.memory.mineral1 && ctx.lab1) {
+        if (mineral == labView(creep).mineral1 && ctx.lab1) {
             labAmount = ctx.lab1.mineralAmount;
-        } else if (mineral == creep.memory.mineral2 && ctx.lab2) {
+        } else if (mineral == labView(creep).mineral2 && ctx.lab2) {
             labAmount = ctx.lab2.mineralAmount;
-        } else if (mineral == creep.memory.mineral3 && ctx.lab3) {
+        } else if (mineral == labView(creep).mineral3 && ctx.lab3) {
             labAmount = ctx.lab3.mineralAmount;
         }
         if (labAmount <= 2500) {

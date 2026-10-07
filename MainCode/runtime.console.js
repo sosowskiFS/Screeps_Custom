@@ -10,6 +10,7 @@
 //                            creeps homed there and its flags
 // Output is split into console-sized chunks so nothing gets cut off.
 const maintenance = require('system.maintenance');
+const heapMemory = require('runtime.heapMemory');
 
 const CHUNK = 1000;   // characters per console line
 
@@ -49,8 +50,10 @@ function size(value) {
 }
 
 function resolve(path) {
-    let value = Memory;
-    for (const key of path.split('.')) {
+    const keys = path.split('.');
+    // Heap-only keys (runtime.heapMemory) are not on Memory between ticks.
+    let value = heapMemory.HEAP_KEYS.includes(keys[0]) ? { [keys[0]]: heapMemory.get(keys[0]) } : Memory;
+    for (const key of keys) {
         if (value === undefined || value === null) return undefined;
         value = value[key];
     }
@@ -61,6 +64,8 @@ function mem(path) {
     if (!path) {
         const rows = Object.keys(Memory)
             .map(key => [key, size(Memory[key])])
+            .concat(heapMemory.HEAP_KEYS.filter(key => !(key in Memory) && heapMemory.get(key) !== undefined)
+                .map(key => [key + ' (heap only)', size(heapMemory.get(key))]))
             .sort((a, b) => b[1] - a[1]);
         const total = rows.reduce((sum, row) => sum + Math.max(0, row[1]), 0);
         print('Memory: ' + rows.length + ' keys, ~' + total + ' characters\n' +
@@ -115,9 +120,10 @@ function liveState(room) {
 // Every Memory entry that mentions the room: keyed by it, or a list containing it.
 function memoryMentions(roomName) {
     const out = {};
-    for (const key in Memory) {
+    const keys = Object.keys(Memory).concat(heapMemory.HEAP_KEYS.filter(key => !(key in Memory)));
+    for (const key of keys) {
         if (key === 'creeps' || key === 'flags' || key === 'powerCreeps') continue;
-        const value = Memory[key];
+        const value = key in Memory ? Memory[key] : heapMemory.get(key);
         if (Array.isArray(value)) {
             const hits = [];
             value.forEach((item, i) => { if (item === roomName) hits.push(i); });

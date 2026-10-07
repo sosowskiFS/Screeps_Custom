@@ -108,7 +108,8 @@ test('reaction and boost labs are fed from the storage when the terminal lacks t
     const { g, creep, calls, h, storage } = clogged({ storageGoods: { [R('ZYNTHIUM_OXIDE')]: 20000 }, terminalGoods: {} });
     const lab = { id: 'lab4', mineralType: undefined, mineralAmount: 0, mineralCapacity: 3000, store: {} };
     g.Game.getObjectById = id => ({ storage, lab4: lab })[id] || null;
-    Object.assign(creep.memory, { lab4: 'lab4', mineral4: R('ZYNTHIUM_OXIDE'), lab5: 'XXX', lab6: 'XXX', trimCheck: Infinity });
+    Object.assign(creep.memory, { trimCheck: Infinity });
+    g.Memory.labList.R = ['b1', 'b2', 'b3', 'lab4', 'lab5', 'lab6'];
     g.Memory.labJobs = { R: { p: R('ZYNTHIUM_ALKALIDE'), a: R('ZYNTHIUM_OXIDE'), b: R('HYDROXIDE') } };
     h.load('creep.labWorker').run(creep);
     assert.ok(calls.some(c => c[0] === 'withdraw' && c[1] === 'storage' && c[2] === R('ZYNTHIUM_OXIDE')), JSON.stringify(plain(calls)));

@@ -67,8 +67,10 @@ test('only one power per tick: ops generation waits when a job power was used', 
 test('tower boost comes first under attack, and later job checks are not evaluated', () => {
     const { g, room, op, objects, intents, baseOp, lookups } = setup();
     g.Memory.roomsUnderAttack = ['A'];
-    objects.t1 = { id: 't1', pos: op.pos };
-    op.memory.towerList = ['t1'];
+    const { structures } = arguments.length ? {} : {};
+    void structures;
+    objects.t1 = { id: 't1', structureType: g.STRUCTURE_TOWER, pos: op.pos };
+    room.find = ((find) => type => type === g.FIND_MY_STRUCTURES ? [objects.t1] : find(type))(room.find);
     room.energyAvailable = 5000; // extension job also available, but defence wins
     const before = lookups();
     baseOp.run(op);

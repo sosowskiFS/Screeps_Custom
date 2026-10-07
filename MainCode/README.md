@@ -357,17 +357,24 @@ Tower fixes:
 
 ## Memory cleanup
 
-Memory is JSON-parsed every tick, so its size costs CPU on every tick. `runtime.memoryCleanup.js` (phase `memoryCleanup`) runs every 1,000 ticks and removes:
-- **Unused top-level keys:**
-  - from the old base generator: `genBest*`, `rampartQueue`, `lastAutoBuildRegen`, `autoBuildRegenIndex`
-  - old CPU counters: `averageUsed*`, `totalTicks*`
-  - `FarGuardNeeded`, `FarCreeps`, `hasFired`, `energyCap`, and the misspelled `ClosedrampartList`
+Memory is serialized at the end of every tick and parsed at the start of the next, so its size costs CPU on every tick. (The Nightmare branch is no longer a rollback target, so none of this keeps its keys.)
 
-  These are only keys the Nightmare branch never reads, or recreates before reading, so a rollback stays safe. `flagCount` stays for that reason. `runtime.memory` no longer recreates any of them.
-- **Dead creep fields:** `isMoving`, `movingOtherMineral2`, `resourceChecks`, `nextReservationCheck`, `primaryFlag`, `backupFlag` and `nextResourceCheck`. Spawns no longer write them.
-- **Idle travel data:** `_trav` records of creeps that aren't travelling (no path left); the next `travelTo` starts a fresh one.
-- **Expired entries:** remote threats, remote "outmatched" marks, cached remote round trips, and the trip caches of homes no longer owned. Other code only dropped these when it happened to read them.
-- **Old intel:** remote intel more than 3 rooms from every home, or not seen in 100,000 ticks (it gets re-scouted if ever needed again).
+**Heap-only keys** (`runtime.heapMemory.js`): data rebuilt from the game every few ticks never goes through Memory. That covers the structure ID lists (`labList`, `linkList`, `sourceList`, `mineralList`, `extractorList`, `powerSpawnList`, `factoryList`, `nukerList`, `observerList`), `roomConfigs`, `structureScanTick`, `repairTarget`, the tower caches, `mineralTotals`, `remotePlan`, `roomCPU` and `isSpawning`.
+- **During the tick:** the main loop attaches them to `Memory` at the start (the same objects every tick, so all code still uses `Memory.labList` etc.) and detaches them before Memory is saved.
+- **After a global reset:** they start out missing and their owners rebuild them. Room scans run before creeps act.
+- **Console:** `mem()` and `roomReport()` still show them, marked "heap only".
+
+**Cleanup pass** (`runtime.memoryCleanup.js`, every 1,000 ticks) removes:
+- **Unused top-level keys:** the old base generator's keys, old CPU counters, `FarGuardNeeded`, `FarCreeps`, `hasFired`, `energyCap`, `ClosedrampartList`, `roomCreeps`, `hostileEnterTicks` and `flagCount`. The init no longer creates any of them, and the dead flag-count code is gone.
+- **Creep fields nothing reads**, plus any creep field holding `false` or `null`. No code compares memory to `false`/`null` exactly, so a missing field reads the same.
+- **Fields only some roles read** (`slimCreep`, also applied to every new creep at spawn):
+  - `fromSpawn` is kept only by defenders, distributors, mules, repairers and lab workers.
+  - `terminalID` is kept only by mules.
+  - Lab workers derive `lab1..10` / `mineral1..10` every tick from the room's lab list, boost config and lab planner job; a short `rx` key notices reaction changes.
+- **Operator lists:** the power creep operator's `towerList` / `spawnList`. It looks its towers and spawns up each tick from the per-tick structure cache.
+- **Idle travel data:** `_trav` records of creeps with no path left.
+- **Expired entries:** remote threats, "outmatched" marks, cached remote round trips, and the trip caches of homes no longer owned.
+- **Old intel:** remote intel more than 3 rooms from every home, or not seen in 100,000 ticks.
 - **Empty records:** empty `Memory.rooms` / `Memory.flags` entries.
 
 The console command `memCreeps()` shows where creep memory goes: characters per field and per role.

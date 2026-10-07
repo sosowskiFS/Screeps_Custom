@@ -11,11 +11,6 @@ let creep_farMule = {
             creep.memory.priority = 'farMuleNearDeath';
         }
 
-        // Initialize storing state
-        if (creep.memory.storing == null) {
-            creep.memory.storing = false;
-        }
-
         // Determine if we should switch to storing mode (when carry is nearly full or when dying with resources)
         // Note: State switching also happens immediately after successful withdraw/transfer
         if (!creep.memory.storing && (carryUsed >= carryCapacity * 0.9 || (carryUsed > 0 && creep.ticksToLive <= 120))) {

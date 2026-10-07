@@ -126,31 +126,6 @@ function memCheck() {
     if (!Memory.factoryList) {
         Memory.factoryList = new Object();
     }
-    if (!Memory.flagCount) {
-        Memory.flagCount = new Object();
-        //Count by track
-        //First 3 groupings should have 2 instances for 1 of each below
-        //1- XGHO2/XGH2O/XUH2O
-        //2- XZHO2/XZH2O/XKHO2
-        //3- XLH2O/XLHO2/OH
-
-        //4- G/GHO2/GH2O
-        //5- ZHO2/ZH2O/KHO2
-        //6- UH2O/LH2O/LHO2
-        //7- UH/KO/GH/GO
-        //8- ZH/ZO/LO/LH
-        //9- UL/ZK/G/OH
-        Memory.flagCount["1"] = 0;
-        Memory.flagCount["2"] = 0;
-        Memory.flagCount["3"] = 0;
-        Memory.flagCount["4"] = 0;
-        Memory.flagCount["5"] = 0;
-        Memory.flagCount["6"] = 0;
-        Memory.flagCount["7"] = 0;
-        Memory.flagCount["8"] = 0;
-        Memory.flagCount["9"] = 0;
-        Memory.flagCount["NeedFlag"] = [];
-    }
     if (!Memory.CPUAverages) {
         Memory.CPUAverages = new Object();
         Memory.CPUAverages.TotalCPU = new Object();
@@ -242,8 +217,6 @@ function ensureInitialized() {
     Memory.RoomsRun = [];
     Memory.NoSpawnNeeded = [];
     Memory.CurrentRoomEnergy = [];
-    // Unused here, but Nightmare writes into it without a guard; keep it so a rollback cannot crash.
-    Memory.roomCreeps = {};
     Memory.frameworkVersion = 1;
     initialized = true;
 }

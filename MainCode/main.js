@@ -16,6 +16,7 @@ const badRooms = require('system.badRooms');
 const memoryCleanup = require('runtime.memoryCleanup');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
+const heapMemory = require('runtime.heapMemory');
 require('runtime.console');   // console commands: mem(), roomReport()
 
 const phases = [
@@ -34,6 +35,7 @@ const phases = [
 ];
 module.exports.loop = function () {
     memory.ensureInitialized();
+    heapMemory.attach();   // rebuildable caches live in heap only (runtime.heapMemory)
     // Reinitialize scratch accounting even if the previous tick exhausted CPU.
     Memory.RoomsRun = [];
     Memory.NoSpawnNeeded = [];
@@ -47,4 +49,5 @@ module.exports.loop = function () {
     governor.maybeGeneratePixel();
     metrics.cleanupTickMemory();
     metrics.updateCPUAverages();
+    heapMemory.detach();
 };

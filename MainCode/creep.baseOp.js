@@ -107,20 +107,7 @@ var creep_baseOp = {
 
 function setupCreepMemory(creep) {
     // Initialize spawn list
-    if (!creep.memory.spawnList || Game.time % 10000 == 0) {
-        const roomSpawns = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
-            filter: { structureType: STRUCTURE_SPAWN }
-        });
-        creep.memory.spawnList = roomSpawns.map(spawn => spawn.id);
-    }
-
-    // Initialize tower list
-    if (!creep.memory.towerList || Game.time % 10000 == 0) {
-        const roomTowers = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
-            filter: { structureType: STRUCTURE_TOWER }
-        });
-        creep.memory.towerList = roomTowers.map(tower => tower.id);
-    }
+    // Towers and spawns are looked up from the per-tick structure cache (no id lists in memory).
 
     // Create room operator flag if needed
     if (!Game.flags[creep.room.name + "RoomOperator"]) {
@@ -217,8 +204,7 @@ function getNeededSource(creep) {
 }
 
 function getNeededTower(creep) {
-    for (let towerID in creep.memory.towerList) {
-        const thisTower = Game.getObjectById(creep.memory.towerList[towerID]);
+    for (const thisTower of runtimeCache.find(creep.room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } })) {
         if (thisTower && !hasEffectActive(thisTower, PWR_OPERATE_TOWER)) {
             return thisTower;
         }
@@ -252,8 +238,7 @@ function getNeededLab(creep) {
 }
 
 function getNeededSpawn(creep) {
-    for (let spawnID in creep.memory.spawnList) {
-        const thisSpawn = Game.getObjectById(creep.memory.spawnList[spawnID]);
+    for (const thisSpawn of runtimeCache.find(creep.room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_SPAWN } })) {
         if (thisSpawn && !hasEffectActive(thisSpawn, PWR_OPERATE_SPAWN)) {
             return thisSpawn;
         }

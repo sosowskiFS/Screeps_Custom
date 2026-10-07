@@ -25,7 +25,6 @@ function initializeGameState() {
 
     // Reset mineral flag totals before spawning loop
     if (Game.time % 5000 == 0) {
-        resetMineralFlagCounts();
     }
 
     // Reset mineral totals periodically
@@ -36,12 +35,6 @@ function initializeGameState() {
     // Maintain list of rooms at RCL5+ with storage and >=2 links infrequently
     if (Game.time % 500 == 0) {
         updateRoomsAt5List();
-    }
-}
-
-function resetMineralFlagCounts() {
-    for (let i = 1; i <= 9; i++) {
-        Memory.flagCount[i.toString()] = 0;
     }
 }
 
@@ -90,4 +83,4 @@ function updateRoomsAt5List() {
     Memory.RoomsAt5 = qualified;
 }
 
-module.exports = { initializeGameState, resetMineralFlagCounts, resetMineralTotals, updateRoomsAt5List };
+module.exports = { initializeGameState, resetMineralTotals, updateRoomsAt5List };

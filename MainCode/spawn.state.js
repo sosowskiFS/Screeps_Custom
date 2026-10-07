@@ -1,4 +1,5 @@
 const runtimeCache = require('runtime.cache');
+const { slimCreep } = require('runtime.memoryCleanup');
 // spawn.state — Screeps tick subsystem.
 
 // Creep names are public. The spawn modules name creeps '<role>_<spawn>_<tick>', which tells an
@@ -26,7 +27,11 @@ function trackSpawnOrders() {
     if (proto.spawnCreep.tracksPending) return;
     const original = proto.spawnCreep;
     const tracked = function (body, name, opts) {
-        if (!(opts && opts.dryRun)) name = opaqueName();
+        if (!(opts && opts.dryRun)) {
+            name = opaqueName();
+            // Only what the role reads goes into memory (runtime.memoryCleanup.slimCreep).
+            if (opts && opts.memory) slimCreep(opts.memory);
+        }
         const result = original.call(this, body, name, opts);
         if (result === OK && !(opts && opts.dryRun)) {
             runtimeCache.notePending(this, name, (opts && opts.memory) || {});
