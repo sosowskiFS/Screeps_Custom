@@ -125,7 +125,44 @@ function upkeepBody() {
     return [WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
 }
 
+// Why a room is (not) in maintenance mode, for the console report (runtime.console).
+// Mirrors update(): returns a list of reasons, empty when the room qualifies.
+function diagnose(room) {
+    const reasons = [];
+    if (!room.controller || !room.controller.my) return ['not an owned room'];
+    if (!enabled(room.name)) reasons.push('opted out (Memory.settings.maintenanceMode = false or a ' + room.name + 'NoMaintenance flag)');
+    if (room.controller.level < 8) reasons.push('RCL ' + room.controller.level + ' (needs 8)');
+    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.indexOf(room.name) !== -1) reasons.push('under attack (Memory.roomsUnderAttack)');
+    if (runtimeCache.find(room, FIND_NUKES).length) reasons.push('nuke inbound');
+    const sites = runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES);
+    if (sites.length) {
+        const byType = {};
+        for (const site of sites) byType[site.structureType] = (byType[site.structureType] || 0) + 1;
+        reasons.push(sites.length + ' construction sites: ' + JSON.stringify(byType));
+    }
+    for (const type of REQUIRED) {
+        const allowed = CONTROLLER_STRUCTURES[type][8];
+        const built = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
+        if (built < allowed) reasons.push(type + ' ' + built + '/' + allowed + ' built');
+    }
+    const ramparts = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_RAMPART } });
+    if (!ramparts.length) {
+        reasons.push('no ramparts');
+    } else {
+        const weak = ramparts.filter(r => r.hits < MIN_RAMPART);
+        if (weak.length) {
+            const lowest = Math.min.apply(null, weak.map(r => r.hits));
+            reasons.push(weak.length + '/' + ramparts.length + ' ramparts under ' + MIN_RAMPART + ' hits (lowest ' + lowest + ')');
+        }
+    }
+    const energy = room.storage ? room.storage.store[RESOURCE_ENERGY] : 0;
+    const entry = Memory.roomMode && Memory.roomMode[room.name];
+    const needed = entry && entry.m ? EXIT_ENERGY : ENTER_ENERGY;
+    if (energy < needed) reasons.push('storage energy ' + energy + ' (needs ' + needed + ')');
+    return reasons;
+}
+
 module.exports = {
-    update, inMaintenance, isEstablished, remoteMiningWanted, gclFocus,
+    diagnose, update, inMaintenance, isEstablished, remoteMiningWanted, gclFocus,
     upkeepDue, upkeepDone, upkeepBody, ENTER_ENERGY, EXIT_ENERGY, MIN_RAMPART,
 };

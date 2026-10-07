@@ -14,6 +14,7 @@ const remoteMining = require('system.remoteMining');
 const roads = require('system.roads');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
+require('runtime.console');   // console commands: mem(), roomReport()
 
 const phases = [
     ['flags', flags.handleGameFlags],

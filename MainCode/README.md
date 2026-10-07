@@ -288,6 +288,20 @@ Tower fixes:
 - Power-creep OPERATE/DISRUPT_TOWER effects are now applied to damage estimates.
 - A remembered target that left the room or reached the border is dropped immediately.
 
+## Console debugging
+
+`runtime.console.js` defines these commands on `global` at load, so they work in the game console after every reset. Output is split into console-sized lines.
+
+- `mem()`: every top-level Memory key with its size, largest first.
+- `mem('basePlan.E14N18')`: one Memory path (dot separated), printed in full.
+- `mem('*')`: all of Memory. This is large and costs noticeable CPU on big Memory.
+- `roomReport('E14N18')`: everything about one room:
+  - **Live state:** controller, energy, storage/terminal, structure and construction-site counts, spawns and what they're spawning, tower energy, lowest rampart, hostiles, creeps in the room.
+  - **Maintenance mode:** whether the room is in it, and every reason it doesn't qualify (`system.maintenance.diagnose`).
+  - **Memory:** every entry keyed by the room or listing it, including its `creepInQue` records.
+  - **Creeps homed there:** role, TTL, and where they are.
+  - **Flags:** in the room or named after it.
+
 ## Measure in-game CPU
 
 Normal behavior and existing visuals remain enabled by default. In the Screeps console:
