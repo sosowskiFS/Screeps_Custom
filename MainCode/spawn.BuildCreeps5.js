@@ -111,31 +111,8 @@ var spawn_BuildCreeps5 = {
         ({ upgraderMax, upgraderConfig, upSupplierMax, minerMax, repairMax, salvagerMax, muleMax, distributorMax } = lowCpu);
         const controllerUpkeep = lowCpu.controllerUpkeep;
             let bareMinConfig = [MOVE, WORK, WORK, CARRY];
-        let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
-        let supplierDirection = [];
-        
-        // Supplier spawn logic: restrict to the spawn adjacent to Supply flag ONLY if auto-build room has 3+ spawns
-        const supplyFlag = Game.flags[thisRoom.name + "Supply"];
-        if (supplyFlag) {
-            const isAutoBuild = Memory.autoBuildRooms.indexOf(thisRoom.name) > -1;
-            const spawnCount = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_SPAWN } }).length;
-            const restrictToSupplySpawn = isAutoBuild && spawnCount >= 3;
-
-            if (restrictToSupplySpawn) {
-                if (supplyFlag.pos.isNearTo(spawn)) {
-                    const targetDir = spawn.pos.getDirectionTo(supplyFlag);
-                    // Keep other roles from using this direction to avoid traffic; suppliers take the exact direction
-                    const idx = buildDirections.indexOf(targetDir);
-                    if (idx > -1) buildDirections.splice(idx, 1);
-                    supplierDirection.push(targetDir);
-                }
-                // If not near the Supply flag, leave supplierDirection empty to block supplier from this spawn
-            } else {
-                // Not restricted (either not auto-build or fewer than 3 spawns): any spawn may build suppliers
-                supplierDirection = buildDirections;
-            }
-        }
-
+        // Supplier spawn directions (see supplierDirections).
+        let { buildDirections, supplierDirection } = this.supplierDirections(thisRoom, spawn);
 
         if (!RoomCreeps || RoomCreeps.length <= 1) {
             if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 500 || thisRoom.terminal && thisRoom.terminal.store[RESOURCE_ENERGY] >= 500) {
@@ -1184,6 +1161,31 @@ Object.assign(spawn_BuildCreeps5, {
 
     // Supplier: 2 CARRY per MOVE (full speed on roads), up to 400 capacity. The old fixed
     // 150-capacity body needed ~7 withdraw/transfer round trips per tower refill.
+    // Which directions this spawn may use for the tower supplier and for everything else.
+    // Auto-build rooms with 3+ spawns make the supplier in the spawn beside the Supply flag,
+    // straight onto the flag, and keep that direction free of other creeps. Only while such a spawn
+    // actually exists: during base migration the old one may be gone and the new one not built
+    // yet, and the room must still get its tower supplier from any spawn. No Supply flag: any
+    // spawn, any direction. Returns { buildDirections, supplierDirection } (empty = not here).
+    supplierDirections: function(thisRoom, spawn) {
+        const buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
+        const supplyFlag = Game.flags[thisRoom.name + "Supply"];
+        if (!supplyFlag) {
+            return { buildDirections, supplierDirection: buildDirections };
+        }
+        const isAutoBuild = Memory.autoBuildRooms.indexOf(thisRoom.name) > -1;
+        const roomSpawns = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_SPAWN } });
+        const supplySpawnExists = roomSpawns.some(s => s.pos.isNearTo(supplyFlag) && s.isActive());
+        if (!(isAutoBuild && roomSpawns.length >= 3 && supplySpawnExists)) {
+            return { buildDirections, supplierDirection: buildDirections };
+        }
+        if (!supplyFlag.pos.isNearTo(spawn)) {
+            return { buildDirections, supplierDirection: [] };   // the Supply spawn makes it
+        }
+        const targetDir = spawn.pos.getDirectionTo(supplyFlag);
+        return { buildDirections: buildDirections.filter(d => d !== targetDir), supplierDirection: [targetDir] };
+    },
+
     supplierBody: function(energyCapacity) {
         const units = Math.max(1, Math.min(4, Math.floor(energyCapacity / 150)));
         const body = [];

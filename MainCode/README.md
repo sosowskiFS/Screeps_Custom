@@ -194,7 +194,7 @@ Rooms with a storage start out adopted (see above), and then move onto the layou
   - Terminal and factory only move if the storage can take their contents.
 - **Layout flags:** Supply and storageMiner move once their planned tile is clear. upgradeMiner moves once its new link is built. The miners are sent to the new spot, and the upgrade miner gets the new link.
 
-  Rooms on the auto-build supplier handling with 3+ spawns only make suppliers in the spawn beside the Supply flag. So the room stays off that handling until a spawn touches the moved Supply flag.
+  **Tower supplier:** auto-build rooms with 3+ spawns make the supplier in the spawn beside the Supply flag, but only while such a spawn exists. Mid-migration (old spawn moved, new one not built) or with no Supply flag, any spawn makes it. The builder never places a missing Supply flag on a tile a structure still covers. The supplier fills towers on foot while its Supply tile is blocked, and walks to the flag again whenever it moves.
 - **Off switch:** `Memory.settings.baseMigration = false` stops it. Progress is kept in `Memory.baseMigrate`.
 
 ## Planned roads

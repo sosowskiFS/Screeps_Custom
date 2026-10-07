@@ -64,3 +64,71 @@ test('operator rooms with a full storage staff 3 full-size repairers instead of 
     spawns.configurePowerCreepRoom(config, 'A', { store: { energy: 800000 } });
     assert.equal(config.repairMax, 3);
 });
+
+// Tower supplier during base migration: the spawn beside the Supply flag may be gone (moved) or
+// not built yet; the room must still get a supplier.
+function supplyRoom({ spawnTiles, flag = [25, 25], autoBuild = true }) {
+    const { h, g, spawns } = setup();
+    const near = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) <= 1;
+    const mk = ([x, y], id) => ({ id, structureType: g.STRUCTURE_SPAWN, isActive: () => true, pos: { x, y,
+        isNearTo: o => near([x, y], [o.pos ? o.pos.x : o.x, o.pos ? o.pos.y : o.y]),
+        getDirectionTo: () => g.TOP } });
+    const list = spawnTiles.map((t, n) => mk(t, 's' + n));
+    const room = { name: 'A', find: () => list };
+    g.Game.rooms.A = room;
+    if (flag) g.Game.flags.ASupply = { pos: { x: flag[0], y: flag[1], isNearTo: o => near(flag, [o.pos.x, o.pos.y]) } };
+    g.Memory.autoBuildRooms = autoBuild ? ['A'] : [];
+    return { g, room, list, spawns };
+}
+
+test('supplier: the Supply spawn makes it while it exists; otherwise any spawn does', () => {
+    // Settled layout: only the spawn beside the flag, straight onto it.
+    let r = supplyRoom({ spawnTiles: [[25, 24], [10, 10], [12, 12]] });
+    assert.deepEqual([...r.spawns.supplierDirections(r.room, r.list[0]).supplierDirection], [r.g.TOP]);
+    assert.equal(r.spawns.supplierDirections(r.room, r.list[0]).buildDirections.includes(r.g.TOP), false, 'kept clear for it');
+    assert.equal(r.spawns.supplierDirections(r.room, r.list[1]).supplierDirection.length, 0);
+
+    // Mid-migration: none of the 3 spawns touches the Supply flag (old one moved, new not built).
+    r = supplyRoom({ spawnTiles: [[10, 10], [12, 12], [40, 40]] });
+    for (const spawn of r.list) assert.equal(r.spawns.supplierDirections(r.room, spawn).supplierDirection.length, 8);
+
+    // No Supply flag at all: still a supplier.
+    r = supplyRoom({ spawnTiles: [[10, 10]], flag: null });
+    assert.equal(r.spawns.supplierDirections(r.room, r.list[0]).supplierDirection.length, 8);
+});
+
+test('supplier role: fills towers on foot while its Supply tile is blocked, follows the flag when it moves', () => {
+    const { h, g } = setup();
+    const calls = [];
+    const blocked = { value: true };
+    const flagPos = { x: 25, y: 25, lookFor: () => (blocked.value ? [{ structureType: g.STRUCTURE_EXTENSION }] : []) };
+    g.Game.flags.ASupply = { pos: flagPos };
+    const tower = { id: 'tower' };
+    g.Game.getObjectById = id => ({ tower })[id];
+    g.Memory.towerNeedEnergy = { A: ['tower'] };
+    const creep = { room: { name: 'A', storage: { id: 'storage' } }, pos: { x: 10, y: 10 }, memory: { priority: 'supplier', deathWarn: 0 },
+        ticksToLive: 1000, body: [], carry: { energy: 100 },
+        travelTo: t => calls.push(['travelTo', t.id || 'flag']),
+        transfer: (t) => { calls.push(['transfer', t.id]); return g.OK; },
+        withdraw: (t) => { calls.push(['withdraw', t.id]); return g.OK; } };
+    const supplier = h.load('creep.supplier');
+    supplier.run(creep);
+    assert.deepEqual(calls, [['transfer', 'tower']], 'tile blocked: feeds the tower instead of walking at it');
+
+    // Tile cleared (migration moved the old structure): it walks to it and settles there.
+    calls.length = 0;
+    blocked.value = false;
+    g.Game.time += 60;
+    supplier.run(creep);
+    assert.deepEqual(calls, [['travelTo', 'flag']]);
+    creep.pos = { x: 25, y: 25 };
+    calls.length = 0;
+    supplier.run(creep);
+    assert.deepEqual(calls, [['transfer', 'tower']]);
+
+    // Flag moved to the new core: it goes again.
+    flagPos.x = 30;
+    calls.length = 0;
+    supplier.run(creep);
+    assert.deepEqual(calls, [['travelTo', 'flag']]);
+});

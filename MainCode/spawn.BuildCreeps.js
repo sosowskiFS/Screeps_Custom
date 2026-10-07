@@ -59,8 +59,11 @@ var spawn_BuildCreeps = {
         let buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
         let supplierDirection = [];
         
-        // Allow suppliers to spawn from any direction if Supply flag exists (no proximity requirement for low level rooms)
-        if (Game.flags[thisRoom.name + "Supply"]) {
+        // Suppliers spawn from any direction; with a Supply flag beside this spawn in an auto-build
+        // room, straight onto the flag. No flag (e.g. mid base migration): any direction too.
+        if (!Game.flags[thisRoom.name + "Supply"]) {
+            supplierDirection = buildDirections;
+        } else {
             // For autobuild rooms with spawn next to Supply flag, prefer the direction towards the flag
             if (Memory.autoBuildRooms.indexOf(thisRoom.name) > -1 && Game.flags[thisRoom.name + "Supply"].pos.isNearTo(spawn)) {
                 let targetDir = spawn.pos.getDirectionTo(Game.flags[thisRoom.name + "Supply"]);

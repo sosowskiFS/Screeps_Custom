@@ -265,10 +265,14 @@ function buildRoom(room, plan) {
         }
     }
 
-    // Layout flags (fresh layouts only; adopted rooms keep their own).
+    // Layout flags (fresh layouts only; adopted rooms keep their own). A migrating room's tile may
+    // still hold an old structure: no flag there until base.migrate has cleared it, or the
+    // supplier/miners would be sent to a tile they cannot stand on.
     if (plan.mode === 'fresh') {
         for (const name in plan.flags) {
             if (Game.flags[room.name + name]) continue;
+            const here = occupied.get(plan.flags[name]);
+            if (plan.migration && here && here.some(t => !PASSABLE.has(t))) continue;
             room.createFlag((plan.flags[name] / 50) | 0, plan.flags[name] % 50, room.name + name);
         }
     }
