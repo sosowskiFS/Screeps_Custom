@@ -25,6 +25,7 @@ const governor = require('runtime.cpuGovernor');
 const planner = require('base.planner');
 const roomCpu = require('runtime.roomCpu');
 const migrate = require('base.migrate');
+const connectivity = require('base.connectivity');
 
 const VERSION = 1;
 const BUILD_INTERVAL = 1000;
@@ -32,6 +33,7 @@ const RETRY_FAILED = 20000;
 const SITES_PER_PASS = 10;
 const SITE_HEADROOM = 90;          // leave room under the 100-site cap for roads/repairs elsewhere
 const RAMPART_RCL = 2;             // ramparts over every planned structure (previous generator)
+const PATH_CHECK_EVERY = 100;      // ticks between checks for sites that seal a path
 const OFFSET = 48;
 
 const TYPES = {
@@ -179,6 +181,93 @@ function rebuildNow(roomName) {
     state.next = Game.time + 1;
 }
 
+// ---------------------------------------------------------------- live connectivity
+
+// The room as it stands now: where creeps can walk (terrain, built structures, our sites), the
+// places that must stay reachable (base.connectivity), and our sites that block movement.
+function liveState(room) {
+    const terrain = Game.map.getRoomTerrain(room.name);
+    const walkable = new Uint8Array(2500);
+    for (let x = 0; x < 50; x++) {
+        for (let y = 0; y < 50; y++) walkable[x * 50 + y] = terrain.get(x, y) & TERRAIN_MASK_WALL ? 0 : 1;
+    }
+    const spawns = [];
+    let storage;
+    for (const structure of runtimeCache.find(room, FIND_STRUCTURES)) {
+        const tile = tileOf(structure.pos);
+        const type = structure.structureType;
+        if (type === STRUCTURE_SPAWN && structure.my) spawns.push(tile);
+        if (type === STRUCTURE_STORAGE) storage = tile;
+        if (type === STRUCTURE_ROAD || type === STRUCTURE_CONTAINER || (type === STRUCTURE_RAMPART && (structure.my || structure.isPublic))) continue;
+        walkable[tile] = 0;
+    }
+    const blockingSites = [];
+    for (const site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
+        if (PASSABLE.has(site.structureType)) continue;
+        const tile = tileOf(site.pos);
+        if (walkable[tile]) blockingSites.push({ tile, site });
+        walkable[tile] = 0;
+    }
+    const mineral = runtimeCache.find(room, FIND_MINERALS)[0];
+    const req = connectivity.requirements(walkable, {
+        spawns, storage,
+        sources: runtimeCache.find(room, FIND_SOURCES).map(s => tileOf(s.pos)),
+        mineral: mineral ? tileOf(mineral.pos) : undefined,
+        controller: room.controller && room.controller.pos ? tileOf(room.controller.pos) : undefined,
+    });
+    return { walkable, req, blockingSites, spawns };
+}
+
+// Remove our construction sites that cut a spawn off from the room exits, or the exits off from
+// the storage, sources, mineral or controller (checked against the room without those sites).
+function removeBlockingSites(room, live) {
+    if (!live.spawns.length || !live.blockingSites.length) return 0;
+    const open = live.walkable.slice();
+    for (const { tile } of live.blockingSites) open[tile] = 1;
+    const ideal = connectivity.status(open, live.req);
+    let now = connectivity.status(live.walkable, live.req);
+    if (connectivity.keeps(ideal, now)) return 0;
+    let removed = 0;
+    // First the sites that fix something on their own; then, if a cut is made of several,
+    // reopen more until it is fixed.
+    for (const pass of [true, false]) {
+        for (const entry of live.blockingSites) {
+            if (connectivity.keeps(ideal, now) || entry.removed) continue;
+            live.walkable[entry.tile] = 1;
+            const fixed = connectivity.status(live.walkable, live.req);
+            const helps = fixed.some((ok, i) => ok && !now[i]);
+            if (helps || !pass) {
+                entry.removed = true;
+                entry.site.remove();
+                removed++;
+                now = fixed;
+                console.log('[base] ' + room.name + ': removed ' + entry.site.structureType + ' site at ' +
+                    ((entry.tile / 50) | 0) + ',' + (entry.tile % 50) + ' (it blocked the only path)');
+            } else {
+                live.walkable[entry.tile] = 0;
+            }
+        }
+    }
+    return removed;
+}
+
+// A planned tile of this kind a site could go on right now without cutting a path (base.migrate
+// only moves a structure when its replacement can be placed).
+function replacementTile(room, plan, kind) {
+    const live = liveState(room);
+    const before = connectivity.status(live.walkable, live.req);
+    const occupied = new Set();
+    for (const structure of runtimeCache.find(room, FIND_STRUCTURES)) {
+        if (!PASSABLE.has(structure.structureType) || structure.structureType === STRUCTURE_CONTAINER) occupied.add(tileOf(structure.pos));
+    }
+    for (const site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) occupied.add(tileOf(site.pos));
+    for (const tile of (plan.structures[kind] || [])) {
+        if (occupied.has(tile)) continue;
+        if (!connectivity.blocks(live.walkable, live.req, before, tile)) return tile;
+    }
+    return undefined;
+}
+
 // ---------------------------------------------------------------- building
 
 // Labs follow the plan's role order only if every lab in the room is one the plan placed:
@@ -215,11 +304,19 @@ function buildRoom(room, plan) {
     let budget = Math.min(SITES_PER_PASS, SITE_HEADROOM - Object.keys(Game.constructionSites).length);
     let again = false;
     const underAttack = Memory.roomsUnderAttack && Memory.roomsUnderAttack.indexOf(room.name) !== -1;
+
+    // Never cut a path: sites already doing so go, new blocking sites are checked first.
+    const live = liveState(room);
+    if (removeBlockingSites(room, live)) again = true;
+    const reachable = live.spawns.length ? connectivity.status(live.walkable, live.req) : null;
     const site = (tile, type) => {
         if (budget <= 0) return false;
+        const blocksMovement = !PASSABLE.has(type);
+        if (blocksMovement && reachable && connectivity.blocks(live.walkable, live.req, reachable, tile)) return false;
         if (room.createConstructionSite((tile / 50) | 0, tile % 50, type) !== OK) return false;
         budget--;
         add({ x: (tile / 50) | 0, y: tile % 50 }, type);
+        if (blocksMovement) live.walkable[tile] = 0;
         return true;
     };
 
@@ -322,9 +419,18 @@ function run() {
     let planned = false;
     let built = false;
     let migrating = false;
+    let index = 0;
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
-        if (!room.controller || !room.controller.my || !enabled(name)) continue;
+        if (!room.controller || !room.controller.my) continue;
+        // Every 100 ticks per room (staggered, opted-out rooms too): remove construction sites
+        // that seal a path, without waiting for the next build pass.
+        if ((Game.time + index++ * 7) % PATH_CHECK_EVERY === 0) {
+            const cpu = roomCpu.timer();
+            removeBlockingSites(room, liveState(room));
+            cpu.lap(name);
+        }
+        if (!enabled(name)) continue;
         const stored = Memory.basePlan && Memory.basePlan[name];
         if (!stored || stored.v !== VERSION || (stored.fail && Game.time - stored.fail >= RETRY_FAILED)) {
             if (!planned && governor.allows('planning')) {
@@ -353,7 +459,8 @@ function run() {
             if (active || !migrating) {
                 const cpu = roomCpu.timer();
                 if (!active) migrating = true;
-                migrate.runRoom(room, planOf(name), KIND_OF, rebuildNow);
+                const roomPlan = planOf(name);
+                migrate.runRoom(room, roomPlan, KIND_OF, rebuildNow, kind => replacementTile(room, roomPlan, kind) !== undefined);
                 cpu.lap(name);
             }
         }
@@ -440,4 +547,4 @@ function visualizeFlagged() {
     vis.text(`base plan (${plan.mode}${labs.length ? '' : ', no lab stamp fits'})`, 25, 1, { color: '#ffffff', font: 0.7 });
 }
 
-module.exports = { run, planRoom, planMigration, buildRoom, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
+module.exports = { run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };

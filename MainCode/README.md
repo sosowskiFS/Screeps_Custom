@@ -182,6 +182,11 @@ Every owned room is laid out automatically. Rooms no longer opt in. `base.planne
   - `VisualizeBase`: draw the plan, including a preview for rooms not owned yet. It no longer runs the generator every tick.
   - `Memory.settings.basePlanning = false` turns the whole system off.
 
+**Never seal a path** (`base.connectivity.js`). A plan is drawn for the finished room, but while a room is being built or migrated, old structures can make a planned tile the only way through. A link site on such a tile once trapped every creep of a room in one corner. Every construction site that blocks movement is now checked against the room as it stands: each spawn must still reach a room exit, and the storage, sources, mineral and controller must stay reachable from the exits. Anything that was reachable before must still be reachable afterwards.
+- **Builder:** skips a planned tile that would cut a path; it gets built later, once the way around exists.
+- **Existing sites:** any site that already cuts a path is removed. Every room is checked every 100 ticks (staggered), as well as on each build pass.
+- **Migration:** a structure is only removed when its replacement can go down without cutting a path.
+
 ### Migrating established rooms
 
 Rooms with a storage start out adopted (see above), and then move onto the layout one structure at a time (`base.migrate.js`).

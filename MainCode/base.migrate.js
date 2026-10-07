@@ -58,6 +58,7 @@ const COST = { container: 5000, extension: 3000, observer: 8000, link: 5000, lab
  *   siteTiles: Set(tile)   construction sites in the room; roomSites: non-road/rampart sites in the room
  *   globalSites, energy (storage), storageFree, hostiles (bool), operatorTtl (number|undefined)
  * }
+ *   canPlace (optional): kind -> can its replacement site go down now without blocking a path
  * Returns { id, kind, tile, evacuate } or null; s.misplaced is set to how many are left.
  */
 function chooseStep(s) {
@@ -76,7 +77,10 @@ function chooseStep(s) {
     s.misplaced = misplaced.length;
     if (!misplaced.length || s.hostiles || s.globalSites >= SITE_HEADROOM) return null;
 
-    const freeTileFor = kind => (s.plan.structures[kind] || []).some(t => !solid.has(t) && !s.siteTiles.has(t));
+    // A free planned tile, where a site can also go right now without cutting a path (old
+    // structures still standing can make a planned tile the only way through).
+    const freeTileFor = kind => (s.plan.structures[kind] || []).some(t => !solid.has(t) && !s.siteTiles.has(t)) &&
+        (!s.canPlace || s.canPlace(kind));
     const isBlocker = b => (planned.has(b.tile) && planned.get(b.tile) !== b.kind) || mustBeClear.has(b.tile);
     misplaced.sort((a, b) => (isBlocker(b) - isBlocker(a)) || MOVABLE.indexOf(a.kind) - MOVABLE.indexOf(b.kind));
 
@@ -230,7 +234,7 @@ function progress(room, mem, kindOf, rebuildNow) {
  * structureType -> kind; rebuildNow(roomName): asks base.builder for a build pass next tick.
  * Returns true when it started or advanced a step.
  */
-function runRoom(room, plan, kindOf, rebuildNow) {
+function runRoom(room, plan, kindOf, rebuildNow, canPlace) {
     const mem = memoryFor(room.name);
     if (mem.step) {
         progress(room, mem, kindOf, rebuildNow);
@@ -243,6 +247,7 @@ function runRoom(room, plan, kindOf, rebuildNow) {
     if (Memory.baseMigrateLast && Game.time - Memory.baseMigrateLast < START_GAP) return false;
 
     const state = gather(room, plan, kindOf);
+    state.canPlace = canPlace;
     const step = chooseStep(state);
     if (!step) {
         if (state.misplaced === 0) {
