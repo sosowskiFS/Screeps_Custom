@@ -129,11 +129,29 @@ function reprice(order, target, budget) {
     return Game.market.changeOrderPrice(order.id, target) === OK;
 }
 
-// Finished orders still occupy order slots and make every scan longer.
+// Intershard resources (CPU unlocks, pixels, access keys) belong to the account, not a shard:
+// every shard running this code would act on the same orders in the same tick (overlapping
+// price changes, duplicate fees). Only MARKET_SHARD manages them.
+const MARKET_SHARD = 'shard2';
+const INTERSHARD = typeof INTERSHARD_RESOURCES !== 'undefined' ? INTERSHARD_RESOURCES : [PIXEL, CPU_UNLOCK, 'accessKey'];
+
+function managesIntershard() {
+    return Game.shard.name === MARKET_SHARD;
+}
+
+function isIntershard(resourceType) {
+    return INTERSHARD.includes(resourceType);
+}
+
+// Finished orders still occupy order slots and make every scan longer. Intershard orders are
+// left to the managing shard.
 function cleanupOrders() {
+    const intershard = managesIntershard();
     for (const id in Game.market.orders) {
         const order = Game.market.orders[id];
-        if (order.remainingAmount <= 0) Game.market.cancelOrder(id);
+        if (order.remainingAmount > 0) continue;
+        if (isIntershard(order.resourceType) && !intershard) continue;
+        Game.market.cancelOrder(id);
     }
 }
 
@@ -257,15 +275,16 @@ function sellCompounds() {
 function handleMarketOperations() {
     if (Game.time % 50 !== 0) return;
     cleanupOrders();
-    buyCpuUnlocks();
+    const intershard = managesIntershard();
+    if (intershard) buyCpuUnlocks();
     if (Game.time % 100 === 0) {
-        sellPixels();
-        sellCompounds();
+        if (intershard) sellPixels();
+        sellCompounds();   // room resources: every shard sells its own
     }
 }
 
 function handleCPUUnlocking() {
-    if (Game.shard.name == 'shard2') {
+    if (Game.shard.name == MARKET_SHARD) {
         let today = new Date();
         // Without a token unlock() just fails; checking first also stops a notify every tick.
         if ((Game.resources[CPU_UNLOCK] || 0) < 1) return;
@@ -278,4 +297,4 @@ function handleCPUUnlocking() {
     }
 }
 
-module.exports = { handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice };
+module.exports = { MARKET_SHARD, managesIntershard, isIntershard, cleanupOrders, handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice };

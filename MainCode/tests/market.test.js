@@ -131,3 +131,26 @@ test('raises across many orders share one credit budget, smallest orders first',
     assert.deepEqual(raised.map(c => c[1]), ['mine0', 'mine1'], 'only what the budget covers');
     assert.ok(raised.every(c => c[2] === 2590.663));
 });
+
+test('intershard items (CPU unlocks, pixels) are only managed from shard2; room resources everywhere', () => {
+    const setupShard = shard => {
+        const bid = buy('myBid', 100, 5);
+        const done = sell('pxDone', 2500, 0, 'pixel');
+        done.remainingAmount = 0;
+        const roomDone = sell('xDone', 2, 0, 'X');
+        roomDone.remainingAmount = 0;
+        const env = market({ orders: [bid, buy('rival', 120), sell('ask', 90, 3, 'cpuUnlock'), sell('px', 2400, 5000, 'pixel')],
+            mine: { myBid: bid, pxDone: done, xDone: roomDone }, history: { cpuUnlock: [{ avgPrice: 100, volume: 10 }] },
+            credits: 1000000, resources: { pixel: 500 } });
+        env.g.Game.shard.name = shard;
+        env.g.Game.time = 100;
+        env.m.handleMarketOperations();
+        return plain(env.calls);
+    };
+    const other = setupShard('shard3');
+    assert.deepEqual(other, [['cancel', 'xDone']], 'shard3: only its own room order cleanup, no unlock/pixel trades or fees');
+    const main = setupShard('shard2');
+    assert.ok(main.some(c => c[0] === 'cancel' && c[1] === 'pxDone'), 'shard2 cleans intershard orders');
+    assert.ok(main.some(c => c[0] === 'deal' && c[1] === 'ask'), 'shard2 buys unlocks');
+    assert.ok(main.some(c => c[0] === 'create' && c[1].resourceType === 'pixel') || main.some(c => c[1] === 'px'), 'shard2 sells pixels');
+});
