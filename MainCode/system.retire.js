@@ -229,6 +229,10 @@ function finish(room) {
         const creep = Game.creeps[creepName];
         if (creep.memory.homeRoom === name) creep.suicide();
     }
+    // Its operator is unassigned: system.powerCreeps gives it another room (or another shard).
+    for (const pcName in Memory.powerCreeps || {}) {
+        if (Memory.powerCreeps[pcName] && Memory.powerCreeps[pcName].homeRoom === name) require('system.powerCreeps').unassign(pcName);
+    }
     for (const flagName in Game.flags) {
         const flag = Game.flags[flagName];
         if (flagName.indexOf(name) === 0 || flag.pos.roomName === name) flag.remove();

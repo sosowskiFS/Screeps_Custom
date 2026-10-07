@@ -78,9 +78,10 @@ function clean() {
         if (m._trav && !m._trav.path) { delete m._trav; removed++; }
     }
 
-    // Operators look their towers/spawns up each tick now.
+    // Operators look their towers/spawns up each tick now. Memory of deleted power creeps goes.
     for (const name in Memory.powerCreeps) {
         const m = Memory.powerCreeps[name];
+        if (!Game.powerCreeps[name]) { delete Memory.powerCreeps[name]; removed++; continue; }
         if (!m) continue;
         for (const field of ['towerList', 'spawnList']) {
             if (field in m) { delete m[field]; removed++; }

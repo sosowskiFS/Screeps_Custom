@@ -20,6 +20,14 @@ var creep_baseOp = {
 
     /** @param {PowerCreep} creep **/
     run: function(creep) {
+        // Home rooms are assigned by system.powerCreeps. No home yet: wait for one. Assigned
+        // elsewhere (a new room, or one freed by a retirement): walk there first.
+        const home = creep.memory.homeRoom;
+        if (!home) return;
+        if (creep.room.name !== home) {
+            creep.travelTo(new RoomPosition(25, 25, home), { range: 20 });
+            return;
+        }
         if (!creep.memory.initialSetup || Game.time % 10000 == 0) {
             setupCreepMemory(creep);
         }
@@ -117,11 +125,6 @@ function setupCreepMemory(creep) {
     // Set link source if available
     if (Memory.linkList[creep.room.name] && Memory.linkList[creep.room.name].length >= 4) {
         creep.memory.linkSource = Memory.linkList[creep.room.name][3];
-    }
-
-    // Set home room
-    if (!creep.memory.homeRoom) {
-        creep.memory.homeRoom = creep.pos.roomName;
     }
 
     // Clear job focus on setup

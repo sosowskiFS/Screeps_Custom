@@ -99,3 +99,16 @@ test('retireRooms(\'confirm\') refuses to start before the measurement is comple
     retire.report('confirm');
     assert.deepEqual(plain(g.Memory.retire.rooms), {});
 });
+
+test('unclaiming a retired room unassigns its operator so it can be given another room', () => {
+    const { g, retire } = load();
+    g.Game.market.orders = {};
+    g.Game.creeps = {};
+    g.Game.flags = {};
+    g.Memory.retire = { start: 0, n: 0, e: {}, c: {}, rooms: { OLD: { st: 'drain', t: 0 } } };
+    g.Memory.powerCreeps = { op: { homeRoom: 'OLD', priority: 'baseOp' }, other: { homeRoom: 'KEEP' } };
+    const room = { name: 'OLD', controller: { unclaim: () => g.OK } };
+    assert.equal(retire.finish(room), true);
+    assert.equal(g.Memory.powerCreeps.op.homeRoom, undefined);
+    assert.equal(g.Memory.powerCreeps.other.homeRoom, 'KEEP');
+});

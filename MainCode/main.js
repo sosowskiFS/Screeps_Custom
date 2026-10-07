@@ -15,6 +15,7 @@ const roads = require('system.roads');
 const badRooms = require('system.badRooms');
 const expansion = require('system.expansion');
 const retire = require('system.retire');
+const powerCreeps = require('system.powerCreeps');
 const memoryCleanup = require('runtime.memoryCleanup');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
@@ -35,6 +36,7 @@ const phases = [
     ['badRooms', badRooms.update],
     ['expansion', expansion.run],
     ['retire', retire.run],
+    ['powerCreeps', powerCreeps.run],
     ['memoryCleanup', memoryCleanup.run],
 ];
 module.exports.loop = function () {

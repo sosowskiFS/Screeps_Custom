@@ -307,6 +307,16 @@ With no job it does busywork: terminal, labs, factory, overflow link to storage,
 
 Intents are never doubled. Ops are generated only on ticks no other power was used, and a finished job hands over to the next one on the following tick. Armed hostiles in reach are handled last, so they override the job's movement: hold position on a rampart, else move to the nearest rampart without crossing hostile reach, else flee every threat. Renewal is postponed while threatened unless TTL < 60.
 
+**Assignment, moves between shards, creation** (`system.powerCreeps.js`, every 100 ticks on each shard; the `SpawnOperator` flag still works as a manual override):
+- **Who owns which operator:** power creep memory is kept per shard, so a home is only trusted on the shard where the operator is spawned (or while it is unspawned). Its home must be one of our rooms with a power spawn (or a power spawn site during a migration rebuild) that is not retiring.
+- **Respawning:** an operator with a home on this shard respawns there once its cooldown is over.
+- **Spawned here without a home** (its room was retired or lost): it gets another room here that needs one and walks there. If none needs one and another shard is waiting, it suicides so it can spawn there after its cooldown.
+- **Free operators** (unspawned, fully built, not reserved by any shard) go to rooms with a power spawn but no operator, shard by shard: shardX, then shard2, then shard1 (any other shard last). Within a shard, the first room that comes up wins.
+- **Moving to shardX:** when shardX has rooms waiting that the free operators (cooldowns included) don't cover, shard1 gives operators up first, then shard2 once shard1 has none. They are unassigned, suicided and spawned on shardX after their cooldown.
+- **New operators:** shard2 creates one when the account has 26 free power levels (1 to create + 25 levels). It upgrades it one level per tick to GENERATE_OPS 4, OPERATE_TOWER 3, OPERATE_LAB 5, OPERATE_EXTENSION 5, REGEN_SOURCE 5, OPERATE_POWER 3.
+- **Coordination:** shards share their state through InterShardMemory (`pc`: rooms waiting, reserved operators, how many assigned). A shard silent for 30 minutes counts as not running.
+- **Retirement:** a retired room's operator is unassigned when the room is unclaimed.
+
 Spawn staffing (`configurePowerCreepRoom`, mule/miner rules) and the lab worker's switch to distributor use `operatorPresent(room)`: the room's operator spawned there with TTL > 100. The `RoomOperator` flag alone no longer counts, so a dead or deleted operator no longer leaves the room without haulers.
 
 ## Power processing without an operator

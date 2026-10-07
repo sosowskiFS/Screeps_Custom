@@ -42,10 +42,7 @@ function handleRoomOperations(thisRoom) {
             expansion.observeRequest(roomName) || observedRoomName);
     }
 
-    // Monitor for power creep operators and respawn if needed
-    if (Game.time % 100 === 0 && Game.flags[roomName + "RoomOperator"] && Memory.powerSpawnList[roomName] && Memory.powerSpawnList[roomName].length > 0) {
-        handlePowerCreepRespawn(thisRoom, roomName);
-    }
+    // Operator respawns and assignment: system.powerCreeps.
 }
 
 function handleObservedRoomOperations(thisRoom, observedRoom, roomName, observedRoomName) {
@@ -211,23 +208,4 @@ function operateObserver(roomName, observedRoomName) {
     }
 }
 
-function handlePowerCreepRespawn(thisRoom, roomName) {
-    const powerCreepsInRoom = runtimeCache.find(thisRoom, FIND_MY_POWER_CREEPS);
-
-    if (powerCreepsInRoom.length === 0) {
-        // Find power creep assigned to this room and respawn it
-        for (const pName in Game.powerCreeps) {
-            const powerCreep = Game.powerCreeps[pName];
-            if (powerCreep.memory.homeRoom === roomName) {
-                const powerSpawnId = Memory.powerSpawnList[roomName][0];
-                const powerSpawn = Game.getObjectById(powerSpawnId);
-                if (powerSpawn) {
-                    powerCreep.spawn(powerSpawn);
-                }
-                break;
-            }
-        }
-    }
-}
-
-module.exports = { handleRoomOperations, handleObservedRoomOperations, handlePowerBankOperations, handleResourceDepositOperations, updateObservationPointer, handleHarasserOperations, updateObserverList, operateObserver, handlePowerCreepRespawn };
+module.exports = { handleRoomOperations, handleObservedRoomOperations, handlePowerBankOperations, handleResourceDepositOperations, updateObservationPointer, handleHarasserOperations, updateObserverList, operateObserver };
