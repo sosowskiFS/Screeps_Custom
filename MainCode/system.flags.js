@@ -21,7 +21,6 @@ function handleGameFlags() {
     const resetAveragesFlag = flags["ResetAverages"];
     const resetAttackFlag = flags["ResetAttackFlags"];
     const removeSitesFlag = flags["RemoveSites"];
-    const toggleWarFlag = flags["ToggleWar"];
     const resetLinksFlag = flags["resetLinks"];
 
     //Set defaults on various memory values
@@ -171,11 +170,6 @@ function handleGameFlags() {
         removeSitesFlag.remove();
     }
 
-    // Handle toggle war separately in initializeGameState where it's already checked
-    if (toggleWarFlag) {
-        Memory.warMode = !Memory.warMode;
-        toggleWarFlag.remove();
-    }
 
     // Reset link lists and force update next tick
     if (resetLinksFlag) {

@@ -18,7 +18,6 @@ function initializeGameState() {
 
     if (Game.time % 1000 == 0) {
         Memory.ordersFilled = [];
-        Memory.warMode = false;
     }
 
     // Display general pie graphs

@@ -97,7 +97,8 @@ Damage disables body parts front to back, and creeps never regenerate. A unit wh
 **Remote bodies.**
 - **Far mules:** CARRY/MOVE 1:1 (full speed on unpaved plains even when full) with no ATTACK part. They're sized to the planned round trip: 10 energy/tick × trip × 1.15, between 4 and 25 pairs. Manually flagged sources get the maximum.
 - **Reservers:** CLAIM/MOVE pairs only.
-- **Guards against players:** `Memory.remoteThreat[room]` records the strongest enemy force seen in each remote room (damage, healing, effective HP, players; kept 1,500 ticks). The spawner sends the cheapest full-speed ranged/heal kiter that `verdictFor` says wins, or two of them if one can't. If even two max-size guards would lose, nothing is sent. Disabled rooms only get guards when such a plan exists. Invader-only threats keep the existing melee/ranged guards.
+- **Guards are sized to the threat:** `Memory.remoteThreat[room]` records the strongest enemy force seen in each remote room (damage, healing, effective HP, whether players; kept 1,500 ticks). For any recorded force, players or invaders, the spawner sends the cheapest full-speed ranged/heal kiter that `verdictFor` says wins, or two of them if one can't. If even two max-size guards would lose, nothing is sent. Disabled rooms only get guards when such a plan exists. With no recorded force, the default small melee/ranged guard goes.
+- **No war mode:** the empire-wide "war mode" switch is gone. It was set when remote miners were attacked, after a long home attack, or by the `ToggleWar` flag, and stayed on for up to 1,000 ticks. While on, every remote guard was built from big fixed bodies whether a threat was still there or not. Guards now follow the recorded threat for their own room. The two early-room worker behaviours it switched (keeping towers fed, not chasing dropped energy) now apply while that room is under attack.
 - **Harassers:** 2-8 ATTACK/MOVE pairs plus a HEAL/MOVE pair. They hunt reservers first, then haulers carrying energy, then miners. Armed defenders go through the shared fight logic (engage only when winning, otherwise retreat and regroup). The CPU governor never thins them while hostiles are in their room.
 
 **Recovering lost resources.**
@@ -273,6 +274,24 @@ Spawn staffing (`configurePowerCreepRoom`, mule/miner rules) and the lab worker'
 - **Surplus:** when every target is met and nothing is blocked, idle labs make T3 up to 2× target. The market sells anything above 1.5× target.
 - **Run:** the lab worker follows the room's current reaction every tick. When it changes, labs still holding the old minerals are emptied into the terminal. It no longer swaps flags, suicides to pick up a new recipe, or places sell orders. Terminal logistics request only the current reagents and withdraw requests for old ones.
 - **Manual:** `Memory.labOverride[room] = RESOURCE_...` pins a room to one product. `WarBoosts` still swaps the boost labs.
+
+## Mineral budget
+
+`system.mineralBudget.js` keeps rooms from clogging with assorted minerals. A full storage can't bank energy, and haulers end up shuffling goods between full containers.
+- **Limits:**
+  - **Storage:** at least 100k free, and at most 300k of non-energy goods.
+  - **Terminal:** at least 30k free, unless the storage can take the overflow.
+  - **Factory:** at least 5k free, unless the storage or terminal can take it.
+- **Dumping:** anything above that is dumped on the floor by the lab worker, one load at a time, and the pile decays. It goes cheapest first: base minerals, then factory goods, then compounds by reaction depth, T3 boosts last.
+- **Floors:** no resource goes below 10k (room total, storage + terminal), or 30k for the room's reaction inputs, its boost-lab minerals and ghodium. Energy, power and ops are never dumped.
+- **Dumped piles:** dumped types are remembered for 3,000 ticks. Salvagers and scrapers leave those piles alone, and they don't trigger salvager spawns.
+- **No more shuffling:**
+  - Terminal-overflow cleanup no longer puts a load back into the terminal it is clearing; with the storage full, the load is dumped.
+  - The salvager delivers to the terminal when the storage is full, and drops goods when neither has room, instead of retrying a full storage forever.
+- **Storage counts for reactions:**
+  - **Lab feeding:** the lab worker feeds reaction and boost labs from the storage when the terminal lacks the mineral.
+  - **Planner:** inputs held in storage count as local, and a room is only skipped when neither its terminal nor its storage has room.
+  - **Mineral requests:** a room no longer asks other rooms for minerals its storage already holds.
 
 ## Market
 

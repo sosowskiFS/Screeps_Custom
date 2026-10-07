@@ -132,16 +132,10 @@ function assignRepairTargetAndAct(creep, repairRange) {
         if (closestDamagedStructure && closestDamagedStructure.hits < closestDamagedStructure.hitsMax && getEnergyCarry(creep) > 0) {
             creep.memory.structureTarget = Memory.repairTarget[creep.room.name];
             if (creep.repair(closestDamagedStructure) == ERR_NOT_IN_RANGE) {
-                if (!Memory.warMode) {
-                    creep.travelTo(closestDamagedStructure, {
-                        maxRooms: 1,
-                        range: repairRange || 1
-                    });
-                } else {
-                    creep.travelTo(closestDamagedStructure, {
-                        maxRooms: 1
-                    });
-                }
+                creep.travelTo(closestDamagedStructure, {
+                    maxRooms: 1,
+                    range: repairRange || 1
+                });
             }
         } else if (!closestDamagedStructure || closestDamagedStructure.hits == closestDamagedStructure.hitsMax) {
             Memory.repairTarget[creep.room.name] = undefined;

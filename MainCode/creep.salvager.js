@@ -1,3 +1,5 @@
+const mineralBudget = require('system.mineralBudget');
+
 var creep_salvager = {
 
     /** @param {Creep} creep **/
@@ -176,10 +178,14 @@ function findTarget(creep, amountWithdrawn) {
         } else {
             if (creep.memory.lastTargetId) {
                 returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
-                    filter: (thisResource) => (thisResource.id != creep.memory.lastTargetId)
+                    filter: (thisResource) => (thisResource.id != creep.memory.lastTargetId &&
+                        !mineralBudget.isDumped(creep.room.name, thisResource.resourceType))
                 });
             } else {
-                returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                // Piles the lab worker dumped on purpose (excess minerals) are left to decay.
+                returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+                    filter: (thisResource) => !mineralBudget.isDumped(creep.room.name, thisResource.resourceType)
+                });
             }
             if (returnObject) {
                 creep.memory.targetId = returnObject.id;
@@ -193,9 +199,23 @@ function findTarget(creep, amountWithdrawn) {
     creep.memory.lastTargetId = undefined;
 
     if ((_.sum(creep.carry) + amountWithdrawn > 0 || _.sum(creep.carry) + amountWithdrawn >= creep.carryCapacity || _.sum(creep.carry) >= creep.carryCapacity) && creep.room.storage) {
-        creep.memory.targetId = creep.room.storage.id;
+        // A full storage refused deliveries forever: use the terminal, and when neither has room
+        // drop non-energy goods (excess; system.mineralBudget) instead of waiting.
+        const carried = _.findKey(creep.carry);
+        const amount = carried ? creep.carry[carried] : 0;
+        const fits = s => s && s.store.getFreeCapacity(carried) >= Math.min(amount, 1);
+        let target = creep.room.storage;
+        if (carried && !fits(target)) target = fits(creep.room.terminal) ? creep.room.terminal : null;
+        if (!target) {
+            if (carried && carried !== RESOURCE_ENERGY) {
+                creep.drop(carried);
+                mineralBudget.markDumped(creep.room.name, carried);
+            }
+            return undefined;
+        }
+        creep.memory.targetId = target.id;
         creep.memory.targetType = 2;
-        return creep.room.storage;
+        return target;
     }
 
     return undefined;

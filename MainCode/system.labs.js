@@ -145,10 +145,11 @@ function labsLoaded(roomName, job) {
         la.mineralAmount >= LAB_REACTION_AMOUNT && lb.mineralAmount >= LAB_REACTION_AMOUNT);
 }
 
+// Inputs already in this room (terminal or storage) save shipping.
 function localScore(room, c) {
-    const store = room.terminal.store;
+    const have = res => ((room.terminal.store[res] || 0) + ((room.storage && room.storage.store[res]) || 0));
     const need = Math.min(MIN_INPUT, c.missing);
-    return ((store[c.a] || 0) >= need ? 1 : 0) + ((store[c.b] || 0) >= need ? 1 : 0);
+    return (have(c.a) >= need ? 1 : 0) + (have(c.b) >= need ? 1 : 0);
 }
 
 function plan() {
@@ -192,7 +193,10 @@ function plan() {
     }
 
     for (const room of idle) {
-        if (room.terminal.store.getFreeCapacity() < MIN_TERMINAL_FREE) continue;
+        // Too full to take on a reaction only if neither the terminal nor the storage has room
+        // (a nearly full terminal used to idle the labs of a room whose storage held the inputs).
+        if (room.terminal.store.getFreeCapacity() < MIN_TERMINAL_FREE &&
+            !(room.storage && room.storage.store.getFreeCapacity() >= MIN_TERMINAL_FREE)) continue;
         let best;
         let bestScore = Infinity;
         list.forEach((c, rank) => {

@@ -96,11 +96,6 @@ function handleHostileDetection(room, hostiles, pHostiles) {
         // A border drainer is not a siege: don't let it push the whole empire into war mode.
         if (hostiles.length && (hostiles[0].owner.username != 'Invader') && !draining) {
             Memory.attackDuration = Memory.attackDuration + 1;
-            if (Memory.attackDuration >= 250 && !Memory.warMode) {
-                Memory.warMode = true;
-                Game.notify('War mode was enabled due to a long attack at ' + roomName + '.');
-                Memory.LastNotification = Game.time.toString() + ' : War mode was enabled due to a long attack at ' + roomName + '.'
-            }
         }
     } else if (Memory.roomsUnderAttack.indexOf(roomName) == -1 && Memory.attackDuration >= 250 && Memory.roomsUnderAttack.length > 0) {
         const eFarGuardFlag = Game.flags[roomName + "eFarGuard"];

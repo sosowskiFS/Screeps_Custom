@@ -1,3 +1,4 @@
+const mineralBudget = require('system.mineralBudget');
 var creep_scraper = {
 
     /** @param {Creep} creep **/
@@ -20,7 +21,9 @@ var creep_scraper = {
             } else {
                 var thisLink = Game.getObjectById(creep.memory.linkID);
                 if (thisLink && creep.pos.inRangeTo(thisLink, 3)) {
-                    var droppedResources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES);
+                    var droppedResources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+                        filter: r => !mineralBudget.isDumped(creep.room.name, r.resourceType)
+                    });
                     if (droppedResources) {
                         creep.memory.targetResource = droppedResources.id;
                     }

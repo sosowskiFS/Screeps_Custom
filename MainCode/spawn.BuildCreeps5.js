@@ -4,6 +4,7 @@ const defenseWatch = require('defense.watch');
 const maintenance = require('system.maintenance');
 const labPlanner = require('system.labs');
 const essentials = require('spawn.essentials');
+const mineralBudget = require('system.mineralBudget');
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
         // Cache frequently used values
@@ -1185,7 +1186,9 @@ Object.assign(spawn_BuildCreeps5, {
             if (tombstone.store.getUsedCapacity() >= 200) return true;
         }
         let dropped = 0;
-        for (const resource of runtimeCache.find(room, FIND_DROPPED_RESOURCES)) dropped += resource.amount;
+        for (const resource of runtimeCache.find(room, FIND_DROPPED_RESOURCES)) {
+            if (!mineralBudget.isDumped(room.name, resource.resourceType)) dropped += resource.amount;
+        }
         return dropped >= 1000;
     },
 

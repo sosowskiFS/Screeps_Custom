@@ -45,7 +45,7 @@ var market_buyers = {
                 Memory.mineralNeed[mineral] = [];
             }
             const mineralCap = 5000;
-            const currentAmount = thisTerminal.store[mineral] || 0;
+            const currentAmount = (thisTerminal.store[mineral] || 0) + ((thisRoom.storage && thisRoom.storage.store[mineral]) || 0);
             const roomIndex = Memory.mineralNeed[mineral].indexOf(thisRoom.name);
             
             if (currentAmount < mineralCap) {

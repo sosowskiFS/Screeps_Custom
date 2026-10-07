@@ -19,10 +19,6 @@ var creep_farMiner = {
                 if (hostile.owner.username != 'Invader' && hostile.owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
     				creep.attack(hostile);
                 	
-                	if (!Memory.warMode) {
-                		Memory.warMode = true;
-                		console.log('War mode has been enabled.');
-                	}
                 	if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
                 		Memory.FarRoomsUnderAttack.push(creep.room.name);
                 	}

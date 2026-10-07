@@ -20,10 +20,6 @@ var creep_farMinerSK = {
             //Determine if attacker is player, if so, delete flag.
             if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
                 console.log(creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
-                if (!Memory.warMode) {
-                    Memory.warMode = true;
-                    console.log('War mode has been enabled.');
-                }
                 Game.flags[creep.memory.targetFlag].remove();
             } else if (hostiles.length > 0 && hostiles[0].owner.username == 'Source Keeper') {
                 console.log(creep.memory.targetFlag + ' died early. TTL ' + creep.ticksToLive);

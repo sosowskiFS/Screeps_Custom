@@ -59,9 +59,8 @@ function memCheck() {
         Memory.isSpawning = {};
     }
     //Boolean
-    if (Memory.warMode == null) {
-        Memory.warMode = false;
-    }
+    // "War mode" was removed (guards are sized to the recorded threat instead).
+    delete Memory.warMode;
     if (Memory.guardType == null) {
         Memory.guardType = false;
     }

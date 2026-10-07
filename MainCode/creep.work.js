@@ -1,5 +1,10 @@
 const runtimeCache = require('runtime.cache');
 const roads = require('system.roads');
+
+// This room is being attacked: keep the towers fed, don't wander off for dropped energy.
+function underAttack(room) {
+    return Memory.roomsUnderAttack.indexOf(room.name) !== -1;
+}
 var creep_work = {
 
     /** @param {Creep} creep **/
@@ -121,7 +126,7 @@ var creep_work = {
             if (!creep.memory.structureTarget) {
                 var targets = undefined;
                 if (getNewStructure) {
-                    if (Memory.warMode) {
+                    if (underAttack(creep.room)) {
                         targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_EXTENSION ||
@@ -138,7 +143,7 @@ var creep_work = {
                     }
 
                 } else {
-                    if (Memory.warMode) {
+                    if (underAttack(creep.room)) {
                         targets = creep.pos.findClosestByPath(FIND_STRUCTURES, {
                             filter: (structure) => {
                                 return (structure.structureType == STRUCTURE_EXTENSION ||
@@ -418,7 +423,7 @@ var creep_work = {
                     var sources = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
                         filter: (thisResource) => (thisResource.resourceType == RESOURCE_ENERGY)
                     });
-                    if (Memory.warMode) {
+                    if (underAttack(creep.room)) {
                         sources = undefined;
                     }
                     if (sources) {

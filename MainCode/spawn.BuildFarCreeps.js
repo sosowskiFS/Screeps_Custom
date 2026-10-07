@@ -29,37 +29,9 @@ var spawn_BuildFarCreeps = {
             //760 Points (Level 3)
             let farGuardConfig = [TOUGH, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
 
-            if (Memory.warMode) {
-                if (Memory.guardType) {
-                    //Ranged Guard
-                    if (thisRoom.energyCapacityAvailable >= 5100) {
-                        farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, ATTACK, ATTACK, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 3100) {
-                        farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, ATTACK, ATTACK, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 2300) {
-                        farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, ATTACK, ATTACK, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 1800) {
-                        farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, ATTACK, ATTACK, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 1280) {
-                        //1250 Points
-                        farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, ATTACK, ATTACK, HEAL];
-                    }
-                } else {
-                    //Melee Guard
-                    if (thisRoom.energyCapacityAvailable >= 3770) {
-                        farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 3430) {
-                        farGuardConfig = [TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 2300) {
-                        farGuardConfig = [TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 1790) {
-                        farGuardConfig = [TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
-                    } else if (thisRoom.energyCapacityAvailable >= 1270) {
-                        //1250 Points
-                        farGuardConfig = [TOUGH, TOUGH, TOUGH, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, ATTACK, MOVE, HEAL];
-                    }
-                }
-            } else {
+            // Default guard when no enemy force has been recorded for the room (alternating
+            // melee/ranged). With a recorded force the guard is sized to beat it (guardPlanFor).
+            {
                 if (Memory.guardType) {
                     if (thisRoom.energyCapacityAvailable >= 1900) {
                         farGuardConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, ATTACK, ATTACK, HEAL];
@@ -100,13 +72,6 @@ var spawn_BuildFarCreeps = {
                 }
             }
 
-            if (Memory.warMode) {
-                if (miningOps.eFarGuards.length < 1 && Game.flags[thisRoom.name + "eFarGuard"]) {
-                    prioritizedRole = 'farGuard';
-                    roomTarget = Game.flags[thisRoom.name + "eFarGuard"].pos.roomName;
-                    flagName = Game.flags[thisRoom.name + "eFarGuard"].name;
-                }
-            }
 
             // Check far guards using condensed logic
             const guardConfigs = [
@@ -125,25 +90,27 @@ var spawn_BuildFarCreeps = {
             for (let config of guardConfigs) {
                 const guardFlagName = thisRoom.name + config.flag;
                 const tempFlagName = thisRoom.name + config.temp;
-                // Against players, send the cheapest ranged/heal kiter the fight estimate says wins.
-                // If none is affordable, send nothing: a fixed-size guard would just be fed to them.
-                // Disabled remotes only get a guard when such a winning body exists.
+                // Any recorded enemy force (players or invaders, last 1500 ticks): send the cheapest
+                // ranged/heal kiter the fight estimate says beats it, or a pair. If none is affordable,
+                // send nothing: a guard that loses is just fed to them. Disabled remotes only get a
+                // guard when such a winning body exists. (Replaces the empire-wide "war mode", which
+                // built big fixed bodies long after a threat had passed.)
                 const guardRoom = Game.flags[guardFlagName] && Game.flags[guardFlagName].pos.roomName;
                 const threat = guardRoom && combatIntel.remoteThreat(guardRoom);
-                const playerPlan = threat && threat.p ? guardPlanFor(threat, thisRoom.energyCapacityAvailable) : null;
-                const playerBody = playerPlan ? playerPlan.body : null;
-                if (threat && threat.p && !playerBody) continue;
-                if (config.condition && prioritizedRole === '' && !(guardRoom && remoteMining.isDisabled(guardRoom) && !playerBody) &&
+                const threatPlan = threat ? guardPlanFor(threat, thisRoom.energyCapacityAvailable) : null;
+                const threatBody = threatPlan ? threatPlan.body : null;
+                if (threat && !threatBody) continue;
+                if (config.condition && prioritizedRole === '' && !(guardRoom && remoteMining.isDisabled(guardRoom) && !threatBody) &&
                     ((Game.flags[guardFlagName] && Memory.FarRoomsUnderAttack.indexOf(Game.flags[guardFlagName].pos.roomName) != -1) || Game.flags[tempFlagName])) {
                     const guards = miningOps.farGuards[config.index] || [];
                     // A guard that judged its fight unwinnable marks the room outmatched: send a second one.
-                    const guardTarget = Math.max(playerPlan ? playerPlan.count : 1,
+                    const guardTarget = Math.max(threatPlan ? threatPlan.count : 1,
                         Game.flags[guardFlagName] && combatIntel.isOutmatched(Game.flags[guardFlagName].pos.roomName) ? 2 : 1);
                     if (guards.length < guardTarget && Game.flags[guardFlagName]) {
                         prioritizedRole = 'farGuard';
                         roomTarget = Game.flags[guardFlagName].pos.roomName;
                         flagName = Game.flags[guardFlagName].name;
-                        sizedGuard = playerBody;
+                        sizedGuard = threatBody;
                         break;
                     }
                 }
@@ -293,9 +260,6 @@ var spawn_BuildFarCreeps = {
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                         var warnMulti = 5;
-                        if (Memory.warMode) {
-                            warnMulti = 6;
-                        }
                         spawn.spawnCreep(farGuardConfig, 'guard_' + spawn.name + '_' + Game.time, {
                             memory: {
                                 priority: prioritizedRole,
@@ -311,7 +275,7 @@ var spawn_BuildFarCreeps = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                     if (!sizedGuard) {
-                        Memory.guardType = !Memory.guardType; // invader guards still alternate melee/ranged
+                        Memory.guardType = !Memory.guardType; // default guards alternate melee/ranged
                     }
                 } else if (prioritizedRole == 'farMineralMiner') {
                     let configCost = calculateConfigCost(farMinerConfig);
@@ -420,7 +384,6 @@ function calculateConfigCost(bodyConfig) {
 function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) {
     const roomName = thisRoom.name;
     const result = {
-        eFarGuards: [],
         farMining: [],
         farGuards: [],
         farMineralMiners: []
@@ -431,8 +394,6 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
     const guardFlagToIndex = {};
     const mineralFlagToIndex = {};
 
-    // Initialize eFarGuards for war mode
-    const watchEFarGuards = Memory.warMode;
 
     // Mining operations configurations
     const miningConfigs = [
@@ -512,10 +473,6 @@ function initializeMiningOperations(thisRoom, controlledCreeps, Flag25, Flag50) 
         const priority = creep.memory.priority;
 
         if (priority == 'farGuard') {
-            if (watchEFarGuards && creep.memory.targetFlag == roomName + "eFarGuard") {
-                result.eFarGuards.push(creep);
-            }
-
             const guardIndex = guardFlagToIndex[creep.memory.targetFlag];
             if (guardIndex !== undefined) {
                 result.farGuards[guardIndex].push(creep);

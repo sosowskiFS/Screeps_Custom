@@ -64,7 +64,7 @@ function DisplayBoostTotals() {
     if (!visualsEnabled()) return;
     //Left Box (T3 Boosts)
     let fillColor = '#2d68a0';
-    if (Memory.warMode) {
+    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.length) {
         fillColor = '#9c2d34';
     }
 
@@ -122,7 +122,7 @@ function DisplayBoostTotals() {
         });
     }
 
-    if (Memory.warMode) {
+    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.length) {
         new RoomVisual().rect(6.5, 46, 7.1, 1, {
             fill: fillColor,
             stroke: '#FFFFFF',

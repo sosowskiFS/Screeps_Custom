@@ -512,16 +512,10 @@ function findNewRepairTarget(creep, creepEnergy) {
             closestDamagedStructure.sort(repairCompare);
             creep.memory.structureTarget = closestDamagedStructure[0].id;
             if (creep.repair(closestDamagedStructure[0]) == ERR_NOT_IN_RANGE) {
-                if (!Memory.warMode) {
-                    creep.travelTo(closestDamagedStructure[0], {
-                        maxRooms: 1,
-                        range: 1
-                    });
-                } else {
-                    creep.travelTo(closestDamagedStructure[0], {
-                        maxRooms: 1
-                    });
-                }
+                creep.travelTo(closestDamagedStructure[0], {
+                    maxRooms: 1,
+                    range: 1
+                });
             }
         }
     }
@@ -536,16 +530,10 @@ function moveToNewTarget(creep) {
     if (closestDamagedStructure.length > 0) {
         closestDamagedStructure.sort(repairCompare);
         creep.memory.structureTarget = closestDamagedStructure[0].id;
-        if (!Memory.warMode) {
-            creep.travelTo(closestDamagedStructure[0], {
-                maxRooms: 1,
-                range: 1
-            });
-        } else {
-            creep.travelTo(closestDamagedStructure[0], {
-                maxRooms: 1
-            });
-        }
+        creep.travelTo(closestDamagedStructure[0], {
+            maxRooms: 1,
+            range: 1
+        });
     }
 }
 

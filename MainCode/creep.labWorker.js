@@ -3,6 +3,7 @@ const { operatorPresent } = require('creep.baseOp');
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
 const labPlanner = require('system.labs');
 const baseMigrate = require('base.migrate');
+const mineralBudget = require('system.mineralBudget');
 /*
 LabWorker breakpoint reference (overflow + notable thresholds)
 
@@ -73,6 +74,13 @@ var creep_labWorker = {
         if (creep.memory.carrySince && Game.time - creep.memory.carrySince > STUCK_CARRY_TICKS &&
             deliverLeftovers(creep, terminal, storage)) {
             debugSay(creep, "unstick");
+            handleMovementCoordination(creep);
+            return;
+        }
+
+        // Storage/terminal/factory over their mineral budget: dump the excess (system.mineralBudget).
+        if (trimExcess(creep)) {
+            debugSay(creep, "dump");
             handleMovementCoordination(creep);
             return;
         }
@@ -442,6 +450,59 @@ function handleFactoryOverflow(creep, terminal, storage) {
 }
 
 const STUCK_CARRY_TICKS = 100;
+const TRIM_RECHECK = 10;
+
+// Where to take a lab mineral from: the terminal, else the storage (reaction inputs and boosts
+// often sit in the storage; they used to be ignored there).
+function mineralSource(creep, terminal, mineral) {
+    if (!mineral) return null;
+    if ((terminal.store[mineral] || 0) > 0) return terminal;
+    const storage = creep.room.storage;
+    return storage && (storage.store[mineral] || 0) > 0 ? storage : null;
+}
+
+// Dump excess goods while the room is over its mineral budget (system.mineralBudget): withdraw a
+// load of the cheapest excess, drop it on the next tick. A load it is carrying that fits nowhere
+// is dropped too. Returns true while it is busy doing this.
+function trimExcess(creep) {
+    const carried = _.findKey(creep.carry);
+    if (creep.memory.dumping) {
+        creep.memory.dumping = false;
+        if (carried) {
+            creep.drop(carried);
+            mineralBudget.markDumped(creep.room.name, carried);
+            return true;
+        }
+        return false;
+    }
+    if (Game.time < (creep.memory.trimCheck || 0)) return false;
+    const excess = mineralBudget.pick(creep.room);
+    if (!excess) {
+        creep.memory.trimCheck = Game.time + TRIM_RECHECK;
+        return false;
+    }
+    if (carried) {
+        // Finish the current delivery, unless nothing can take it any more.
+        const amount = creep.carry[carried];
+        const fits = s => s && s.store.getFreeCapacity(carried) >= amount;
+        if (carried === RESOURCE_ENERGY || fits(creep.room.storage) || fits(creep.room.terminal)) return false;
+        clearInstructions(creep);
+        creep.drop(carried);
+        mineralBudget.markDumped(creep.room.name, carried);
+        return true;
+    }
+    clearInstructions(creep);
+    creep.memory.idleUntil = undefined;
+    const amount = Math.min(excess.amount, creep.store.getFreeCapacity());
+    const result = creep.withdraw(excess.from, excess.resource, amount);
+    if (result == ERR_NOT_IN_RANGE) {
+        creep.travelTo(excess.from, { maxRooms: 1, ignoreRoads: true });
+    } else if (result == OK) {
+        creep.memory.dumping = true;
+        clearTravelMemory(creep);
+    }
+    return true;
+}
 
 // Put the current load somewhere it fits: terminal for minerals (storage while the terminal
 // overflow window is open), storage for energy, whichever has room otherwise. Clears any
@@ -592,11 +653,13 @@ function dropCarried(creep) {
         return true;
     }
 
-    // Storage nearly full: anywhere it fits beats the floor.
-    if (deliverLeftovers(creep, creep.room.terminal, storage)) {
+    // Storage nearly full. This load came out of the overflowing terminal: putting it back there
+    // is exactly the shuffle that kept a lab worker busy forever. It is excess: dump it.
+    if (deliverLeftovers(creep, creep.room.terminal, storage, creep.room.terminal)) {
         return true;
     }
     creep.drop(currentlyCarrying);
+    mineralBudget.markDumped(creep.room.name, currentlyCarrying);
     clearTravelMemory(creep);
     return true;
 }
@@ -748,15 +811,15 @@ function findLabWork(creep, ctx, terminal) {
 
 function handleBoostLab(creep, lab, mineral, terminal) {
     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
-        const minAmount = terminal.store[mineral] || 0;
+        const source = mineralSource(creep, terminal, mineral);
         const minLab = lab.mineralAmount;
-        if (minLab <= 2500 && minAmount > 0) {
-            creep.memory.structureTarget = terminal.id;
+        if (minLab <= 2500 && source) {
+            creep.memory.structureTarget = source.id;
             creep.memory.direction = 'Withdraw';
             creep.memory.mineralToMove = mineral;
-            const withdrawResult = creep.withdraw(terminal, mineral);
+            const withdrawResult = creep.withdraw(source, mineral);
             if (withdrawResult == ERR_NOT_IN_RANGE) {
-                creep.travelTo(terminal, { maxRooms: 1, ignoreRoads: true });
+                creep.travelTo(source, { maxRooms: 1, ignoreRoads: true });
             } else if (withdrawResult == OK) {
                 clearInstructions(creep);
                 clearTravelMemory(creep);
@@ -787,14 +850,14 @@ function handleBoostLab(creep, lab, mineral, terminal) {
 function handleReagentLab(creep, lab, mineral, terminal) {
     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
         if (terminal.store[creep.memory.mineral6] < 40000 || !terminal.store[creep.memory.mineral6]) {
-            const mineralAmount = terminal.store[mineral] || 0;
-            if (mineralAmount > 0 && lab.mineralAmount < lab.mineralCapacity - creep.carryCapacity) {
-                creep.memory.structureTarget = terminal.id;
+            const source = mineralSource(creep, terminal, mineral);
+            if (source && lab.mineralAmount < lab.mineralCapacity - creep.carryCapacity) {
+                creep.memory.structureTarget = source.id;
                 creep.memory.direction = 'Withdraw';
                 creep.memory.mineralToMove = mineral;
-                const withdrawResult = creep.withdraw(terminal, mineral);
+                const withdrawResult = creep.withdraw(source, mineral);
                 if (withdrawResult == ERR_NOT_IN_RANGE) {
-                    creep.travelTo(terminal, { maxRooms: 1, ignoreRoads: true });
+                    creep.travelTo(source, { maxRooms: 1, ignoreRoads: true });
                 } else if (withdrawResult == OK) {
                     clearInstructions(creep);
                     clearTravelMemory(creep);
