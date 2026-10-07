@@ -1,11 +1,59 @@
 const { placeRoadOnPath, clearTravelMemory } = require('creep.movement');
 const { withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget } = require('creep.logistics');
+const { operatorPresent } = require('creep.baseOp');
+
+const IDLE_RANGE = 3;              // idle wait distance from the home spawn
+const POWER_SPAWN_ENERGY_LOW = 4000;
+
+function powerSpawnOf(room) {
+    const list = Memory.powerSpawnList && Memory.powerSpawnList[room.name];
+    return list && list.length ? Game.getObjectById(list[0]) : null;
+}
+
+// Keep the power spawn stocked when no operator is here to do it (the operator is otherwise
+// the only creep that loads power). Only uses spare time: the room's spawns and extensions
+// come first. Returns true when it acted this tick.
+function servicePowerSpawn(creep) {
+    const room = creep.room;
+    const carriedPower = creep.store[RESOURCE_POWER] || 0;
+    const powerSpawn = carriedPower || room.energyAvailable >= room.energyCapacityAvailable ? powerSpawnOf(room) : null;
+    if (carriedPower) {
+        // Deliver it; if the power spawn is gone or full, put it back.
+        let target = powerSpawn && powerSpawn.store.getFreeCapacity(RESOURCE_POWER) > 0 ? powerSpawn : null;
+        if (!target) target = room.storage && room.storage.store.getFreeCapacity() > 0 ? room.storage : room.terminal;
+        if (!target) {
+            creep.drop(RESOURCE_POWER);
+            return true;
+        }
+        if (creep.transfer(target, RESOURCE_POWER) === ERR_NOT_IN_RANGE) creep.travelTo(target);
+        return true;
+    }
+    if (!powerSpawn || operatorPresent(room.name) || Memory.roomsUnderAttack.indexOf(room.name) !== -1) return false;
+    const used = creep.store.getUsedCapacity();
+    if (used === 0) {
+        const free = powerSpawn.store.getFreeCapacity(RESOURCE_POWER);
+        if (free < 50) return false;
+        const source = [room.storage, room.terminal].find(s => s && (s.store[RESOURCE_POWER] || 0) > 0);
+        if (!source) return false;
+        const amount = Math.min(free, creep.store.getFreeCapacity(), source.store[RESOURCE_POWER]);
+        if (creep.withdraw(source, RESOURCE_POWER, amount) === ERR_NOT_IN_RANGE) creep.travelTo(source);
+        return true;
+    }
+    if (creep.store[RESOURCE_ENERGY] === used && powerSpawn.store[RESOURCE_ENERGY] < POWER_SPAWN_ENERGY_LOW &&
+        (powerSpawn.store[RESOURCE_POWER] || 0) > 0) {
+        if (creep.transfer(powerSpawn, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(powerSpawn);
+        return true;
+    }
+    return false;
+}
 
 module.exports = {
+    servicePowerSpawn,
     run: function(creep) {
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
             creep.memory.priority = 'distributorNearDeath';
         }
+        if (servicePowerSpawn(creep)) return;
 
         if (_.sum(creep.carry) <= 0) {
             if (creep.memory.previousPriority == 'labWorker' && creep.memory.hasDistributed) {
@@ -176,8 +224,10 @@ module.exports = {
             }
             var homeSpawn = Game.getObjectById(creep.memory.fromSpawn)
             if (homeSpawn) {
-                if (!creep.pos.isNearTo(homeSpawn)) {
-                    creep.travelTo(homeSpawn);
+                if (!creep.pos.inRangeTo(homeSpawn, IDLE_RANGE)) {
+                    // Wait nearby, not on the tiles next to the spawn: other idle creeps (the mule)
+                    // want those too, and two creeps swapping over one tile never settle.
+                    creep.travelTo(homeSpawn, { range: IDLE_RANGE });
                 } else {
                     //Make sure you're not in the way
                     let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {

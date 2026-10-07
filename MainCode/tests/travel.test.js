@@ -132,3 +132,20 @@ test('stale claimed rooms: observer homes look, otherwise the nearest home sends
     assert.equal(badRooms.observeRequest('E0N1'), 'W3N1');
     assert.deepEqual(plain(badRooms.scoutTargets('W1N1')), [], 'an observer covers it: no scout');
 });
+
+test('a creep swapped out of the way while waiting near a spot stays put instead of walking straight back', () => {
+    const { g, Traveler } = setup();
+    const moves = [];
+    const mule = { name: 'mule', fatigue: 0, my: true, spawning: false, memory: { priority: 'mule' },
+        pos: new g.RoomPosition(11, 10, 'W1N1'), move: d => { moves.push(d); return g.OK; } };
+    g.lookAt['W1N1:11,10'] = [mule];
+    assert.equal(Traveler.pushBlocker({ name: 'dist', pos: new g.RoomPosition(10, 10, 'W1N1') }, g.RIGHT), true);
+    moves.length = 0;
+    mule.pos = new g.RoomPosition(10, 10, 'W1N1');   // swapped
+    const spawn = new g.RoomPosition(14, 10, 'W1N1'); // now 4 away, waits within 3
+    g.Game.time += 1;
+    assert.equal(Traveler.travelTo(mule, spawn, { range: 3 }), g.OK);
+    assert.deepEqual(moves, [], 'settles instead of swapping back');
+    g.Game.time += 5;
+    assert.equal(Traveler.wasPushed(mule), false, 'the hold expires');
+});

@@ -14,8 +14,8 @@ module.exports = {
                     withdrawEnergy(creep, storageTarget, { maxRooms: 1 });
                 } else {
                     var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
-                    if (spawnTarget && !creep.pos.isNearTo(spawnTarget)) {
-                        creep.travelTo(spawnTarget, { maxRooms: 1 });
+                    if (spawnTarget && !creep.pos.inRangeTo(spawnTarget, 3)) {
+                        creep.travelTo(spawnTarget, { maxRooms: 1, range: 3 });
                     } else {
                         // Listen for other creeps needing to move when idle
                         handleMovementCoordination(creep);

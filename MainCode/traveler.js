@@ -41,6 +41,12 @@ class Traveler {
             destination = this.normalizePos(destination);
             // manage case where creep is nearby destination
             let rangeToDestination = creep.pos.getRangeTo(destination);
+            // Waiting near a spot (range > 1, e.g. idle by the spawn), just swapped out of someone's way
+            // (pushBlocker) and still about there: stay. Walking straight back made two idle creeps
+            // trade places forever. Trips to an actual target (range 1) are not delayed.
+            if (!doFlee && options.range > 1 && Traveler.wasPushed(creep) && rangeToDestination <= options.range + 1) {
+                return OK;
+            }
             if (!doFlee) {
                 if (options.range && rangeToDestination <= options.range) {
                     return OK;
@@ -223,7 +229,18 @@ class Traveler {
             if (!blocker || !blocker.my || blocker.spawning || blocker.fatigue > 0 || Traveler.movedThisTick(blocker)) return false;
             const memory = blocker.memory || {};
             if (memory.atSpot || memory.onPoint || PARKED_ROLES.has(memory.priority)) return false;
-            return blocker.move(blocker.pos.getDirectionTo(creep.pos)) === OK;
+            if (blocker.move(blocker.pos.getDirectionTo(creep.pos)) !== OK) return false;
+            Traveler._pushed[blocker.name] = Game.time;
+            return true;
+        }
+    static wasPushed(creep) {
+            const at = Traveler._pushed[creep.name];
+            if (at === undefined) return false;
+            if (Game.time - at > PUSH_SETTLE) {
+                delete Traveler._pushed[creep.name];
+                return false;
+            }
+            return true;
         }
         /**
          * check if a position is an exit
@@ -768,6 +785,8 @@ const ROUTE_CACHE_TTL = 300;
 Traveler._lastTopologyCleanup = 0;
 Traveler._cacheTick = -1;
 Traveler._movedTick = -1;
+Traveler._pushed = Object.create(null);   // creep name -> tick it was swapped out of the way
+const PUSH_SETTLE = 3;
 Traveler._moved = Object.create(null);
 // Creeps working from a fixed tile: never pushed out of the way.
 const PARKED_ROLES = new Set(['supplier', 'supplierNearDeath', 'miner', 'minerNearDeath', 'mineralMiner',

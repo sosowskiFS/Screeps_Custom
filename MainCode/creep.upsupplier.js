@@ -12,20 +12,27 @@ var creep_upSupplier = {
             var storageTarget = creep.room.storage;
             if (storageTarget) {
                 var getPower = false;
-                var powerAmount = 100;
-                if (Memory.powerSpawnList[creep.room.name].length && creep.room.storage.store[RESOURCE_POWER] > 0) {
-                    var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
-                    if (pSpawn && pSpawn.power == 0) {
+                var powerAmount = 0;
+                var powerSource = storageTarget;
+                var pSpawn = powerSpawnOf(creep.room);
+                if (pSpawn && pSpawn.store.getFreeCapacity(RESOURCE_POWER) >= 50) {
+                    if (!(storageTarget.store[RESOURCE_POWER] > 0) && creep.room.terminal && creep.room.terminal.store[RESOURCE_POWER] > 0) {
+                        powerSource = creep.room.terminal;
+                    }
+                    if (powerSource.store[RESOURCE_POWER] > 0) {
                         getPower = true;
-                        if (creep.room.storage.store[RESOURCE_POWER] < 100) {
-                            powerAmount = creep.room.storage.store[RESOURCE_POWER];
-                        }
+                        powerAmount = Math.min(pSpawn.store.getFreeCapacity(RESOURCE_POWER), powerSource.store[RESOURCE_POWER], creep.store.getFreeCapacity());
                     }
                 }
-                if (getPower) {
-                    var withdrawResult = creep.withdraw(storageTarget, RESOURCE_POWER, powerAmount);
+                var upLink = Game.getObjectById(creep.memory.linkTarget);
+                if (!getPower && energyTarget(creep, upLink, pSpawn) === null) {
+                    // Nothing wants energy (the upgrader link is full without an upgrader at
+                    // RCL8): wait empty-handed, ready for the next power load.
+                    handleMovementCoordination(creep);
+                } else if (getPower) {
+                    var withdrawResult = creep.withdraw(powerSource, RESOURCE_POWER, powerAmount);
                     if (withdrawResult == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(storageTarget, {
+                        creep.travelTo(powerSource, {
                             ignoreRoads: true,
                             maxRooms: 1
                         });
@@ -49,8 +56,9 @@ var creep_upSupplier = {
             }
         } else {
             if (creep.carry[RESOURCE_POWER] > 0) {
-                //Drop off in power Spawn
-                var pSpawn = Game.getObjectById(Memory.powerSpawnList[creep.room.name][0]);
+                //Drop off in power Spawn (back in storage if it is gone or full)
+                var pSpawn = powerSpawnOf(creep.room);
+                if (!pSpawn || pSpawn.store.getFreeCapacity(RESOURCE_POWER) <= 0) pSpawn = creep.room.storage;
                 if (pSpawn) {
                     var transferResult = creep.transfer(pSpawn, RESOURCE_POWER);
                     if (transferResult == ERR_NOT_IN_RANGE) {
@@ -63,15 +71,16 @@ var creep_upSupplier = {
                     handleMovementCoordination(creep);
                 }
             } else {
-                //Drop off in upgrader link
-                var upLink = Game.getObjectById(creep.memory.linkTarget);
+                //Drop off in upgrader link; when it is full, top up the power spawn or put the
+                //energy back. Holding it used to block every power run.
+                var upLink = energyTarget(creep, Game.getObjectById(creep.memory.linkTarget), powerSpawnOf(creep.room)) || creep.room.storage;
                 if (upLink) {
                     var transferResult = creep.transfer(upLink, RESOURCE_ENERGY);
                     if (transferResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(upLink, {
                             maxRooms: 1
                         });
-                    } else if (transferResult == OK){
+                    } else if (transferResult == OK && upLink.structureType == STRUCTURE_LINK){
                         determineIfEmptyEnergy(upLink, creep);
                     }
                     handleMovementCoordination(creep);
@@ -80,6 +89,19 @@ var creep_upSupplier = {
         }
     }
 };
+
+function powerSpawnOf(room) {
+    var list = Memory.powerSpawnList && Memory.powerSpawnList[room.name];
+    return list && list.length ? Game.getObjectById(list[0]) : null;
+}
+
+// Where energy is wanted: the upgrader link if it has room, else a power spawn low on energy
+// that has power to burn. null: nowhere.
+function energyTarget(creep, upLink, pSpawn) {
+    if (upLink && upLink.store.getFreeCapacity(RESOURCE_ENERGY) > 0) return upLink;
+    if (pSpawn && pSpawn.store[RESOURCE_POWER] > 0 && pSpawn.store.getFreeCapacity(RESOURCE_ENERGY) >= 500) return pSpawn;
+    return null;
+}
 
 function locateSupplierTarget(targetType, creep) {
     if (targetType == "POWER") {

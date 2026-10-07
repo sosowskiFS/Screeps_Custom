@@ -1154,7 +1154,8 @@ Object.assign(spawn_BuildCreeps5, {
             result.upgraderMax = maintenance.upkeepDue(room.controller) ? 1 : 0;
             result.upgraderConfig = maintenance.upkeepBody();
             const powerSpawnIds = Memory.powerSpawnList[room.name] || [];
-            const powerToProcess = powerSpawnIds.length > 0 && room.storage && room.storage.store[RESOURCE_POWER] >= 100;
+            const powerStock = (room.storage ? room.storage.store[RESOURCE_POWER] || 0 : 0) + (room.terminal ? room.terminal.store[RESOURCE_POWER] || 0 : 0);
+            const powerToProcess = powerSpawnIds.length > 0 && powerStock >= 100;
             if (!powerToProcess) result.upSupplierMax = 0;
         }
         if (maintenance.inMaintenance(room.name)) {

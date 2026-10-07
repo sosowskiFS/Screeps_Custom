@@ -267,6 +267,15 @@ Intents are never doubled. Ops are generated only on ticks no other power was us
 
 Spawn staffing (`configurePowerCreepRoom`, mule/miner rules) and the lab worker's switch to distributor use `operatorPresent(room)`: the room's operator spawned there with TTL > 100. The `RoomOperator` flag alone no longer counts, so a dead or deleted operator no longer leaves the room without haulers.
 
+## Power processing without an operator
+
+Rooms without an operator in them get power into the power spawn in two ways:
+- **upSupplier** (RCL8, staffed while storage + terminal hold 100+ power): refills power whenever the power spawn has 50+ free, from storage or else the terminal.
+  - It only fetches energy when the upgrader link has room (or the power spawn is low on energy and has power to burn).
+  - Energy it can't deliver goes back to storage.
+  - Previously, with no upgrader at RCL8, it sat holding energy for the full link and never made another power run.
+- **Distributor**, once the room's spawns and extensions are full: it fetches power the same way, delivers anything it carries, and tops up the power spawn's energy below 4,000 while it has power. Power it can't deliver goes back to storage.
+
 ## Lab reactions
 
 `system.labs.js` replaces the per-room producer flags (`<room>XGHO2Producer` and the rest). The Overhaul branch ignores those flags, so they can stay for the Nightmare branch.
@@ -331,6 +340,7 @@ Tower fixes:
 - **Room route first:** every trip into another room plans its room route before the tile path, not only trips of 3+ rooms. Without it, a creep stepping off an exit tile could be routed back through the room it just left and bounce at the border. Roles no longer wipe their path when they change rooms (harasser, highway patrol, ranger, distant supplier, assault units).
 - **Widening:** if walls cut off the rooms on the route, the search is widened to neighbouring rooms, then run without a room restriction (twice the ops) before giving up. Long, winding trips get a full path instead of a partial one that is walked back and forth.
 - **Head-on blocks:** a creep stuck behind one of our own creeps swaps places with it, as long as the other creep isn't moving this tick and isn't parked at a work spot (miners, the tower supplier, anything `atSpot`/`onPoint`). This clears head-on deadlocks in 1-wide corridors.
+- **No ping-pong:** a creep that was just swapped out of the way while waiting near a spot (`range` > 1, e.g. idle by the spawn) stays there for 3 ticks instead of walking straight back. Idle mules, distributors and repairers wait within 3 tiles of their spawn rather than on the tiles next to it. Two idle creeps wanting the same tile used to swap places every tick until spawning gave one of them work.
 - **Stuck repaths:** after `stuckValue` ticks the creep looks for a way around the other creeps. If none reaches the goal, it keeps its real path and waits/swaps instead of walking off and straight back. (Previously this repath happened at random, and the partial path that came back produced the "move, wait, move back" loop.)
 
 ### Bad rooms

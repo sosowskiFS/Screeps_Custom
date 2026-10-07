@@ -63,9 +63,10 @@ function findNewTarget(creep, creepEnergy, repairRange) {
                 }
             } else if (storageTarget) {
                 var spawnTarget = Game.getObjectById(creep.memory.fromSpawn);
-                if (spawnTarget && !creep.pos.isNearTo(spawnTarget)) {
+                if (spawnTarget && !creep.pos.inRangeTo(spawnTarget, 3)) {
                     creep.travelTo(spawnTarget, {
-                        maxRooms: 1
+                        maxRooms: 1,
+                        range: 3
                     });
                 }
             }
