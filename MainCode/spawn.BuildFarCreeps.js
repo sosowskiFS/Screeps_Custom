@@ -224,8 +224,7 @@ var spawn_BuildFarCreeps = {
                                 homeRoom: thisRoom.name,
                                 deathWarn: _.size(farMinerConfig) * 8,
                                 targetFlag: flagName,
-                                jobSpecific: jobSpecific,
-                                nextReservationCheck: 0
+                                jobSpecific: jobSpecific
                             },
                             directions: buildDirections
                         });

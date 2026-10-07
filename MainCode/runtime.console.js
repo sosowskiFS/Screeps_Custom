@@ -4,6 +4,7 @@
 //   mem()                    top-level Memory keys with their size (JSON characters)
 //   mem('basePlan.E14N18')   one Memory path (dot separated), printed in full
 //   mem('*')                 all of Memory (large: many console lines, noticeable CPU)
+//   memCreeps()              creep memory size by field and by role (what to trim)
 //   roomReport('E14N18')     everything about one room: live state, why it is or isn't in
 //                            maintenance mode, every Memory entry that mentions the room, the
 //                            creeps homed there and its flags
@@ -169,7 +170,38 @@ function room(roomName) {
     return 'room report printed (' + json(report).length + ' characters)';
 }
 
+// Where creep memory goes: characters per field (summed over all creeps) and per role.
+function memCreeps() {
+    const byField = {};
+    const byRole = {};
+    let total = 0;
+    let count = 0;
+    for (const name in Memory.creeps) {
+        const m = Memory.creeps[name];
+        if (!m) continue;
+        count++;
+        const size = JSON.stringify(m).length + name.length + 4;
+        total += size;
+        const role = m.priority || '?';
+        const r = byRole[role] || (byRole[role] = { creeps: 0, chars: 0 });
+        r.creeps++;
+        r.chars += size;
+        for (const field in m) {
+            byField[field] = (byField[field] || 0) + JSON.stringify(m[field] === undefined ? null : m[field]).length + field.length + 4;
+        }
+    }
+    const fields = Object.keys(byField).sort((a, b) => byField[b] - byField[a]);
+    const roles = Object.keys(byRole).sort((a, b) => byRole[b].chars - byRole[a].chars);
+    const lines = ['Creep memory: ' + count + ' creeps, ~' + total + ' characters (~' + Math.round(total / Math.max(1, count)) + ' each)', 'By field:'];
+    for (const f of fields) lines.push('  ' + f + ': ' + byField[f]);
+    lines.push('By role:');
+    for (const r of roles) lines.push('  ' + r + ': ' + byRole[r].creeps + ' creeps, ' + byRole[r].chars + ' chars (' + Math.round(byRole[r].chars / byRole[r].creeps) + ' each)');
+    print(lines.join('\n'));
+    return count + ' creeps';
+}
+
 global.mem = mem;
+global.memCreeps = memCreeps;
 global.roomReport = room;
 
-module.exports = { mem, room, print, memoryMentions };
+module.exports = { mem, memCreeps, room, print, memoryMentions };

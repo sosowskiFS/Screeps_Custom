@@ -35,9 +35,6 @@ function memCheck() {
     if (!Memory.RoomsAt5) {
         Memory.RoomsAt5 = [];
     }
-    if (!Memory.hasFired) {
-        Memory.hasFired = [];
-    }
     if (!Memory.ordersFilled) {
         Memory.ordersFilled = [];
     }
@@ -68,25 +65,7 @@ function memCheck() {
         Memory.postObserveTick = false;
     }
     //Decimal
-    if (!Memory.averageUsedCPU) {
-        Memory.averageUsedCPU = 0.0;
-    }
-    if (!Memory.averageUsedSpawnCPU) {
-        Memory.averageUsedSpawnCPU = 0.0;
-    }
-    if (!Memory.averageUsedCreepCPU) {
-        Memory.averageUsedCreepCPU = 0.0;
-    }
     //Integer
-    if (!Memory.totalTicksRecorded) {
-        Memory.totalTicksRecorded = 0;
-    }
-    if (!Memory.totalTicksSpawnRecorded) {
-        Memory.totalTicksSpawnRecorded = 0;
-    }
-    if (!Memory.totalTicksCreepRecorded) {
-        Memory.totalTicksCreepRecorded = 0;
-    }
     if (!Memory.attackDuration) {
         Memory.attackDuration = 0;
     }
@@ -102,12 +81,6 @@ function memCheck() {
     }*/
     if (!Memory.FarClaimerNeeded) {
         Memory.FarClaimerNeeded = new Object();
-    }
-    if (!Memory.FarGuardNeeded) {
-        Memory.FarGuardNeeded = new Object();
-    }
-    if (!Memory.FarCreeps) {
-        Memory.FarCreeps = new Object();
     }
     if (!Memory.PriceList) {
         Memory.PriceList = new Object();
@@ -134,9 +107,6 @@ function memCheck() {
     }
     if (!Memory.nukerList) {
         Memory.nukerList = new Object();
-    }
-    if (!Memory.energyCap) {
-        Memory.energyCap = new Object();
     }
     if (!Memory.towerNeedEnergy) {
         Memory.towerNeedEnergy = new Object();
@@ -251,15 +221,6 @@ function memCheck() {
         Memory.mineralTotals[RESOURCE_CATALYZED_GHODIUM_ALKALIDE] = 0;
     }
 
-    if (!Memory.genBestDirection) {
-        Memory.genBestDirection = new Object();
-    }
-    if (!Memory.genBestCenterCoords) {
-        Memory.genBestCenterCoords = new Object();
-    }
-    if (!Memory.genBestSourceID) {
-        Memory.genBestSourceID = new Object();
-    }
 }
 
 function cleanupCreepMemory() {

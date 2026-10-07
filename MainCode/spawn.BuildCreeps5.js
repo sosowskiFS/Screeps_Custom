@@ -660,10 +660,7 @@ var spawn_BuildCreeps5 = {
                                     mineral10: min6,
                                     lab10: Memory.labList[thisRoom.name][9],
                                     factory: factoryID,
-                                    isMoving: false,
                                     movingOtherMineral: false,
-                                    movingOtherMineral2: false,
-                                    resourceChecks: 0,
                                     deathWarn: _.size(labWorkerConfig) * 4,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name
@@ -694,10 +691,7 @@ var spawn_BuildCreeps5 = {
                                     mineral9: min6,
                                     lab9: Memory.labList[thisRoom.name][8],
                                     factory: factoryID,
-                                    isMoving: false,
                                     movingOtherMineral: false,
-                                    movingOtherMineral2: false,
-                                    resourceChecks: 0,
                                     deathWarn: _.size(labWorkerConfig) * 4,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name
@@ -722,10 +716,7 @@ var spawn_BuildCreeps5 = {
                                     mineral6: min6,
                                     lab6: Memory.labList[thisRoom.name][5],
                                     factory: factoryID,
-                                    isMoving: false,
                                     movingOtherMineral: false,
-                                    movingOtherMineral2: false,
-                                    resourceChecks: 0,
                                     deathWarn: _.size(labWorkerConfig) * 4,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name
@@ -744,10 +735,7 @@ var spawn_BuildCreeps5 = {
                                     mineral3: min3,
                                     lab3: Memory.labList[thisRoom.name][2],
                                     factory: factoryID,
-                                    isMoving: false,
                                     movingOtherMineral: false,
-                                    movingOtherMineral2: false,
-                                    resourceChecks: 0,
                                     deathWarn: _.size(labWorkerConfig) * 4,
                                     fromSpawn: spawn.id,
                                     homeRoom: thisRoom.name

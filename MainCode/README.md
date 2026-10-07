@@ -347,12 +347,30 @@ Tower fixes:
 - `mem()`: every top-level Memory key with its size, largest first.
 - `mem('basePlan.E14N18')`: one Memory path (dot separated), printed in full.
 - `mem('*')`: all of Memory. This is large and costs noticeable CPU on big Memory.
+- `memCreeps()`: creep memory size by field and by role, to see what to trim.
 - `roomReport('E14N18')`: everything about one room:
   - **Live state:** controller, energy, storage/terminal, structure and construction-site counts, spawns and what they're spawning, tower energy, lowest rampart, hostiles, creeps in the room.
   - **Maintenance mode:** whether the room is in it, and every reason it doesn't qualify (`system.maintenance.diagnose`).
   - **Memory:** every entry keyed by the room or listing it, including its `creepInQue` records.
   - **Creeps homed there:** role, TTL, and where they are.
   - **Flags:** in the room or named after it.
+
+## Memory cleanup
+
+Memory is JSON-parsed every tick, so its size costs CPU on every tick. `runtime.memoryCleanup.js` (phase `memoryCleanup`) runs every 1,000 ticks and removes:
+- **Unused top-level keys:**
+  - from the old base generator: `genBest*`, `rampartQueue`, `lastAutoBuildRegen`, `autoBuildRegenIndex`
+  - old CPU counters: `averageUsed*`, `totalTicks*`
+  - `FarGuardNeeded`, `FarCreeps`, `hasFired`, `energyCap`, and the misspelled `ClosedrampartList`
+
+  These are only keys the Nightmare branch never reads, or recreates before reading, so a rollback stays safe. `flagCount` stays for that reason. `runtime.memory` no longer recreates any of them.
+- **Dead creep fields:** `isMoving`, `movingOtherMineral2`, `resourceChecks`, `nextReservationCheck`, `primaryFlag`, `backupFlag` and `nextResourceCheck`. Spawns no longer write them.
+- **Idle travel data:** `_trav` records of creeps that aren't travelling (no path left); the next `travelTo` starts a fresh one.
+- **Expired entries:** remote threats, remote "outmatched" marks, cached remote round trips, and the trip caches of homes no longer owned. Other code only dropped these when it happened to read them.
+- **Old intel:** remote intel more than 3 rooms from every home, or not seen in 100,000 ticks (it gets re-scouted if ever needed again).
+- **Empty records:** empty `Memory.rooms` / `Memory.flags` entries.
+
+The console command `memCreeps()` shows where creep memory goes: characters per field and per role.
 
 ## Measure in-game CPU
 

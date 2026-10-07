@@ -63,10 +63,7 @@ function displayRoomInfo(thisRoom) {
 function DisplayBoostTotals() {
     if (!visualsEnabled()) return;
     //Left Box (T3 Boosts)
-    let fillColor = '#2d68a0';
-    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.length) {
-        fillColor = '#9c2d34';
-    }
+    const fillColor = '#2d68a0';
 
     new RoomVisual().rect(0, 39, 6, 9.5, {
         fill: fillColor,
@@ -122,21 +119,6 @@ function DisplayBoostTotals() {
         });
     }
 
-    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.length) {
-        new RoomVisual().rect(6.5, 46, 7.1, 1, {
-            fill: fillColor,
-            stroke: '#FFFFFF',
-            opacity: 0.15,
-            strokeWidth: 0.15
-        });
-        new RoomVisual().text("WAR MODE ENABLED", 6.7, 46.7, {
-            align: 'left',
-            font: '0.7 Courier New',
-            color: '#FFFFFF',
-            stroke: '#000000',
-            strokeWidth: 0.15
-        });
-    }
 
     //Middle Box (Last Notification)
     new RoomVisual().rect(6.5, 47.5, 38, 1, {
