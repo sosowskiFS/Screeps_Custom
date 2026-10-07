@@ -37,8 +37,11 @@ function manageRoomStructures(thisRoom) {
         Memory.factoryList[roomName] = [];
     }
 
+    // A retiring room's terminal only ships out (system.retire): no requests, no sales.
+    const isRetiring = require('system.retire').retiring(thisRoom.name);
+
     // Manage energy need rooms - check if room needs energy assistance
-    if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage) {
+    if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage && !isRetiring) {
         if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < 250000 && thisRoom.terminal.store[RESOURCE_ENERGY] < 50000) {
             if (thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
                 Memory.energyNeedRooms.unshift(thisRoom.name);
@@ -52,7 +55,7 @@ function manageRoomStructures(thisRoom) {
     }
 
     // Review market data, sell to buy orders, and catalog mineral stockpiles
-    if (Game.time % 50 == 0 && thisRoom.terminal) {
+    if (Game.time % 50 == 0 && thisRoom.terminal && !isRetiring) {
         market_buyers.run(thisRoom, thisRoom.terminal, Memory.mineralList[thisRoom.name]);
 
         if (thisRoom.terminal.store.getFreeCapacity() < 5000) {

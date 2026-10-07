@@ -31,10 +31,13 @@ const creep_ranger = require('creep.ranger');
 const creep_farScout = require('creep.farScout');
 const creep_highwayPatrol = require('creep.highwayPatrol');
 const creep_harasser = require('creep.harasser');
+const creep_retireHauler = require('creep.retireHauler');
 const roles = Object.create(null);
 function register(names, run) {
     for (const name of names) roles[name] = run;
 }
+register(['retireHauler'], creep => creep_retireHauler.run(creep));
+
 register(['farMule', 'farMuleNearDeath'], (creep, isRoomAt5) => {
     // Per-tick container re-scans are the first thing shed when CPU runs over budget.
     var doExcessWork = governor.allows('excessScans');

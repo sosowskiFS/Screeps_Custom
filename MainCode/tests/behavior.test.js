@@ -23,7 +23,9 @@ test('all role aliases match legacy dispatch across bucket, war, RCL, HEAL and s
         return { ...h, calls, run };
     }
     const before = setup(true), after = setup(false);
-    const roleNames = Object.keys(after.load('creep.registry').roles).concat(['mule', 'builder', 'harvester', 'distributor', 'mineralMiner', 'unknown', undefined]);
+    // Roles added after the legacy dispatcher have nothing to compare against.
+    const NEW_ROLES = new Set(['retireHauler']);
+    const roleNames = Object.keys(after.load('creep.registry').roles).filter(r => !NEW_ROLES.has(r)).concat(['mule', 'builder', 'harvester', 'distributor', 'mineralMiner', 'unknown', undefined]);
     let scenarios = 0;
     // Low-bucket odd-tick throttling was replaced by the CPU governor (tests/governor.test.js);
     // without throttling, dispatch must still match legacy exactly.

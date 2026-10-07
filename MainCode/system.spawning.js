@@ -13,6 +13,7 @@ const maintenance = require('system.maintenance');
 const reachability = require('system.reachability');
 const expansion = require('system.expansion');
 const spawnExit = require('spawn.exit');
+const retire = require('system.retire');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
@@ -93,6 +94,16 @@ function processSpawnLogic(spawn, thisRoom, spawnRoleCache) {
 }
 
 function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
+    // A retiring room (system.retire) only replaces its essentials and keeps one drain hauler.
+    if (retire.retiring(thisRoom.name)) {
+        if (!essentials.ok(thisRoom)) {
+            if (!isSpawnBusy(spawn)) processNormalSpawning(spawn, thisRoom, energyIndex);
+        } else if (!isSpawnBusy(spawn) && retire.spawnDrainer(spawn)) {
+            global.setSpawnBusy(spawn);
+        }
+        return;
+    }
+
     // Missing refill/supplier/miner creeps: the room's own staffing only, so no flag command,
     // remote creep or scout takes the energy first (spawn.essentials).
     if (!essentials.ok(thisRoom)) {

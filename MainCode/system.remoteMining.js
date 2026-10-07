@@ -38,6 +38,7 @@ const MAX_STRIKES = 4;             // planner drops the room until strikes decay
 
 function enabled(homeName) {
     if (Memory.settings && Memory.settings.autoRemote === false) return false;
+    if (require('system.retire').retiring(homeName)) return false;
     return !Game.flags[homeName + 'NoAutoRemote'];
 }
 

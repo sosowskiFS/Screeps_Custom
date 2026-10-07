@@ -49,7 +49,8 @@ function labRooms() {
     const rooms = [];
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
-        if (room.controller && room.controller.my && room.terminal &&
+        // Retiring rooms (system.retire) are emptying their terminal: no reactions there.
+        if (room.controller && room.controller.my && room.terminal && !require('system.retire').retiring(name) &&
             Memory.labList && Memory.labList[name] && Memory.labList[name].length >= 6) {
             rooms.push(room);
         }
@@ -222,6 +223,7 @@ function run() {
 }
 
 function jobFor(roomName) {
+    if (require('system.retire').retiring(roomName)) return null;
     return (Memory.labJobs && Memory.labJobs[roomName]) || null;
 }
 

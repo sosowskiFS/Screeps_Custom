@@ -14,6 +14,7 @@ const remoteMining = require('system.remoteMining');
 const roads = require('system.roads');
 const badRooms = require('system.badRooms');
 const expansion = require('system.expansion');
+const retire = require('system.retire');
 const memoryCleanup = require('runtime.memoryCleanup');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
@@ -33,6 +34,7 @@ const phases = [
     ['roads', roads.run],
     ['badRooms', badRooms.update],
     ['expansion', expansion.run],
+    ['retire', retire.run],
     ['memoryCleanup', memoryCleanup.run],
 ];
 module.exports.loop = function () {

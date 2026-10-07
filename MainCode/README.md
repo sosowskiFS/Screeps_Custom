@@ -134,6 +134,24 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - Entries expire after 100,000 ticks.
 - **Failures:** a target is dropped and skipped for 100,000 ticks if the claimer hasn't claimed it within 5,000 ticks, if someone else claims or reserves it, or if the new room is lost.
 
+## Retiring rooms (one-time)
+
+`system.retire.js` retires the least energy-efficient rooms so CPU can be moved to shardX. The targets are in `KEEP`: shard1 keeps 7 rooms, shard2 keeps 25. Other shards are untouched.
+
+- **Measuring** starts by itself on those shards when the code is deployed and runs for 5,000 ticks.
+  - Every 10th tick, each visible room's event log is read. Energy harvested from sources is credited to the harvester's home room, remote mining included.
+  - The home room's CPU average is sampled at the same time.
+  - Efficiency = energy harvested per tick ÷ CPU per tick.
+- **`retireRooms()`** prints the ranking and the plan (a dry run). Rooms are dropped worst first until the keep count is reached.
+  - It never takes the last room on the shard holding one of the 7 base minerals (H O U L K Z X), so every compound can still be made and sold.
+  - Rooms without enough data, and an expansion in progress, are kept.
+  - It warns about power creeps homed in a room that will be retired.
+- **`retireRooms('confirm')`** starts it once measuring is done. `retireRooms('cancel')` stops rooms that haven't been unclaimed yet, and `retireRooms()` then shows progress. A retiring room:
+  - only replaces its refill, supplier and miner creeps, plus one drain hauler (16 CARRY) that moves factory and storage contents into the terminal;
+  - runs no remote mining, flag commands, expansion sponsorship, reactions, terminal requests or sales, and nothing is sent to it;
+  - ships everything from its terminal to the nearest kept room on the shard (goods first, energy last, with transfer costs paid from its energy);
+  - once storage, terminal and factory hold under 5,000 (or after 30,000 ticks): cancels its market orders, unclaims, removes its creeps and flags, and cleans its Memory entries. Structures are left standing.
+
 ## One creep per job with several spawns
 
 Every spawn in a room runs its spawn checks on the same tick, but a creep ordered with `spawnCreep` only shows up in `Game.creeps` on the next tick. Each spawn used to see the job as unfilled, so a room with 3 spawns could order 3 remote miners for one source. The remote-spawn check that was meant to stop this compared a space-joined list with `!=` and never matched.

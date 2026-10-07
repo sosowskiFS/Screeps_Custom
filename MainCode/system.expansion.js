@@ -145,7 +145,7 @@ function round(n) {
 function sponsorFit(room) {
     return !!(room && room.controller && room.controller.my && room.controller.level >= SPONSOR_RCL &&
         room.storage && room.storage.store[RESOURCE_ENERGY] >= SPONSOR_ENERGY &&
-        (Memory.roomsUnderAttack || []).indexOf(room.name) === -1 &&
+        (Memory.roomsUnderAttack || []).indexOf(room.name) === -1 && !require('system.retire').retiring(room.name) &&
         room.find(FIND_MY_SPAWNS).length > 0);
 }
 
