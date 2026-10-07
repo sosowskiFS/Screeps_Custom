@@ -4,14 +4,15 @@
 // the walls of old structures can make a planned tile the only way through (a link site in a
 // 1-wide corridor trapped every creep of a room in one corner). So before any site that blocks
 // movement goes down, it is checked against the room as it stands right now:
-//   - each spawn can still reach a room exit
+//   - every free tile next to a spawn (where a new creep can appear) can still reach a room
+//     exit; a structure placed on that tile itself is fine (no creep spawns there then)
 //   - the storage, sources, mineral and controller stay reachable from the exits (the part of
 //     the room haulers walk; the enclosed Supply tile touching the storage does not count)
 // Anything that was reachable before the site must still be reachable with it. Existing sites
 // that already cut such a path are found and removed (base.builder).
 //
 // Pure: works on a walkability grid (Uint8Array[2500], index x*50+y, 1 = a creep can stand
-// there), so it is testable and cheap (one breadth-first pass per spawn and candidate).
+// there), so it is testable and cheap: one connected-component pass per check.
 const OFFSETS = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
 
 function neighbors(i) {
@@ -41,8 +42,9 @@ function reach(walkable, seeds) {
  * The places that must stay reachable.
  * room: { spawns: [tile], storage: tile|undefined, sources: [tile], mineral: tile|undefined,
  *         controller: tile|undefined }
- * Returns { perSpawn: [{ seeds, groups }], shared: { seeds, groups } } where each group is a list
- * of tiles (reachable = any of them reached).
+ * Returns { perSpawn: [{ seeds, groups, tile }], shared: { seeds, groups } } where each group is a
+ * list of tiles (reachable = any of them reached). perSpawn has one entry per free tile next to a
+ * spawn (tile = that tile).
  */
 function requirements(walkable, room) {
     const exits = [];
@@ -65,22 +67,53 @@ function requirements(walkable, room) {
     for (const source of room.sources || []) shared.push(around(source, 1));
     if (room.mineral !== undefined) shared.push(around(room.mineral, 1));
     if (room.controller !== undefined) shared.push(around(room.controller, 3));
-    const spawnSeeds = (room.spawns || []).map(spawn => around(spawn, 1));
-    return {
-        perSpawn: spawnSeeds.map(seeds => ({ seeds, groups: perSpawnGroups })),
-        shared: { seeds: exits, groups: shared },
-    };
+    const perSpawn = [];
+    const seen = new Set();
+    for (const spawn of room.spawns || []) {
+        for (const tile of around(spawn, 1)) {
+            if (!walkable[tile] || seen.has(tile)) continue;
+            seen.add(tile);
+            perSpawn.push({ seeds: [tile], groups: perSpawnGroups, tile });
+        }
+    }
+    return { perSpawn, shared: { seeds: exits, groups: shared } };
+}
+
+// Connected-component label of every walkable tile (0 = not walkable).
+function components(walkable) {
+    const label = new Int32Array(2500);
+    const queue = new Int32Array(2500);
+    let next = 0;
+    for (let start = 0; start < 2500; start++) {
+        if (!walkable[start] || label[start]) continue;
+        next++;
+        label[start] = next;
+        let head = 0, tail = 0;
+        queue[tail++] = start;
+        while (head < tail) {
+            for (const n of neighbors(queue[head++])) {
+                if (walkable[n] && !label[n]) { label[n] = next; queue[tail++] = n; }
+            }
+        }
+    }
+    return label;
 }
 
 // Which groups are reachable: a flat list of booleans in a fixed order.
 function status(walkable, req) {
+    const label = components(walkable);
+    const linked = (seeds, group) => {
+        const ids = new Set();
+        for (const s of seeds) if (walkable[s]) ids.add(label[s]);
+        return group.some(t => walkable[t] && ids.has(label[t]));
+    };
     const out = [];
-    for (const { seeds, groups } of req.perSpawn) {
-        const seen = reach(walkable, seeds);
-        for (const group of groups) out.push(group.some(t => seen[t]));
+    for (const { seeds, groups, tile } of req.perSpawn) {
+        // Built over: no creep can appear on this tile any more, so it cannot be trapped.
+        const covered = tile !== undefined && !walkable[tile];
+        for (const group of groups) out.push(covered || linked(seeds, group));
     }
-    const seen = reach(walkable, req.shared.seeds);
-    for (const group of req.shared.groups) out.push(group.some(t => seen[t]));
+    for (const group of req.shared.groups) out.push(linked(req.shared.seeds, group));
     return out;
 }
 

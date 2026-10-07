@@ -208,6 +208,12 @@ function liveState(room) {
         if (walkable[tile]) blockingSites.push({ tile, site });
         walkable[tile] = 0;
     }
+    // Work tiles of parked creeps (tower supplier, storage and upgrade miners) are occupied for
+    // good: never count them as a way through.
+    for (const kind of ['Supply', 'storageMiner', 'upgradeMiner']) {
+        const flag = Game.flags[room.name + kind];
+        if (flag && flag.pos.roomName === room.name) walkable[tileOf(flag.pos)] = 0;
+    }
     const mineral = runtimeCache.find(room, FIND_MINERALS)[0];
     const req = connectivity.requirements(walkable, {
         spawns, storage,

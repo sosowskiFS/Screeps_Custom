@@ -12,6 +12,7 @@ const governor = require('runtime.cpuGovernor');
 const maintenance = require('system.maintenance');
 const reachability = require('system.reachability');
 const expansion = require('system.expansion');
+const spawnExit = require('spawn.exit');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
@@ -33,6 +34,8 @@ function handleSpawning() {
     const cpu = roomCpu.timer();
     for (const i in Game.spawns) {
         processSpawn(Game.spawns[i], spawnRoleCache, roomSpawnCache);
+        // A creep about to finish with every exit taken: move an idle creep off one.
+        spawnExit.clearExit(Game.spawns[i]);
         cpu.lap(Game.spawns[i].room.name);
     }
 

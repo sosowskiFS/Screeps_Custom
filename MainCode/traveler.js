@@ -589,8 +589,20 @@ class Traveler {
                 }
                 Traveler._lastTopologyCleanup = Game.time;
             }
-            Traveler._structureMatrixCache[key] = entry.matrix;
-            return entry.matrix;
+            // Creeps parked on a work tile (miners, the tower supplier: atSpot/onPoint) never move
+            // out of the way, so paths must not plan through them. Planning through the storage
+            // miner's tile deadlocked a hauler queue at the storage.
+            let matrix = entry.matrix;
+            const parked = Traveler.parkedCreeps(room);
+            if (parked.length) {
+                matrix = matrix.clone();
+                for (const creep of parked) matrix.set(creep.pos.x, creep.pos.y, 0xff);
+            }
+            Traveler._structureMatrixCache[key] = matrix;
+            return matrix;
+        }
+    static parkedCreeps(room) {
+            return runtimeCache.find(room, FIND_MY_CREEPS).filter(creep => creep.memory && (creep.memory.atSpot || creep.memory.onPoint));
         }
         /**
          * build a cost matrix based on creeps and structures in the room. Will be cached for one tick. Requires vision.
