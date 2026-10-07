@@ -1,3 +1,5 @@
+const expansion = require('system.expansion');
+
 var creep_claimer = {
 
     /** @param {Creep} creep **/
@@ -46,44 +48,60 @@ var creep_claimer = {
                 }
             }
         } else {
-        	if (creep.room.controller.owner != undefined) {
-        		//Here to attack
-        		if (creep.attackController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-	                creep.travelTo(creep.room.controller, {
-	                    ignoreRoads: true,
-	                    offRoad: true
-	                });
-	            } else if (creep.attackController(creep.room.controller) == OK) {
+            const forExpansion = Memory.expansion && Memory.expansion.t === creep.room.name;
+            if (forExpansion && creep.room.controller.owner != undefined && !creep.room.controller.my) {
+                // Someone else got there first: system.expansion abandons the target.
+                creep.suicide();
+            } else if (creep.room.controller.owner != undefined) {
+                //Here to attack
+                const attackResult = creep.attackController(creep.room.controller);
+                if (attackResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(creep.room.controller, {
+                        ignoreRoads: true,
+                        offRoad: true
+                    });
+                } else if (attackResult == OK) {
                     if (Game.flags[creep.memory.homeRoom + "ClaimThis"]) {
                         Game.flags[creep.memory.homeRoom + "ClaimThis"].pos.createFlag(creep.memory.homeRoom + "ClaimThis;" + (Game.time + 925).toString());
                         Game.flags[creep.memory.homeRoom + "ClaimThis"].remove();
                     }
-	                Memory.claimSpawn = false;
-	                creep.suicide();
-	            }
-        	} else {
-        		if (creep.claimController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-	                creep.travelTo(creep.room.controller, {
-	                    ignoreRoads: true,
-	                    offRoad: true
-	                });
-	            } else if (creep.claimController(creep.room.controller) == OK) {
+                    Memory.claimSpawn = false;
+                    creep.suicide();
+                }
+            } else {
+                const claimResult = creep.claimController(creep.room.controller);
+                if (claimResult == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(creep.room.controller, {
+                        ignoreRoads: true,
+                        offRoad: true
+                    });
+                } else if (claimResult != OK) {
+                    if (forExpansion) {
+                        expansion.claimFailed(creep.room.name, claimResult);
+                        creep.suicide();
+                    }
+                } else {
                     // Room successfully claimed - place automation flags
-                    
+
                     // 1. Place InitAutoBuild flag to automatically generate room structures
                     creep.room.controller.pos.createFlag("InitAutoBuild", COLOR_GREEN, COLOR_WHITE);
-                    
-                    // 2. Place SendHelper flag to automatically build helper creeps from home room
-                    creep.room.controller.pos.createFlag(creep.memory.homeRoom + "SendHelper", COLOR_BLUE, COLOR_WHITE);
-                    
+
+                    // 2. Helpers: automatic expansions get them from system.expansion; a manual
+                    //    claim places the SendHelper flag for its home room.
+                    if (forExpansion) {
+                        expansion.claimed(creep.room.name);
+                    } else {
+                        creep.room.controller.pos.createFlag(creep.memory.homeRoom + "SendHelper", COLOR_BLUE, COLOR_WHITE);
+                    }
+
                     // Clean up original claim flag
                     if (Game.flags[creep.memory.homeRoom + "ClaimThis"]) {
                         Game.flags[creep.memory.homeRoom + "ClaimThis"].remove();
                     }
-	                Memory.claimSpawn = false;
-	                creep.suicide();
-	            }
-        	}           
+                    Memory.claimSpawn = false;
+                    creep.suicide();
+                }
+            }
         }
     }
 };

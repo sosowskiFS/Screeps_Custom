@@ -97,6 +97,7 @@ function clean() {
     }
 
     removed += require('system.reachability').prune();
+    removed += require('system.expansion').pruneIntel();
 
     const homes = ownedRooms();
     const trips = Memory.remoteTrips || {};

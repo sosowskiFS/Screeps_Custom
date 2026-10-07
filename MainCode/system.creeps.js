@@ -19,6 +19,9 @@ function report(kind, name, role, error) {
     console.log(`[${kind} ${name} (${role})] ${error && error.stack ? error.stack : error}`);
 }
 
+const HARASSER_KEY = '~harasser';
+const HARASSER_ROLES = new Set(['harasser', 'harasserNearDeath']);
+
 function handleCreepOperations() {
     const roomsAt5 = new Set(Memory.RoomsAt5 || []);
     // Each creep's CPU is charged to its home room (remote creeps count toward their base).
@@ -28,7 +31,9 @@ function handleCreepOperations() {
         // Over budget, the governor thins optional (then economy) creeps on a staggered share of
         // ticks; essential creeps always run.
         if (!creep.spawning && governor.shouldRun(name, tierOf(creep))) {
-            const home = creep.memory.homeRoom || creep.room.name;
+            // Harassers are a bonus role that only uses free CPU: tracked apart from room costs
+            // (system.expansion subtracts them when deciding whether a new room fits).
+            const home = HARASSER_ROLES.has(creep.memory.priority) ? HARASSER_KEY : (creep.memory.homeRoom || creep.room.name);
             const run = roles[creep.memory.priority] || fallback;
             try {
                 if (!(BANK_BEFORE_DEATH.has(creep.memory.priority) && depositBeforeDeath(creep))) {

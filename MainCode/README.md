@@ -110,6 +110,30 @@ Damage disables body parts front to back, and creeps never regenerate. A unit wh
 
 When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its auto flags) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.
 
+## Automatic expansion
+
+`system.expansion.js` claims a new room on its own when the shard has CPU to spare. It runs one expansion at a time on each shard, against that shard's own CPU limit. Run `expansion()` in the console to see the CPU budget, what is in progress and the ranked candidates with the reason each one is rejected. To switch it off, set `Memory.settings.autoExpand = false`; the manual `ClaimThis` / `SendHelper` flags still work either way.
+
+- **CPU check** (every 500 ticks): shard average (governor EMA) − harasser CPU + one average room must be ≤ 85% of `Game.cpu.limit`.
+  - Harasser CPU is tracked in its own bucket (`~harasser` in the room CPU table) rather than its home room's, since harassers are a bonus role that only uses free CPU.
+  - Room averages need 100+ samples before they count.
+  - A claim refused for GCL backs off for 20,000 ticks.
+- **Sponsors:** rooms at RCL6+ with 50k+ storage energy, a spawn, and not under attack. The sponsor nearest the target by route (at most 10 rooms) sends the claimer, then 6 helpers at a time until the new room has built its terminal. After that the room develops itself.
+  - Helpers fill spawns and extensions first while the young room is below half its spawn energy.
+  - If the sponsor stops qualifying, another one takes over.
+- **Candidates must:**
+  - have a controller that nobody owns or reserves (except us), 2+ sources, and no source keepers;
+  - have no room owned by us or a whitelisted player within 2 rooms;
+  - not be next to (including diagonally) a room claimed by anyone else. Reserved neighbours are fine. All 8 neighbours must have been scouted;
+  - be one where the base planner fits a full layout (storage plus every structure count) from terrain and the recorded source, controller and mineral positions;
+  - be reachable without crossing claimed rooms.
+- **Ranking:** linear distance to our nearest room, capped at 6 (farther spreads territory), plus free remote sources in the bordering rooms. Free means not owned, not reserved by others, and not source-keeper rooms.
+- **Intel:** `Memory.expandIntel` is recorded from any vision, only while the CPU check passes, so a CPU-capped shard spends nothing on it.
+  - Observers in sponsor rooms look at unknown rooms within 7.
+  - Sponsors without an observer send a 1-MOVE scout every 1,500 ticks.
+  - Entries expire after 100,000 ticks.
+- **Failures:** a target is dropped and skipped for 100,000 ticks if the claimer hasn't claimed it within 5,000 ticks, if someone else claims or reserves it, or if the new room is lost.
+
 ## One creep per job with several spawns
 
 Every spawn in a room runs its spawn checks on the same tick, but a creep ordered with `spawnCreep` only shows up in `Game.creeps` on the next tick. Each spawn used to see the job as unfilled, so a room with 3 spawns could order 3 remote miners for one source. The remote-spawn check that was meant to stop this compared a space-joined list with `!=` and never matched.

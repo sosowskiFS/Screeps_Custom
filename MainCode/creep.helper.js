@@ -136,6 +136,24 @@ var creep_Helper = {
                     }
                 }
 
+                if (needSearch && creep.room.energyAvailable < creep.room.energyCapacityAvailable / 2) {
+                    // A young room low on spawn energy: fill spawns/extensions first so it can
+                    // make its own creeps.
+                    target = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, {
+                        filter: (s) => (s.structureType == STRUCTURE_SPAWN || s.structureType == STRUCTURE_EXTENSION) &&
+                            s.store.getFreeCapacity(RESOURCE_ENERGY) > 0
+                    });
+                    if (target) {
+                        needSearch = false;
+                        creep.memory.structureTarget = target.id;
+                        if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                            creep.travelTo(target, {
+                                ignoreRoads: true
+                            });
+                        }
+                    }
+                }
+
                 if (needSearch) {
                     target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
                     if (target) {

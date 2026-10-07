@@ -5,6 +5,7 @@
 //   mem('basePlan.E14N18')   one Memory path (dot separated), printed in full
 //   mem('*')                 all of Memory (large: many console lines, noticeable CPU)
 //   memCreeps()              creep memory size by field and by role (what to trim)
+//   expansion()              automatic expansion: CPU budget, progress, ranked candidates
 //   roomReport('E14N18')     everything about one room: live state, why it is or isn't in
 //                            maintenance mode, every Memory entry that mentions the room, the
 //                            creeps homed there and its flags
@@ -209,5 +210,6 @@ function memCreeps() {
 global.mem = mem;
 global.memCreeps = memCreeps;
 global.roomReport = room;
+global.expansion = limit => require('system.expansion').report(limit);
 
 module.exports = { mem, memCreeps, room, print, memoryMentions };

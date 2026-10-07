@@ -11,6 +11,7 @@ const roomCpu = require('runtime.roomCpu');
 const governor = require('runtime.cpuGovernor');
 const maintenance = require('system.maintenance');
 const reachability = require('system.reachability');
+const expansion = require('system.expansion');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
@@ -125,6 +126,14 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
         }
     }
 
+    // Expansion intel for homes without an observer (only while expansion is eligible).
+    if (!isSpawnBusy(spawn) && governor.allows('scouting')) {
+        const targets = expansion.scoutTargets(thisRoom.name);
+        if (targets.length) {
+            spawn_BuildInstruction.run(spawn, 'farScout', targets, energyIndex, thisRoom.name);
+        }
+    }
+
     // Check for highway patrol unit spawning (every 1350 ticks, energy >= 400,000)
     if (!isSpawnBusy(spawn) && thisRoom.storage && Game.time % 1350 === 0 && thisRoom.storage.store[RESOURCE_ENERGY] >= 400000) {
         spawn_BuildInstruction.run(spawn, 'highwayPatrol', '', energyIndex, thisRoom.name);
@@ -133,6 +142,14 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
 
 function processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
     const roomName = thisRoom.name;
+
+    // Automatic expansion (system.expansion): this room sponsors a new one. Claimer first, then
+    // helpers until the new room has its terminal.
+    const order = expansion.spawnOrder(roomName);
+    if (order) {
+        spawn_BuildInstruction.run(spawn, order.type, order.target, energyIndex, roomName);
+        if (isSpawnBusy(spawn)) return;
+    }
 
     // Special handling for PowerAttack - check if units need spawning even when PowerPickup exists
     const powerAttackFlag = Game.flags[roomName + "PowerAttack"];

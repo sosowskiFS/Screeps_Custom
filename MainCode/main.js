@@ -13,6 +13,7 @@ const construction = require('system.construction');
 const remoteMining = require('system.remoteMining');
 const roads = require('system.roads');
 const badRooms = require('system.badRooms');
+const expansion = require('system.expansion');
 const memoryCleanup = require('runtime.memoryCleanup');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
@@ -31,6 +32,7 @@ const phases = [
     ['construction', construction.handleAutoBuildRoomsRegeneration],
     ['roads', roads.run],
     ['badRooms', badRooms.update],
+    ['expansion', expansion.run],
     ['memoryCleanup', memoryCleanup.run],
 ];
 module.exports.loop = function () {

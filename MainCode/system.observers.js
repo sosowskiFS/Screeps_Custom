@@ -8,6 +8,7 @@ const governor = require('runtime.cpuGovernor');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
 const reachability = require('system.reachability');
+const expansion = require('system.expansion');
 
 function handleRoomOperations(thisRoom) {
     const roomName = thisRoom.name;
@@ -37,7 +38,8 @@ function handleRoomOperations(thisRoom) {
     if (Game.time % 20 === 0 && observationPointer && Memory.observerList[roomName] && Memory.observerList[roomName].length > 0) {
         // A disabled remote due its safety check takes priority over the normal sweep.
         // ...then a claimed room nobody has looked at for a while (system.badRooms).
-        operateObserver(roomName, remoteMining.observeRequest(roomName) || badRooms.observeRequest(roomName) || observedRoomName);
+        operateObserver(roomName, remoteMining.observeRequest(roomName) || badRooms.observeRequest(roomName) ||
+            expansion.observeRequest(roomName) || observedRoomName);
     }
 
     // Monitor for power creep operators and respawn if needed
