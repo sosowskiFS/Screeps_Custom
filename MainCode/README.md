@@ -178,6 +178,10 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **Safe mode first:** in a room under construction, safe mode also fires as soon as such a claimer has an open path to a tile next to the controller.
   - **Walls:** a young room (RCL2+) whose controller is 8+ tiles from its base core gets walls on the controller's free neighbours. Never on planned tiles, and never where a wall would cut a path. Helpers build them right after the spawn (1 energy each) and repair them to 10k hits × controller level. Walls, not ramparts, because ramparts decay.
 - **Blocked controller:** while it cannot be upgraded (`upgradeBlocked`), the tower-first hold is lifted so the other structures are placed and helpers build those instead. The tower-less cleanup only removes sites with no progress.
+- **Young room spawning** (`spawn.BuildCreeps.js`, rooms below RCL5): bodies are sized to the energy on hand, not the full capacity, so a room spawns as soon as it can afford a useful body.
+  - **Fitting:** a chosen body that would still cost more is trimmed to fit.
+  - **Harvester cost bug:** the harvester body never paid for its first CARRY, so it always cost 50 more than the energy it was sized for, could never be afforded, and blocked every other role. shardX E29N36 sat at 400/400 energy spawning nothing.
+  - **Own creeps only:** the room counts only creeps homed there for its no-creeps-left fallback; visiting helpers and guards no longer hide that it has none.
 - **Previous owner's leftovers:** structures another player left in a room we own are destroyed by auto-build, and the room is replanned fresh. Otherwise the planner adopted their storage as ours and our own core was never built.
 
 ## Retiring rooms (one-time)

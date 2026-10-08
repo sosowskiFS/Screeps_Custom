@@ -5,6 +5,12 @@ var spawn_BuildCreeps = {
 
         const roomName = thisRoom.name;
         const strSources = Memory.sourceList[roomName] || [];
+        // Bodies are sized to the energy on hand (this tick's budget), not the room's full capacity:
+        // a young room spawns as soon as it can afford a useful body instead of waiting for every
+        // extension to fill. Only creeps homed here count as the room's own: visiting helpers and
+        // guards used to hide that it had none (shardX E29N36 sat at 400/400 spawning nothing).
+        const budget = Memory.CurrentRoomEnergy[energyIndex] || 0;
+        const ownCreeps = RoomCreeps.filter(c => c && c.memory && c.memory.homeRoom === roomName).length;
         const firstSource = strSources[0];
         const secondSource = strSources[1];
 
@@ -109,7 +115,7 @@ var spawn_BuildCreeps = {
             defenderEnergyLim = 1170;
         }
 
-        if (RoomCreeps.length == 0 && spawn.canCreateCreep(bareMinConfig) == OK) {
+        if (ownCreeps == 0 && calculateConfigCost(bareMinConfig) <= budget) {
             //In case of complete destruction, make a minimum viable worker
             let configCost = calculateConfigCost(bareMinConfig);
             if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -208,30 +214,31 @@ var spawn_BuildCreeps = {
                     //Assign slot 1
                     creepSourceID = strSources[0];
                 }
-                bestWorker = getMinerConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesterCount);
+                bestWorker = getMinerConfig(budget, ownCreeps, harvesterCount);
             } else if (distributorCount < distributorMax && thisRoom.energyCapacityAvailable >= 150) {
                 prioritizedRole = 'distributor';
-                bestWorker = getDistributorConfig(thisRoom.energyCapacityAvailable, RoomCreeps.length, harvesterCount);
+                bestWorker = getDistributorConfig(budget, ownCreeps, harvesterCount);
             } else if (supplierCount < supplierMax && supplierDirection.length > 0 && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'supplier';
-                bestWorker = getSupplierConfig(thisRoom.energyCapacityAvailable);
+                bestWorker = getSupplierConfig(budget);
             } else if (upgraderCount < upgraderMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'upgrader';
-                bestWorker = getWorkerConfig(thisRoom.energyCapacityAvailable, 'upgrader');
+                bestWorker = getWorkerConfig(budget, 'upgrader');
             } else if (builderCount < builderMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'builder';
-                bestWorker = getWorkerConfig(thisRoom.energyCapacityAvailable, 'builder');
+                bestWorker = getWorkerConfig(budget, 'builder');
             } else if (repairerCount < repairMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'repair';
-                bestWorker = getWorkerConfig(thisRoom.energyCapacityAvailable, 'repair');
+                bestWorker = getWorkerConfig(budget, 'repair');
             } else {
                 // No valid role to spawn
                 return;
             }
 
+            bestWorker = fitBody(bestWorker, budget);
             let configCost = calculateConfigCost(bestWorker);
-            
-            if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+
+            if (bestWorker.length && configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                 Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
 				if (prioritizedRole == 'supplier') {
 					spawn.spawnCreep(bestWorker, prioritizedRole + '_' + spawn.name + '_' + Game.time, {
@@ -264,6 +271,14 @@ var spawn_BuildCreeps = {
         }
     }
 };
+
+// Drop parts from the end until the body costs at most `energy` (empty when nothing useful fits).
+function fitBody(body, energy) {
+    const out = body.slice();
+    while (out.length && calculateConfigCost(out) > energy) out.pop();
+    const has = type => out.includes(type);
+    return has(MOVE) && (has(WORK) || has(CARRY)) ? out : [];
+}
 
 function calculateConfigCost(bodyConfig) {
     var totalCost = 0;
@@ -369,9 +384,8 @@ function getSupplierConfig(energyCap) {
 function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
     // Miners should be optimized for energy extraction
     // A source generates 10 energy/tick, so we need 5 WORK parts to harvest it all (5 * 2 = 10)
-    if (energyCap < 300 || numRoomCreeps <= 1) {
-        return [MOVE, WORK, WORK, CARRY]; // Emergency minimum viable miner
-    }
+    if (energyCap < 300) return [MOVE, WORK, CARRY];              // 200: the least that can harvest and carry
+    if (numRoomCreeps <= 1) return [MOVE, WORK, WORK, CARRY];     // 300: emergency miner
     
     let config = [];
     let workParts = 0;
@@ -388,13 +402,13 @@ function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
     let maxAffordableWork = Math.min(optimalWorkParts, Math.floor((energyCap - carryCost - moveCost) / workCost));
     workParts = Math.max(2, maxAffordableWork); // At least 2 WORK parts
     
-    // Calculate remaining energy after WORK parts
-    let remainingEnergy = energyCap - (workParts * workCost);
+    // Calculate remaining energy after WORK parts and the first CARRY
+    let remainingEnergy = energyCap - (workParts * workCost) - carryCost;
     
     // Add extra CARRY if we have room and energy (miners don't need much CARRY, but some is useful)
     if (remainingEnergy >= carryCost * 2) {
         carryParts = 2; // 2 CARRY parts is usually sufficient for miners
-        remainingEnergy -= carryCost;
+        remainingEnergy -= carryCost;   // the second (the first is paid above)
     }
     
     // Calculate MOVE parts - we want enough to move at normal speed
@@ -417,8 +431,8 @@ function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
 function getDistributorConfig(energyCap, numRoomCreeps, numHarvesters) {
     // Distributors focus on moving energy efficiently
     // Lower energy requirement for early game rooms
-    if (energyCap < 150) {
-        return [MOVE, CARRY, CARRY]; // Very minimal distributor for RCL 1-2
+    if (energyCap < 250) {
+        return [MOVE, CARRY, CARRY]; // Very minimal distributor for RCL 1-2 (150)
     }
     
     return [MOVE, MOVE, CARRY, CARRY, CARRY]; // Early game distributor
@@ -455,4 +469,6 @@ function getDistributorConfig(energyCap, numRoomCreeps, numHarvesters) {
     
 }
 
+spawn_BuildCreeps.getMinerConfig = getMinerConfig;
+spawn_BuildCreeps.fitBody = fitBody;
 module.exports = spawn_BuildCreeps;
