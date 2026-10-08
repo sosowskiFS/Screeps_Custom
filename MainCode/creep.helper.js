@@ -182,43 +182,56 @@ function pickSite(creep) {
     return best;
 }
 
+// fill / workAt return true when the helper acted (worked, or set off toward the target), false
+// when the action failed outright (target full, controller attack-blocked, a creep on the site...):
+// work() then moves on to the next job instead of standing there retrying it.
 function fill(creep, target) {
-    if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(target, { range: 1 });
+    const result = creep.transfer(target, RESOURCE_ENERGY);
+    if (result === ERR_NOT_IN_RANGE) creep.travelTo(target, { range: 1 });
+    return result === OK || result === ERR_NOT_IN_RANGE;
 }
 
 function workAt(creep, target, action) {
-    if (action === ERR_NOT_IN_RANGE) creep.travelTo(target, { range: WORK_RANGE, maxRooms: 1 });
-    else if (action === OK) creep._working = true;
+    if (action === ERR_NOT_IN_RANGE) {
+        creep.travelTo(target, { range: WORK_RANGE, maxRooms: 1 });
+        return true;
+    }
+    if (action === OK) {
+        creep._working = true;
+        return true;
+    }
+    return false;
 }
 
-// One working step.
+// One working step: the first job that can be done.
 function work(creep) {
     const room = creep.room;
     const controller = room.controller;
+    const canUpgrade = !!(controller && controller.my && !(controller.upgradeBlocked > 0));
     if (room.energyAvailable < room.energyCapacityAvailable / 2) {
         const sink = creep.pos.findClosestByRange(runtimeCache.find(room, FIND_MY_STRUCTURES).filter(s =>
             (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0));
-        if (sink) return fill(creep, sink);
+        if (sink && fill(creep, sink)) return;
     }
-    if (controller && controller.my && controller.ticksToDowngrade < DOWNGRADE_MIN) {
-        return workAt(creep, controller, creep.upgradeController(controller));
-    }
+    // An attack-blocked controller cannot be upgraded, however close it is to downgrading: helpers
+    // used to stand still retrying it (shardX E29N36) instead of building.
+    if (canUpgrade && controller.ticksToDowngrade < DOWNGRADE_MIN && workAt(creep, controller, creep.upgradeController(controller))) return;
     const tower = creep.pos.findClosestByRange(runtimeCache.find(room, FIND_MY_STRUCTURES).filter(s =>
         s.structureType === STRUCTURE_TOWER && s.store[RESOURCE_ENERGY] < TOWER_MIN));
-    if (tower) return fill(creep, tower);
+    if (tower && fill(creep, tower)) return;
     if (controller && controller.my) {
         const wall = creep.pos.findClosestByRange(runtimeCache.find(room, FIND_STRUCTURES).filter(s =>
             s.structureType === STRUCTURE_WALL && s.pos.inRangeTo(controller.pos, 1) && s.hits < CONTROLLER_WALL_HITS * controller.level));
-        if (wall) return workAt(creep, wall, creep.repair(wall));
+        if (wall && workAt(creep, wall, creep.repair(wall))) return;
     }
     let site = creep.memory.siteTarget ? Game.getObjectById(creep.memory.siteTarget) : null;
     if (!site || Game.time % 10 === 0) site = pickSite(creep);   // re-ranked now and then
     if (site) {
         creep.memory.siteTarget = site.id;
-        return workAt(creep, site, creep.build(site));
+        if (workAt(creep, site, creep.build(site))) return;
+        delete creep.memory.siteTarget;   // cannot be built right now: pick again next tick
     }
-    delete creep.memory.siteTarget;
-    if (controller && controller.my && !(controller.upgradeBlocked > 0)) {
+    if (canUpgrade) {
         workAt(creep, controller, creep.upgradeController(controller));
         if (creep.pos.isNearTo(controller) && (!controller.sign || controller.sign.username !== creep.owner.username)) {
             creep.signController(controller, SIGN);

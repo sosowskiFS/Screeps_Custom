@@ -170,3 +170,25 @@ test('a helper blocked on its way is never marked parked (two blocked helpers us
     s.run();
     assert.equal(s.creep.memory.onPoint, 1, 'building in place: parked');
 });
+
+test('controller near downgrade but attack-blocked: the helper builds instead of retrying the upgrade (shardX E29N36)', () => {
+    const site = { id: 'site', structureType: 'STRUCTURE_EXTENSION', progress: 1543, progressTotal: 3000, pos: { x: 3, y: 21 } };
+    const s = setup({ carry: { energy: 400 }, sites: [site] });
+    s.creep.pos.x = 4; s.creep.pos.y = 16;
+    const controller = s.creep.room.controller;
+    controller.ticksToDowngrade = 2808;
+    controller.upgradeBlocked = 108;
+    s.creep.upgradeController = () => { s.calls.push(['upgrade']); return s.g.ERR_INVALID_TARGET; };
+    s.run();
+    assert.ok(!plain(s.calls).some(c => c[0] === 'upgrade'), 'no upgrade attempts while blocked');
+    assert.deepEqual(plain(s.calls).filter(c => c[0] === 'build' || c[0] === 'travelTo'), [['build', 'site'], ['travelTo', 'site', 3]]);
+});
+
+test('a job that fails outright moves the helper on to the next one', () => {
+    const site = { id: 'site', structureType: 'STRUCTURE_EXTENSION', progress: 0, progressTotal: 3000, pos: { x: 15, y: 17 } };
+    const s = setup({ carry: { energy: 400 }, sites: [site] });
+    s.creep.build = () => { s.calls.push(['build']); return s.g.ERR_INVALID_TARGET; };   // e.g. a creep standing on it
+    s.run();
+    assert.ok(plain(s.calls).some(c => c[0] === 'upgrade'), 'falls through to upgrading');
+    assert.equal(s.creep.memory.siteTarget, undefined, 'and picks a site again next tick');
+});

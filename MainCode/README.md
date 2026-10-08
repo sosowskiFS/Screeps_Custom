@@ -144,10 +144,11 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
     - **Harvesting:** the nearest source with energy and a free harvesting tile. Free tiles are the open tiles around it, minus the creeps already working it. A helper never stands at an empty source while it carries energy, and only waits for one that refills within 20 ticks. With nothing to take at all, it waits 3 tiles from the nearest source.
     - **Working (when full, or when no more energy is close at hand):**
       - spawn energy below half, so the room can make its own creeps;
-      - then a controller close to downgrading;
+      - then a controller close to downgrading (unless it is attack-blocked and cannot be upgraded);
       - then towers below 500;
       - then construction **one site at a time**: spawn, tower, extension, storage, container, the rest; the furthest along first, then the nearest. Every helper pours into the same structure;
       - otherwise upgrading.
+      - **Fall-through:** a job that fails outright (blocked controller, full target, a creep standing on the site) is skipped for the next one, never retried in place.
     - **Positioning:** it builds and upgrades from range 3, and makes no repairs or detours to sign. Only on a tick it actually works in place (a successful harvest, build, repair or upgrade) is it parked (`onPoint`), so others neither swap it off its tile nor path through it. It is never parked merely for standing still: two helpers blocked in each other's way were both marked parked, became walls to each other's paths and froze (shardX E29N36).
   - **Retiring:** a support hauler retires when trucking is no longer wanted, or when it couldn't finish another round trip.
 - **Young rooms** (ours without their own terminal; RCL7+ with a storage always counts as established, so a migration rebuilding the terminal changes nothing; `room.stage.js`) spend energy on building and upgrading:
