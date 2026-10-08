@@ -53,7 +53,8 @@ function world() {
             move(dir){actions.push([this.name,'move',dir]);this.intent=dir;return g.OK;},
             travelTo(target,options={}){actions.push([this.name,'travel',target,options]);if(options.ignoreCreeps===false){const original=options.roomCallback;options=Object.assign({},options,{roomCallback:name=>{const matrix=original?original(name):new Matrix();for(const other of squad)if(other!==this)matrix.set(other.pos.x,other.pos.y,255);return matrix;}});}const r=search(this.pos,{pos:target.pos||target,range:options.range||0},options);if(r.path[0])this.intent=this.pos.getDirectionTo(r.path[0]);},
             heal(target){actions.push([this.name,'heal',target.name]);},rangedHeal(target){actions.push([this.name,'rangedHeal',target.name]);},
-            rangedAttack(target){actions.push([this.name,'fire',target.name]);}};
+            rangedAttack(target){actions.push([this.name,'fire',target.name]);},
+            rangedMassAttack(){actions.push([this.name,'mass']);}};
         squad.push(c);g.Game.creeps[c.name]=c;
     }
     const q=h.load('creep.guardQuad');
@@ -129,6 +130,15 @@ test('a quad traverses a one-tile chokepoint and reforms on the other side',()=>
     assert.ok(w.squad.every(c=>c.pos.x>20),JSON.stringify(w.squad.map(c=>[c.pos.x,c.pos.y])));
     assert.equal(w.q.assembled(w.squad,w.squad[0].pos),true);
     assert.ok(w.squad.every(c=>c.pos.getRangeTo(w.room.controller)<=3));
+});
+test('fighters use ranged mass attack only when nearby hostile damage exceeds focused fire',()=>{
+    const w=world();
+    w.hostiles.push(
+        {name:'a',id:'a',owner:{username:'Harabi'},pos:new w.Pos(11,20),body:[],hits:100,hitsMax:100},
+        {name:'b',id:'b',owner:{username:'Harabi'},pos:new w.Pos(11,21),body:[],hits:100,hitsMax:100});
+    w.q.combat(w.squad);
+    assert.ok(w.actions.some(a=>a[1]==='mass'));
+    assert.equal(w.actions.some(a=>a[1]==='fire'),false);
 });
 test('whitelisted creeps are never targeted and an outmatched squad never requests another room',()=>{
     const w=world();w.room.controller={pos:new w.Pos(15,20),my:true};

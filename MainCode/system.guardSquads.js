@@ -2,6 +2,9 @@
 const ism = require('runtime.ism');
 const stage = require('room.stage');
 const SOURCES = ['shard0', 'shard1', 'shard2', 'shard3', 'shardX'];
+const DESIRED_SQUADS = 2;       // a latched developing room was attacked: hold two quads, not one
+const PREDEPLOY_MARGIN = 250;   // arrive during safe mode, when hostile attacks and healing are disabled
+const SIEGE_RAMPART_HITS = 250000;
 const BOOSTS_BY_PART = () => ({ [TOUGH]: RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
     [MOVE]: RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, [RANGED_ATTACK]: RESOURCE_CATALYZED_KEANIUM_ALKALIDE,
     [HEAL]: RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE });
@@ -39,13 +42,25 @@ function escalated(shard, room) {
     return !!(r && r.rooms && r.rooms[room] && r.rooms[room].escalated);
 }
 function safeModeActive(shard, room) {
+    return safeModeRemaining(shard, room) > 0;
+}
+function safeModeRemaining(shard, room) {
     if (shard === Game.shard.name) {
         const r = Game.rooms[room];
-        return !!(r && r.controller && r.controller.safeMode > 0);
+        return r && r.controller ? Math.max(0, r.controller.safeMode || 0) : 0;
     }
     const report = remote(shard), r = report && report.rooms && report.rooms[room];
-    if (!r || !(r.safeMode > 0)) return false;
-    return fresh(report) || report.at + r.safeMode * (report.ms || 3000) > Date.now();
+    if (!r || !(r.safeMode > 0) || !report.at) return 0;
+    const elapsed = Math.max(0, Date.now() - report.at) / Math.max(100, report.ms || 3000);
+    return Math.max(0, Math.ceil(r.safeMode - elapsed));
+}
+function protectedRampart(room, rampart) {
+    if (!room || !rampart || !rampart.pos || rampart.structureType !== STRUCTURE_RAMPART) return false;
+    const x = rampart.pos.x, y = rampart.pos.y;
+    const supply = Game.flags[room.name + 'Supply'];
+    if (supply && supply.pos.x === x && supply.pos.y === y) return true;
+    return require('runtime.cache').find(room, FIND_MY_STRUCTURES).some(s => s.pos &&
+        (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER) && s.pos.x === x && s.pos.y === y);
 }
 function localMembers() {
     return Object.values(Game.creeps).filter(c => c.memory && c.memory.guardSquad);
@@ -113,7 +128,9 @@ function register(shard, room, home, corner, distance) {
     let t = s.targets[id];
     if (!t) t = s.targets[id] = { shard, room, home, corner, distance, squads: [], samples: {} };
     t.home = home; t.corner = corner; t.distance = distance;
-    t.safeMode = safeModeActive(shard, room);
+    t.safeModeRemaining = safeModeRemaining(shard, room);
+    t.safeMode = t.safeModeRemaining > 0;
+    if (!t.desired) t.desired = DESIRED_SQUADS;
     const r = shard === Game.shard.name ? Game.rooms[room] : null;
     const report = shard === Game.shard.name ? null : remote(shard);
     const rr = report && report.rooms && report.rooms[room];
@@ -184,7 +201,7 @@ function leadTime(t) {
 }
 function updateTarget(t) {
     const seen = observe(t), now = Date.now();
-    let complete;
+    const complete = [];
     for (const q of t.squads) {
         for (const slot of q.slots) {
             const m = seen[slot.name];
@@ -211,27 +228,39 @@ function updateTarget(t) {
                 }
             }
         }
-        if (q.slots.every(s => s.arrived && s.assembled && !s.stale && s.expires > now)) complete = q;
+        q.complete = q.slots.every(s => s.arrived && s.assembled && !s.stale && s.expires > now);
+        q.remaining = q.complete ? Math.min(...q.slots.map(s => (s.expires - now) / clock().ms)) : 0;
+        if (q.complete) complete.push(q);
     }
     if (t.stopped) {
         t.squads = t.squads.filter(q => q.slots.some(s => s.name));
         return;
     }
-    if (complete) t.active = complete.id;
-    const active = t.squads.find(q => q.id === t.active);
-    if (active) for (const q of t.squads) if (q.created < active.created) q.retired = true;
-    const remaining = active ? Math.min(...active.slots.map(s => s.name ? (s.expires - now) / clock().ms : 0)) : 0;
-    t.lead = leadTime(t); t.remaining = Math.max(0, remaining);
-    if (t.safeMode) { t.gap = false; return; }
-    const latest = t.squads.filter(q => !q.retired).slice(-1)[0];
-    if (!latest) newSquad(t);
-    else if (latest.slots.every(s => s.name)) {
-        // Long routes require pipelining before the first wave arrives. Waiting for arrival
-        // would create predictable expiry gaps whenever transit exceeds service life at the post.
-        const lifeLeft = Math.min(...latest.slots.map(s => (s.expires - now) / clock().ms));
-        if (lifeLeft <= t.lead) newSquad(t);
+    const desired = t.desired || DESIRED_SQUADS;
+    t.lead = leadTime(t);
+    complete.sort((a, b) => b.created - a.created);
+    const active = complete.slice(0, desired);
+    t.active = active.map(q => q.id);
+    t.remaining = active.length ? Math.max(0, Math.min(...active.map(q => q.remaining))) : 0;
+    // Once newer replacements are fully posted, old squads may finish their lives without
+    // reserving another generation of replacements.
+    for (const q of complete.slice(desired)) q.retired = true;
+
+    // Do not burn creep life through the whole safe-mode window. Begin early enough to finish
+    // spawning, boosting and travelling, with time to kill staged hostiles while they cannot heal.
+    if (t.safeMode && t.safeModeRemaining > t.lead + PREDEPLOY_MARGIN) {
+        t.gap = false;
+        return;
     }
-    t.gap = !t.squads.some(q => q.slots.every(s => s.arrived && s.name && !s.stale && s.expires > now));
+
+    // Pending/travelling squads count toward future coverage; an expiring posted squad does not,
+    // which pipelines its successor before a gap opens.
+    const future = t.squads.filter(q => !q.retired && (!q.complete || q.remaining > t.lead));
+    // Allocate at most one manifest per tick. This keeps publication and lab reservations
+    // deterministic while still filling both formations long before a meaningful deadline.
+    if (future.length < desired) newSquad(t);
+
+    t.gap = complete.length < desired;
     if (t.gap && (!t.warned || Game.time - t.warned >= 500)) {
         console.log('[guards] ' + key(t.shard, t.room) + ': quad coverage incomplete; replenishing from ' + t.home);
         t.warned = Game.time;
@@ -266,8 +295,11 @@ function run() {
 }
 function spawnOrder(home) {
     for (const t of Object.values(state().targets)) {
-        if (t.home !== home || t.stopped || safeModeActive(t.shard, t.room)) continue;
-        const pending = t.squads.filter(q => !q.retired && q.id !== t.active);
+        if (t.home !== home || t.stopped) continue;
+        const remaining = safeModeRemaining(t.shard, t.room);
+        if (remaining > (t.lead || leadTime(t)) + PREDEPLOY_MARGIN) continue;
+        const activeIds = Array.isArray(t.active) ? t.active : t.active ? [t.active] : [];
+        const pending = t.squads.filter(q => !q.retired && !activeIds.includes(q.id));
         const candidates = pending.length ? pending : t.squads.filter(q => !q.retired);
         for (const q of candidates) {
             const slot = q.slots.find(s => !s.name);
@@ -281,7 +313,7 @@ function spawnOrder(home) {
                 guardKind: slot.slot === 3 ? 'healer' : 'ranged', guardPhase: 'boosting',
                 guardDeparture: Game.time + Math.max(0, Math.floor(t.remaining - travelTicks(t, 4) - 50)),
                 guardRoster: q.slots.filter(s => s.name).map(s => s.name) };
-            if (!t.active) delete memory.guardDeparture;
+            if (!activeIds.length) delete memory.guardDeparture;
             if (t.shard !== Game.shard.name) Object.assign(memory, { xTarget: 1, xShard: { c: t.corner } });
             return { body: parts, memory, name, target: t, squad: q, slot };
         }
@@ -307,7 +339,7 @@ function report() {
             return q ? Math.max(0, t.lead - (Game.time - q.created)) : undefined;
         })(),
         shortages: require('system.guardBoosts').shortages(t.home),
-        squads: t.squads.map(q => ({ id: q.id, active: q.id === t.active, retired: !!q.retired,
+        squads: t.squads.map(q => ({ id: q.id, active: Array.isArray(t.active) ? t.active.includes(q.id) : q.id === t.active, retired: !!q.retired,
             slots: q.slots.map(s => ({ slot: s.slot, name: s.name, phase: s.phase, arrived: !!s.arrived, boosts: s.boosts, blocked: s.blocked })) })) }));
     const local = {};
     for (const c of localMembers()) {
@@ -325,4 +357,5 @@ function report() {
     return rows;
 }
 module.exports = { state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
-    report, fresh, snapshot, movement, travelTicks, leadTime, BOOSTS_BY_PART };
+    report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart,
+    DESIRED_SQUADS, SIEGE_RAMPART_HITS, BOOSTS_BY_PART };

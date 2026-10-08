@@ -104,7 +104,8 @@ var market_buyers = {
                 // Send energy to requesting room
                 const targetTerminal = Game.rooms[Memory.energyNeedRooms[0]].terminal;
                 const amountAvailable = TerminalEnergy - 30000;
-                const targetStoreCap = 60000;
+                const siegeTarget = !!require('system.guardBoosts').roomState(Memory.energyNeedRooms[0]);
+                const targetStoreCap = siegeTarget ? 150000 : 60000;
                 
                 if (targetTerminal) {
                     let amountToSend = 30000;

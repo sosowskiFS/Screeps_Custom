@@ -59,7 +59,7 @@ function setup({ carry = {}, others = [], sites = [], dropped = [], aEnergy = 30
         if (type === g.FIND_MY_STRUCTURES) return mine;
         return [];
     };
-    return { g, creep, calls, run: () => h.load('creep.helper').run(creep) };
+    return { h, g, creep, calls, run: () => h.load('creep.helper').run(creep) };
 }
 
 test('a helper takes the nearest source that still has a free harvesting tile', () => {
@@ -161,6 +161,25 @@ test('walls around the controller are brought to 10k hits per RCL; a blocked con
     s.g.Game.time++;
     s.run();
     assert.ok(!plain(s.calls).some(c => c[0] === 'upgrade'), 'no upgrading while blocked');
+});
+
+test('siege helpers repair only spawn, tower, and supplier ramparts and stop at the siege cap', () => {
+    const p = (x, y) => ({ x, y, roomName: 'NEW' });
+    const s0 = setup({ tower: false });
+    const g = s0.g;
+    const structures = [
+        { id: 'spawn', structureType: g.STRUCTURE_SPAWN, pos: p(10, 10), store: { getFreeCapacity: () => 0 } },
+        { id: 'protected', structureType: g.STRUCTURE_RAMPART, pos: p(10, 10), hits: 1000, hitsMax: 10000000 },
+        { id: 'unrelated', structureType: g.STRUCTURE_RAMPART, pos: p(11, 10), hits: 1, hitsMax: 10000000 }];
+    const s = setup({ carry: { energy: 400 }, tower: false, structures });
+    s.h.load('system.guardSquads').latch(s.creep.room, 'safe mode');
+    s.creep.repair = t => { s.calls.push(['repair', t.id]); return s.g.ERR_NOT_IN_RANGE; };
+    s.creep.memory.currentState = 2;
+    s.run();
+    assert.equal(s.creep.memory.job.id, 'protected');
+    structures[1].hits = 250000;
+    delete s.creep.memory.job; s.calls.length = 0; s.g.Game.time++; s.run();
+    assert.ok(!s.calls.some(c => c[0] === 'repair'), 'the unrelated rampart and capped protected rampart are ignored');
 });
 
 test('a helper blocked on its way is never marked parked (two blocked helpers used to freeze each other: shardX E29N36)', () => {

@@ -18,23 +18,39 @@ function requirements(parts) {
     return result;
 }
 function add(into, values) { for (const r in values) into[r] = (into[r] || 0) + values[r]; }
+function addSquad(need, room) {
+    for (let slot = 0; slot < 4; slot++) add(need, requirements(squads.body(room.energyCapacityAvailable, slot)));
+}
+function prioritizeEnergy(name) {
+    const room = Game.rooms[name];
+    if (!room || !room.storage || !room.terminal) return;
+    const list = Memory.energyNeedRooms || (Memory.energyNeedRooms = []);
+    const i = list.indexOf(name);
+    if (i !== -1) list.splice(i, 1);
+    list.unshift(name);
+}
 function prepare() {
     const next = {};
     for (const t of Object.values(squads.state().targets)) {
         const room = Game.rooms[t.home];
         if (t.stopped || !room) continue;
         const r = next[t.home] || (next[t.home] = { need: {}, assignments: {} });
-        // Keep the next complete replacement available even when the post is fully staffed.
-        if (!t.safeMode) for (let slot = 0; slot < 4; slot++) add(r.need, requirements(squads.body(room.energyCapacityAvailable, slot)));
+        // Reserve both required formations before their just-in-time safe-mode departure, plus
+        // one complete replacement. Existing pending squads are counted below; boosted posted
+        // squads no longer need minerals.
+        const desired = t.desired || squads.DESIRED_SQUADS || 2;
+        const represented = t.squads.filter(q => !q.retired).length;
+        const standby = Math.max(1, desired - represented + 1);
+        for (let n = 0; n < standby; n++) addSquad(r.need, room);
         for (const q of t.squads) {
             if (q.retired) continue;
             for (const slot of q.slots) {
-                if (t.safeMode && !slot.name) continue;
                 const creep = slot.name && Game.creeps[slot.name];
                 if (slot.name && (!creep || creep.memory.guardBoostDone)) continue;
                 add(r.need, requirements(creep ? creep.body : squads.body(room.energyCapacityAvailable, slot.slot)));
             }
         }
+        prioritizeEnergy(t.home);
     }
     for (const name in next) {
         const r = next[name], room = Game.rooms[name], list = labs(room);

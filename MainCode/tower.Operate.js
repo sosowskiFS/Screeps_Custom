@@ -403,8 +403,13 @@ var tower_Operate = {
                 tower.repair(intel.criticalRoad);
             } else if (Memory.repairTarget[tower.room.name]) {
                 let decayingRampart = Game.getObjectById(Memory.repairTarget[tower.room.name]);
-                if (decayingRampart && decayingRampart.hits != decayingRampart.hitsMax) {
-                    tower.repair(decayingRampart);
+                const guards = require('system.guardSquads');
+                const siege = guards.escalated(Game.shard.name, tower.room.name);
+                const siegeRampart = siege && decayingRampart && decayingRampart.structureType === STRUCTURE_RAMPART;
+                const siegeCap = siegeRampart ? guards.SIEGE_RAMPART_HITS : Infinity;
+                if (decayingRampart && decayingRampart.hits != decayingRampart.hitsMax && decayingRampart.hits < siegeCap) {
+                    if (!siegeRampart || guards.protectedRampart(tower.room, decayingRampart)) tower.repair(decayingRampart);
+                    else Memory.repairTarget[tower.room.name] = "";
                 } else {
                     //Bad target, let main handle reassignment
                     Memory.repairTarget[tower.room.name] = undefined;

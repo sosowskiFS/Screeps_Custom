@@ -210,6 +210,19 @@ test('a young room (no terminal) gets no road or rampart sites, and loses the on
     assert.deepEqual(removed, ['road', 'rampart']);
 });
 
+test('an attacked young room prioritizes ramparts only over its spawn, tower, and supplier', () => {
+    const existing = [];
+    const { h, g, room, sites, builder } = builderRoom(5, existing);
+    builder.planRoom(room);
+    buildCore(g, builder, room, existing);
+    const plan = builder.planOf(room.name);
+    h.load('system.guardSquads').latch(room, 'safe mode');
+    builder.buildRoom(room, plan);
+    const ramparts = sites.filter(s => s[2] === g.STRUCTURE_RAMPART).map(s => s[0] + ',' + s[1]).sort();
+    const protectedTiles = existing.map(s => s.pos.x + ',' + s.pos.y).concat(X(plan.flags.Supply) + ',' + Y(plan.flags.Supply)).sort();
+    assert.deepEqual(ramparts, protectedTiles);
+});
+
 test('builder places only what the RCL allows, a few sites per pass, plus the layout flags', () => {
     const existing = [];
     const { g, room, sites, flags, builder } = builderRoom(3, existing);

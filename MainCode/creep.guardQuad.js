@@ -108,8 +108,13 @@ function combat(members) {
     const focus = intel.focusTarget(room) || info.hostiles[0];
     for (const c of same) {
         if (!c.getActiveBodyparts(RANGED_ATTACK)) continue;
-        const target = focus && range(c, focus) <= 3 ? focus : info.hostiles.find(h => range(c, h) <= 3);
-        if (target) c.rangedAttack(target);
+        const inRange = info.hostiles.filter(h => range(c, h) <= 3);
+        const target = focus && inRange.includes(focus) ? focus : inRange[0];
+        if (!target) continue;
+        const ranged = intel.assess(c).ranged;
+        const mass = inRange.reduce((total, h) => total + ranged * intel.MASS_FACTOR[range(c, h)], 0);
+        if (mass > ranged && c.rangedMassAttack) c.rangedMassAttack();
+        else c.rangedAttack(target);
     }
     for (const healer of same.filter(c => c.getActiveBodyparts(HEAL))) {
         const patients = same.filter(c => range(healer, c) <= 3);
@@ -123,11 +128,12 @@ function combat(members) {
             else healer.rangedHeal(patient);
         }
     }
-    const us = same.reduce((total, c) => {
-        const s = intel.assess(c); total.dps += s.dps; total.heal += s.heal; total.ehp += s.ehp; return total;
-    }, { dps: 0, heal: 0, ehp: 0 });
-    const retreat = intel.verdictFor(us, info.them) === 'lose' || same.some(c =>
-        c.hits < c.hitsMax * 0.35 || tactics.incomingDamage(c, info.threats) >= intel.assess(c).ehp);
+    // The decision is room-wide: the second defensive quad and our tower are real support. During
+    // safe mode hostile combat and healing actions are disabled, so use their HP only as a target.
+    const protectedMode = !!(room.controller && room.controller.safeMode);
+    const them = protectedMode ? Object.assign({}, info.them, { dps: 0, heal: 0 }) : info.them;
+    const retreat = !protectedMode && (intel.verdictFor(info.us, them) === 'lose' || same.some(c =>
+        c.hits < c.hitsMax * 0.35 || tactics.incomingDamage(c, info.threats) >= intel.assess(c).ehp));
     return { info, focus, retreat };
 }
 function snake(members, goal, post) {

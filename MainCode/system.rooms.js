@@ -42,13 +42,17 @@ function manageRoomStructures(thisRoom) {
 
     // Manage energy need rooms - check if room needs energy assistance
     if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage && !isRetiring) {
-        if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < 250000 && thisRoom.terminal.store[RESOURCE_ENERGY] < 50000) {
-            if (thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
+        const siege = !!require('system.guardBoosts').roomState(thisRoom.name);
+        const storageTarget = siege ? 500000 : 250000;
+        const terminalTarget = siege ? 150000 : 50000;
+        if (Memory.energyNeedRooms.indexOf(thisRoom.name) === -1 && thisRoom.storage.store[RESOURCE_ENERGY] < storageTarget && thisRoom.terminal.store[RESOURCE_ENERGY] < terminalTarget) {
+            if (siege || thisRoom.storage.store[RESOURCE_ENERGY] < 100000) {
                 Memory.energyNeedRooms.unshift(thisRoom.name);
             } else {
                 Memory.energyNeedRooms.push(thisRoom.name);
             }
-        } else if (Memory.energyNeedRooms.indexOf(thisRoom.name) != -1 && (thisRoom.storage.store[RESOURCE_ENERGY] >= 255000 || thisRoom.terminal.store[RESOURCE_ENERGY] >= 50000)) {
+        } else if (Memory.energyNeedRooms.indexOf(thisRoom.name) != -1 &&
+            (thisRoom.storage.store[RESOURCE_ENERGY] >= storageTarget + 5000 || thisRoom.terminal.store[RESOURCE_ENERGY] >= terminalTarget)) {
             let tempIndex = Memory.energyNeedRooms.indexOf(thisRoom.name);
             Memory.energyNeedRooms.splice(tempIndex, 1);
         }
@@ -99,8 +103,15 @@ function manageRoomStructures(thisRoom) {
     if (Game.time % 1000 == 0 || Memory.repairTarget[thisRoom.name] === undefined ||
         (Memory.repairTarget[thisRoom.name] === "" && Game.time % 50 == 0)) {
         Memory.repairTarget[thisRoom.name] = "";
+        const guardSquads = require('system.guardSquads');
+        const siege = guardSquads.escalated(Game.shard.name, thisRoom.name);
         const repairTarget = leastHits(runtimeCache.find(thisRoom, FIND_STRUCTURES, {
-            filter: (structure) => (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) || (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000)
+            filter: (structure) => {
+                if (siege && structure.structureType === STRUCTURE_RAMPART &&
+                    (!guardSquads.protectedRampart(thisRoom, structure) || structure.hits >= guardSquads.SIEGE_RAMPART_HITS)) return false;
+                return (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) ||
+                    (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000);
+            }
         }));
         if (repairTarget) {
             Memory.repairTarget[thisRoom.name] = repairTarget.id;

@@ -449,6 +449,20 @@ function buildRoom(room, plan) {
     // Young room (no terminal yet, room.stage): no roads or ramparts, and sites already placed for
     // them go, so builders spend everything on structures and upgrading.
     const established = stage.established(room);
+    // A developing room whose attack triggered safe mode gets a deliberately tiny siege shell:
+    // current spawns, current towers, and the supplier's Supply tile only.
+    const siege = !established && require('system.guardSquads').escalated(Game.shard.name, room.name);
+    const siegeRamparts = new Set();
+    if (siege && rcl >= RAMPART_RCL) {
+        for (const structure of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
+            if (structure.structureType === STRUCTURE_SPAWN || structure.structureType === STRUCTURE_TOWER) {
+                siegeRamparts.add(tileOf(structure.pos));
+            }
+        }
+        const supply = Game.flags[room.name + 'Supply'];
+        const supplyTile = supply ? tileOf(supply.pos) : plan.flags && plan.flags.Supply;
+        if (supplyTile !== undefined) siegeRamparts.add(supplyTile);
+    }
     const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
     // Young and no tower yet: hostile creeps can stomp construction sites unopposed, so only the
     // spawn (the room cannot make creeps without it) and, from RCL3, the tower go down; builders
@@ -459,9 +473,10 @@ function buildRoom(room, plan) {
     if (!established) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
             const type = s.structureType;
-            const held = towerless && s.progress === 0 && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
+            const keepSiegeRampart = type === STRUCTURE_RAMPART && siegeRamparts.has(tileOf(s.pos));
+            const held = towerless && s.progress === 0 && !keepSiegeRampart && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
                 type !== STRUCTURE_CONTAINER && type !== STRUCTURE_WALL;
-            if (type === STRUCTURE_ROAD || type === STRUCTURE_RAMPART || held) s.remove();
+            if (type === STRUCTURE_ROAD || (type === STRUCTURE_RAMPART && !keepSiegeRampart) || held) s.remove();
         }
     }
 
@@ -473,6 +488,14 @@ function buildRoom(room, plan) {
     if (built(STRUCTURE_SPAWN) === 0 && (plan.structures.spawn || []).length) kinds = ['spawn'];
     else if (built(STRUCTURE_TOWER) < towersAllowed) kinds = ['tower'];
     else if (towerless) kinds = [];
+
+    // Spend the small per-pass site budget on the siege shell before ordinary extensions.
+    for (const tile of siegeRamparts) {
+        if (budget <= 0) break;
+        const here = occupied.get(tile);
+        if (here && here.includes(STRUCTURE_RAMPART)) continue;
+        site(tile, STRUCTURE_RAMPART);
+    }
 
     // Adopted rooms keep hand-built lab sets intact; migrating rooms replace them.
     const skipLabs = plan.mode === 'adopt' && foreignLabs(room, plan);

@@ -19,7 +19,12 @@ function setup(overrides = {}) {
     const advance = (ticks = 1, ms = ticks * 3000) => { g.Game.time += ticks; now += ms; };
     return { h, g, sys, home, target, messages, advance, now: () => now, store };
 }
-function escalate(s) { s.sys.latch(s.target, 'prior safe mode'); s.sys.run(); return Object.values(s.sys.state().targets)[0]; }
+function escalate(s, desired = 1) {
+    s.sys.latch(s.target, 'prior safe mode'); s.sys.run();
+    const target = Object.values(s.sys.state().targets)[0];
+    target.desired = desired;
+    return target;
+}
 function spawnAll(s) {
     const orders = [];
     for (let i = 0; i < 4; i++) {
@@ -103,7 +108,7 @@ test('cross-shard snapshots age in milliseconds, not by subtracting unrelated Ga
     s.g.Memory.xs = { mode: 'claim', targets: [{ r:'E29N36',h:'shard2:HOME',e:'E30N40',t:100 }] };
     s.messages.shardX = JSON.stringify({ guards: { at:s.now(), tick:9000000, ms:1000,
         rooms:{ E29N36:{escalated:true,owned:true,established:false} }, members:{} } });
-    s.sys.run(); const t = Object.values(s.sys.state().targets)[0], orders = spawnAll(s);
+    s.sys.run(); const t = Object.values(s.sys.state().targets)[0]; t.desired=1; const orders = spawnAll(s);
     const members = Object.fromEntries(orders.map(o => [o.name, { name:o.name,squad:o.memory.guardSquad,slot:o.memory.guardSlot,
         target:'E29N36',room:'E29N36',phase:'arrived',assembled:true,ttl:1400,movement:1,boosts:{} }]));
     s.messages.shardX = JSON.stringify({ guards: { at:s.now(), tick:9000001, ms:1000,
@@ -147,7 +152,7 @@ test('reservations include pending plus future quad, prefer existing labs, and p
     const list=Array.from({length:10},(_,i)=>({id:'lab'+i,mineralType:i===0?range:null,mineralAmount:i===0?3000:0,store:s.store({})}));
     g.Memory.labList.HOME=list.map(l=>l.id); g.Game.getObjectById=id=>list.find(l=>l.id===id);
     escalate(s);
-    assert.equal(b.reserved('HOME',range),5400);
+    assert.equal(b.reserved('HOME',range),8100);
     assert.equal(b.assignment('HOME','lab0'),range);
     assert.equal(Object.keys(b.roomState('HOME').assignments).length,4);
     assert.equal(b.assignment('HOME','lab3'),undefined);
@@ -219,32 +224,31 @@ test('ordinary cross-shard guards still adopt their original xs traveller record
     assert.equal(g.Memory.creeps[c.name].destination,'NEW');
     assert.equal(g.Memory.creeps[c.name].guardAwaitManifest,undefined);
 });
-test('long routes pipeline a successor before the initial quad reaches the post',()=>{
-    const s=setup(),t=escalate(s);t.samples[4]=450;
+test('long routes pipeline a second defensive quad before the initial quad reaches the post',()=>{
+    const s=setup(),t=escalate(s,2);t.samples[4]=450;
     const first=spawnAll(s);s.advance(300);s.sys.run();
-    assert.equal(t.active,undefined);
+    assert.equal(t.active.length,0);
     assert.equal(t.squads.length,2);
     const next=s.sys.spawnOrder('HOME');assert.ok(next);
     assert.notEqual(next.memory.guardSquad,first[0].memory.guardSquad);
     assert.equal(t.squads[0].slots.every(slot=>slot.name),true);
 });
-test('active safe mode pauses initial and queued squads without clearing escalation',()=>{
-    const s=setup();s.target.controller.safeMode=1000;s.sys.run();
+test('safe mode reserves two formations, delays their lives, then deploys both just in time',()=>{
+    const s=setup();s.target.controller.safeMode=5000;s.sys.run();
     const t=Object.values(s.sys.state().targets)[0];
     assert.equal(t.safeMode,true);assert.equal(t.squads.length,0);assert.equal(s.sys.spawnOrder('HOME'),null);
-    assert.equal(s.h.load('system.guardBoosts').roomState('HOME'),undefined);
-    delete s.target.controller.safeMode;s.advance();s.sys.run();
+    assert.ok(s.h.load('system.guardBoosts').roomState('HOME'));
+    assert.equal(s.g.Memory.energyNeedRooms[0],'HOME');
+    s.target.controller.safeMode=t.lead+200;s.advance();s.sys.run();
     assert.ok(s.sys.spawnOrder('HOME'));assert.equal(t.squads.length,1);
-    s.target.controller.safeMode=100;s.advance();s.sys.run();
-    assert.equal(s.sys.spawnOrder('HOME'),null);assert.equal(t.squads.length,1);
-    delete s.target.controller.safeMode;s.advance();s.sys.run();assert.ok(s.sys.spawnOrder('HOME'));
+    s.advance();s.sys.run();assert.equal(t.squads.length,2);
 });
-test('cross-shard safe mode is published and suppresses source orders until expiry is reported',()=>{
-    const x=setup();x.g.Game.shard.name='shardX';x.target.controller.safeMode=1000;x.sys.latch(x.target,'test');x.sys.publish(true);
+test('cross-shard safe mode countdown is published and starts source orders near expiry',()=>{
+    const x=setup();x.g.Game.shard.name='shardX';x.target.controller.safeMode=5000;x.sys.latch(x.target,'test');x.sys.publish(true);
     const report=JSON.parse(x.messages.shardX).guards;
-    assert.equal(report.rooms.NEW.safeMode,1000);
+    assert.equal(report.rooms.NEW.safeMode,5000);
     const s=setup();delete s.g.Memory.expansion;s.g.Memory.xs={mode:'claim',targets:[{r:'NEW',h:'shard2:HOME',e:'ENTRY',t:100}]};
     s.messages.shardX=x.messages.shardX;s.sys.run();assert.equal(s.sys.spawnOrder('HOME'),null);
-    s.advance();report.at=s.now();report.rooms.NEW.safeMode=0;s.messages.shardX=JSON.stringify({guards:report});
+    s.advance();report.at=s.now();report.rooms.NEW.safeMode=1000;s.messages.shardX=JSON.stringify({guards:report});
     s.sys.run();assert.ok(s.sys.spawnOrder('HOME'));
 });
