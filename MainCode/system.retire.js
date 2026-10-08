@@ -284,6 +284,18 @@ function report(arg) {
     const keep = keepCount();
     if (!keep) return 'Room retirement is not configured for ' + Game.shard.name;
     const s = state();
+    // Skip the rest of the drain: everything still in storage/terminal/factory is lost.
+    if (arg === 'now') {
+        const done = [];
+        for (const name in (s && s.rooms) || {}) {
+            const room = Game.rooms[name];
+            if (s.rooms[name].st !== 'drain' || !room || !room.controller || !room.controller.my) continue;
+            const left = leftover(room);
+            if (finish(room)) done.push(name + ' (' + left + ' left behind)');
+        }
+        console.log('[retire] unclaimed now: ' + (done.join(', ') || 'none'));
+        return done.length + ' rooms unclaimed';
+    }
     if (arg === 'cancel') {
         let n = 0;
         for (const name in (s && s.rooms) || {}) {

@@ -158,20 +158,21 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
 function processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
     const roomName = thisRoom.name;
 
-    // Automatic expansion (system.expansion): this room sponsors a new one. Claimer first, then
-    // helpers until the new room has its terminal.
-    const order = expansion.spawnOrder(roomName);
-    if (order) {
-        spawn_BuildInstruction.run(spawn, order.type, order.target, energyIndex, roomName);
-        if (isSpawnBusy(spawn)) return;
-    }
-
-    // shardX settling (system.shardX): scouts, claimers and helpers sent through the portal.
+    // shardX settling (system.shardX): scouts, claimers and helpers sent through the portal. Ahead
+    // of this room's own expansion support: the shardX foothold comes first.
     const xOrder = shardX.spawnOrder(roomName);
     if (xOrder && !isSpawnBusy(spawn) && spawn.spawnCreep(xOrder.body, 'x', { memory: xOrder.memory }) === OK) {
         shardX.spawned(roomName);
         global.setSpawnBusy(spawn);
         return;
+    }
+
+    // Automatic expansion (system.expansion): this room sponsors a new one. Claimer first, then
+    // helpers until the new room has its terminal. Waits while a shardX order is pending here.
+    const order = !xOrder && expansion.spawnOrder(roomName);
+    if (order) {
+        spawn_BuildInstruction.run(spawn, order.type, order.target, energyIndex, roomName);
+        if (isSpawnBusy(spawn)) return;
     }
 
     // Special handling for PowerAttack - check if units need spawning even when PowerPickup exists

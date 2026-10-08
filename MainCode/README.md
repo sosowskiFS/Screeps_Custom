@@ -157,6 +157,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - It never takes the last room on the shard holding one of the 7 base minerals (H O U L K Z X), so every compound can still be made and sold.
   - Rooms without enough data, and an expansion in progress, are kept.
   - It warns about power creeps homed in a room that will be retired.
+- **`retireRooms('now')`** unclaims every room still draining on that shard straight away, through the same finish (orders cancelled, creeps, flags and Memory removed, operators unassigned). Whatever is still in their storage, terminal and factory is lost.
 - **`retireRooms('confirm')`** starts it once measuring is done. `retireRooms('cancel')` stops rooms that haven't been unclaimed yet, and `retireRooms()` then shows progress. A retiring room:
   - only replaces its refill, supplier and miner creeps, plus one drain hauler (16 CARRY) that moves factory and storage contents into the terminal;
   - runs no remote mining, flag commands, expansion sponsorship, reactions, terminal requests or sales, and nothing is sent to it;
@@ -177,6 +178,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - Scouts go up to 600 ticks out (a ring past the claim limit, so edge rooms' neighbours are known).
   - Every room is also recorded in `Memory.expandIntel`, `Memory.badRooms` and `Memory.remoteIntel`.
 - **Candidates:** the auto-expansion rules (the base planner must fit, 2 checks per 100 ticks), plus a controller reachable within 500 ticks. Highway and source-keeper rooms count as known neighbours, since nobody can claim them.
+- **Spawn priority:** a home's spawns take shardX orders (scouts, claimer, helpers) before its own auto-expansion support.
 - **`shardX('claim')`:** stops scouting. shard2 picks the 3 best candidates, each from a different home on any home shard, spaced like auto-expansion.
   - Each home's own shard sends a claimer through the same corner, then keeps 4 helpers there until shardX reports a terminal. From then on shardX's own auto-expansion takes over.
 - **`shardX('cancel')`** stops everything; **`shardX()`** shows status on any shard.

@@ -112,3 +112,19 @@ test('unclaiming a retired room unassigns its operator so it can be given anothe
     assert.equal(g.Memory.powerCreeps.op.homeRoom, undefined);
     assert.equal(g.Memory.powerCreeps.other.homeRoom, 'KEEP');
 });
+
+test('retireRooms(\'now\') unclaims every draining room at once', () => {
+    const { g, retire } = load();
+    g.Game.market.orders = {};
+    g.Game.creeps = {};
+    g.Game.flags = {};
+    g.console = { log: () => {} };
+    const unclaimed = [];
+    const room = name => ({ name, controller: { my: true, unclaim: () => { unclaimed.push(name); return g.OK; } },
+        find: () => [], storage: { store: { getUsedCapacity: () => 1000 } } });
+    g.Game.rooms = { A: room('A'), B: room('B'), KEEP: room('KEEP') };
+    g.Memory.retire = { start: 0, n: 500, e: {}, c: {}, rooms: { A: { st: 'drain', t: 0 }, B: { st: 'drain', t: 0 }, OLD: { st: 'done', t: 0 } } };
+    assert.equal(retire.report('now'), '2 rooms unclaimed');
+    assert.deepEqual(unclaimed, ['A', 'B']);
+    assert.equal(g.Memory.retire.rooms.A.st, 'done');
+});
