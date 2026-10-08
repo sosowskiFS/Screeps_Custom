@@ -16,7 +16,7 @@ const range = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
 
 // The room being built: source A at 10,10 is near but walled in to a single harvesting tile
 // (11,10); source B at 40,40 is far with open ground around it.
-function setup({ carry = {}, others = [], sites = [], dropped = [], aEnergy = 3000 } = {}) {
+function setup({ carry = {}, others = [], sites = [], dropped = [], aEnergy = 3000, tower = true, structures = [] } = {}) {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
     g.RESOURCE_ENERGY = 'energy';
@@ -47,12 +47,16 @@ function setup({ carry = {}, others = [], sites = [], dropped = [], aEnergy = 30
         transfer: () => g.ERR_NOT_IN_RANGE, signController: () => g.OK,
         travelTo: (t, opts) => { calls.push(['travelTo', t.id || 'pos', opts && opts.range]); Traveler.markMoved(creep); return g.OK; },
     };
+    // A full tower by default: most tests are about building (a tower-less young room upgrades first).
+    const mine = structures.concat(tower ? [{ id: 'tower', structureType: g.STRUCTURE_TOWER, store: { [g.RESOURCE_ENERGY]: 1000 } }] : []);
+    for (const o of mine) objects[o.id] = o;
     g.Game.getObjectById = id => objects[id] || null;
     room.find = type => {
         if (type === g.FIND_SOURCES) return [A, B];
         if (type === g.FIND_MY_CREEPS) return [creep, ...others];
         if (type === g.FIND_MY_CONSTRUCTION_SITES) return sites;
         if (type === g.FIND_DROPPED_RESOURCES) return dropped;
+        if (type === g.FIND_MY_STRUCTURES) return mine;
         return [];
     };
     return { g, creep, calls, run: () => h.load('creep.helper').run(creep) };
@@ -112,7 +116,7 @@ test('all helpers pour into one site: spawn/tower/extension first, then the furt
     const sites = [site('road', T.STRUCTURE_ROAD, 900, 16), site('ext1', T.STRUCTURE_EXTENSION, 100, 17), site('ext2', T.STRUCTURE_EXTENSION, 600, 30), site('lab', T.STRUCTURE_LAB, 0, 18)];
     const s = setup({ carry: { energy: 400 }, sites });
     s.run();
-    assert.equal(s.creep.memory.siteTarget, 'ext2', 'an extension, the one closest to done, even though further away');
+    assert.equal(s.creep.memory.job.id, 'ext2', 'an extension, the one closest to done, even though further away');
     assert.deepEqual(plain(s.calls).find(c => c[0] === 'travelTo'), ['travelTo', 'ext2', 3], 'worked from range 3');
 });
 
@@ -190,5 +194,5 @@ test('a job that fails outright moves the helper on to the next one', () => {
     s.creep.build = () => { s.calls.push(['build']); return s.g.ERR_INVALID_TARGET; };   // e.g. a creep standing on it
     s.run();
     assert.ok(plain(s.calls).some(c => c[0] === 'upgrade'), 'falls through to upgrading');
-    assert.equal(s.creep.memory.siteTarget, undefined, 'and picks a site again next tick');
+    assert.equal(s.creep.memory.job && s.creep.memory.job.k, 'upgrade', 'the next job');
 });
