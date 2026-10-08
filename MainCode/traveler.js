@@ -17,6 +17,7 @@
 //    pushes instead of walking away from its goal and back again
 const runtimeCache = require('runtime.cache');
 const badRooms = require('system.badRooms');
+const roomStatus = require('room.status');
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
@@ -201,7 +202,9 @@ class Traveler {
          * @returns {RoomMemory|number}
          */
     static checkAvoid(roomName) {
-            return badRooms.isBad(roomName) || !!(Memory.rooms && Memory.rooms[roomName] && Memory.rooms[roomName].avoid);
+            // Rooms we cannot enter (closed / out of borders: room.status) are never routed through.
+            return badRooms.isBad(roomName) || !roomStatus.open(roomName) ||
+                !!(Memory.rooms && Memory.rooms[roomName] && Memory.rooms[roomName].avoid);
         }
         /**
          * remember that a creep issued its own move this tick (pushBlocker leaves it alone)

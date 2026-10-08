@@ -160,3 +160,24 @@ test('claim support is sent by the shard that owns the target\'s home', () => {
     assert.equal(g.Memory.xs.queue.E28N48.kind, 'claimer');
     assert.deepEqual(plain(g.Memory.xs.queue.E28N48.memory.xShard), { c: 'E40N40' });
 });
+
+test('closed / out-of-borders rooms are never scout targets, routes or candidates (shardX checkerboard)', () => {
+    const { g, h, x } = setup('shardX');
+    // Every other 10x10 sector is out of borders, as on shardX: E41N41 closed, E39N41 open.
+    const closed = name => /^E4[1-9]N4[1-9]$/.test(name);
+    g.Game.map.getRoomStatus = name => ({ status: closed(name) ? 'out of borders' : 'normal' });
+    const status = h.load('room.status');
+    assert.equal(status.open('E41N41'), false);
+    assert.equal(status.open('E39N41'), true);
+    const { Traveler } = h.load('traveler');
+    assert.equal(Traveler.checkAvoid('E41N41'), true, 'never routed through');
+    g.Memory.xs = { seen: {}, tag: {} };
+    for (const name of h.load('system.expansion').around('E40N40', 9)) {
+        if (!closed(name) && name !== 'E39N41') g.Memory.xs.seen[name] = g.Game.time;   // only E39N41 left open and unseen
+    }
+    const scout = { name: 's', memory: { priority: 'xScout' }, room: { name: 'E40N40' }, ticksToLive: 1400 };
+    g.Game.creeps = { s: scout };
+    assert.equal(x.nextRoom(scout), 'E39N41', 'the closed rooms next door are skipped');
+    const expansion = h.load('system.expansion');
+    assert.match(expansion.invalidReason('E41N41', { t: g.Game.time, c: [1, 1], n: 2 }, { mine: [], bad: {} }), /closed/);
+});

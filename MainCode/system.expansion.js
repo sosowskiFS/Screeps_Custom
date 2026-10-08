@@ -232,7 +232,8 @@ function ownerOf(name) {
 
 // Highway and source-keeper rooms can never be claimed: known by their name alone.
 function unclaimable(name) {
-    const m = /^[WE](\d+)[NS](\d+)$/.exec(name);
+    if (!require('room.status').open(name)) return true;   // closed / out of borders
+    const m =/^[WE](\d+)[NS](\d+)$/.exec(name);
     if (!m) return false;
     const x = Number(m[1]) % 10, y = Number(m[2]) % 10;
     return x === 0 || y === 0 || (x >= 4 && x <= 6 && y >= 4 && y <= 6);
@@ -247,6 +248,7 @@ function known(name) {
 // Why a room is not a candidate (null = valid apart from the plan check and route).
 function invalidReason(name, entry, ctx) {
     if (!entry || !fresh(entry, INTEL_MAX_AGE)) return 'no intel';
+    if (!require('room.status').open(name)) return 'closed (cannot be entered)';
     if (!entry.c) return entry.o ? 'owned by ' + entry.o : (entry.n >= 2 ? 'no controller' : 'fewer than 2 sources');
     if (entry.k) return 'source keepers';
     if (entry.r && entry.r !== ctx.me) return 'reserved by ' + entry.r;

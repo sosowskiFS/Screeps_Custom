@@ -250,7 +250,9 @@ function lifeUsed(creep) {
 }
 
 function explorable(name) {
-    if (isSourceKeeper(name) || badRooms.isBad(name)) return false;
+    // Closed / out-of-borders rooms (shardX is a checkerboard of them) cannot be entered: a scout
+    // aiming at one pushed against the border forever.
+    if (isSourceKeeper(name) || badRooms.isBad(name) || !require('room.status').open(name)) return false;
     const seen = xState().seen[name];
     return seen === undefined || Game.time - seen > RESEEN;
 }
