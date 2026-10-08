@@ -38,7 +38,9 @@ function handleCreepOperations() {
             const run = roles[creep.memory.priority] || fallback;
             try {
                 // Bound for shardX: walk to the corner and through its portal first (system.shardX).
-                if (shardX.portalStep(creep)) {
+                if (creep.memory.guardSquad) {
+                    require('creep.guardQuad').run(creep);
+                } else if (shardX.portalStep(creep)) {
                     // handled
                 } else if (!(BANK_BEFORE_DEATH.has(creep.memory.priority) && depositBeforeDeath(creep))) {
                     run(creep, roomsAt5.has(creep.room.name));

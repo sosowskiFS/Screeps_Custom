@@ -65,4 +65,11 @@ function spawnFor(spawn, room) {
     return 'spawned';
 }
 
-module.exports = { need, spawnFor, body, hostileClaimer, claimers };
+// Built walls on controller neighbours (the young-room enclosure placed by base.builder).
+function controllerWalls(room) {
+    const c = room.controller;
+    if (!c || !c.pos) return [];
+    return runtimeCache.find(room, FIND_STRUCTURES, { filter: s => s.structureType === STRUCTURE_WALL &&
+        s.pos && Math.max(Math.abs(s.pos.x - c.pos.x), Math.abs(s.pos.y - c.pos.y)) <= 1 });
+}
+module.exports = { need, spawnFor, body, hostileClaimer, claimers, controllerWalls };

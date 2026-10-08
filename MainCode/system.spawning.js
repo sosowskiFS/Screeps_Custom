@@ -123,6 +123,24 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
         return;
     }
 
+    // Defensive quads reserve slots only after a successful spawn, ahead of all optional work.
+    const quad = require('system.guardSquads').spawnOrder(thisRoom.name);
+    if (quad) {
+        if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.includes(thisRoom.name) && !thisRoom.controller.safeMode) {
+            processNormalSpawning(spawn, thisRoom, energyIndex);
+            if (isSpawnBusy(spawn)) return;
+        }
+        const result = spawn.spawnCreep(quad.body, quad.name, { memory: quad.memory });
+        if (result === OK) {
+            require('system.guardSquads').spawned(quad);
+            global.setSpawnBusy(spawn);
+        } else if (result === ERR_NOT_ENOUGH_ENERGY) {
+            if (quad.target.energyWaitAt === undefined) quad.target.energyWaitAt = Game.time;
+            quad.target.refillDelay = Math.max(quad.target.refillDelay || 0, Game.time - quad.target.energyWaitAt);
+        }
+        return;
+    }
+
     // Process various spawn commands
     processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache);
 

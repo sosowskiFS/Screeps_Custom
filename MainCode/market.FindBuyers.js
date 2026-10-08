@@ -39,18 +39,27 @@ var market_buyers = {
             }
         }
 
+        const ordinaryNeeds = new Set(neededMinerals);
+        const guardBoosts = require('system.guardBoosts');
+        const guardStock = guardBoosts.roomState(thisRoom.name);
+        if (guardStock) for (const mineral of Object.keys(guardStock.need)) {
+            if (!neededMinerals.includes(mineral)) neededMinerals.push(mineral);
+        }
+
         // Process mineral needs
         for (const mineral of neededMinerals) {
             if (!Memory.mineralNeed[mineral]) {
                 Memory.mineralNeed[mineral] = [];
             }
-            const mineralCap = 5000;
-            const currentAmount = (thisTerminal.store[mineral] || 0) + ((thisRoom.storage && thisRoom.storage.store[mineral]) || 0);
+            const reservation = guardBoosts.reserved(thisRoom.name, mineral);
+            const mineralCap = Math.max(ordinaryNeeds.has(mineral) ? 5000 : 0, reservation);
+            const currentAmount = reservation ? guardBoosts.stock(thisRoom, mineral) :
+                (thisTerminal.store[mineral] || 0) + ((thisRoom.storage && thisRoom.storage.store[mineral]) || 0);
             const roomIndex = Memory.mineralNeed[mineral].indexOf(thisRoom.name);
             
             if (currentAmount < mineralCap) {
                 if (roomIndex === -1) {
-                    if ((mineral === RESOURCE_CATALYZED_GHODIUM_ACID && GH2OPriority === 0) || 
+                    if (guardBoosts.reserved(thisRoom.name, mineral) || (mineral === RESOURCE_CATALYZED_GHODIUM_ACID && GH2OPriority === 0) ||
                         (mineral === RESOURCE_HYDROXIDE && HydroxidePriority === 0)) {
                         Memory.mineralNeed[mineral].unshift(thisRoom.name);
                     } else {
@@ -201,6 +210,17 @@ function sendMineral(thisMineral, thisTerminal, targetRoom, saveFlag) {
             }
         }
         
+        const guardBoosts = require('system.guardBoosts');
+        const reserve = guardBoosts.reserved(thisTerminal.room.name, thisMineral);
+        const spare = guardBoosts.stock(thisTerminal.room, thisMineral) - reserve;
+        amountAvailable = Math.min(amountAvailable, spare);
+        const targetReserve = guardBoosts.reserved(targetRoom, thisMineral);
+        if (targetReserve) {
+            const missing = Math.max(targetStoreCap, targetReserve) - guardBoosts.stock(Game.rooms[targetRoom], thisMineral);
+            targetStoreCap = (targetTerminal && targetTerminal.store[thisMineral] || 0) + Math.max(0, missing);
+        }
+        if (targetRoom === thisTerminal.room.name) return false;
+
         if (amountAvailable > 5000) {
             amountAvailable = 5000;
         }

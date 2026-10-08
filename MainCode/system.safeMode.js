@@ -90,6 +90,7 @@ function run() {
         const text = 'SAFE MODE ' + (result === OK ? 'activated' : 'failed (' + result + ')') + ' in ' + name + ' (under construction): ' + reason;
         console.log('[safeMode] ' + text);
         if (result === OK) {
+            require('system.guardSquads').latch(room, 'automatic safe mode: ' + reason);
             Game.notify(text);
             Memory.LastNotification = Game.time + ' : ' + text;
         }

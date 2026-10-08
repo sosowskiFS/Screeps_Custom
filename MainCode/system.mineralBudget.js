@@ -51,6 +51,8 @@ function tier(resource) {
 }
 
 function keepFloor(room, resource) {
+    const reserved = require('system.guardBoosts').reserved(room.name, resource);
+    if (reserved) return Math.max(KEEP_USEFUL, reserved);
     const job = labPlanner.jobFor(room.name);
     if (job && (job.a === resource || job.b === resource)) return KEEP_USEFUL;
     const config = Memory.roomConfigs && Memory.roomConfigs[room.name] && Memory.roomConfigs[room.name].mineralConfig;

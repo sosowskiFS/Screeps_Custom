@@ -28,11 +28,13 @@ const phases = [
     ['flags', flags.handleGameFlags],
     ['state', state.initializeGameState],
     ['safeMode', safeMode.run],   // rooms under construction (no terminal yet)
+    ['guardSquads', () => require('system.guardSquads').run()],
     ['defense', defense.handleTowersAndRooms],
     ['spawningAndRooms', spawning.handleSpawning],
     ['market', market.handleMarketOperations],
     ['shardX', shardX.run],   // before creeps: creeps arriving on shardX get their memory first
     ['creeps', creeps.handleCreepOperations],
+    ['guardProgress', () => require('system.guardSquads').publish(false)],
     ['remoteMining', remoteMining.run],
     ['minerals', labs.run],
     ['construction', construction.handleAutoBuildRoomsRegeneration],

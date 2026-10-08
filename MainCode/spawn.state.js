@@ -30,7 +30,10 @@ function trackSpawnOrders() {
         if (!(opts && opts.dryRun)) {
             name = opaqueName();
             // Only what the role reads goes into memory (runtime.memoryCleanup.slimCreep).
-            if (opts && opts.memory) slimCreep(opts.memory);
+            if (opts && opts.memory) {
+                if (opts.memory.guardSquad) opts.memory.guardSpawnName = name;
+                slimCreep(opts.memory);
+            }
         }
         const result = original.call(this, body, name, opts);
         if (result === OK && !(opts && opts.dryRun)) {

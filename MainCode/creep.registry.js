@@ -233,10 +233,11 @@ tier(['farMule', 'farMuleNearDeath', 'farClaimer', 'farClaimerNearDeath', 'farMi
     'looter', 'helper', 'distantSupplier', 'farScout'], ECONOMY);
 // Keeper-room miners carry HEAL and fight keepers: skipping their ticks gets them killed.
 tier(['farMiner', 'farMinerNearDeath'], creep => creep.memory.jobSpecific === 'SKMiner' || creep.getActiveBodyparts(HEAL) > 0 ? ESSENTIAL : ECONOMY);
-tier(['repair', 'repairNearDeath'], creep => underAttack(creep) ? ESSENTIAL : OPTIONAL);
+tier(['repair', 'repairNearDeath'], creep => underAttack(creep) ||
+    (creep.room.controller && creep.room.controller.level < 5 && require('system.claimDefense').controllerWalls(creep.room).length) ? ESSENTIAL : OPTIONAL);
 tier(['labWorker', 'labWorkerNearDeath'], creep => {
     const home = creep.memory.homeRoom || creep.room.name;
-    return Game.flags[home + 'WarBoosts'] || Game.flags[home + 'RunningAssault'] ? ESSENTIAL : OPTIONAL;
+    return require('system.guardBoosts').roomState(home) || Game.flags[home + 'WarBoosts'] || Game.flags[home + 'RunningAssault'] ? ESSENTIAL : OPTIONAL;
 });
 tier(['upSupplier', 'upSupplierNearDeath'], creep => {
     const controller = creep.room.controller;

@@ -188,10 +188,17 @@ function adopt() {
     let remotes;
     for (const name in Game.creeps) {
         const creep = Game.creeps[name];
-        if (creep.memory && creep.memory.priority) continue;
+        if (creep.memory && creep.memory.priority && !creep.memory.guardAwaitManifest) continue;
+        if (require('system.guardSquads').adopt(creep)) continue;
         if (!remotes) remotes = HOME_SHARDS.map(readISM).filter(Boolean);
         let entry;
         for (const r of remotes) if (r.travellers && r.travellers[name]) entry = r.travellers[name];
+        // Preserve ordinary traveller adoption before the delayed squad-manifest fallback.
+        if (!entry && (creep.name.startsWith('gq-') || (!creep.getActiveBodyparts(WORK) &&
+            (creep.getActiveBodyparts(HEAL) || creep.getActiveBodyparts(RANGED_ATTACK))))) {
+            Memory.creeps[name] = { priority: 'roomGuard', guardAwaitManifest: true };
+            continue;
+        }
         const coord = remotes.find(r => r.targets) || {};
         const mem = entry ? Object.assign({}, entry.m) : inferMemory(creep, coord);
         if (mem.priority === 'xScout') mem.entry = creep.room.name;
@@ -390,7 +397,7 @@ function scheduleSupport(list, progress) {
         const base = { destination: t.r, homeRoom: home, xTarget: 1, xShard: { c: t.e } };
         // A guard once the room is ours, re-ordered before the last one dies. One still on its way
         // here is not yet counted on shardX: GUARD_GAP keeps it from being ordered twice.
-        if (p.cl) {
+        if (p.cl && !require('system.guardSquads').escalated(X_SHARD, t.r)) {
             const guard = require('creep.roomGuard');
             const lead = guard.leadTime(guard.body(Game.rooms[home].energyCapacityAvailable).length, p.gt, t.t !== undefined ? Math.ceil(t.t / 50) : 10);
             const ttls = p.gd ? [p.gd] : [];
@@ -460,6 +467,10 @@ function spawnOrder(roomName) {
     const s = Memory.xs;
     const order = s && s.queue && s.queue[roomName];
     if (!order) return null;
+    if (order.kind === 'roomGuard' && require('system.guardSquads').escalated(X_SHARD, order.memory.destination)) {
+        delete s.queue[roomName];
+        return null;
+    }
     const body = order.kind === 'roomGuard' ? require('creep.roomGuard').body(Game.rooms[roomName].energyCapacityAvailable) : BODIES[order.kind];
     return { body, memory: order.memory };
 }

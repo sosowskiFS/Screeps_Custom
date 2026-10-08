@@ -239,8 +239,21 @@ function sellCompounds() {
     const stock = labPlanner.empireStock();
     const budget = raiseBudget();
     for (const resource of labPlanner.SELLABLE) {
-        const orders = myOrders(resource, ORDER_SELL);
+        const guards = require('system.guardBoosts');
         const surplus = labPlanner.surplus(resource, stock);
+        let sellable = surplus;
+        const guarded = guards.empireNeed()[resource] > 0;
+        const orders = myOrders(resource, ORDER_SELL).filter(order => {
+            const room = Game.rooms[order.roomName];
+            const reserved = guards.reserved(order.roomName, resource);
+            if (guarded && (order.remainingAmount > sellable || (reserved && room &&
+                order.remainingAmount > Math.max(0, guards.stock(room, resource) - reserved)))) {
+                Game.market.cancelOrder(order.id);
+                return false;
+            }
+            sellable -= order.remainingAmount;
+            return true;
+        });
         if (orders.length) {
             // Volume of our biggest order: our orders sell one at a time, cheapest first.
             let volume = 0;
@@ -262,7 +275,8 @@ function sellCompounds() {
             if (r.controller && r.controller.my && r.terminal &&
                 (!room || (r.terminal.store[resource] || 0) > (room.terminal.store[resource] || 0))) room = r;
         }
-        const amount = room ? Math.min(surplus, room.terminal.store[resource] || 0) : 0;
+        const amount = room ? Math.max(0, Math.min(surplus, room.terminal.store[resource] || 0,
+            guards.stock(room, resource) - guards.reserved(room.name, resource))) : 0;
         if (amount < 1000) continue;
         const ask = sellPrice(resource, MIN_COMPETITOR, MIN_SELL_PRICE, 0, amount);
         if (budget.credits >= ask * amount * FEE) {

@@ -85,6 +85,8 @@ function targets(roomCount) {
     const out = {};
     const n = Math.max(1, roomCount);
     for (const res in TARGET_PER_ROOM) out[res] = TARGET_PER_ROOM[res] * n;
+    const reserved = require('system.guardBoosts').empireNeed();
+    for (const res in reserved) out[res] = (out[res] || 0) + reserved[res];
     return out;
 }
 
@@ -122,9 +124,10 @@ function candidates(stock, goal, surplus) {
         want(b, missing, depth + 1);
     }
 
+    const guardNeed = require('system.guardBoosts').empireNeed();
     const demands = Object.keys(goal)
-        .map(res => ({ res, ratio: (stock[res] || 0) / goal[res] }))
-        .sort((x, y) => x.ratio - y.ratio);
+        .map(res => ({ res, ratio: (stock[res] || 0) / goal[res], urgent: (guardNeed[res] || 0) > (stock[res] || 0) }))
+        .sort((x, y) => Number(y.urgent) - Number(x.urgent) || x.ratio - y.ratio);
     for (const { res, ratio } of demands) {
         if (ratio < 1) want(res, goal[res], 0);
     }

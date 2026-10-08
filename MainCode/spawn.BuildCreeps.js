@@ -42,7 +42,7 @@ var spawn_BuildCreeps = {
                 builderCount++;
             } else if (priority == 'upgrader') {
                 upgraderCount++;
-            } else if (priority == 'repair') {
+            } else if (priority == 'repair' && creep.memory.homeRoom === roomName) {
                 repairerCount++;
             } else if (priority == 'supplier') {
                 supplierCount++;
@@ -57,7 +57,8 @@ var spawn_BuildCreeps = {
         let harvesterMax = Math.min(2, strSources.length);
         let builderMax = runtimeCache.find(thisRoom, FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0;
         let upgraderMax = getUpgraderMax(thisRoom);
-        let repairMax = getRepairMax(thisRoom);
+        const controllerWalls = require('system.claimDefense').controllerWalls(thisRoom);
+        let repairMax = controllerWalls.length ? 1 : getRepairMax(thisRoom);
         let supplierMax = 0;
         let distributorMax = getDistributorMax(thisRoom);
 
@@ -106,8 +107,8 @@ var spawn_BuildCreeps = {
 
         if (Game.flags[thisRoom.name + "upFocus"]) {
             //Laser focus on upgrading
-            upgraderMax = upgraderMax + repairMax;
-            repairMax = 0;
+            upgraderMax = upgraderMax + (controllerWalls.length ? 0 : repairMax);
+            repairMax = controllerWalls.length ? 1 : 0;
         }
 
         let defenderEnergyLim = 780;
@@ -221,6 +222,9 @@ var spawn_BuildCreeps = {
             } else if (supplierCount < supplierMax && supplierDirection.length > 0 && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'supplier';
                 bestWorker = getSupplierConfig(budget);
+            } else if (controllerWalls.length && repairerCount < repairMax && upgraderCount >= 1 && budget >= 200) {
+                prioritizedRole = 'repair';
+                bestWorker = getWorkerConfig(budget, 'repair');
             } else if (upgraderCount < upgraderMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'upgrader';
                 bestWorker = getWorkerConfig(budget, 'upgrader');
@@ -309,6 +313,10 @@ function getDistributorMax(room) {
 }
 
 function getWorkerConfig(energyCap, role) {
+    if (role === 'repair') {
+        const blocks = Math.min(6, Math.floor(energyCap / 200));
+        return Array(blocks).fill(WORK).concat(Array(blocks).fill(CARRY), Array(blocks).fill(MOVE));
+    }
     // Generic worker configuration for upgraders, builders, and repairers
     let config = [];
     let remainingEnergy = energyCap;

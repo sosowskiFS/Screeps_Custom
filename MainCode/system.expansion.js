@@ -592,6 +592,7 @@ function spawnOrder(roomName) {
 }
 
 function guardWanted(s, sponsorName) {
+    if (require('system.guardSquads').escalated(Game.shard.name, s.t)) return false;
     const guard = require('creep.roomGuard');
     const sponsor = Game.rooms[sponsorName];
     if (!sponsor) return false;

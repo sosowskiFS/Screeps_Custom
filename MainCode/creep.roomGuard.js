@@ -89,6 +89,8 @@ function park(creep) {
 module.exports = {
     body, leadTime, covered,
     run: function(creep) {
+        if (creep.memory.guardAwaitManifest) return;
+        if (creep.memory.guardSquad) return require('creep.guardQuad').run(creep);
         const dest = creep.memory.destination;
         delete creep.memory.regroupUntil;   // a guard never falls back home
         if (creep.room.name !== dest) {

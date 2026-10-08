@@ -1,0 +1,250 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { harness, plain } = require('./harness');
+function setup(overrides = {}) {
+    const h = harness(overrides), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.Game.shard.name = 'shard2';
+    let now = 1000000;
+    g.Date = { now: () => now };
+    const messages = {};
+    g.InterShardMemory = { getLocal: () => messages.shard2 || '', setLocal: v => { messages[g.Game.shard.name] = v; }, getRemote: s => messages[s] || '' };
+    const store = values => Object.assign({ getFreeCapacity: () => 100000 }, values);
+    const home = g.Game.rooms.HOME = { name: 'HOME', energyCapacityAvailable: 12900, controller: { my: true, level: 8 },
+        storage: { store: store({}) }, terminal: { store: store({}) }, find: () => [] };
+    const target = g.Game.rooms.NEW = { name: 'NEW', controller: { my: true, level: 2 }, find: () => [] };
+    g.Game.spawns.A = { room: home, spawning: null };
+    g.Memory.expansion = { st: 'develop', sp: 'HOME', t: 'NEW' };
+    const sys = h.load('system.guardSquads');
+    const advance = (ticks = 1, ms = ticks * 3000) => { g.Game.time += ticks; now += ms; };
+    return { h, g, sys, home, target, messages, advance, now: () => now, store };
+}
+function escalate(s) { s.sys.latch(s.target, 'prior safe mode'); s.sys.run(); return Object.values(s.sys.state().targets)[0]; }
+function spawnAll(s) {
+    const orders = [];
+    for (let i = 0; i < 4; i++) {
+        const order = s.sys.spawnOrder('HOME'); assert.ok(order); s.sys.spawned(order); orders.push(order);
+    }
+    return orders;
+}
+function post(s, orders, ttl = 1200) {
+    for (const o of orders) s.g.Game.creeps[o.name] = { name: o.name, memory: Object.assign({}, o.memory,
+        { guardBoostDone: true, guardPhase: 'arrived', guardAssembled: true }), room: s.target,
+        ticksToLive: ttl, body: o.body.map(type => ({ type, hits: 100 })) };
+}
+test('escalation is latched only for young owned rooms; bootstrap is shard-specific', () => {
+    const s = setup(); s.sys.run(); assert.equal(Object.keys(s.sys.state().targets).length, 0);
+    escalate(s); delete s.target.controller.safeMode; s.advance(); s.sys.run();
+    assert.equal(s.sys.escalated('shard2', 'NEW'), true);
+    const x = setup(); x.g.Game.rooms.E29N36 = { name: 'E29N36', controller: { my: true, level: 2 } };
+    x.sys.run(); assert.equal(x.sys.escalated('shard2', 'E29N36'), false);
+    x.g.Game.shard.name = 'shardX'; x.advance(); x.sys.run(); assert.equal(x.sys.escalated('shardX', 'E29N36'), true);
+    const old = { name: 'OLD', controller: { my: true, level: 7 }, storage: {} };
+    x.sys.latch(old, 'test'); assert.equal(x.sys.escalated('shardX', 'OLD'), false);
+});
+test('body costs and full-quad mineral requirements match the approved compositions', () => {
+    const s = setup(), g = s.g, boost = s.h.load('system.guardBoosts');
+    const cost = { tough: 10, move: 50, ranged_attack: 150, heal: 250 };
+    assert.equal(s.sys.body(12900, 0).reduce((n,p) => n + cost[p], 0), 5100);
+    assert.equal(s.sys.body(12900, 3).reduce((n,p) => n + cost[p], 0), 8100);
+    assert.equal(s.sys.body(2300, 3).length, 10);
+    assert.equal(s.sys.body(500, 0).length, 0);
+    const minerals = {};
+    for (let i = 0; i < 4; i++) for (const [r,n] of Object.entries(boost.requirements(s.sys.body(12900,i)))) minerals[r] = (minerals[r] || 0) + n;
+    assert.equal(minerals[g.RESOURCE_CATALYZED_GHODIUM_ALKALIDE], 1200);
+    assert.equal(minerals[g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE], 1200);
+    assert.equal(minerals[g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE], 2700);
+    assert.equal(minerals[g.RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE], 900);
+});
+test('four accepted slots are unique, failed attempts do not reserve, actual opaque names are preserved', () => {
+    const s = setup(); escalate(s);
+    const failed = s.sys.spawnOrder('HOME'); assert.equal(failed.slot.phase, 'queued');
+    const first = s.sys.spawnOrder('HOME'); assert.equal(first.memory.guardSlot, failed.memory.guardSlot);
+    first.memory.guardSpawnName = 'opaque123'; s.sys.spawned(first);
+    assert.equal(first.slot.name, 'opaque123');
+    for (let i = 1; i < 4; i++) { const o = s.sys.spawnOrder('HOME'); assert.equal(o.memory.guardSlot, i); s.sys.spawned(o); }
+    assert.equal(s.sys.spawnOrder('HOME'), null);
+    const report = JSON.parse(s.messages.shard2).guards;
+    assert.equal(Object.keys(report.manifests).length, 4);
+    assert.equal(report.manifests.opaque123.guardRoster.length, 4);
+});
+test('coverage uses earliest member expiry, overlaps replacements, and retains the posted squad', () => {
+    const s = setup(); const t = escalate(s), orders = spawnAll(s);
+    // Use a short measured route so a healthy squad does not immediately need a successor.
+    t.samples[4] = 50; post(s, orders, 1400); s.advance(); s.sys.run();
+    assert.equal(t.gap, false); assert.equal(t.squads.length, 1);
+    s.g.Game.creeps[orders[3].name].ticksToLive = 500;
+    s.advance(); s.sys.run(); assert.equal(t.squads.length, 2);
+    assert.equal(t.squads[0].slots.every(slot => slot.name), true);
+    assert.notEqual(s.sys.spawnOrder('HOME').memory.guardSquad, orders[0].memory.guardSquad);
+});
+test('a confirmed casualty reopens its specialization, graduation releases reservations without changing defenders', () => {
+    const s = setup(); const t = escalate(s), orders = spawnAll(s); t.samples[4] = 50;
+    post(s, orders, 1400); s.advance(); s.sys.run();
+    delete s.g.Game.creeps[orders[3].name]; s.advance(); s.sys.run();
+    assert.equal(t.gap, true); assert.equal(s.sys.spawnOrder('HOME').memory.guardSlot, 3);
+    assert.equal(t.squads.length, 1);
+    s.target.terminal = { my: true }; s.advance(); s.sys.run();
+    assert.equal(s.sys.spawnOrder('HOME'), null);
+    assert.equal(s.h.load('system.guardBoosts').roomState('HOME'), undefined);
+    assert.equal(Object.keys(s.g.Game.creeps).length, 3);
+});
+test('ownership loss stops reinforcement; sponsor handoff retains squad identity', () => {
+    const s = setup(); const t = escalate(s); spawnAll(s);
+    const id = t.squads[0].id;
+    s.g.Game.rooms.OTHER = Object.assign({}, s.home, { name: 'OTHER' });
+    s.g.Memory.expansion.sp = 'OTHER'; s.advance(); s.sys.run();
+    assert.equal(t.home, 'OTHER'); assert.equal(t.squads[0].id, id);
+    s.target.controller.my = false; s.advance(); s.sys.run();
+    assert.equal(t.stopped, true); assert.equal(s.sys.spawnOrder('OTHER'), null);
+});
+test('cross-shard snapshots age in milliseconds, not by subtracting unrelated Game.time values', () => {
+    const s = setup(); delete s.g.Memory.expansion;
+    s.g.Memory.xs = { mode: 'claim', targets: [{ r:'E29N36',h:'shard2:HOME',e:'E30N40',t:100 }] };
+    s.messages.shardX = JSON.stringify({ guards: { at:s.now(), tick:9000000, ms:1000,
+        rooms:{ E29N36:{escalated:true,owned:true,established:false} }, members:{} } });
+    s.sys.run(); const t = Object.values(s.sys.state().targets)[0], orders = spawnAll(s);
+    const members = Object.fromEntries(orders.map(o => [o.name, { name:o.name,squad:o.memory.guardSquad,slot:o.memory.guardSlot,
+        target:'E29N36',room:'E29N36',phase:'arrived',assembled:true,ttl:1400,movement:1,boosts:{} }]));
+    s.messages.shardX = JSON.stringify({ guards: { at:s.now(), tick:9000001, ms:1000,
+        rooms:{ E29N36:{escalated:true,owned:true,established:false} },members } });
+    s.advance(); s.sys.run();
+    assert.ok(t.remaining < 470 && t.remaining > 400);
+    assert.equal(t.gap,false);
+    s.advance(30, 90000); s.sys.run();
+    assert.equal(s.sys.fresh(JSON.parse(s.messages.shardX).guards), false);
+    assert.ok(t.remaining < 450, 'stale data cannot refresh the old TTL');
+});
+test('manifests restore healer identity after a global reset and remove source-only portal state', () => {
+    const s = setup(); escalate(s); const orders = spawnAll(s), healer = orders[3];
+    const x = setup(); x.g.Game.shard.name = 'shardX'; x.messages.shard2 = s.messages.shard2;
+    const c = { name: healer.name, memory:{} };
+    assert.equal(x.sys.adopt(c),true);
+    assert.equal(x.g.Memory.creeps[c.name].guardKind,'healer');
+    assert.equal(x.g.Memory.creeps[c.name].xShard,undefined);
+    assert.equal(x.g.Memory.creeps[c.name].guardBoostDone,true);
+});
+test('boost preparation is bounded, uses available partial T3 and skips absent minerals', () => {
+    const s = setup(), g = s.g, b = s.h.load('system.guardBoosts');
+    const res = g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    let boosted = 0;
+    const lab = { id:'lab', mineralType:res,mineralAmount:30,store:s.store({[res]:30,[g.RESOURCE_ENERGY]:20}),
+        boostCreep:(c,n) => { boosted += n; c.body[0].boost=res; lab.store[res]=0; return g.OK; } };
+    g.Game.getObjectById = id => id === 'lab' ? lab : null; g.Memory.labList.HOME=['lab'];
+    g.Memory.guardBoosts = { rooms: { HOME:{need:{[res]:60},assignments:{lab:res}} } };
+    const c = { memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.RANGED_ATTACK,hits:100},{type:g.RANGED_ATTACK,hits:100}, {type:g.MOVE,hits:100}],pos:{isNearTo:()=>true} };
+    assert.equal(b.boost(c),true); assert.equal(boosted,1);
+    s.advance(); assert.equal(b.boost(c),false); assert.equal(c.memory.guardBoostDone,true);
+    s.home.storage.store[res]=300;
+    const waiting = { memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.RANGED_ATTACK,hits:100}],pos:{isNearTo:()=>true} };
+    assert.equal(b.boost(waiting),true); s.advance(100); assert.equal(b.boost(waiting),false);
+    const urgent = { memory:{homeRoom:'HOME',guardDeparture:g.Game.time},room:s.home,body:waiting.body };
+    assert.equal(b.boost(urgent),false);
+});
+test('reservations include pending plus future quad, prefer existing labs, and protect mineral floors', () => {
+    const s=setup(), g=s.g, b=s.h.load('system.guardBoosts');
+    const range=g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    const list=Array.from({length:10},(_,i)=>({id:'lab'+i,mineralType:i===0?range:null,mineralAmount:i===0?3000:0,store:s.store({})}));
+    g.Memory.labList.HOME=list.map(l=>l.id); g.Game.getObjectById=id=>list.find(l=>l.id===id);
+    escalate(s);
+    assert.equal(b.reserved('HOME',range),5400);
+    assert.equal(b.assignment('HOME','lab0'),range);
+    assert.equal(Object.keys(b.roomState('HOME').assignments).length,4);
+    assert.equal(b.assignment('HOME','lab3'),undefined);
+    assert.equal(b.assignment('HOME','lab4'),undefined);
+    assert.ok(s.h.load('system.labs').targets(1)[range] >= 10400);
+    assert.ok(b.shortages('HOME')[range] > 0);
+});
+test('a lost home-shard traveler is replaced promptly, while portal transit keeps its reservation', () => {
+    const s=setup();const t=escalate(s);t.samples[4]=50;const orders=spawnAll(s);
+    const o=orders[0];
+    s.g.Game.creeps[o.name]={name:o.name,memory:Object.assign({},o.memory,{guardPhase:'traveling',guardBoostDone:true}),room:s.home,ticksToLive:1200,body:[]};
+    s.advance();s.sys.run();delete s.g.Game.creeps[o.name];s.advance();s.sys.run();
+    assert.equal(s.sys.spawnOrder('HOME').memory.guardSlot,0);
+    const replacement=s.sys.spawnOrder('HOME');s.sys.spawned(replacement);
+    s.g.Game.creeps[replacement.name]={name:replacement.name,memory:Object.assign({},replacement.memory,{guardPhase:'crossing',guardBoostDone:true}),room:s.home,ticksToLive:1200,body:[]};
+    s.sys.publish(true);delete s.g.Game.creeps[replacement.name];s.advance();s.sys.run();
+    assert.equal(s.sys.spawnOrder('HOME'),null);
+});
+test('graduation does not erase manifests for a squad already in transit', () => {
+    const s=setup();escalate(s);const orders=spawnAll(s);
+    s.target.terminal={my:true};s.advance();s.sys.run();s.sys.publish(true);
+    const manifests=JSON.parse(s.messages.shard2).guards.manifests;
+    assert.equal(Object.keys(manifests).length,4);
+    assert.ok(manifests[orders[3].name]);
+});
+test('lease worker flushes old minerals, loads boost minerals, and restores ordinary ownership', () => {
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const res=g.RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
+    const lab={id:'lab',mineralType:'old',mineralAmount:100,store:s.store({old:100})};
+    g.Game.getObjectById=id=>id==='lab'?lab:null;
+    s.home.terminal.store[res]=300;g.Memory.guardBoosts={rooms:{HOME:{need:{[res]:300},assignments:{lab:res}}}};
+    const calls=[], c={room:s.home,memory:{structureTarget:'lab'},carry:{},carryCapacity:100,
+        withdraw:(target,resource,amount)=>{calls.push(['withdraw',target===lab?'lab':'terminal',resource]);c.carry[resource]=amount||100;return g.OK;},
+        transfer:(target,resource)=>{calls.push(['transfer',target===lab?'lab':'terminal',resource]);delete c.carry[resource];return g.OK;}};
+    assert.equal(b.workLabs(c),true);assert.deepEqual(calls[0],['withdraw','lab','old']);
+    assert.equal(b.workLabs(c),true);assert.deepEqual(calls[1],['transfer','terminal','old']);
+    lab.mineralType=undefined;lab.mineralAmount=0;lab.store[g.RESOURCE_ENERGY]=2000;
+    assert.equal(b.workLabs(c),true);assert.deepEqual(calls[2],['withdraw','terminal',res]);
+    assert.equal(b.workLabs(c),true);assert.deepEqual(calls[3],['transfer','lab',res]);
+    g.Memory.guardBoosts.rooms={};assert.equal(b.workLabs(c),false);
+});
+test('existing sell orders cannot consume stock reserved by a different sponsor room', () => {
+    const s=setup(),g=s.g,res=g.RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[res]:2000},assignments:{}}}};
+    s.home.terminal.store[res]=1000;
+    const seller=g.Game.rooms.SELLER={name:'SELLER',controller:{my:true},terminal:{store:s.store({[res]:3000})}};
+    const cancelled=[];
+    Object.assign(g.Game.market,{credits:100000,orders:{o:{id:'o',roomName:'SELLER',resourceType:res,type:g.ORDER_SELL,remainingAmount:3000,price:1}},
+        cancelOrder:id=>{cancelled.push(id);return g.OK;},getHistory:()=>[],createOrder:()=>g.OK});
+    s.h.load('system.market').sellCompounds();assert.deepEqual(cancelled,['o']);assert.ok(seller);
+});
+test('delayed portal manifests hold an opaque healer instead of dispatching it as a scout',()=>{
+    const s=setup(),g=s.g;g.Game.shard.name='shardX';
+    const c={name:'opaqueHealer',memory:{},getActiveBodyparts:type=>type===g.HEAL?30:0};
+    g.Game.creeps[c.name]=c;s.h.load('system.shardX').adopt();
+    assert.equal(g.Memory.creeps[c.name].priority,'roomGuard');
+    assert.equal(g.Memory.creeps[c.name].guardAwaitManifest,true);
+    c.memory=g.Memory.creeps[c.name];
+    s.messages.shard2=JSON.stringify({guards:{manifests:{opaqueHealer:{priority:'roomGuard',guardSquad:'q',guardSlot:3,guardKind:'healer',destination:'NEW',guardTargetShard:'shardX'}}}});
+    s.advance();s.h.load('system.shardX').adopt();
+    assert.equal(g.Memory.creeps[c.name].guardSquad,'q');
+    assert.equal(g.Memory.creeps[c.name].guardAwaitManifest,undefined);
+});
+test('ordinary cross-shard guards still adopt their original xs traveller record',()=>{
+    const s=setup(),g=s.g;g.Game.shard.name='shardX';
+    const c={name:'ordinary',memory:{},getActiveBodyparts:type=>type===g.RANGED_ATTACK?15:0};g.Game.creeps[c.name]=c;
+    s.messages.shard2=JSON.stringify({xs:{travellers:{ordinary:{m:{priority:'roomGuard',destination:'NEW',homeRoom:'HOME'}}}}});
+    s.h.load('system.shardX').adopt();
+    assert.equal(g.Memory.creeps[c.name].destination,'NEW');
+    assert.equal(g.Memory.creeps[c.name].guardAwaitManifest,undefined);
+});
+test('long routes pipeline a successor before the initial quad reaches the post',()=>{
+    const s=setup(),t=escalate(s);t.samples[4]=450;
+    const first=spawnAll(s);s.advance(300);s.sys.run();
+    assert.equal(t.active,undefined);
+    assert.equal(t.squads.length,2);
+    const next=s.sys.spawnOrder('HOME');assert.ok(next);
+    assert.notEqual(next.memory.guardSquad,first[0].memory.guardSquad);
+    assert.equal(t.squads[0].slots.every(slot=>slot.name),true);
+});
+test('active safe mode pauses initial and queued squads without clearing escalation',()=>{
+    const s=setup();s.target.controller.safeMode=1000;s.sys.run();
+    const t=Object.values(s.sys.state().targets)[0];
+    assert.equal(t.safeMode,true);assert.equal(t.squads.length,0);assert.equal(s.sys.spawnOrder('HOME'),null);
+    assert.equal(s.h.load('system.guardBoosts').roomState('HOME'),undefined);
+    delete s.target.controller.safeMode;s.advance();s.sys.run();
+    assert.ok(s.sys.spawnOrder('HOME'));assert.equal(t.squads.length,1);
+    s.target.controller.safeMode=100;s.advance();s.sys.run();
+    assert.equal(s.sys.spawnOrder('HOME'),null);assert.equal(t.squads.length,1);
+    delete s.target.controller.safeMode;s.advance();s.sys.run();assert.ok(s.sys.spawnOrder('HOME'));
+});
+test('cross-shard safe mode is published and suppresses source orders until expiry is reported',()=>{
+    const x=setup();x.g.Game.shard.name='shardX';x.target.controller.safeMode=1000;x.sys.latch(x.target,'test');x.sys.publish(true);
+    const report=JSON.parse(x.messages.shardX).guards;
+    assert.equal(report.rooms.NEW.safeMode,1000);
+    const s=setup();delete s.g.Memory.expansion;s.g.Memory.xs={mode:'claim',targets:[{r:'NEW',h:'shard2:HOME',e:'ENTRY',t:100}]};
+    s.messages.shardX=x.messages.shardX;s.sys.run();assert.equal(s.sys.spawnOrder('HOME'),null);
+    s.advance();report.at=s.now();report.rooms.NEW.safeMode=0;s.messages.shardX=JSON.stringify({guards:report});
+    s.sys.run();assert.ok(s.sys.spawnOrder('HOME'));
+});

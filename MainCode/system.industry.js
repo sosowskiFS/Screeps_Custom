@@ -205,7 +205,9 @@ function manageLabOperations(thisRoom) {
     if (labs.length < 6) return; // Need at least 6 labs (skip 3, use 2 for input, 1+ for output)
 
     const inputLabs = labs.slice(3, 5); // Labs 4 and 5 (indices 3 and 4)
-    const outputLabs = labs.slice(5);   // Labs 6+ (indices 5+)
+    const boostLease = id => require('system.guardBoosts').assignment(roomName, id);
+    if (inputLabs.some(lab => boostLease(lab.id))) return;
+    const outputLabs = labs.slice(5).filter(lab => !boostLease(lab.id));   // Labs 6+ (indices 5+)
 
     // Check if input labs have correct resources
     const input1 = job.a;

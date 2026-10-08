@@ -74,3 +74,10 @@ test('spawned creeps get opaque names: no role, no spawn, unique; dry runs untou
     spawns[0].spawnCreep([], 'probe', { dryRun: true });
     assert.equal(orders[0].name, 'probe', 'dry runs keep their name');
 });
+test('quad slot acknowledgement uses the actual opaque name from the spawn wrapper', () => {
+    const {h,g,spawns,orders}=setup();
+    const memory={priority:'roomGuard',guardSquad:'test',guardSlot:3};
+    spawns[0].spawnCreep([g.MOVE,g.HEAL],'requested',{memory});
+    assert.notEqual(orders[0].name,'requested');
+    assert.equal(memory.guardSpawnName,orders[0].name);
+});

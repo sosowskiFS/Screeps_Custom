@@ -64,6 +64,8 @@ var creep_labWorker = {
             return;
         }
 
+        if (require('system.guardBoosts').workLabs(creep)) return;
+
         // Watchdog: a load held this long means some branch keeps claiming the tick without
         // delivering it (flip-flop). Put it away so the creep gets back to real work.
         if (_.sum(creep.carry) > 0) {
@@ -578,6 +580,9 @@ function labView(creep) {
     view.mineral4 = job ? job.a : '';
     view.mineral5 = job ? job.b : '';
     for (let i = 6; i <= 10; i++) view['mineral' + i] = job ? job.p : '';
+    for (let i = 1; i <= 10; i++) {
+        if (require('system.guardBoosts').assignment(roomName, view['lab' + i])) view['lab' + i] = 'XXX';
+    }
     labViews[creep.name] = view;
     return view;
 }

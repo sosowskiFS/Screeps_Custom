@@ -444,6 +444,11 @@ function returnDistributor(creep, target) {
 }
 
 function findNewRepairTarget(creep, creepEnergy) {
+    if (creepEnergy > 0 && creep.room.controller && creep.room.controller.level < 5) {
+        const walls = require('system.claimDefense').controllerWalls(creep.room).filter(w => w.hits < w.hitsMax);
+        walls.sort((a, b) => a.hits - b.hits);
+        if (walls.length) creep.memory.structureTarget = walls[0].id;
+    }
     if (creepEnergy <= 0) {
 
         creep.memory.structureTarget = undefined;
