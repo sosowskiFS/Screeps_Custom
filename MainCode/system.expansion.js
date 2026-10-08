@@ -416,7 +416,10 @@ function claimed(roomName) {
 
 function claimFailed(roomName, code) {
     const s = state();
-    if (s.t !== roomName) return;
+    if (s.t !== roomName || s.st !== 'claim') return;
+    // A second claimer finding the room already ours is not a failure.
+    const room = Game.rooms[roomName];
+    if (room && room.controller && room.controller.my) return;
     if (code === ERR_GCL_NOT_ENOUGH) {
         s.gcl = Game.time + GCL_BACKOFF;
         finish('GCL too low, waiting ' + GCL_BACKOFF + ' ticks');
@@ -434,7 +437,9 @@ function progress() {
         if (room && room.controller && room.controller.reservation && room.controller.reservation.username !== myName()) {
             return fail('reserved by ' + room.controller.reservation.username);
         }
-        if (Game.time - s.since > CLAIM_TIMEOUT) return fail('claim timed out');
+        // Timed out only while no claimer is on its way: E25N43 (shard3) was dropped on the tick
+        // its claimer claimed it, and then got no helpers.
+        if (Game.time - s.since > CLAIM_TIMEOUT && !claimerFor(s.t)) return fail('claim timed out');
     } else if (s.st === 'develop') {
         if (!room || !room.controller || !room.controller.my) return fail('room lost');
         if (room.terminal && room.terminal.my) return finish('terminal built, the room develops itself now');
@@ -496,11 +501,41 @@ function pruneIntel() {
     return removed;
 }
 
+function claimerFor(roomName) {
+    for (const name in Game.creeps) {
+        const m = Game.creeps[name].memory;
+        if ((m.priority === 'claimer' || m.priority === 'claimerNearDeath') && m.destination === roomName) return true;
+    }
+    return false;
+}
+
+// Safety net: a room of ours without a terminal yet (claimed by an expansion that lost track of
+// it, or by hand) is supported like an expansion until it has one. Retiring rooms are skipped.
+function adoptYoungRoom() {
+    const s = state();
+    for (const name of myRooms()) {
+        const room = Game.rooms[name];
+        // Established rooms (able to sponsor others) do not need help, terminal or not.
+        if ((room.terminal && room.terminal.my) || sponsorFit(room) || require('system.retire').retiring(name)) continue;
+        const sponsor = pickSponsor(name, sponsors().filter(n => n !== name));
+        if (!sponsor) continue;
+        if (s.bad) delete s.bad[name];
+        s.t = name;
+        s.sp = sponsor;
+        s.st = 'develop';
+        s.since = Game.time;
+        console.log('[expansion] supporting ' + name + ' (ours, no terminal yet) from ' + sponsor);
+        return true;
+    }
+    return false;
+}
+
 function run() {
     if (!enabled()) return;
     observe();
     const s = state();
     if (s.t) progress();
+    else if (Game.time % 100 === 0 && adoptYoungRoom()) return;
     else if (Game.time >= (s.next || 0)) evaluate();
 }
 

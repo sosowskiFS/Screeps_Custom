@@ -82,6 +82,7 @@ function contextFor(room, forMigration) {
     for (const structure of runtimeCache.find(room, FIND_STRUCTURES)) {
         if (PASSABLE.has(structure.structureType)) continue;
         if (forMigration && structure.my && MOVABLE_TYPES.has(structure.structureType)) continue;
+        if (leftover(room, structure)) continue;   // another player's, being removed (clearLeftovers)
         if (structure.structureType === STRUCTURE_STORAGE) storageTile = tileOf(structure.pos);
         typeAt[tileOf(structure.pos)] = KIND_OF[structure.structureType] || structure.structureType;
     }
@@ -266,6 +267,29 @@ function removeBlockingSites(room, live) {
         }
     }
     return removed;
+}
+
+// A structure owned by another player in a room we own: the previous owner's (E25N43 on shard3
+// came with someone's storage, terminal, labs and link). The planner adopted their storage as
+// ours, so our own core was never built.
+function leftover(room, structure) {
+    return !!(room.controller && room.controller.my && structure.owner && !structure.my &&
+        structure.structureType !== STRUCTURE_CONTROLLER);
+}
+
+// Destroy the previous owner's structures (allowed in our own room) and replan the room fresh.
+function clearLeftovers(room) {
+    let removed = 0;
+    for (const structure of runtimeCache.find(room, FIND_STRUCTURES)) {
+        if (leftover(room, structure) && structure.destroy() === OK) removed++;
+    }
+    if (!removed) return false;
+    // Our sites followed the plan drawn around their structures: start clean.
+    for (const site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) site.remove();
+    if (Memory.basePlan) delete Memory.basePlan[room.name];
+    if (Memory.baseBuild) delete Memory.baseBuild[room.name];
+    console.log('[base] ' + room.name + ': removed ' + removed + ' structures left by a previous owner; replanning');
+    return true;
 }
 
 // Extensions no hauler can reach any more (walled in by structures of two layouts during a
@@ -465,6 +489,10 @@ function run() {
         // that seal a path, without waiting for the next build pass.
         if ((Game.time + index++ * 7) % PATH_CHECK_EVERY === 0) {
             const cpu = roomCpu.timer();
+            if (clearLeftovers(room)) {
+                cpu.lap(name);
+                continue;
+            }
             const live = liveState(room);
             removeBlockingSites(room, live);
             releaseSealed(room, live);
@@ -587,4 +615,4 @@ function visualizeFlagged() {
     vis.text(`base plan (${plan.mode}${labs.length ? '' : ', no lab stamp fits'})`, 25, 1, { color: '#ffffff', font: 0.7 });
 }
 
-module.exports = { run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
+module.exports = { run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };

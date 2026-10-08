@@ -128,3 +128,35 @@ test('no spare CPU: no expansion and no scanning; GCL refusal backs off; failure
     s.expansion.run();
     assert.equal(s.g.Memory.expansion.t, undefined, 'not retried during the cool-down');
 });
+
+test('the claim does not time out while a claimer is on its way (shard3 E25N43)', () => {
+    const { g, expansion } = setup();
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, 'E14N10');
+    g.Game.creeps = { c: { memory: { priority: 'claimer', destination: 'E14N10' } } };
+    g.Game.time += 6000;
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, 'E14N10', 'still claiming');
+    assert.ok(!g.Memory.expansion.bad.E14N10);
+});
+
+test('a refused claim on a room that is already ours is ignored', () => {
+    const { g, expansion } = setup();
+    expansion.run();
+    g.Game.rooms.E14N10 = { name: 'E14N10', controller: { my: true }, find: () => [] };
+    expansion.claimFailed('E14N10', g.ERR_INVALID_TARGET);
+    assert.equal(g.Memory.expansion.t, 'E14N10');
+    assert.ok(!g.Memory.expansion.bad.E14N10);
+});
+
+test('a room of ours without a terminal is supported even after its expansion was dropped', () => {
+    const { g, expansion } = setup({ ema: 220, harasser: 0 });   // no CPU to expand: only the safety net acts
+    g.Memory.expansion = { next: 0, bad: { E14N10: g.Game.time - 10 } };
+    g.Game.rooms.E14N10 = { name: 'E14N10', controller: { my: true, level: 1 }, find: () => [] };
+    g.Game.time = 100100;
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, 'E14N10');
+    assert.equal(g.Memory.expansion.st, 'develop');
+    assert.ok(!g.Memory.expansion.bad.E14N10, 'its old failure mark is cleared');
+    assert.deepEqual(plain(expansion.spawnOrder('E10N10')), { type: 'helper', target: 'E14N10', max: expansion.HELPERS });
+});

@@ -132,7 +132,11 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - Observers in sponsor rooms look at unknown rooms within 7.
   - Sponsors without an observer send a 1-MOVE scout every 1,500 ticks.
   - Entries expire after 100,000 ticks.
-- **Failures:** a target is dropped and skipped for 100,000 ticks if the claimer hasn't claimed it within 5,000 ticks, if someone else claims or reserves it, or if the new room is lost.
+- **Failures:** a target is dropped and skipped for 100,000 ticks if someone else claims or reserves it, if the new room is lost, or if it isn't claimed within 5,000 ticks.
+  - The 5,000-tick timeout only applies while no claimer is on its way. shard3's E25N43 was once dropped on the very tick it was claimed, and then got no helpers.
+  - A claimer reporting a refused claim on a room that is already ours is ignored.
+- **Safety net:** every 100 ticks, a room of ours with no terminal that is not able to sponsor others (and not retiring) is supported like an expansion until it has a terminal. Any old failure mark is cleared. This also covers manual claims.
+- **Previous owner's leftovers:** structures another player left in a room we own are destroyed by auto-build, and the room is replanned fresh. Otherwise the planner adopted their storage as ours and our own core was never built.
 
 ## Retiring rooms (one-time)
 

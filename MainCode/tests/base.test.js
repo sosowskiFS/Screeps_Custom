@@ -208,3 +208,23 @@ test('lab list follows planned roles (boost, reagents, outputs) once every lab i
     h.load('system.industry').updateRoomStructureLists(room);
     assert.deepEqual(plain(g.Memory.labList.W1N1), plain(labs.map(l => l.id)));
 });
+
+test('another player\'s leftovers in a room we claimed are destroyed and the room is replanned (shard3 E25N43)', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    const calls = [];
+    const pos = (x, y) => ({ x, y, roomName: 'E25N43' });
+    const theirs = (type, x, y) => ({ structureType: type, my: false, owner: { username: 'previousOwner' }, pos: pos(x, y),
+        destroy: () => { calls.push(['destroy', type]); return g.OK; } });
+    const structures = [theirs(g.STRUCTURE_STORAGE, 25, 21), theirs(g.STRUCTURE_TERMINAL, 27, 24),
+        { structureType: g.STRUCTURE_CONSTRUCTED_WALL, pos: pos(10, 10), destroy: () => calls.push(['destroy', 'wall']) }];
+    const sites = [{ structureType: g.STRUCTURE_SPAWN, my: true, pos: pos(24, 21), remove: () => calls.push(['remove', 'spawn site']) }];
+    const room = { name: 'E25N43', controller: { my: true, level: 1 },
+        find: type => (type === g.FIND_STRUCTURES ? structures : type === g.FIND_MY_CONSTRUCTION_SITES ? sites : []) };
+    g.Memory.basePlan = { E25N43: { v: 1, m: 'adopt' } };
+    const builder = h.load('base.builder');
+    assert.equal(builder.clearLeftovers(room), true);
+    assert.deepEqual(calls, [['destroy', g.STRUCTURE_STORAGE], ['destroy', g.STRUCTURE_TERMINAL], ['remove', 'spawn site']], 'neutral walls stay');
+    assert.equal(g.Memory.basePlan.E25N43, undefined, 'replanned fresh');
+});
