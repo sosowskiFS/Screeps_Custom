@@ -160,6 +160,11 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **What doesn't count:** hostiles merely in the room. A quad stuck on an exit next door marched in and out of shardX's E29N36 without touching anything. Invaders, source keepers, whitelisted players, and attackers already gone don't count either.
   - **Guards:** only with a charge available, no cooldown, and no other room of ours on the shard in safe mode. It notifies by `Game.notify`.
   - **The older trigger:** `tower.Operate`'s proximity rule (a player creep within 5 of a tower below RCL7) now skips rooms under construction.
+- **Controller attackers** (an attacked controller cannot enter safe mode):
+  - **Claim hunter** (`system.claimDefense.js`, `creep.claimHunter.js`): in a room of ours without a tower, while another player's creep with CLAIM parts is present and no hunter is out, the spawns hold everything else so energy pools. Then they spawn a hunter of ATTACK/MOVE pairs, as large as the room's spawn energy allows (or the biggest affordable after 300 ticks). It kills claimers first, then other hostiles, and retires once the room is clear.
+  - **Safe mode first:** in a room under construction, safe mode also fires as soon as such a claimer has an open path to a tile next to the controller.
+  - **Walls:** a young room (RCL2+) whose controller is 8+ tiles from its base core gets walls on the controller's free neighbours. Never on planned tiles, and never where a wall would cut a path. Helpers build them right after the spawn (1 energy each) and repair them to 10k hits × controller level. Walls, not ramparts, because ramparts decay.
+- **Blocked controller:** while it cannot be upgraded (`upgradeBlocked`), the tower-first hold is lifted so the other structures are placed and helpers build those instead. The tower-less cleanup only removes sites with no progress.
 - **Previous owner's leftovers:** structures another player left in a room we own are destroyed by auto-build, and the room is replanned fresh. Otherwise the planner adopted their storage as ours and our own core was never built.
 
 ## Retiring rooms (one-time)

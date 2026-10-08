@@ -11,7 +11,7 @@ function setup({ terminal = false, otherSafe = false, available = 1, log = [], o
     g.EVENT_ATTACK = 1;
     g.EVENT_ATTACK_CONTROLLER = 6;
     const activated = [];
-    const room = { name: 'E29N36', terminal: terminal ? { my: true } : undefined, getEventLog: () => log,
+    const room = { name: 'E29N36', terminal: terminal ? { my: true } : undefined, getEventLog: () => log, find: () => [],
         controller: { my: true, level: 2, safeModeAvailable: available, activateSafeMode: () => { activated.push('E29N36'); return g.OK; } } };
     const other = { name: 'E1N1', getEventLog: () => [], controller: { my: true, safeMode: otherSafe ? 1000 : undefined, safeModeAvailable: 0 } };
     g.Game.rooms = { E29N36: room, E1N1: other };

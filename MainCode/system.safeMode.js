@@ -9,6 +9,8 @@
 // Hostiles merely being in the room do not count: a quad stuck on a room exit next door marched in
 // and out of shardX's E29N36 without touching anything. Invaders, source keepers and whitelisted
 // players never count; nor does an attacker that is already gone (owner unknown).
+// It also fires, before any damage, when another player's creep with CLAIM parts has an open path to
+// a tile next to the controller: once the controller is attacked, safe mode is blocked.
 // Only with a charge available, no cooldown, and no other room of ours on this shard already in
 // safe mode (the game allows one at a time). tower.Operate's proximity rule skips these rooms.
 const stage = require('room.stage');
@@ -49,10 +51,23 @@ function attackedBy(room) {
     return null;
 }
 
+// A hostile claimer that can walk up to the controller (structures in the way count; creeps move).
+function claimerApproaching(room) {
+    const controller = room.controller;
+    for (const creep of require('system.claimDefense').claimers(room)) {
+        const ret = PathFinder.search(creep.pos, { pos: controller.pos, range: 1 }, {
+            maxRooms: 1, plainCost: 2, swampCost: 10,
+            roomCallback: name => (name === room.name ? require('traveler').Traveler.getStructureMatrix(room) : false),
+        });
+        if (!ret.incomplete) return creep.owner.username + '\'s claimer has an open path to the controller';
+    }
+    return null;
+}
+
 function threat(room) {
     const controller = room.controller;
     if (!controller || !controller.my || stage.established(room)) return null;
-    return attackedBy(room);
+    return attackedBy(room) || claimerApproaching(room);
 }
 
 function safeModeActiveElsewhere(roomName) {

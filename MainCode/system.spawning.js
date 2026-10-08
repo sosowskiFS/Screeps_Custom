@@ -15,6 +15,7 @@ const expansion = require('system.expansion');
 const spawnExit = require('spawn.exit');
 const retire = require('system.retire');
 const shardX = require('system.shardX');
+const claimDefense = require('system.claimDefense');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
@@ -95,6 +96,14 @@ function processSpawnLogic(spawn, thisRoom, spawnRoleCache) {
 }
 
 function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
+    // A controller attacker in a room without a tower: pool energy for a hunter before anything
+    // else (system.claimDefense).
+    const hunt = claimDefense.spawnFor(spawn, thisRoom);
+    if (hunt) {
+        if (hunt === 'spawned') global.setSpawnBusy(spawn);
+        return;
+    }
+
     // A retiring room (system.retire) only replaces its essentials and keeps one drain hauler.
     if (retire.retiring(thisRoom.name)) {
         if (!essentials.ok(thisRoom)) {

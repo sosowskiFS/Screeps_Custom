@@ -453,12 +453,15 @@ function buildRoom(room, plan) {
     // Young and no tower yet: hostile creeps can stomp construction sites unopposed, so only the
     // spawn (the room cannot make creeps without it) and, from RCL3, the tower go down; builders
     // upgrade the controller meanwhile. Containers stay: miners need them.
-    const towerless = !established && built(STRUCTURE_TOWER) === 0;
+    // While the controller cannot be upgraded (attacked: upgradeBlocked) the builders would have
+    // nothing to do, so the other structures go down after all.
+    const towerless = !established && built(STRUCTURE_TOWER) === 0 && !(room.controller.upgradeBlocked > 0);
     if (!established) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
             const type = s.structureType;
-            if (type === STRUCTURE_ROAD || type === STRUCTURE_RAMPART ||
-                (towerless && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER && type !== STRUCTURE_CONTAINER)) s.remove();
+            const held = towerless && s.progress === 0 && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
+                type !== STRUCTURE_CONTAINER && type !== STRUCTURE_WALL;
+            if (type === STRUCTURE_ROAD || type === STRUCTURE_RAMPART || held) s.remove();
         }
     }
 
@@ -546,6 +549,8 @@ function buildRoom(room, plan) {
         }
     }
 
+    if (!established) controllerWalls(room, plan, rcl, site, occupied);
+
     ensureExtractor(room, rcl, budget);
 
     if (!Memory.baseBuild) Memory.baseBuild = {};
@@ -555,6 +560,32 @@ function buildRoom(room, plan) {
         next: Game.time + (again ? 5 : budget <= 0 || kinds !== ORDER ? 100 : BUILD_INTERVAL + stagger),
     };
     return SITES_PER_PASS - budget;
+}
+
+// Walls on the free tiles next to a controller far from the base, so nothing can stand beside it to
+// attack (declaim) it. Young rooms only, from RCL2 (walls need it). Never on a planned tile (link,
+// roads, paths, work tiles) and never where it would cut a path (site() checks). Walls, not
+// ramparts: ramparts decay. Helpers repair them to CONTROLLER_WALL_HITS x RCL.
+const CONTROLLER_FAR = 8;
+function controllerWalls(room, plan, rcl, site, occupied) {
+    const controller = room.controller;
+    if (rcl < 2 || !controller || plan.anchor === undefined) return;
+    const c = tileOf(controller.pos);
+    const ax = (plan.anchor / 50) | 0, ay = plan.anchor % 50;
+    if (Math.max(Math.abs(controller.pos.x - ax), Math.abs(controller.pos.y - ay)) < CONTROLLER_FAR) return;
+    const reserved = new Set(plan.roads.concat(plan.paths));
+    for (const k in plan.structures) for (const t of plan.structures[k]) reserved.add(t);
+    for (const k in plan.flags || {}) reserved.add(plan.flags[k]);
+    const terrain = Game.map.getRoomTerrain(room.name);
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            const x = controller.pos.x + dx, y = controller.pos.y + dy;
+            const t = x * 50 + y;
+            if ((!dx && !dy) || x < 1 || x > 48 || y < 1 || y > 48 || t === c) continue;
+            if (terrain.get(x, y) & TERRAIN_MASK_WALL || reserved.has(t) || occupied.has(t)) continue;
+            site(t, STRUCTURE_WALL);
+        }
+    }
 }
 
 function ensureExtractor(room, rcl, budget) {

@@ -179,7 +179,7 @@ test('a room without a spawn gets only its spawn site first', () => {
     const { g, room, sites, builder } = builderRoom(3);
     builder.planRoom(room);
     builder.buildRoom(room);
-    assert.deepEqual(sites.map(s => s[2]), [g.STRUCTURE_SPAWN]);
+    assert.deepEqual(sites.map(s => s[2]).filter(t => t !== g.STRUCTURE_WALL), [g.STRUCTURE_SPAWN], 'besides the controller walls');
 });
 
 test('a tower the controller level now allows is placed before anything else', () => {
@@ -190,7 +190,7 @@ test('a tower the controller level now allows is placed before anything else', (
     const t = plan.structures.spawn[0];
     existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
     builder.buildRoom(room);
-    assert.deepEqual(sites.map(s => s[2]), [g.STRUCTURE_TOWER], 'RCL3 allows one tower: only it, no extensions yet');
+    assert.deepEqual(sites.map(s => s[2]).filter(t => t !== g.STRUCTURE_WALL), [g.STRUCTURE_TOWER], 'RCL3 allows one tower: only it (and the controller walls), no extensions yet');
 });
 
 test('a young room (no terminal) gets no road or rampart sites, and loses the ones it had', () => {
@@ -304,13 +304,41 @@ test('a young room without a tower builds nothing but its spawn: controller firs
     const existing = [];
     const { g, room, sites, builder } = builderRoom(2, existing);
     const removed = [];
-    const site = (type, x) => ({ structureType: type, pos: { x, y: 2 }, remove: () => removed.push(type) });
+    const site = (type, x) => ({ structureType: type, progress: 0, pos: { x, y: 2 }, remove: () => removed.push(type) });
     room.find = (find => type => (type === g.FIND_MY_CONSTRUCTION_SITES
         ? [site(g.STRUCTURE_EXTENSION, 2), site(g.STRUCTURE_CONTAINER, 3)] : find(type)))(room.find);
     builder.planRoom(room);
     const t = builder.planOf(room.name).structures.spawn[0];
     existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
     builder.buildRoom(room);
-    assert.deepEqual(sites, [], 'RCL2, no tower possible yet: no extension sites');
+    assert.deepEqual(sites.filter(s => s[2] !== g.STRUCTURE_WALL), [], 'RCL2, no tower possible yet: no extension sites (walls around the controller only)');
     assert.deepEqual(removed, [g.STRUCTURE_EXTENSION], 'the container for the miners stays');
+});
+
+test('a young room walls in a controller far from its base, except on planned tiles', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(2, existing);
+    existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: 25, y: 30, roomName: 'W1N1', lookFor: () => [] } });
+    // Controller at 25,8; base core around 25,30. Planned: controller link 26,9, a road 24,7.
+    const plan = { mode: 'fresh', anchor: I(25, 30), flags: {}, roads: [I(24, 7)], paths: [],
+        structures: { spawn: [I(25, 30)], link: [I(26, 9)] } };
+    builder.buildRoom(room, plan);
+    const walls = sites.filter(s => s[2] === g.STRUCTURE_WALL).map(s => s[0] + ',' + s[1]).sort();
+    assert.deepEqual(walls, ['24,8', '24,9', '25,7', '25,9', '26,7', '26,8'], 'the 8 neighbours minus the link and road tiles');
+    sites.length = 0;
+    plan.anchor = I(25, 12);   // base right next to it: no walls
+    g.Memory.baseBuild = {};
+    builder.buildRoom(room, plan);
+    assert.deepEqual(sites.filter(s => s[2] === g.STRUCTURE_WALL), []);
+});
+
+test('while the controller is blocked from upgrading, a tower-less young room gets its other structures placed', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(2, existing);
+    builder.planRoom(room);
+    const t = builder.planOf(room.name).structures.spawn[0];
+    existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
+    room.controller.upgradeBlocked = 800;
+    builder.buildRoom(room);
+    assert.ok(sites.some(s => s[2] === g.STRUCTURE_EXTENSION), 'extensions to build instead of upgrading');
 });

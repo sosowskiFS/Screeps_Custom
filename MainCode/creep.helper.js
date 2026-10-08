@@ -7,9 +7,11 @@
 //           within REGEN_WAIT ticks.
 //   work    (when full, or when no more energy is close at hand) in this order: spawn energy below
 //           half (the room makes its own creeps), a controller about to downgrade, towers below
-//           TOWER_MIN, then construction ONE SITE AT A TIME (spawn, tower, extension, storage,
-//           container, then the rest; the furthest along first, then the nearest) so structures
-//           finish one by one, then upgrading.
+//           TOWER_MIN, walls around the controller below CONTROLLER_WALL_HITS x RCL, then
+//           construction ONE SITE AT A TIME (spawn, walls (1 energy each), tower, extension,
+//           storage, container, then the rest; the furthest along first, then the nearest) so
+//           structures finish one by one, then upgrading. While the controller cannot be upgraded
+//           (attacked), the builder places the rest of the base instead (base.builder).
 // Builds and upgrades from range 3; any tick it stands still working it is parked (onPoint), so
 // other creeps neither swap it off its tile nor path through it.
 const runtimeCache = require('runtime.cache');
@@ -23,7 +25,8 @@ const LOOSE_MIN = 50;
 const STORE_MIN = 400;
 const TOWER_MIN = 500;
 const DOWNGRADE_MIN = 3000;
-const SITE_ORDER = [STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_EXTENSION, STRUCTURE_STORAGE, STRUCTURE_CONTAINER];
+const SITE_ORDER = [STRUCTURE_SPAWN, STRUCTURE_WALL, STRUCTURE_TOWER, STRUCTURE_EXTENSION, STRUCTURE_STORAGE, STRUCTURE_CONTAINER];
+const CONTROLLER_WALL_HITS = 10000;   // x RCL: walls around the controller (base.builder) are kept at this
 const SIGN = '「輝く猫」(ﾐⓛᆽⓛﾐ)✧';
 
 const slotCache = Object.create(null);   // source id -> { n: open tiles around it, t }
@@ -171,6 +174,11 @@ function work(creep) {
     const tower = creep.pos.findClosestByRange(runtimeCache.find(room, FIND_MY_STRUCTURES).filter(s =>
         s.structureType === STRUCTURE_TOWER && s.store[RESOURCE_ENERGY] < TOWER_MIN));
     if (tower) return fill(creep, tower);
+    if (controller && controller.my) {
+        const wall = creep.pos.findClosestByRange(runtimeCache.find(room, FIND_STRUCTURES).filter(s =>
+            s.structureType === STRUCTURE_WALL && s.pos.inRangeTo(controller.pos, 1) && s.hits < CONTROLLER_WALL_HITS * controller.level));
+        if (wall) return workAt(creep, wall, creep.repair(wall));
+    }
     let site = creep.memory.siteTarget ? Game.getObjectById(creep.memory.siteTarget) : null;
     if (!site || Game.time % 10 === 0) site = pickSite(creep);   // re-ranked now and then
     if (site) {
@@ -178,7 +186,7 @@ function work(creep) {
         return workAt(creep, site, creep.build(site));
     }
     delete creep.memory.siteTarget;
-    if (controller && controller.my) {
+    if (controller && controller.my && !(controller.upgradeBlocked > 0)) {
         workAt(creep, controller, creep.upgradeController(controller));
         if (creep.pos.isNearTo(controller) && (!controller.sign || controller.sign.username !== creep.owner.username)) {
             creep.signController(controller, SIGN);

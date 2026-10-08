@@ -39,6 +39,7 @@ function register(names, run) {
 register(['retireHauler'], creep => creep_retireHauler.run(creep));
 register(['xScout'], creep => require('system.shardX').runScout(creep));
 register(['supportHauler'], creep => require('creep.supportHauler').run(creep));
+register(['claimHunter'], creep => require('creep.claimHunter').run(creep));
 
 register(['farMule', 'farMuleNearDeath'], (creep, isRoomAt5) => {
     // Per-tick container re-scans are the first thing shed when CPU runs over budget.

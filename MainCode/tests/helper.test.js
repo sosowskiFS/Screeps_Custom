@@ -120,3 +120,21 @@ test('a helper working in place is parked (not pushed or pathed through); one on
     s.run();
     assert.equal(s.creep.memory.onPoint, undefined);
 });
+
+test('walls around the controller are brought to 10k hits per RCL; a blocked controller is not upgraded', () => {
+    const s = setup({ carry: { energy: 400 } });
+    const wall = { id: 'wall', structureType: s.g.STRUCTURE_WALL, hits: 5000, pos: { x: 25, y: 26, inRangeTo: () => true } };
+    const room = s.creep.room;
+    const find = room.find;
+    room.find = type => (type === s.g.FIND_STRUCTURES ? [wall] : find(type));
+    s.creep.repair = t => { s.calls.push(['repair', t.id]); return s.g.ERR_NOT_IN_RANGE; };
+    s.creep.memory.currentState = 2;
+    s.run();
+    assert.deepEqual(plain(s.calls).slice(0, 2), [['repair', 'wall'], ['travelTo', 'wall', 3]], 'RCL2: up to 20k');
+    wall.hits = 20000;
+    room.controller.upgradeBlocked = 900;
+    s.calls.length = 0;
+    s.g.Game.time++;
+    s.run();
+    assert.ok(!plain(s.calls).some(c => c[0] === 'upgrade'), 'no upgrading while blocked');
+});
