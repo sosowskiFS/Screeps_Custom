@@ -167,6 +167,7 @@ function nearCorners(homeList = homes()) {
 function portalStep(creep) {
     const x = creep.memory.xShard;
     if (!x || Game.shard.name === X_SHARD) return false;
+    if (creep.memory.priority === 'helper' && require('creep.logistics').loadForTrip(creep)) return true;
     if (creep.room.name !== x.c) {
         creep.travelTo(new RoomPosition(25, 25, x.c), { range: 20 });
         return true;

@@ -89,6 +89,28 @@ function returnIfEmptied(creep, target, opts = {}, emptyAt = 0, source = refillS
     return true;
 }
 
+// Builders sent to another room leave home with a full load of energy (storage, else terminal).
+// memory.loaded is set once full, once outside the home room, or when home has none to spare.
+// Returns true while it is loading.
+function loadForTrip(creep) {
+    if (creep.memory.loaded) return false;
+    const home = creep.memory.homeRoom && Game.rooms[creep.memory.homeRoom];
+    const free = creep.store.getFreeCapacity(RESOURCE_ENERGY);
+    if (!free || !home || creep.room.name !== home.name || creep.memory.destination === home.name) {
+        creep.memory.loaded = 1;
+        return false;
+    }
+    const source = [home.storage, home.terminal].find(s => s && s.my && s.store[RESOURCE_ENERGY] >= free);
+    if (!source) {
+        creep.memory.loaded = 1;
+        return false;
+    }
+    const result = creep.withdraw(source, RESOURCE_ENERGY);
+    if (result === ERR_NOT_IN_RANGE) creep.travelTo(source, { range: 1 });
+    else creep.memory.loaded = 1;   // full next tick
+    return true;
+}
+
 function handleMovementCoordination(creep) {
     // Listen for other creeps needing to move
     let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
@@ -147,4 +169,4 @@ function depositBeforeDeath(creep) {
 }
 
 module.exports = { depositBeforeDeath, withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, handleMovementCoordination,
-    loadAfterTransfer, refillSource, returnIfEmptied };
+    loadAfterTransfer, refillSource, returnIfEmptied, loadForTrip };

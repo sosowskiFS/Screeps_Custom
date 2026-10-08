@@ -1,7 +1,9 @@
 const runtimeCache = require('runtime.cache');
 const roads = require('system.roads');
+const { loadForTrip } = require('creep.logistics');
 var creep_Helper = {
     run: function(creep) {
+        if (loadForTrip(creep)) return;   // a full load from home first
 
         /*let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Nemah")

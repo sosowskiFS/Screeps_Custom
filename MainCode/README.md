@@ -136,6 +136,10 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - The 5,000-tick timeout only applies while no claimer is on its way. shard3's E25N43 was once dropped on the very tick it was claimed, and then got no helpers.
   - A claimer reporting a refused claim on a room that is already ours is ignored.
 - **Safety net:** every 100 ticks, a room of ours with no terminal that is not able to sponsor others (and not retiring) is supported like an expansion until it has a terminal. Any old failure mark is cleared. This also covers manual claims.
+- **Supplies:**
+  - **Helpers leave loaded:** every helper (expansions, `SendHelper` flags, shardX) leaves home with a full load of energy from storage, else the terminal.
+  - **Support haulers:** once the developing room's own storage is built and the 6 helpers are out, the sponsor also sends up to 3 support haulers (CARRY/MOVE, up to 25 each). They truck energy from its storage into the new room's while the new room holds under 100k and the sponsor keeps over 75k.
+  - **Retiring:** a support hauler retires when trucking is no longer wanted, or when it couldn't finish another round trip.
 - **Young rooms** (ours without their own terminal; RCL7+ with a storage always counts as established, so a migration rebuilding the terminal changes nothing; `room.stage.js`) spend energy on building and upgrading:
   - **No upkeep structures:** no road or rampart sites are placed by auto-build, planned routes, extension roads, the rampart pass in `system.rooms`, or creeps walking for that room. Road and rampart sites already there are removed.
   - **Focus:** builders go to the nearest site, so order alone decides nothing. In any room, auto-build places only the spawn while the room has none. When the controller level allows a tower that isn't built yet, it places only tower sites until they stand. Then the rest follows (re-checked every 100 ticks).

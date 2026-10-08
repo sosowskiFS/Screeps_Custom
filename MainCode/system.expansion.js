@@ -46,6 +46,9 @@ const SCOUT_EVERY = 1500;
 const SCOUT_TARGETS = 8;
 const OBSERVER_RANGE = 10;
 const HELPERS = 6;
+const HAULERS = 3;               // support haulers once the new room has its storage
+const SUPPLY_TARGET = 100000;    // trucked until the new room's storage holds this much energy
+const SUPPLY_FLOOR = 75000;      // ...and only while the sponsor's storage keeps more than this
 const SPONSOR_RCL = 6;
 const SPONSOR_ENERGY = 50000;
 const DISTANCE_WEIGHT = 1;
@@ -545,8 +548,31 @@ function spawnOrder(roomName) {
     const s = state();
     if (!s.t || s.sp !== roomName) return null;
     if (s.st === 'claim') return { type: 'claim', target: s.t };
-    if (s.st === 'develop') return { type: 'helper', target: s.t, max: HELPERS };
+    if (s.st === 'develop') {
+        // Builders first; with a full crew and the new room's storage built, energy trucks.
+        if (countFor('helper', s.t) < HELPERS) return { type: 'helper', target: s.t, max: HELPERS };
+        if (supplyWanted(s.t, roomName) && countFor('supportHauler', s.t) < HAULERS) return { type: 'supportHauler', target: s.t, max: HAULERS };
+        return { type: 'helper', target: s.t, max: HELPERS };
+    }
     return null;
+}
+
+function countFor(role, roomName) {
+    let n = 0;
+    for (const name in Game.creeps) {
+        const m = Game.creeps[name].memory;
+        if (m.destination === roomName && (m.priority === role || m.priority === role + 'NearDeath')) n++;
+    }
+    return n;
+}
+
+// Should energy be trucked from `sponsorName` into `roomName`? Its own storage is built and holds
+// less than SUPPLY_TARGET, and the sponsor's storage keeps more than SUPPLY_FLOOR.
+function supplyWanted(roomName, sponsorName) {
+    const room = Game.rooms[roomName];
+    const sponsor = Game.rooms[sponsorName];
+    if (!room || !room.storage || !room.storage.my || !sponsor || !sponsor.storage) return false;
+    return (room.storage.store[RESOURCE_ENERGY] || 0) < SUPPLY_TARGET && (sponsor.storage.store[RESOURCE_ENERGY] || 0) > SUPPLY_FLOOR;
 }
 
 // Console: expansion() prints budget, state and the best candidates.
@@ -572,6 +598,6 @@ function report(limit = 10) {
 
 module.exports = {
     run, budget, sponsors, sponsorFit, pickSponsor, candidates, invalidReason, score, remotePotential, planCheck,
-    record, observe, observeRequest, scoutTargets, spawnOrder, claimed, claimFailed, pruneIntel, report,
-    parse, format, linear, around, HARASSER_KEY, CPU_MARGIN, HELPERS,
+    record, observe, observeRequest, scoutTargets, spawnOrder, claimed, claimFailed, pruneIntel, report, supplyWanted,
+    parse, format, linear, around, HARASSER_KEY, CPU_MARGIN, HELPERS, HAULERS,
 };

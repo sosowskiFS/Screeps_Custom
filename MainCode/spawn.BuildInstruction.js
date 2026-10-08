@@ -82,6 +82,10 @@ var spawn_BuildInstruction = {
             case 'harasser':
                 this.spawnHarasser(spawn, params, energyIndex, roomName);
                 break;
+
+            case 'supportHauler':
+                this.spawnSupportHauler(spawn, params, energyIndex, roomName);
+                break;
                 
             case 'highwayPatrol':
                 this.spawnHighwayPatrol(spawn, energyIndex, roomName);
@@ -89,6 +93,19 @@ var spawn_BuildInstruction = {
         }
     },
     
+    // Energy truck for a new room (system.expansion): CARRY/MOVE pairs, up to 25 of each.
+    spawnSupportHauler: function(spawn, target, energyIndex, roomName) {
+        const pairs = Math.max(1, Math.min(25, Math.floor(spawn.room.energyCapacityAvailable / 100)));
+        const body = [];
+        for (let i = 0; i < pairs; i++) body.push(CARRY);
+        for (let i = 0; i < pairs; i++) body.push(MOVE);
+        const configCost = calculateConfigCost(body);
+        if (configCost > Memory.CurrentRoomEnergy[energyIndex]) return;
+        Memory.CurrentRoomEnergy[energyIndex] -= configCost;
+        spawn.spawnCreep(body, 'supportHauler', { memory: { priority: 'supportHauler', homeRoom: roomName, destination: target } });
+        global.setSpawnBusy(spawn);
+    },
+
     // Optimized method to spawn claimers
     spawnClaimer: function(spawn, params, energyIndex, params2, roomName) {
         let tConfig = [MOVE, MOVE, MOVE, MOVE, MOVE, CLAIM];
