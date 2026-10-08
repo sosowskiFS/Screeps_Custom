@@ -42,6 +42,14 @@ function setup({ carry = {}, others = [], sites = [], dropped = [], aEnergy = 30
             findClosestByRange: list => list.slice().sort((a, b) => range(creep.pos, at(a)) - range(creep.pos, at(b)))[0] },
         harvest: t => { calls.push(['harvest', t.id]); return creep.pos.isNearTo(t) ? (t.energy ? g.OK : g.ERR_NOT_ENOUGH_RESOURCES) : g.ERR_NOT_IN_RANGE; },
         pickup: t => { calls.push(['pickup', t.id]); return g.ERR_NOT_IN_RANGE; },
+        withdraw: (t, resource) => {
+            calls.push(['withdraw', t.id, resource]);
+            if (!creep.pos.isNearTo(t)) return g.ERR_NOT_IN_RANGE;
+            const amount = Math.min(t.store[resource] || 0, creep.store.getFreeCapacity(resource));
+            t.store[resource] = (t.store[resource] || 0) - amount;
+            creep.store[resource] = (creep.store[resource] || 0) + amount;
+            return amount ? g.OK : g.ERR_NOT_ENOUGH_RESOURCES;
+        },
         build: t => { calls.push(['build', t.id]); return creep.pos.inRangeTo(t, 3) ? g.OK : g.ERR_NOT_IN_RANGE; },
         upgradeController: () => { calls.push(['upgrade']); return g.ERR_NOT_IN_RANGE; },
         transfer: () => g.ERR_NOT_IN_RANGE, signController: () => g.OK,
@@ -56,7 +64,7 @@ function setup({ carry = {}, others = [], sites = [], dropped = [], aEnergy = 30
         if (type === g.FIND_MY_CREEPS) return [creep, ...others];
         if (type === g.FIND_MY_CONSTRUCTION_SITES) return sites;
         if (type === g.FIND_DROPPED_RESOURCES) return dropped;
-        if (type === g.FIND_MY_STRUCTURES) return mine;
+        if (type === g.FIND_MY_STRUCTURES || type === g.FIND_STRUCTURES) return mine;
         return [];
     };
     return { h, g, creep, calls, run: () => h.load('creep.helper').run(creep) };
@@ -107,6 +115,23 @@ test('energy another helper is already heading for is not chased by a second one
     s.run();
     assert.equal(s.creep.memory.lootTarget, undefined, 'only 100 left after its claim');
     assert.equal(s.creep.memory.targetSource, 'A');
+});
+
+test('a partial source container is withdrawn once, then the helper mines the rest of its load', () => {
+    const s0 = setup({ tower: false });
+    const container = { id: 'sourceBox', structureType: s0.g.STRUCTURE_CONTAINER,
+        store: storeOf({ energy: 100 }, 2000), pos: { x: 41, y: 40, roomName: 'NEW',
+            inRangeTo: (t, r) => range(container.pos, t.pos || t) <= r,
+            findClosestByRange: list => list.slice().sort((a,b) => range(container.pos,a.pos)-range(container.pos,b.pos))[0] } };
+    const s = setup({ tower: false, structures: [container] });
+    s.creep.pos.x = 41; s.creep.pos.y = 40;
+    s.run();
+    assert.deepEqual(plain(s.calls), [['withdraw', 'sourceBox', 'energy']]);
+    assert.equal(s.creep.store.energy, 100);
+    assert.equal(s.creep.memory.targetSource, 'B');
+    assert.equal(s.creep.memory.lootTarget, undefined);
+    s.calls.length = 0; s.g.Game.time++; s.run();
+    assert.deepEqual(plain(s.calls), [['harvest', 'B']]);
 });
 
 test('all helpers pour into one site: spawn/tower/extension first, then the furthest along', () => {

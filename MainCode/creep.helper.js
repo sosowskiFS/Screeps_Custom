@@ -103,7 +103,17 @@ function currentLoot(creep) {
     const target = creep.memory.lootTarget ? Game.getObjectById(creep.memory.lootTarget) : null;
     if (target && energyIn(target) - reservedBy(target, creep) > 0) return target;
     delete creep.memory.lootTarget;
+    delete creep.memory.lootSource;
     return null;
+}
+
+// A partial container beside a live source is a head start, not a reason to shadow a weaker miner
+// forever. After one withdrawal the helper claims the source and harvests the rest of its load.
+function topUpSource(creep, target, need) {
+    if (target.structureType !== STRUCTURE_CONTAINER || energyIn(target) >= need) return null;
+    const sources = runtimeCache.find(creep.room, FIND_SOURCES).filter(s => s.energy > 0 &&
+        target.pos.inRangeTo(s.pos, 1) && (creep.pos.isNearTo(s) || claimed(s, creep) < harvestSlots(s)));
+    return sources.length ? target.pos.findClosestByRange(sources) : null;
 }
 
 function sourceUsable(source, creep) {
@@ -121,6 +131,7 @@ function pickSource(creep) {
 function release(creep) {
     delete creep.memory.targetSource;
     delete creep.memory.lootTarget;
+    delete creep.memory.lootSource;
 }
 
 // One gathering step. Returns false when nothing is available right now.
@@ -143,10 +154,17 @@ function gather(creep) {
     if (!source || !creep.pos.isNearTo(source)) {
         const loose = currentLoot(creep) || looseEnergy(creep);
         if (loose) {
+            const sourceAfterLoot = topUpSource(creep, loose, want);
             release(creep);
             creep.memory.lootTarget = loose.id;
+            if (sourceAfterLoot) creep.memory.lootSource = sourceAfterLoot.id;
             const result = loose.amount !== undefined ? creep.pickup(loose) : creep.withdraw(loose, RESOURCE_ENERGY);
             if (result === ERR_NOT_IN_RANGE) creep.travelTo(loose, { range: 1 });
+            else if (result === OK && creep.memory.lootSource) {
+                creep.memory.targetSource = creep.memory.lootSource;
+                delete creep.memory.lootTarget;
+                delete creep.memory.lootSource;
+            }
             return true;
         }
     }
