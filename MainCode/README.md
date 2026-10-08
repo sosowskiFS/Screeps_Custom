@@ -154,19 +154,21 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 
 ## Settling shardX (one-time)
 
-`system.shardX.js`, driven from the shard2 console. The same code must also run on shardX.
+`system.shardX.js`, controlled from the shard2 console. shard1 and shard3 follow shard2's mode through InterShardMemory. The same code must also run on shardX.
 
-- **`shardX('scout')`:** the 4 highway corners nearest our homes each get a 1-MOVE scout from their closest home, re-sent every 1,500 ticks.
-  - Every corner near our rooms has single-tile portals to shard1, shard3 and shardX, landing at the same room name. The scout records the shardX one and steps into it.
-  - A corner without one is noted and skipped.
-- **Memory between shards:** Memory is kept separately on each shard, so a creep publishes its memory in InterShardMemory (`xs.travellers`) just before entering. shardX gives it that memory on arrival. Failing that, shardX infers the role from the body.
-- **On shardX, scouts explore** up to 8 rooms from where they arrived. They skip rooms claimed by others and source-keeper rooms, and avoid each other's targets.
-  - Every room entered goes into `Memory.expandIntel`, `Memory.badRooms` (Traveler never routes through claimed rooms) and `Memory.remoteIntel`.
-  - shardX checks candidates against the auto-expansion rules, including the base planner (2 per 100 ticks), and publishes the 30 best.
-- **`shardX('claim')`:** stops scouting and picks the 3 best candidates. Each is supported by a different shard2 home: the one nearest a corner whose portal leads to the candidate's arrival room.
-  - The whole trip (home → corner → room) must be at most 11 rooms, because a claimer lives 600 ticks.
-  - That home sends a claimer through the portal, then keeps 4 helpers there until shardX reports a terminal. From then on shardX's own auto-expansion takes over.
-- **`shardX('cancel')`** stops it; **`shardX()`** shows status on either shard.
+- **`shardX('scout')`:** shard2, shard1 and shard3 each send one 1-MOVE scout every 100 ticks. They rotate through the nearest highway corner of each of their homes, and the scout comes from that home.
+  - Every corner near our rooms has single-tile portals to the other shards. The scout steps into the shardX one; a corner without one is noted and skipped.
+  - Sending pauses while shardX reports 15 scouts alive (shardX has little CPU).
+- **Memory between shards:** Memory is kept separately on each shard, so a creep publishes its memory (including its shard) in its shard's InterShardMemory just before entering. shardX gives it that memory on arrival. Failing that, shardX infers the role from the body.
+- **On shardX, scouts explore** nearest-first, skipping rooms claimed by others and source-keeper rooms.
+  - A 1-MOVE scout moves at full speed on any terrain, like the claimer (CLAIM + 5 MOVE), so its life used when it enters a room measures the real trip from its home's spawn.
+  - Each room is tagged with the fastest trip seen: home as shard:room, arrival room, and ticks to the controller (life used + range).
+  - Scouts go up to 600 ticks out (a ring past the claim limit, so edge rooms' neighbours are known).
+  - Every room is also recorded in `Memory.expandIntel`, `Memory.badRooms` and `Memory.remoteIntel`.
+- **Candidates:** the auto-expansion rules (the base planner must fit, 2 checks per 100 ticks), plus a controller reachable within 500 ticks. Highway and source-keeper rooms count as known neighbours, since nobody can claim them.
+- **`shardX('claim')`:** stops scouting. shard2 picks the 3 best candidates, each from a different home on any home shard, spaced like auto-expansion.
+  - Each home's own shard sends a claimer through the same corner, then keeps 4 helpers there until shardX reports a terminal. From then on shardX's own auto-expansion takes over.
+- **`shardX('cancel')`** stops everything; **`shardX()`** shows status on any shard.
 
 ## One creep per job with several spawns
 

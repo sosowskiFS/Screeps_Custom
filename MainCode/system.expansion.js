@@ -227,8 +227,16 @@ function ownerOf(name) {
     return Memory.badRooms && Memory.badRooms[name] ? Memory.badRooms[name].o : undefined;
 }
 
+// Highway and source-keeper rooms can never be claimed: known by their name alone.
+function unclaimable(name) {
+    const m = /^[WE](\d+)[NS](\d+)$/.exec(name);
+    if (!m) return false;
+    const x = Number(m[1]) % 10, y = Number(m[2]) % 10;
+    return x === 0 || y === 0 || (x >= 4 && x <= 6 && y >= 4 && y <= 6);
+}
+
 function known(name) {
-    return !!Game.rooms[name] || fresh(Memory.expandIntel && Memory.expandIntel[name], INTEL_MAX_AGE) || badRooms.isBad(name);
+    return unclaimable(name) || !!Game.rooms[name] || fresh(Memory.expandIntel && Memory.expandIntel[name], INTEL_MAX_AGE) || badRooms.isBad(name);
 }
 
 // ---------------------------------------------------------------- candidates
