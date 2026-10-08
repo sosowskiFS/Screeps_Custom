@@ -139,6 +139,12 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 - **Supplies:**
   - **Helpers leave loaded:** every helper (expansions, `SendHelper` flags, shardX) leaves home with a full load of energy from storage, else the terminal.
   - **Support haulers:** once the developing room's own storage is built and the 6 helpers are out, the sponsor also sends up to 3 support haulers (CARRY/MOVE, up to 25 each). They truck energy from its storage into the new room's while the new room holds under 100k and the sponsor keeps over 75k.
+  - **Helpers in the room they build:** they take energy from storage or the terminal, then energy lying around (dropped, tombstones, ruins), then the **nearest source with a free harvesting tile**.
+    - Free tiles are the open tiles around the source, minus the creeps already working it: helpers and the room's own harvesters and miners.
+    - With every tile taken, a helper spends what it carries, or waits 3 tiles from the nearest source.
+    - It releases its tile once full.
+    - It builds and upgrades from range 3.
+    - On any tick it stands still working, it is parked (`onPoint`), so others neither swap it off its tile nor path through it. Helpers used to shove each other around all day.
   - **Retiring:** a support hauler retires when trucking is no longer wanted, or when it couldn't finish another round trip.
 - **Young rooms** (ours without their own terminal; RCL7+ with a storage always counts as established, so a migration rebuilding the terminal changes nothing; `room.stage.js`) spend energy on building and upgrading:
   - **No upkeep structures:** no road or rampart sites are placed by auto-build, planned routes, extension roads, the rampart pass in `system.rooms`, or creeps walking for that room. Road and rampart sites already there are removed.

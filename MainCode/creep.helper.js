@@ -1,9 +1,99 @@
 const runtimeCache = require('runtime.cache');
 const roads = require('system.roads');
 const { loadForTrip } = require('creep.logistics');
+const { Traveler } = require('traveler');
+
+const WORK_RANGE = 3;            // build/upgrade from here: no crowding next to the target
+const SLOT_CACHE_TICKS = 1500;
+const slotCache = Object.create(null);   // source id -> { n: open tiles around it, t }
+
+// Tiles around a source a creep can stand on to harvest (terrain and blocking structures).
+function harvestSlots(source) {
+    const hit = slotCache[source.id];
+    if (hit && Game.time - hit.t < SLOT_CACHE_TICKS) return hit.n;
+    const terrain = source.room.getTerrain();
+    const blocked = new Set();
+    for (const s of source.room.lookForAtArea(LOOK_STRUCTURES, source.pos.y - 1, source.pos.x - 1, source.pos.y + 1, source.pos.x + 1, true)) {
+        const type = s.structure.structureType;
+        if (type !== STRUCTURE_ROAD && type !== STRUCTURE_CONTAINER && type !== STRUCTURE_RAMPART) blocked.add(s.x * 50 + s.y);
+    }
+    let n = 0;
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            const x = source.pos.x + dx, y = source.pos.y + dy;
+            if ((dx || dy) && x > 0 && x < 49 && y > 0 && y < 49 && !(terrain.get(x, y) & TERRAIN_MASK_WALL) && !blocked.has(x * 50 + y)) n++;
+        }
+    }
+    slotCache[source.id] = { n, t: Game.time };
+    return n;
+}
+
+// Creeps of ours working a source: helpers (targetSource), the room's harvesters and miners.
+function claimed(source, self) {
+    let n = 0;
+    for (const c of runtimeCache.find(source.room, FIND_MY_CREEPS)) {
+        if (c === self) continue;
+        const m = c.memory;
+        if (m.targetSource === source.id || m.mineSource === source.id || m.sourceLocation === source.id) n++;
+    }
+    return n;
+}
+
+// The nearest source with energy and a free harvesting tile.
+function pickSource(creep) {
+    const sources = runtimeCache.find(creep.room, FIND_SOURCES).filter(s => s.energy > 0 && claimed(s, creep) < harvestSlots(s));
+    return sources.length ? creep.pos.findClosestByRange(sources) : null;
+}
+
+function release(creep) {
+    delete creep.memory.targetSource;
+}
+
+// Energy for a helper in the room it builds: storage/terminal, energy lying around, a source
+// with a free tile (nearest first). Returns false when it found nothing to do.
+function gather(creep) {
+    const room = creep.room;
+    for (const store of [room.storage, room.terminal]) {
+        if (store && store.store[RESOURCE_ENERGY] >= 400) {
+            if (creep.withdraw(store, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(store, { range: 1 });
+            return true;
+        }
+    }
+    const loose = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 5, { filter: r => r.resourceType === RESOURCE_ENERGY && r.amount >= 100 })[0] ||
+        creep.pos.findInRange(FIND_TOMBSTONES, 5, { filter: t => t.store[RESOURCE_ENERGY] >= 100 })[0] ||
+        creep.pos.findInRange(FIND_RUINS, 5, { filter: t => t.store[RESOURCE_ENERGY] >= 100 })[0];
+    if (loose) {
+        const result = loose.amount !== undefined ? creep.pickup(loose) : creep.withdraw(loose, RESOURCE_ENERGY);
+        if (result === ERR_NOT_IN_RANGE) creep.travelTo(loose, { range: 1 });
+        return true;
+    }
+    let source = creep.memory.targetSource ? Game.getObjectById(creep.memory.targetSource) : null;
+    if (source && source.energy === 0 && !creep.pos.isNearTo(source)) source = null;   // emptied: look again
+    if (source && !creep.pos.isNearTo(source) && claimed(source, creep) >= harvestSlots(source)) source = null;   // taken meanwhile
+    if (!source) {
+        source = pickSource(creep);
+        if (source) creep.memory.targetSource = source.id;
+        else release(creep);
+    }
+    if (source) {
+        if (creep.harvest(source) === ERR_NOT_IN_RANGE) creep.travelTo(source, { range: 1 });
+        return true;
+    }
+    return false;
+}
+
 var creep_Helper = {
     run: function(creep) {
         if (loadForTrip(creep)) return;   // a full load from home first
+        this.act(creep);
+        // Standing still this tick (harvesting, building, upgrading): parked, so other creeps
+        // neither swap it off its tile nor path through it. Helpers used to shove each other off
+        // their harvest spots and work tiles all day.
+        if (creep.room.name === creep.memory.destination && !Traveler.movedThisTick(creep)) creep.memory.onPoint = 1;
+        else delete creep.memory.onPoint;
+    },
+
+    act: function(creep) {
 
         /*let closeFoe = creep.pos.findClosestByRange(FIND_HOSTILE_CREEPS, {
             filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username) && eCreep.owner.username != "Nemah")
@@ -55,61 +145,19 @@ var creep_Helper = {
             if (!creep.memory.currentState) {
                 creep.memory.currentState = 1;
             }
-            if (!creep.memory.waitingTimer) {
-                creep.memory.waitingTimer = 0;
-            }
 
             if (creep.memory.currentState == 1) {
-                if (creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] >= 400) {
-                    if (creep.withdraw(creep.room.storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(creep.room.storage, {
-                            ignoreRoads: true
-                        });
-                    }
-                } else if (creep.room.terminal && creep.room.terminal.store[RESOURCE_ENERGY] >= 400) {
-                    if (creep.withdraw(creep.room.terminal, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                        creep.travelTo(creep.room.terminal, {
-                            ignoreRoads: true
-                        });
-                    }
-                } else if (creep.memory.targetSource) {
-                    let thisSource = Game.getObjectById(creep.memory.targetSource);
-                    if (thisSource) {
-                        if (creep.harvest(thisSource) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisSource, {
-                                ignoreRoads: true
-                            });
-                            creep.memory.waitingTimer++;
-                        } else {
-                            creep.memory.waitingTimer = 0;
-                        }
-                        if (thisSource.energy <= 25 || creep.memory.waitingTimer >= 30) {
-                            creep.memory.targetSource = undefined;
-                        }
-                    }
-                } else {
-                    let roomSources = runtimeCache.find(creep.room, FIND_SOURCES, {
-                        filter: (tSource) => (tSource.energy >= creep.carryCapacity)
-                    });
-                    if (roomSources.length) {
-                        let targetIndex = 0;
-                        if (creep.memory.waitingTimer >= 30 && roomSources.length > 1) {
-                            creep.memory.targetSource = roomSources[1].id;
-                            targetIndex = 1;
-                        } else {
-                            creep.memory.targetSource = roomSources[0].id;
-                        }
-                        creep.memory.waitingTimer = 0;
-                        if (creep.harvest(roomSources[targetIndex]) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(roomSources[targetIndex], {
-                                ignoreRoads: true
-                            });
-                        }
-                    }
-                }
-
-                if (_.sum(creep.carry) + (creep.getActiveBodyparts(WORK) * 2) >= creep.carryCapacity) {
+                const working = gather(creep);
+                const carried = creep.store.getUsedCapacity();
+                if (carried + (creep.getActiveBodyparts(WORK) * 2) >= creep.carryCapacity || (!working && carried > 0)) {
+                    // Full, or nowhere to get more right now: spend what it carries; the source
+                    // tile is free for the next one.
                     creep.memory.currentState = 2;
+                    release(creep);
+                } else if (!working) {
+                    // Every harvesting tile is taken: wait out of the way, 3 tiles from the nearest source.
+                    const near = creep.pos.findClosestByRange(runtimeCache.find(creep.room, FIND_SOURCES));
+                    if (near && !creep.pos.inRangeTo(near, 3)) creep.travelTo(near, { range: 3 });
                 }
             } else {
                 let needSearch = true;
@@ -120,7 +168,7 @@ var creep_Helper = {
                         let buildResult = creep.build(thisStructure);
                         if (buildResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(thisStructure, {
-                                ignoreRoads: true
+                                range: WORK_RANGE
                             });
                         } else if (buildResult == ERR_INVALID_TARGET && thisStructure.energy < thisStructure.energyCapacity) {
                             if (creep.transfer(thisStructure, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -163,7 +211,7 @@ var creep_Helper = {
                         let buildResult = creep.build(target);
                         if (buildResult == ERR_NOT_IN_RANGE) {
                             creep.travelTo(target, {
-                                ignoreRoads: true
+                                range: WORK_RANGE
                             });
                         } else if (buildResult == ERR_NO_BODYPART) {
                             creep.suicide();
@@ -182,17 +230,10 @@ var creep_Helper = {
                                 });
                             }
                         } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
-                            if (Game.flags[creep.room.name + "Controller"]) {
-                                creep.travelTo(Game.flags[creep.room.name + "Controller"], {
-                                    maxRooms: 1,
-                                    ignoreRoads: true
-                                });
-                            } else {
-                                creep.travelTo(creep.room.controller, {
-                                    maxRooms: 1,
-                                    ignoreRoads: true
-                                });
-                            }
+                            creep.travelTo(creep.room.controller, {
+                                maxRooms: 1,
+                                range: WORK_RANGE
+                            });
                         } else {
                             if (creep.room.controller.sign && creep.room.controller.sign.username != "Montblanc") {
                                 creep.travelTo(creep.room.controller, {
