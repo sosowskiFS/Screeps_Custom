@@ -186,6 +186,7 @@ function planRoom(room) {
 function buildMissing(room) {
     const plan = Memory.roadPlan && Memory.roadPlan[room.name];
     if (!plan) return 0;
+    if (!require('room.stage').established(room)) return 0;   // young room: no roads yet
     const siteCount = Object.keys(Game.constructionSites).length;
     if (siteCount >= SITE_HEADROOM) return 0;
     const occupied = new Set();

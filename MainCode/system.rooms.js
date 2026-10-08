@@ -137,8 +137,8 @@ function manageRoomStructures(thisRoom) {
         }
     }
 
-    // Check all structures for ramparts, add if missing
-    if (Game.time % 10000 == 0) {
+    // Check all structures for ramparts, add if missing (not in a young room: room.stage)
+    if (Game.time % 10000 == 0 && require('room.stage').established(thisRoom)) {
         let constructionLimitReached = false;
 
         // Find structures that need rampart protection based on room level

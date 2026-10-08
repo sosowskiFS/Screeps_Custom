@@ -2,6 +2,10 @@ const runtimeCache = require('runtime.cache');
 const governor = require('runtime.cpuGovernor');
 const roads = require('system.roads');
 function placeRoadOnPath(creep) {
+    // No roads in (or for) a young room: its energy goes into building and upgrading.
+    if (!require('room.stage').upkeepAllowed(creep.room.name, creep.memory.homeRoom)) {
+        return;
+    }
     // Only attempt if we have an active travel path
     if (!creep.memory._trav || !creep.memory._trav.path || creep.memory._trav.path.length === 0) {
         return;

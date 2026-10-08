@@ -28,7 +28,7 @@ function setup() {
     const strayRoad = { id: 'r2', structureType: g.STRUCTURE_ROAD, pos: pos(10, 40), destroy: () => { strayDestroyed++; return g.OK; } };
     const structures = [storage, extension, coreRoad, strayRoad];
     const sites = [];
-    const room = { name: 'A', storage, controller: { my: true, pos: pos(30, 25) },
+    const room = { name: 'A', storage, terminal: { my: true }, controller: { my: true, pos: pos(30, 25) },   // established (room.stage)
         find: type => type === g.FIND_STRUCTURES ? structures
             : type === g.FIND_MY_STRUCTURES ? structures.filter(s => s.my)
             : (type === g.FIND_CONSTRUCTION_SITES || type === g.FIND_MY_CONSTRUCTION_SITES) ? sites : [],

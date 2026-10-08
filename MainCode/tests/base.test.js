@@ -165,13 +165,60 @@ function builderRoom(rcl, existing = []) {
     return { h, g, room, sites, flags, builder: h.load('base.builder') };
 }
 
-test('builder places only what the RCL allows, a few sites per pass, plus the layout flags', () => {
-    const { g, room, sites, flags, builder } = builderRoom(3);
+// The planned spawn and tower built (so the builder moves past its spawn- and tower-first focus).
+function buildCore(g, builder, room, existing) {
+    const plan = builder.planOf(room.name);
+    for (const kind of ['spawn', 'tower']) {
+        const t = plan.structures[kind][0];
+        existing.push({ structureType: kind === 'spawn' ? g.STRUCTURE_SPAWN : g.STRUCTURE_TOWER, my: true,
+            pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
+    }
+}
+
+test('a room without a spawn gets only its spawn site first', () => {
+    const { g, room, sites, builder } = builderRoom(3);
     builder.planRoom(room);
+    builder.buildRoom(room);
+    assert.deepEqual(sites.map(s => s[2]), [g.STRUCTURE_SPAWN]);
+});
+
+test('a tower the controller level now allows is placed before anything else', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(3, existing);
+    builder.planRoom(room);
+    const plan = builder.planOf(room.name);
+    const t = plan.structures.spawn[0];
+    existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
+    builder.buildRoom(room);
+    assert.deepEqual(sites.map(s => s[2]), [g.STRUCTURE_TOWER], 'RCL3 allows one tower: only it, no extensions yet');
+});
+
+test('a young room (no terminal) gets no road or rampart sites, and loses the ones it had', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(5, existing);
+    const removed = [];
+    room.find = (find => type => (type === g.FIND_MY_CONSTRUCTION_SITES
+        ? [{ structureType: g.STRUCTURE_ROAD, pos: { x: 2, y: 2 }, remove: () => removed.push('road') },
+            { structureType: g.STRUCTURE_RAMPART, pos: { x: 3, y: 3 }, remove: () => removed.push('rampart') }]
+        : find(type)))(room.find);
+    builder.planRoom(room);
+    buildCore(g, builder, room, existing);
+    existing.push({ structureType: g.STRUCTURE_TOWER, my: true, pos: { x: 1, y: 1, roomName: room.name, lookFor: () => [] } });   // RCL5: 2 towers
+    builder.buildRoom(room);
+    const types = sites.map(s => s[2]);
+    assert.ok(!types.includes(g.STRUCTURE_ROAD) && !types.includes(g.STRUCTURE_RAMPART));
+    assert.deepEqual(removed, ['road', 'rampart']);
+});
+
+test('builder places only what the RCL allows, a few sites per pass, plus the layout flags', () => {
+    const existing = [];
+    const { g, room, sites, flags, builder } = builderRoom(3, existing);
+    builder.planRoom(room);
+    buildCore(g, builder, room, existing);
     builder.buildRoom(room);
     const types = sites.map(s => s[2]);
     assert.ok(sites.length <= 10, 'site budget per pass');
-    assert.equal(types.filter(t => t === g.STRUCTURE_SPAWN).length, 1);
+    assert.equal(types.filter(t => t === g.STRUCTURE_SPAWN).length, 0, 'the one RCL3 spawn is built');
     assert.equal(types.filter(t => t === g.STRUCTURE_STORAGE).length, 0, 'storage needs RCL4');
     assert.ok(types.filter(t => t === g.STRUCTURE_EXTENSION).length > 0);
     assert.deepEqual(flags.sort(), ['W1N1Supply', 'W1N1storageMiner', 'W1N1upgradeMiner']);

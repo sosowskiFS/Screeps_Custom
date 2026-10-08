@@ -60,6 +60,7 @@ function unpack(text) {
 }
 
 const tileOf = pos => pos.x * 50 + pos.y;
+const stage = require('room.stage');
 
 // Structures a hauler has to reach (filled or emptied by creeps).
 const SERVICED = new Set([STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_LINK, STRUCTURE_TERMINAL,
@@ -382,9 +383,27 @@ function buildRoom(room, plan) {
         return true;
     };
 
+    // Young room (no terminal yet, room.stage): no roads or ramparts, and sites already placed for
+    // them go, so builders spend everything on structures and upgrading.
+    const established = stage.established(room);
+    if (!established) {
+        for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
+            if (s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_RAMPART) s.remove();
+        }
+    }
+
+    // Focus: builders go to the nearest site, so placement order alone decides nothing. A room
+    // without a spawn gets only its spawn; a tower the controller level now allows is placed
+    // (and built) before anything else.
+    const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
+    const towersAllowed = Math.min((CONTROLLER_STRUCTURES[STRUCTURE_TOWER] || {})[rcl] || 0, (plan.structures.tower || []).length);
+    let kinds = ORDER;
+    if (built(STRUCTURE_SPAWN) === 0 && (plan.structures.spawn || []).length) kinds = ['spawn'];
+    else if (built(STRUCTURE_TOWER) < towersAllowed) kinds = ['tower'];
+
     // Adopted rooms keep hand-built lab sets intact; migrating rooms replace them.
     const skipLabs = plan.mode === 'adopt' && foreignLabs(room, plan);
-    for (const kind of ORDER) {
+    for (const kind of kinds) {
         const type = TYPES[kind];
         const allowed = (CONTROLLER_STRUCTURES[type] && CONTROLLER_STRUCTURES[type][rcl]) || 0;
         if (kind === 'lab' && skipLabs) continue;
@@ -407,7 +426,7 @@ function buildRoom(room, plan) {
     // Base roads beside something already built or being built. Never on a wall tile (tunnels
     // cost 150x to build and maintain); plans never contain one, this guards older plans.
     const terrain = Game.map.getRoomTerrain(room.name);
-    if (rcl >= 2) {
+    if (rcl >= 2 && established && kinds === ORDER) {
         for (const tile of plan.roads) {
             if (budget <= 0) break;
             if (occupied.has(tile)) continue;
@@ -438,7 +457,7 @@ function buildRoom(room, plan) {
 
     // Ramparts over finished planned structures and over the core's creep spots (Supply,
     // miner tiles), as the previous generator did.
-    if (rcl >= RAMPART_RCL) {
+    if (rcl >= RAMPART_RCL && established && kinds === ORDER) {
         const covered = [];
         for (const kind in plan.structures) for (const tile of plan.structures[kind]) if (finished.has(tile)) covered.push(tile);
         if (plan.mode === 'fresh') for (const name in plan.flags) covered.push(plan.flags[name]);
@@ -456,7 +475,7 @@ function buildRoom(room, plan) {
     const stagger = (room.name.charCodeAt(1) * 7 + room.name.charCodeAt(room.name.length - 1) * 13) % 200;
     Memory.baseBuild[room.name] = {
         rcl,
-        next: Game.time + (again ? 5 : budget <= 0 ? 100 : BUILD_INTERVAL + stagger),
+        next: Game.time + (again ? 5 : budget <= 0 || kinds !== ORDER ? 100 : BUILD_INTERVAL + stagger),
     };
     return SITES_PER_PASS - budget;
 }

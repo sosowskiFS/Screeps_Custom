@@ -11,6 +11,7 @@ function handleAutoBuildRoomsRegeneration() {
 // O(structures + sites + room area), instead of thousands of position lookups.
 // Keep x/y iteration order and ERR_FULL early exit to preserve site priority.
 function buildExtensionRoads(room) {
+    if (!require('room.stage').established(room)) return;   // young room: no roads yet
     const occupied = new Uint8Array(2500);
     const neighbors = new Uint8Array(2500);
     for (const structure of runtimeCache.find(room, FIND_STRUCTURES)) {
