@@ -22,6 +22,7 @@ const WORK_RANGE = 3;
 const SLOT_CACHE_TICKS = 1500;
 const REGEN_WAIT = 20;
 const LOOSE_MIN = 50;
+const NEAR_LOOT = 3;             // loose energy this close is worth a partial top-up
 const STORE_MIN = 400;
 const TOWER_MIN = 500;
 const DOWNGRADE_MIN = 3000;
@@ -68,15 +69,40 @@ function energyIn(target) {
     return target.store ? target.store[RESOURCE_ENERGY] || 0 : 0;
 }
 
-// The nearest loose energy in the room worth the trip.
+// Energy in the target that other helpers are already on their way to take (their free capacity).
+function reservedBy(target, self) {
+    let n = 0;
+    for (const c of runtimeCache.find(target.room || self.room, FIND_MY_CREEPS)) {
+        if (c !== self && c.memory.lootTarget === target.id) n += c.store.getFreeCapacity(RESOURCE_ENERGY);
+    }
+    return n;
+}
+
+// The nearest loose energy worth the trip: what is left after other helpers' claims must fill this
+// helper, or lie within NEAR_LOOT (a cheap detour) with at least LOOSE_MIN. Helpers used to all
+// beeline for any container with a little energy instead of harvesting.
 function looseEnergy(creep) {
     const room = creep.room;
+    const need = creep.store.getFreeCapacity(RESOURCE_ENERGY);
+    const worth = t => {
+        const left = energyIn(t) - reservedBy(t, creep);
+        return left >= need || (left >= LOOSE_MIN && creep.pos.inRangeTo(t, NEAR_LOOT));
+    };
     const found = [].concat(
-        runtimeCache.find(room, FIND_DROPPED_RESOURCES).filter(r => r.resourceType === RESOURCE_ENERGY && r.amount >= LOOSE_MIN),
-        runtimeCache.find(room, FIND_TOMBSTONES).filter(t => energyIn(t) >= LOOSE_MIN),
-        runtimeCache.find(room, FIND_RUINS).filter(t => energyIn(t) >= LOOSE_MIN),
-        runtimeCache.find(room, FIND_STRUCTURES).filter(s => s.structureType === STRUCTURE_CONTAINER && energyIn(s) >= LOOSE_MIN));
+        runtimeCache.find(room, FIND_DROPPED_RESOURCES).filter(r => r.resourceType === RESOURCE_ENERGY),
+        runtimeCache.find(room, FIND_TOMBSTONES),
+        runtimeCache.find(room, FIND_RUINS),
+        runtimeCache.find(room, FIND_STRUCTURES).filter(s => s.structureType === STRUCTURE_CONTAINER))
+        .filter(t => energyIn(t) >= LOOSE_MIN && worth(t));
     return found.length ? creep.pos.findClosestByRange(found) : null;
+}
+
+// The loose energy this helper is already heading for, while something is left for it.
+function currentLoot(creep) {
+    const target = creep.memory.lootTarget ? Game.getObjectById(creep.memory.lootTarget) : null;
+    if (target && energyIn(target) - reservedBy(target, creep) > 0) return target;
+    delete creep.memory.lootTarget;
+    return null;
 }
 
 function sourceUsable(source, creep) {
@@ -90,8 +116,10 @@ function pickSource(creep) {
     return sources.length ? creep.pos.findClosestByRange(sources) : null;
 }
 
+// Drop this helper's claims: its harvesting tile and the loose energy it was heading for.
 function release(creep) {
     delete creep.memory.targetSource;
+    delete creep.memory.lootTarget;
 }
 
 // One gathering step. Returns false when nothing is available right now.
@@ -112,9 +140,10 @@ function gather(creep) {
         source = null;
     }
     if (!source || !creep.pos.isNearTo(source)) {
-        const loose = looseEnergy(creep);
+        const loose = currentLoot(creep) || looseEnergy(creep);
         if (loose) {
             release(creep);
+            creep.memory.lootTarget = loose.id;
             const result = loose.amount !== undefined ? creep.pickup(loose) : creep.withdraw(loose, RESOURCE_ENERGY);
             if (result === ERR_NOT_IN_RANGE) creep.travelTo(loose, { range: 1 });
             return true;
@@ -125,6 +154,7 @@ function gather(creep) {
         if (!source) return false;
         creep.memory.targetSource = source.id;
     }
+    delete creep.memory.lootTarget;
     if (creep.harvest(source) === ERR_NOT_IN_RANGE) creep.travelTo(source, { range: 1 });
     return true;
 }

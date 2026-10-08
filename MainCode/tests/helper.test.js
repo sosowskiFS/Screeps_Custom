@@ -80,11 +80,29 @@ test('beside a source that ran dry with some energy carried, it goes to build in
     assert.equal(s.creep.memory.targetSource, undefined, 'its tile is released');
 });
 
-test('loose energy lying in the room comes before harvesting', () => {
-    const drop = { id: 'drop', resourceType: 'energy', amount: 300, pos: { x: 20, y: 20 } };
+test('loose energy that fills the helper comes before harvesting', () => {
+    const drop = { id: 'drop', resourceType: 'energy', amount: 500, pos: { x: 20, y: 20 } };
     const s = setup({ dropped: [drop] });
     s.run();
     assert.deepEqual(plain(s.calls).slice(0, 2), [['pickup', 'drop'], ['travelTo', 'drop', 1]]);
+    assert.equal(s.creep.memory.lootTarget, 'drop', 'claimed');
+});
+
+test('a little loose energy far away is not worth the walk; close by it is', () => {
+    let s = setup({ dropped: [{ id: 'drop', resourceType: 'energy', amount: 300, pos: { x: 20, y: 20 } }] });
+    s.run();
+    assert.equal(s.creep.memory.targetSource, 'A', '300 of the 400 needed, 5 tiles away: harvest instead');
+    s = setup({ dropped: [{ id: 'drop', resourceType: 'energy', amount: 100, pos: { x: 17, y: 17 } }] });
+    s.run();
+    assert.equal(s.creep.memory.lootTarget, 'drop', 'within 3: a cheap top-up');
+});
+
+test('energy another helper is already heading for is not chased by a second one', () => {
+    const other = { memory: { lootTarget: 'drop' }, store: { getFreeCapacity: () => 400 } };
+    const s = setup({ dropped: [{ id: 'drop', resourceType: 'energy', amount: 500, pos: { x: 20, y: 20 } }], others: [other] });
+    s.run();
+    assert.equal(s.creep.memory.lootTarget, undefined, 'only 100 left after its claim');
+    assert.equal(s.creep.memory.targetSource, 'A');
 });
 
 test('all helpers pour into one site: spawn/tower/extension first, then the furthest along', () => {
