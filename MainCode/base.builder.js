@@ -449,20 +449,27 @@ function buildRoom(room, plan) {
     // Young room (no terminal yet, room.stage): no roads or ramparts, and sites already placed for
     // them go, so builders spend everything on structures and upgrading.
     const established = stage.established(room);
+    const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
+    // Young and no tower yet: hostile creeps can stomp construction sites unopposed, so only the
+    // spawn (the room cannot make creeps without it) and, from RCL3, the tower go down; builders
+    // upgrade the controller meanwhile. Containers stay: miners need them.
+    const towerless = !established && built(STRUCTURE_TOWER) === 0;
     if (!established) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
-            if (s.structureType === STRUCTURE_ROAD || s.structureType === STRUCTURE_RAMPART) s.remove();
+            const type = s.structureType;
+            if (type === STRUCTURE_ROAD || type === STRUCTURE_RAMPART ||
+                (towerless && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER && type !== STRUCTURE_CONTAINER)) s.remove();
         }
     }
 
     // Focus: builders go to the nearest site, so placement order alone decides nothing. A room
     // without a spawn gets only its spawn; a tower the controller level now allows is placed
-    // (and built) before anything else.
-    const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
+    // (and built) before anything else; a young room with no tower possible yet gets nothing more.
     const towersAllowed = Math.min((CONTROLLER_STRUCTURES[STRUCTURE_TOWER] || {})[rcl] || 0, (plan.structures.tower || []).length);
     let kinds = ORDER;
     if (built(STRUCTURE_SPAWN) === 0 && (plan.structures.spawn || []).length) kinds = ['spawn'];
     else if (built(STRUCTURE_TOWER) < towersAllowed) kinds = ['tower'];
+    else if (towerless) kinds = [];
 
     // Adopted rooms keep hand-built lab sets intact; migrating rooms replace them.
     const skipLabs = plan.mode === 'adopt' && foreignLabs(room, plan);

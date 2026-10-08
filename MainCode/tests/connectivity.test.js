@@ -42,7 +42,7 @@ function builderRoom({ sites = [] } = {}) {
     const placed = [];
     const siteObjs = sites.map(([x, y, type]) => ({ structureType: type, my: true, pos: pos(x, y), remove: () => { removed.push([x, y]); return g.OK; } }));
     const structures = [{ structureType: g.STRUCTURE_SPAWN, my: true, pos: pos(45, 10) }, { structureType: g.STRUCTURE_STORAGE, my: true, pos: pos(44, 15) }];
-    const room = { name: 'R', controller: { my: true, level: 8, pos: pos(20, 30) },
+    const room = { name: 'R', terminal: { my: true }, controller: { my: true, level: 8, pos: pos(20, 30) },   // established (room.stage)
         find: type => {
             if (type === g.FIND_STRUCTURES || type === g.FIND_MY_STRUCTURES) return structures;
             if (type === g.FIND_MY_CONSTRUCTION_SITES || type === g.FIND_CONSTRUCTION_SITES) return siteObjs;

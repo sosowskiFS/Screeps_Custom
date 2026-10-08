@@ -92,8 +92,34 @@ function intelTable() {
     return Memory.expandIntel || (Memory.expandIntel = {});
 }
 
+// Shards that never expand automatically: shard1 and shard2 were just cut down to free CPU for
+// shardX (their CPU limits can only change every 12 hours).
+const NO_EXPAND_SHARDS = new Set(['shard1', 'shard2']);
+
+function shardAllowed() {
+    return !NO_EXPAND_SHARDS.has(Game.shard.name);
+}
+
 function enabled() {
-    return !(Memory.settings && Memory.settings.autoExpand === false);
+    return shardAllowed() && !(Memory.settings && Memory.settings.autoExpand === false);
+}
+
+// On a shard that may not expand, an expansion already under way is undone: a room it claimed
+// goes to system.retire (drained, then unclaimed); an unclaimed target is just dropped.
+function abandonOnDisabledShard() {
+    const s = Memory.expansion;
+    if (!s || !s.t) return;
+    const room = Game.rooms[s.t];
+    if (room && room.controller && room.controller.my) {
+        if (!Memory.retire) Memory.retire = { start: Game.time, n: 0, e: {}, c: {}, rooms: {} };
+        if (!Memory.retire.rooms) Memory.retire.rooms = {};
+        Memory.retire.rooms[s.t] = { st: 'drain', t: Game.time };
+        console.log('[expansion] ' + s.t + ' handed to system.retire: no expansion on ' + Game.shard.name);
+    }
+    delete s.t;
+    delete s.sp;
+    delete s.st;
+    delete s.since;
 }
 
 function friendly(username) {
@@ -536,6 +562,10 @@ function adoptYoungRoom() {
 }
 
 function run() {
+    if (!shardAllowed()) {
+        abandonOnDisabledShard();
+        return;
+    }
     if (!enabled()) return;
     observe();
     const s = state();

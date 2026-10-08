@@ -112,7 +112,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 
 ## Automatic expansion
 
-`system.expansion.js` claims a new room on its own when the shard has CPU to spare. It runs one expansion at a time on each shard, against that shard's own CPU limit. Run `expansion()` in the console to see the CPU budget, what is in progress and the ranked candidates with the reason each one is rejected. To switch it off, set `Memory.settings.autoExpand = false`; the manual `ClaimThis` / `SendHelper` flags still work either way.
+`system.expansion.js` claims a new room on its own when the shard has CPU to spare. It never runs on shard1 or shard2 (`NO_EXPAND_SHARDS`), which were cut down to free CPU for shardX. An expansion already under way there is undone: a room it claimed goes to `system.retire` (drained, then unclaimed). It runs one expansion at a time on each shard, against that shard's own CPU limit. Run `expansion()` in the console to see the CPU budget, what is in progress and the ranked candidates with the reason each one is rejected. To switch it off, set `Memory.settings.autoExpand = false`; the manual `ClaimThis` / `SendHelper` flags still work either way.
 
 - **CPU check** (every 500 ticks): shard average (governor EMA) − harasser CPU + one average room must be ≤ 85% of `Game.cpu.limit`.
   - Harasser CPU is tracked in its own bucket (`~harasser` in the room CPU table) rather than its home room's, since harassers are a bonus role that only uses free CPU.
@@ -142,7 +142,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **Retiring:** a support hauler retires when trucking is no longer wanted, or when it couldn't finish another round trip.
 - **Young rooms** (ours without their own terminal; RCL7+ with a storage always counts as established, so a migration rebuilding the terminal changes nothing; `room.stage.js`) spend energy on building and upgrading:
   - **No upkeep structures:** no road or rampart sites are placed by auto-build, planned routes, extension roads, the rampart pass in `system.rooms`, or creeps walking for that room. Road and rampart sites already there are removed.
-  - **Focus:** builders go to the nearest site, so order alone decides nothing. In any room, auto-build places only the spawn while the room has none. When the controller level allows a tower that isn't built yet, it places only tower sites until they stand. Then the rest follows (re-checked every 100 ticks).
+  - **Focus:** builders go to the nearest site, so order alone decides nothing. In any room, auto-build places only the spawn while the room has none. When the controller level allows a tower that isn't built yet, it places only tower sites until they stand. Then the rest follows (re-checked every 100 ticks). A young room with no tower yet is limited to its spawn: hostile creeps can stomp construction sites unopposed, so builders upgrade the controller instead. At RCL3 the tower goes down first, then everything else. Other sites already placed there are removed (containers stay, the miners need them).
 - **Previous owner's leftovers:** structures another player left in a room we own are destroyed by auto-build, and the room is replanned fresh. Otherwise the planner adopted their storage as ours and our own core was never built.
 
 ## Retiring rooms (one-time)

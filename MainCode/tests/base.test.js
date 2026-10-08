@@ -299,3 +299,18 @@ test('a parked miner does not serve a power spawn; a boxed-in planned tile is mo
     assert.equal(X(moved) + ',' + Y(moved), placed[0], 'the stored plan follows');
     assert.ok(c.req.service.has(I(26, 13)), 'the miner tile is a service tile');
 });
+
+test('a young room without a tower builds nothing but its spawn: controller first until RCL3', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(2, existing);
+    const removed = [];
+    const site = (type, x) => ({ structureType: type, pos: { x, y: 2 }, remove: () => removed.push(type) });
+    room.find = (find => type => (type === g.FIND_MY_CONSTRUCTION_SITES
+        ? [site(g.STRUCTURE_EXTENSION, 2), site(g.STRUCTURE_CONTAINER, 3)] : find(type)))(room.find);
+    builder.planRoom(room);
+    const t = builder.planOf(room.name).structures.spawn[0];
+    existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
+    builder.buildRoom(room);
+    assert.deepEqual(sites, [], 'RCL2, no tower possible yet: no extension sites');
+    assert.deepEqual(removed, [g.STRUCTURE_EXTENSION], 'the container for the miners stays');
+});

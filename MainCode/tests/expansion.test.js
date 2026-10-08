@@ -11,7 +11,7 @@ function setup({ ema = 150, harasser = 10, roomCpu = 5 } = {}) {
     g.Game.time = 100000;
     g.Game.cpu.limit = 230;
     g.Game.gcl = { level: 40 };
-    g.Game.shard = { name: 'shard2' };
+    g.Game.shard = { name: 'shard3' };   // shard1/shard2 never expand (system.expansion NO_EXPAND_SHARDS)
     g.console = { log: () => {} };
     const expansion = h.load('system.expansion');
     const home = { name: 'E10N10', controller: { my: true, level: 7 }, storage: { store: { energy: 200000 } },
@@ -159,4 +159,19 @@ test('a room of ours without a terminal is supported even after its expansion wa
     assert.equal(g.Memory.expansion.st, 'develop');
     assert.ok(!g.Memory.expansion.bad.E14N10, 'its old failure mark is cleared');
     assert.deepEqual(plain(expansion.spawnOrder('E10N10')), { type: 'helper', target: 'E14N10', max: expansion.HELPERS });
+});
+
+test('shard1/shard2 never expand; a room an expansion there already claimed is handed to retirement (shard2 E26N27)', () => {
+    const { g, expansion } = setup();
+    g.Game.shard = { name: 'shard2' };
+    g.Memory.expansion = { next: 0, bad: {}, t: 'E14N10', sp: 'E10N10', st: 'develop', since: 1 };
+    g.Game.rooms.E14N10 = { name: 'E14N10', controller: { my: true, level: 2 }, find: () => [] };
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, undefined);
+    assert.equal(g.Memory.retire.rooms.E14N10.st, 'drain', 'retired: drained, then unclaimed');
+    assert.equal(expansion.spawnOrder('E10N10'), null);
+    g.Memory.expansion.next = 0;
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, undefined, 'no new expansion');
+    assert.ok(!g.Memory.expansion.scan, 'no scanning either');
 });
