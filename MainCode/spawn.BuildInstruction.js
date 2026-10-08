@@ -86,6 +86,10 @@ var spawn_BuildInstruction = {
             case 'supportHauler':
                 this.spawnSupportHauler(spawn, params, energyIndex, roomName);
                 break;
+
+            case 'roomGuard':
+                this.spawnRoomGuard(spawn, params, energyIndex, roomName);
+                break;
                 
             case 'highwayPatrol':
                 this.spawnHighwayPatrol(spawn, energyIndex, roomName);
@@ -93,6 +97,16 @@ var spawn_BuildInstruction = {
         }
     },
     
+    // Guard for a room being built (system.expansion decides when, creep.roomGuard the body).
+    spawnRoomGuard: function(spawn, target, energyIndex, roomName) {
+        const body = require('creep.roomGuard').body(spawn.room.energyCapacityAvailable);
+        const configCost = calculateConfigCost(body);
+        if (configCost > Memory.CurrentRoomEnergy[energyIndex]) return;
+        Memory.CurrentRoomEnergy[energyIndex] -= configCost;
+        spawn.spawnCreep(body, 'roomGuard', { memory: { priority: 'roomGuard', homeRoom: roomName, destination: target } });
+        global.setSpawnBusy(spawn);
+    },
+
     // Energy truck for a new room (system.expansion): CARRY/MOVE pairs, up to 25 of each.
     spawnSupportHauler: function(spawn, target, energyIndex, roomName) {
         const pairs = Math.max(1, Math.min(25, Math.floor(spawn.room.energyCapacityAvailable / 100)));

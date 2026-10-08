@@ -48,6 +48,7 @@ const RESEEN = 20000;
 const HELPERS = 4;
 const CLAIMER_GAP = 700;
 const HELPER_GAP = 150;
+const GUARD_GAP = 400;           // between guard orders (one in transit is invisible to shardX)
 const TOP_CANDS = 30;
 const PLAN_CHECKS = 2;           // base planner runs per 100 ticks (CPU spikes; shardX has little CPU)
 const TRAVELLER_TTL = 2000;
@@ -327,6 +328,13 @@ function runX() {
             tm: room && room.terminal && room.terminal.my ? 1 : 0,
             hp: Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'helper' && Game.creeps[n].memory.destination === t.r).length,
         };
+        // Guards here: the longest remaining life, and the latest measured trip (spawn to arrival).
+        for (const n in Game.creeps) {
+            const m = Game.creeps[n].memory;
+            if (m.priority !== 'roomGuard' || m.destination !== t.r) continue;
+            progress[t.r].gd = Math.max(progress[t.r].gd || 0, Game.creeps[n].ticksToLive || 0);
+            if (m.trip !== undefined) progress[t.r].gt = m.trip;
+        }
     }
     const scouts = Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'xScout').length;
     writeISM({ t: Date.now(), cands: candidates(), progress, seen: Object.keys(xState().seen).length, sc: scouts });
@@ -380,6 +388,19 @@ function scheduleSupport(list, progress) {
             return m.priority === role && m.destination === t.r && m.xShard;
         }).length;
         const base = { destination: t.r, homeRoom: home, xTarget: 1, xShard: { c: t.e } };
+        // A guard once the room is ours, re-ordered before the last one dies. One still on its way
+        // here is not yet counted on shardX: GUARD_GAP keeps it from being ordered twice.
+        if (p.cl) {
+            const guard = require('creep.roomGuard');
+            const lead = guard.leadTime(guard.body(Game.rooms[home].energyCapacityAvailable).length, p.gt, t.t !== undefined ? Math.ceil(t.t / 50) : 10);
+            const ttls = p.gd ? [p.gd] : [];
+            if (inFlight('roomGuard')) ttls.push(Infinity);
+            if (!guard.covered(ttls, lead) && Game.time - (s.last[t.r + ':g'] || 0) > GUARD_GAP) {
+                s.last[t.r + ':g'] = Game.time;
+                queue(home, { kind: 'roomGuard', memory: Object.assign({ priority: 'roomGuard' }, base) });
+                continue;
+            }
+        }
         if (!p.cl) {
             if (!inFlight('claimer') && Game.time - (s.last[t.r + ':c'] || 0) > CLAIMER_GAP) {
                 s.last[t.r + ':c'] = Game.time;
@@ -439,7 +460,8 @@ function spawnOrder(roomName) {
     const s = Memory.xs;
     const order = s && s.queue && s.queue[roomName];
     if (!order) return null;
-    return { body: BODIES[order.kind], memory: order.memory };
+    const body = order.kind === 'roomGuard' ? require('creep.roomGuard').body(Game.rooms[roomName].energyCapacityAvailable) : BODIES[order.kind];
+    return { body, memory: order.memory };
 }
 
 function spawned(roomName) {

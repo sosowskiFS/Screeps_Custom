@@ -16,7 +16,7 @@ function world({ homeEnergy = 300000, newStorage = 20000 } = {}) {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
     g.RESOURCE_ENERGY = 'energy';
-    const home = { name: 'HOME', storage: { id: 'hs', my: true, store: storeOf({ energy: homeEnergy }, 1000000) } };
+    const home = { name: 'HOME', energyCapacityAvailable: 2300, storage: { id: 'hs', my: true, store: storeOf({ energy: homeEnergy }, 1000000) } };
     const young = { name: 'NEW', storage: newStorage === null ? undefined : { id: 'ns', my: true, store: storeOf({ energy: newStorage }, 1000000) } };
     g.Game.rooms = { HOME: home, NEW: young };
     const calls = [];
@@ -46,7 +46,7 @@ test('support haulers are ordered once the crew is full and the new room\'s stor
     const { h, g } = world();
     const expansion = h.load('system.expansion');
     g.Memory.expansion = { t: 'NEW', sp: 'HOME', st: 'develop', since: 1, bad: {} };
-    g.Game.creeps = {};
+    g.Game.creeps = { guard: { memory: { priority: 'roomGuard', destination: 'NEW' }, ticksToLive: 1400 } };
     assert.equal(expansion.spawnOrder('HOME').type, 'helper', 'builders first');
     for (let i = 0; i < expansion.HELPERS; i++) g.Game.creeps['h' + i] = { memory: { priority: 'helper', destination: 'NEW' } };
     assert.equal(expansion.spawnOrder('HOME').type, 'supportHauler');

@@ -581,12 +581,30 @@ function spawnOrder(roomName) {
     if (!s.t || s.sp !== roomName) return null;
     if (s.st === 'claim') return { type: 'claim', target: s.t };
     if (s.st === 'develop') {
-        // Builders first; with a full crew and the new room's storage built, energy trucks.
+        // A guard first (ordered early enough that the next arrives before the last dies), then
+        // builders; with a full crew and the new room's storage built, energy trucks.
+        if (guardWanted(s, roomName)) return { type: 'roomGuard', target: s.t };
         if (countFor('helper', s.t) < HELPERS) return { type: 'helper', target: s.t, max: HELPERS };
         if (supplyWanted(s.t, roomName) && countFor('supportHauler', s.t) < HAULERS) return { type: 'supportHauler', target: s.t, max: HAULERS };
         return { type: 'helper', target: s.t, max: HELPERS };
     }
     return null;
+}
+
+function guardWanted(s, sponsorName) {
+    const guard = require('creep.roomGuard');
+    const sponsor = Game.rooms[sponsorName];
+    if (!sponsor) return false;
+    const lead = guard.leadTime(guard.body(sponsor.energyCapacityAvailable).length, s.guardTrip, linear(sponsorName, s.t));
+    const ttls = [];
+    for (const name in Game.creeps) {
+        const c = Game.creeps[name];
+        if (c.memory.priority === 'roomGuard' && c.memory.destination === s.t) ttls.push(c.spawning ? Infinity : c.ticksToLive);
+    }
+    for (const c of require('runtime.cache').pendingCreeps()) {
+        if (c.memory && c.memory.priority === 'roomGuard' && c.memory.destination === s.t) ttls.push(Infinity);
+    }
+    return !guard.covered(ttls, lead);
 }
 
 function countFor(role, roomName) {

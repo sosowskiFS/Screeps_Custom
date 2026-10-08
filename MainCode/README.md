@@ -160,6 +160,12 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **What doesn't count:** hostiles merely in the room. A quad stuck on an exit next door marched in and out of shardX's E29N36 without touching anything. Invaders, source keepers, whitelisted players, and attackers already gone don't count either.
   - **Guards:** only with a charge available, no cooldown, and no other room of ours on the shard in safe mode. It notifies by `Game.notify`.
   - **The older trigger:** `tower.Operate`'s proximity rule (a player creep within 5 of a tower below RCL7) now skips rooms under construction.
+- **Room guard** (`creep.roomGuard.js`): once a room is claimed, its sponsor (auto-expansion; for shardX, the home room) keeps a ranger there.
+  - **Body:** the power-harvest rangers' builds, by the sponsor's spawn energy.
+  - **Behaviour:** on the way it only fights what comes close. In the room it fights any hostile player creep, and otherwise parks within 3 of the controller.
+  - **Pre-queueing:** on arrival it records its trip (ticks from spawn to arrival). The next guard is ordered when the current one has less life left than spawn time (3 ticks per part) + trip + 50, so the replacement arrives before the last one dies. Before a trip is measured, it estimates 50 per room + 50.
+  - **Priority:** in auto-expansion it is the sponsor's first order, before helpers and haulers.
+  - **shardX:** shardX reports its guards' remaining life and trip through InterShardMemory, and the home room applies the same rule. A guard still on its way can't be seen on shardX yet, so orders are at least 400 ticks apart.
 - **Controller attackers** (an attacked controller cannot enter safe mode):
   - **Claim hunter** (`system.claimDefense.js`, `creep.claimHunter.js`): in a room of ours without a tower, while another player's creep with CLAIM parts is present and no hunter is out, the spawns hold everything else so energy pools. Then they spawn a hunter of ATTACK/MOVE pairs, as large as the room's spawn energy allows (or the biggest affordable after 300 ticks). It kills claimers first, then other hostiles, and retires once the room is clear.
   - **Safe mode first:** in a room under construction, safe mode also fires as soon as such a claimer has an open path to a tile next to the controller.

@@ -19,6 +19,8 @@ function setup({ ema = 150, harasser = 10, roomCpu = 5 } = {}) {
     g.Game.rooms = { E10N10: home };
     g.Game.spawns = { S: { owner: { username: 'me' }, room: home } };
     g.Memory.cpuGov = { ema, shed: 0 };
+    // A guard already posted at the candidate (creep.roomGuard): these tests are about the other orders.
+    g.Game.creeps = { guard: { memory: { priority: 'roomGuard', destination: 'E14N10' }, ticksToLive: 1400 } };
     g.Memory.roomCPU = { E10N10: { a: roomCpu, n: 500, l: 1 }, '~harasser': { a: harasser, n: 500, l: 1 } };
     g.Game.map.getRoomLinearDistance = (a, b) => expansion.linear(a, b);
     g.Game.map.findRoute = (from, to) => [{ room: to }];
