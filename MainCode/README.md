@@ -153,6 +153,13 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 - **Young rooms** (ours without their own terminal; RCL7+ with a storage always counts as established, so a migration rebuilding the terminal changes nothing; `room.stage.js`) spend energy on building and upgrading:
   - **No upkeep structures:** no road or rampart sites are placed by auto-build, planned routes, extension roads, the rampart pass in `system.rooms`, or creeps walking for that room. Road and rampart sites already there are removed.
   - **Focus:** builders go to the nearest site, so order alone decides nothing. In any room, auto-build places only the spawn while the room has none. When the controller level allows a tower that isn't built yet, it places only tower sites until they stand. Then the rest follows (re-checked every 100 ticks). A young room with no tower yet is limited to its spawn: hostile creeps can stomp construction sites unopposed, so builders upgrade the controller instead. At RCL3 the tower goes down first, then everything else. Other sites already placed there are removed (containers stay, the miners need them).
+- **Safe mode while under construction** (`system.safeMode.js`, every tick): a room of ours with no terminal yet activates safe mode only once another player is actually hurting it. The room's event log (last tick) must show:
+  - one of our creeps damaged by an attack;
+  - a structure in the room damaged, dismantling included;
+  - or our controller attacked.
+  - **What doesn't count:** hostiles merely in the room. A quad stuck on an exit next door marched in and out of shardX's E29N36 without touching anything. Invaders, source keepers, whitelisted players, and attackers already gone don't count either.
+  - **Guards:** only with a charge available, no cooldown, and no other room of ours on the shard in safe mode. It notifies by `Game.notify`.
+  - **The older trigger:** `tower.Operate`'s proximity rule (a player creep within 5 of a tower below RCL7) now skips rooms under construction.
 - **Previous owner's leftovers:** structures another player left in a room we own are destroyed by auto-build, and the room is replanned fresh. Otherwise the planner adopted their storage as ours and our own core was never built.
 
 ## Retiring rooms (one-time)

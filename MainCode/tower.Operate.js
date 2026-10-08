@@ -376,7 +376,9 @@ var tower_Operate = {
                     }
                     Memory.towerPickedTarget[thisRoom.name] = closestHostile.id;
 
-                    if (tower.room.controller.level < 7) {
+                    // Rooms still under construction (no terminal) use system.safeMode instead: safe
+                    // mode only once something of ours is actually being damaged.
+                    if (tower.room.controller.level < 7 && require('room.stage').established(tower.room)) {
                         if (tower.pos.getRangeTo(closestHostile) <= 5 && closestHostile.owner.username != 'Invader') {
                             //Too close for comfort
                             tower.room.controller.activateSafeMode();

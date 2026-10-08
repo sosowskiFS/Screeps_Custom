@@ -17,6 +17,7 @@ const expansion = require('system.expansion');
 const retire = require('system.retire');
 const powerCreeps = require('system.powerCreeps');
 const shardX = require('system.shardX');
+const safeMode = require('system.safeMode');
 const memoryCleanup = require('runtime.memoryCleanup');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
@@ -26,6 +27,7 @@ require('runtime.console');   // console commands: mem(), roomReport()
 const phases = [
     ['flags', flags.handleGameFlags],
     ['state', state.initializeGameState],
+    ['safeMode', safeMode.run],   // rooms under construction (no terminal yet)
     ['defense', defense.handleTowersAndRooms],
     ['spawningAndRooms', spawning.handleSpawning],
     ['market', market.handleMarketOperations],
