@@ -7,7 +7,7 @@ const runtimeCache = require('runtime.cache');
 const COMBAT_ROLES = new Set([
     'farGuard', 'farGuardNearDeath', 'ranger', 'ranger2', 'PowerGuard', 'rangerNearDeath',
     'SKAttackGuard', 'SKAttackGuardNearDeath', 'SKHealGuard', 'SKHealGuardNearDeath',
-    'highwayPatrol', 'highwayPatrolNearDeath', 'defender',
+    'highwayPatrol', 'highwayPatrolNearDeath', 'defender', 'roomGuard', 'claimHunter',
     'assattacker', 'assattackerNearDeath', 'assranger', 'assrangerNearDeath', 'asshealer', 'asshealerNearDeath',
     'powerAttack', 'powerAttackNearDeath', 'powerHeal', 'powerHealNearDeath',
     'harasser', 'harasserNearDeath',

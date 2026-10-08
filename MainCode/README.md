@@ -142,13 +142,15 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **Helpers in the room they build** (`creep.helper.js`) work for building speed:
     - **Gathering (when empty):** storage or terminal first. Then the nearest loose energy in the room (dropped, containers, tombstones, ruins): picking it up is instant, while harvesting a load takes about 50 ticks. It only counts when what is left after other helpers' claims would fill this helper, or when it lies within 3 tiles (a cheap top-up, at least 50). Each helper claims what it heads for (`lootTarget`), so they no longer all beeline for the same half-empty container.
     - **Harvesting:** the nearest source with energy and a free harvesting tile. Free tiles are the open tiles around it, minus the creeps already working it. A helper never stands at an empty source while it carries energy, and only waits for one that refills within 20 ticks. With nothing to take at all, it waits 3 tiles from the nearest source.
-    - **Working (when full, or when no more energy is close at hand):**
-      - spawn energy below half, so the room can make its own creeps;
-      - then a controller close to downgrading (unless it is attack-blocked and cannot be upgraded);
-      - then towers below 500;
-      - then construction **one site at a time**: spawn, tower, extension, storage, container, the rest; the furthest along first, then the nearest. Every helper pours into the same structure;
+    - **Working (when full, or when no more energy is close at hand)**, jobs in this order:
+      - fill every spawn and extension with room, so the room makes its own creeps;
+      - a controller close to downgrading (unless it is attack-blocked);
+      - towers below 500;
+      - controller walls below target;
+      - in a young room with no tower yet, only spawn, tower and wall sites are built, and otherwise the controller is upgraded to RCL3 and its tower. Sites placed meanwhile (an attack-blocked controller lets the builder place everything) wait for the tower;
+      - then construction **one site at a time** (spawn, tower, extension, storage, container, the rest; the furthest along first, then the nearest);
       - otherwise upgrading.
-      - **Fall-through:** a job that fails outright (blocked controller, full target, a creep standing on the site) is skipped for the next one, never retried in place.
+      - **Sticky jobs:** a job, once started, is kept until the helper runs dry or the job can't be done any more (target full, finished or gone, controller blocked, a creep on the site). Only then is the next one picked. Helpers used to drop the controller the moment it was out of downgrade danger.
     - **Positioning:** it builds and upgrades from range 3, and makes no repairs or detours to sign. Only on a tick it actually works in place (a successful harvest, build, repair or upgrade) is it parked (`onPoint`), so others neither swap it off its tile nor path through it. It is never parked merely for standing still: two helpers blocked in each other's way were both marked parked, became walls to each other's paths and froze (shardX E29N36).
   - **Retiring:** a support hauler retires when trucking is no longer wanted, or when it couldn't finish another round trip.
 - **Young rooms** (ours without their own terminal; RCL7+ with a storage always counts as established, so a migration rebuilding the terminal changes nothing; `room.stage.js`) spend energy on building and upgrading:
@@ -163,7 +165,11 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **The older trigger:** `tower.Operate`'s proximity rule (a player creep within 5 of a tower below RCL7) now skips rooms under construction.
 - **Room guard** (`creep.roomGuard.js`): once a room is claimed, its sponsor (auto-expansion; for shardX, the home room) keeps a ranger there.
   - **Body:** the power-harvest rangers' builds, by the sponsor's spawn energy.
-  - **Behaviour:** on the way it only fights what comes close. In the room it fights any hostile player creep, and otherwise parks within 3 of the controller.
+  - **Behaviour:** on the way it doesn't fight, only steps away from armed hostiles that come close.
+    - **In the room:** it fights with the shared combat logic when it would not have to retreat.
+    - **Outmatched or badly hurt:** it holds its post instead of retreating home: it backs away from armed hostiles inside the room, shooting what is in range, and picks off claimers and dismantlers out of their reach. A retreat sent it home, and it walked straight back in, bouncing on the room border (shardX E29N36).
+    - **Idle:** it parks within 3 of the controller.
+    - **Counted as a fighter:** guards and claim hunters now count in the combat estimate (`COMBAT_ROLES`).
   - **Pre-queueing:** on arrival it records its trip (ticks from spawn to arrival). The next guard is ordered when the current one has less life left than spawn time (3 ticks per part) + trip + 50, so the replacement arrives before the last one dies. Before a trip is measured, it estimates 50 per room + 50.
   - **Priority:** in auto-expansion it is the sponsor's first order, before helpers and haulers.
   - **shardX:** shardX reports its guards' remaining life and trip through InterShardMemory, and the home room applies the same rule. A guard still on its way can't be seen on shardX yet, so orders are at least 400 ticks apart.

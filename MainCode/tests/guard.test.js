@@ -62,3 +62,46 @@ test('shardX: the home shard re-orders a guard from shardX\'s report before the 
     h.load('system.shardX').run();
     assert.equal(g.Memory.xs.queue.E32N39.kind, 'roomGuard', '300 left < 22x3 + 400 + 50');
 });
+
+// The guard in its room with stubbed combat modules: verdict and threats as given.
+function guardInRoom({ verdict, hostiles, hits = 1000 }) {
+    const calls = [];
+    const stats = { strong: { dps: 230, ranged: 230, melee: 0 }, claimer: { dps: 0, ranged: 0, melee: 0 } };
+    const intel = { hostiles, threats: hostiles.filter(h => stats[h.kind].dps > 0), verdict };
+    const h = harness({
+        'combat.intel': { roomIntel: () => intel, assess: c => stats[c.kind] },
+        'combat.tactics': {
+            fight: () => { calls.push(['fight']); return true; },
+            flee: () => { calls.push(['flee']); return true; },
+            incomingDamage: () => 0,
+        },
+    });
+    const g = h.context;
+    g.CREEP_LIFE_TIME = 1500;
+    const range = (a, b) => Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y));
+    const creep = { memory: { priority: 'roomGuard', destination: 'NEW', trip: 300, regroupUntil: 99 }, hits, hitsMax: 1000, ticksToLive: 900,
+        room: { name: 'NEW', controller: { pos: { x: 25, y: 25 } } },
+        pos: { x: 20, y: 20, inRangeTo: (t, r) => range(creep.pos, t.pos || t) <= r, isNearTo: t => range(creep.pos, t.pos) <= 1,
+            findClosestByRange: list => list[0] },
+        getActiveBodyparts: type => (type === g.RANGED_ATTACK ? 10 : 0),
+        rangedAttack: t => calls.push(['shoot', t.kind]), attack: () => {}, heal: () => {},
+        travelTo: (t, o) => calls.push(['travelTo', t.kind || 'controller', o.maxRooms]) };
+    h.load('creep.roomGuard').run(creep);
+    return { calls, creep };
+}
+
+test('an outmatched guard holds its post: backs away inside the room, never heads home (shardX E29N36 border bounce)', () => {
+    const { calls, creep } = guardInRoom({ verdict: 'lose', hostiles: [{ kind: 'strong', pos: { x: 22, y: 20 } }] });
+    assert.deepEqual(plain(calls), [['shoot', 'strong'], ['flee']]);
+    assert.equal(creep.memory.regroupUntil, undefined, 'no fall-back-home timer');
+});
+
+test('outmatched but only a claimer within reach: it hunts the claimer, staying in the room', () => {
+    const { calls } = guardInRoom({ verdict: 'lose', hostiles: [{ kind: 'strong', pos: { x: 40, y: 40 } }, { kind: 'claimer', pos: { x: 24, y: 24 } }] });
+    assert.deepEqual(plain(calls), [['travelTo', 'claimer', 1]]);
+});
+
+test('a fight it can win goes to the shared combat logic', () => {
+    const { calls } = guardInRoom({ verdict: 'win', hostiles: [{ kind: 'strong', pos: { x: 22, y: 20 } }] });
+    assert.deepEqual(plain(calls), [['fight']]);
+});

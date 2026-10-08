@@ -149,6 +149,8 @@ test('walls around the controller are brought to 10k hits per RCL; a blocked con
     const room = s.creep.room;
     const find = room.find;
     room.find = type => (type === s.g.FIND_STRUCTURES ? [wall] : find(type));
+    const get = s.g.Game.getObjectById;
+    s.g.Game.getObjectById = id => (id === 'wall' ? wall : get(id));
     s.creep.repair = t => { s.calls.push(['repair', t.id]); return s.g.ERR_NOT_IN_RANGE; };
     s.creep.memory.currentState = 2;
     s.run();
@@ -195,4 +197,41 @@ test('a job that fails outright moves the helper on to the next one', () => {
     s.run();
     assert.ok(plain(s.calls).some(c => c[0] === 'upgrade'), 'falls through to upgrading');
     assert.equal(s.creep.memory.job && s.creep.memory.job.k, 'upgrade', 'the next job');
+});
+
+test('a helper keeps upgrading until it runs dry, even once the controller is out of downgrade danger and sites exist', () => {
+    const site = { id: 'site', structureType: 'STRUCTURE_EXTENSION', progress: 0, progressTotal: 3000, pos: { x: 15, y: 17 } };
+    const s = setup({ carry: { energy: 200 }, sites: [site] });
+    s.creep.memory.currentState = 2;
+    s.creep.memory.job = { k: 'upgrade' };
+    s.creep.room.controller.ticksToDowngrade = 15000;   // recovered
+    s.run();
+    assert.ok(plain(s.calls).some(c => c[0] === 'upgrade'));
+    assert.ok(!plain(s.calls).some(c => c[0] === 'build'), 'the site waits for the next load');
+    s.creep.store = { getUsedCapacity: () => 0, getFreeCapacity: () => 400 };
+    s.g.Game.time++;
+    s.run();
+    assert.equal(s.creep.memory.job, undefined, 'dry: the next load picks again');
+});
+
+test('a young room without a tower: upgrade before extension sites; the tower site first once there is one', () => {
+    const ext = { id: 'ext', structureType: 'STRUCTURE_EXTENSION', progress: 1543, progressTotal: 3000, pos: { x: 15, y: 17 } };
+    let s = setup({ carry: { energy: 400 }, sites: [ext], tower: false });
+    s.run();
+    assert.equal(s.creep.memory.job.k, 'upgrade', 'the half-built extension waits');
+    const towerSite = { id: 'towerSite', structureType: 'STRUCTURE_TOWER', progress: 0, progressTotal: 5000, pos: { x: 16, y: 16 } };
+    s = setup({ carry: { energy: 400 }, sites: [ext, towerSite], tower: false });
+    s.run();
+    assert.deepEqual(plain(s.creep.memory.job), { k: 'build', id: 'towerSite' });
+});
+
+test('spawns and extensions with room are filled first, so the room can make its own creeps', () => {
+    const ext = { id: 'ext1', structureType: 'STRUCTURE_EXTENSION', store: { getFreeCapacity: () => 50 }, pos: { x: 16, y: 16 } };
+    const site = { id: 'site', structureType: 'STRUCTURE_EXTENSION', progress: 0, progressTotal: 3000, pos: { x: 15, y: 17 } };
+    const s = setup({ carry: { energy: 400 }, sites: [site], structures: [ext] });
+    const transfers = [];
+    s.creep.transfer = (t) => { transfers.push(t.id); return s.g.ERR_NOT_IN_RANGE; };
+    s.run();
+    assert.deepEqual(transfers, ['ext1']);
+    assert.deepEqual(plain(s.creep.memory.job), { k: 'fill', id: 'ext1' });
 });
