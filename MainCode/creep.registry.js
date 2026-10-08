@@ -37,6 +37,7 @@ function register(names, run) {
     for (const name of names) roles[name] = run;
 }
 register(['retireHauler'], creep => creep_retireHauler.run(creep));
+register(['xScout'], creep => require('system.shardX').runScout(creep));
 
 register(['farMule', 'farMuleNearDeath'], (creep, isRoomAt5) => {
     // Per-tick container re-scans are the first thing shed when CPU runs over budget.

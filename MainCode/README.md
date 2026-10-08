@@ -152,6 +152,22 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - ships everything from its terminal to the nearest kept room on the shard (goods first, energy last, with transfer costs paid from its energy);
   - once storage, terminal and factory hold under 5,000 (or after 30,000 ticks): cancels its market orders, unclaims, removes its creeps and flags, and cleans its Memory entries. Structures are left standing.
 
+## Settling shardX (one-time)
+
+`system.shardX.js`, driven from the shard2 console. The same code must also run on shardX.
+
+- **`shardX('scout')`:** the 4 highway corners nearest our homes each get a 1-MOVE scout from their closest home, re-sent every 1,500 ticks.
+  - Every corner near our rooms has single-tile portals to shard1, shard3 and shardX, landing at the same room name. The scout records the shardX one and steps into it.
+  - A corner without one is noted and skipped.
+- **Memory between shards:** Memory is kept separately on each shard, so a creep publishes its memory in InterShardMemory (`xs.travellers`) just before entering. shardX gives it that memory on arrival. Failing that, shardX infers the role from the body.
+- **On shardX, scouts explore** up to 8 rooms from where they arrived. They skip rooms claimed by others and source-keeper rooms, and avoid each other's targets.
+  - Every room entered goes into `Memory.expandIntel`, `Memory.badRooms` (Traveler never routes through claimed rooms) and `Memory.remoteIntel`.
+  - shardX checks candidates against the auto-expansion rules, including the base planner (2 per 100 ticks), and publishes the 30 best.
+- **`shardX('claim')`:** stops scouting and picks the 3 best candidates. Each is supported by a different shard2 home: the one nearest a corner whose portal leads to the candidate's arrival room.
+  - The whole trip (home → corner → room) must be at most 11 rooms, because a claimer lives 600 ticks.
+  - That home sends a claimer through the portal, then keeps 4 helpers there until shardX reports a terminal. From then on shardX's own auto-expansion takes over.
+- **`shardX('cancel')`** stops it; **`shardX()`** shows status on either shard.
+
 ## One creep per job with several spawns
 
 Every spawn in a room runs its spawn checks on the same tick, but a creep ordered with `spawnCreep` only shows up in `Game.creeps` on the next tick. Each spawn used to see the job as unfilled, so a room with 3 spawns could order 3 remote miners for one source. The remote-spawn check that was meant to stop this compared a space-joined list with `!=` and never matched.

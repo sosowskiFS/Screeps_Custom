@@ -7,6 +7,7 @@
 //   memCreeps()              creep memory size by field and by role (what to trim)
 //   expansion()              automatic expansion: CPU budget, progress, ranked candidates
 //   retireRooms()            room efficiency ranking and retirement plan; 'confirm' / 'cancel'
+//   shardX('scout'|'claim'|'cancel')  settle shardX from shard2; shardX() shows status
 //   roomReport('E14N18')     everything about one room: live state, why it is or isn't in
 //                            maintenance mode, every Memory entry that mentions the room, the
 //                            creeps homed there and its flags
@@ -213,5 +214,6 @@ global.memCreeps = memCreeps;
 global.roomReport = room;
 global.expansion = limit => require('system.expansion').report(limit);
 global.retireRooms = arg => require('system.retire').report(arg);
+global.shardX = cmd => require('system.shardX').command(cmd);
 
 module.exports = { mem, memCreeps, room, print, memoryMentions };

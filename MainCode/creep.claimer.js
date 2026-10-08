@@ -90,7 +90,7 @@ var creep_claimer = {
                     //    claim places the SendHelper flag for its home room.
                     if (forExpansion) {
                         expansion.claimed(creep.room.name);
-                    } else {
+                    } else if (!creep.memory.xTarget) {   // shardX targets: helpers come from shard2 (system.shardX)
                         creep.room.controller.pos.createFlag(creep.memory.homeRoom + "SendHelper", COLOR_BLUE, COLOR_WHITE);
                     }
 

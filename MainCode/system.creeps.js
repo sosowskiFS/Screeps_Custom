@@ -19,6 +19,7 @@ function report(kind, name, role, error) {
     console.log(`[${kind} ${name} (${role})] ${error && error.stack ? error.stack : error}`);
 }
 
+const shardX = require('system.shardX');
 const HARASSER_KEY = '~harasser';
 const HARASSER_ROLES = new Set(['harasser', 'harasserNearDeath']);
 
@@ -36,7 +37,10 @@ function handleCreepOperations() {
             const home = HARASSER_ROLES.has(creep.memory.priority) ? HARASSER_KEY : (creep.memory.homeRoom || creep.room.name);
             const run = roles[creep.memory.priority] || fallback;
             try {
-                if (!(BANK_BEFORE_DEATH.has(creep.memory.priority) && depositBeforeDeath(creep))) {
+                // Bound for shardX: walk to the corner and through its portal first (system.shardX).
+                if (shardX.portalStep(creep)) {
+                    // handled
+                } else if (!(BANK_BEFORE_DEATH.has(creep.memory.priority) && depositBeforeDeath(creep))) {
                     run(creep, roomsAt5.has(creep.room.name));
                 }
             } catch (error) {

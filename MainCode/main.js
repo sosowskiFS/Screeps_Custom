@@ -16,6 +16,7 @@ const badRooms = require('system.badRooms');
 const expansion = require('system.expansion');
 const retire = require('system.retire');
 const powerCreeps = require('system.powerCreeps');
+const shardX = require('system.shardX');
 const memoryCleanup = require('runtime.memoryCleanup');
 const metrics = require('runtime.metrics');
 const governor = require('runtime.cpuGovernor');
@@ -28,6 +29,7 @@ const phases = [
     ['defense', defense.handleTowersAndRooms],
     ['spawningAndRooms', spawning.handleSpawning],
     ['market', market.handleMarketOperations],
+    ['shardX', shardX.run],   // before creeps: creeps arriving on shardX get their memory first
     ['creeps', creeps.handleCreepOperations],
     ['remoteMining', remoteMining.run],
     ['minerals', labs.run],

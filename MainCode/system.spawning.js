@@ -14,6 +14,7 @@ const reachability = require('system.reachability');
 const expansion = require('system.expansion');
 const spawnExit = require('spawn.exit');
 const retire = require('system.retire');
+const shardX = require('system.shardX');
 const essentials = require('spawn.essentials');
 const badRooms = require('system.badRooms');
 const bestWorkerConfig = [WORK, CARRY, MOVE, MOVE];
@@ -163,6 +164,14 @@ function processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCach
     if (order) {
         spawn_BuildInstruction.run(spawn, order.type, order.target, energyIndex, roomName);
         if (isSpawnBusy(spawn)) return;
+    }
+
+    // shardX settling (system.shardX): scouts, claimers and helpers sent through the portal.
+    const xOrder = shardX.spawnOrder(roomName);
+    if (xOrder && !isSpawnBusy(spawn) && spawn.spawnCreep(xOrder.body, 'x', { memory: xOrder.memory }) === OK) {
+        shardX.spawned(roomName);
+        global.setSpawnBusy(spawn);
+        return;
     }
 
     // Special handling for PowerAttack - check if units need spawning even when PowerPickup exists
