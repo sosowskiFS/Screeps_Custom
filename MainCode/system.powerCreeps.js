@@ -54,31 +54,16 @@ function priorityOf(shard) {
 // ---------------------------------------------------------------- inter-shard state
 
 // No InterShardMemory (private servers, tests): a single shard, nothing to coordinate.
-function hasISM() {
-    return typeof InterShardMemory !== 'undefined';
-}
+// InterShardMemory through runtime.ism, which keeps the other systems' keys intact.
+const ism = require('runtime.ism');
 
 function readShard(shard) {
-    if (!hasISM()) return null;
-    try {
-        const raw = shard === Game.shard.name ? InterShardMemory.getLocal() : InterShardMemory.getRemote(shard);
-        const data = raw ? JSON.parse(raw) : {};
-        return data.pc && Date.now() - data.pc.t < STALE_MS ? data.pc : null;
-    } catch (e) {
-        return null;
-    }
+    const pc = ism.get(shard, 'pc');
+    return pc && Date.now() - pc.t < STALE_MS ? pc : null;
 }
 
 function writeLocal(entry) {
-    if (!hasISM()) return;
-    let data = {};
-    try {
-        data = JSON.parse(InterShardMemory.getLocal() || '{}') || {};
-    } catch (e) {
-        data = {};
-    }
-    data.pc = entry;
-    InterShardMemory.setLocal(JSON.stringify(data));
+    ism.setLocal('pc', entry);
 }
 
 function otherShards() {

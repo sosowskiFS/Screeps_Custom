@@ -65,31 +65,16 @@ function state() {
 
 // ---------------------------------------------------------------- inter-shard memory
 
-function hasISM() {
-    return typeof InterShardMemory !== 'undefined';
-}
+// InterShardMemory through runtime.ism: system.powerCreeps writes its 'pc' key on the same ticks,
+// and each used to write back a copy without the other's key ('xs' never reached shard2).
+const ism = require('runtime.ism');
 
 function readISM(shard) {
-    if (!hasISM()) return null;
-    try {
-        const raw = shard === Game.shard.name ? InterShardMemory.getLocal() : InterShardMemory.getRemote(shard);
-        return raw ? (JSON.parse(raw).xs || null) : null;
-    } catch (e) {
-        return null;
-    }
+    return ism.get(shard, 'xs') || null;
 }
 
 function writeISM(entry) {
-    if (!hasISM()) return;
-    let data = {};
-    try {
-        data = JSON.parse(InterShardMemory.getLocal() || '{}') || {};
-    } catch (e) {
-        data = {};
-    }
-    if (entry) data.xs = entry;
-    else delete data.xs;
-    InterShardMemory.setLocal(JSON.stringify(data));
+    ism.setLocal('xs', entry || undefined);
 }
 
 // The mode is set on shard2; the other home shards follow it (read at most every 10 ticks).

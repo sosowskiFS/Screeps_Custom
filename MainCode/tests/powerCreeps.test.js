@@ -44,7 +44,8 @@ function setup({ shard = 'shard2', remote = {}, gpl = 0, silentFor = 31 * MIN } 
     g.Memory.pcSilent = { shardX: clock.now - silentFor, shard1: clock.now - silentFor, shard2: clock.now - silentFor, shard3: clock.now - silentFor };
     g.console = { log: () => {} };
     const pc = h.load('system.powerCreeps');
-    return { g, pc, spawns, addRoom, addPc, local, clock, remote, run: () => pc.assignmentPass() };
+    // Each pass is a later tick (passes run every 100 ticks; remote reads are cached per tick).
+    return { g, pc, spawns, addRoom, addPc, local, clock, remote, run: () => { g.Game.time += 100; return pc.assignmentPass(); } };
 }
 
 test('upgrade order reaches the full build (GENERATE_OPS 4, TOWER 3, LAB 5, EXTENSION 5, REGEN_SOURCE 5, OPERATE_POWER 3)', () => {

@@ -171,6 +171,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 - **`shardX('scout')`:** shard2, shard1 and shard3 each send one 1-MOVE scout every 100 ticks. They rotate through the nearest highway corner of each of their homes, and the scout comes from that home.
   - Every corner near our rooms has single-tile portals to the other shards. The scout steps into the shardX one; a corner without one is noted and skipped.
   - Sending pauses while shardX reports 15 scouts alive (shardX has little CPU).
+- **InterShardMemory** goes through `runtime.ism.js`. It keeps one merged copy of this shard's data in heap, so systems writing their own key on the same tick (`pc` power creeps, `xs` shardX) no longer drop each other's. Before this, shardX's candidates never reached shard2. Other shards are read at most once per tick.
 - **Memory between shards:** Memory is kept separately on each shard, so a creep publishes its memory (including its shard) in its shard's InterShardMemory just before entering. shardX gives it that memory on arrival. Failing that, shardX infers the role from the body.
 - **On shardX, scouts explore** nearest-first, skipping rooms claimed by others and source-keeper rooms.
   - A 1-MOVE scout moves at full speed on any terrain, like the claimer (CLAIM + 5 MOVE), so its life used when it enters a room measures the real trip from its home's spawn.
