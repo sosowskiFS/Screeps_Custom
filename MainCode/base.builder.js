@@ -62,6 +62,14 @@ function unpack(text) {
 const tileOf = pos => pos.x * 50 + pos.y;
 const stage = require('room.stage');
 
+// Parked work tiles and the kinds their creep serves (the supplier fills towers and spawns; the
+// miners feed their link and the storage). Anything else next to them needs other access.
+const SERVED_BY = {
+    Supply: [STRUCTURE_TOWER, STRUCTURE_SPAWN],
+    storageMiner: [STRUCTURE_LINK, STRUCTURE_STORAGE],
+    upgradeMiner: [STRUCTURE_LINK],
+};
+
 // Structures a hauler has to reach (filled or emptied by creeps).
 const SERVICED = new Set([STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_LAB, STRUCTURE_LINK, STRUCTURE_TERMINAL,
     STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER]);
@@ -204,7 +212,7 @@ function liveState(room) {
         const tile = tileOf(structure.pos);
         const type = structure.structureType;
         if (type === STRUCTURE_SPAWN && structure.my) spawns.push(tile);
-        if (structure.my && SERVICED.has(type)) serviced.push(tile);
+        if (structure.my && SERVICED.has(type)) serviced.push({ t: tile, type });
         if (type === STRUCTURE_STORAGE) storage = tile;
         if (type === STRUCTURE_ROAD || type === STRUCTURE_CONTAINER || (type === STRUCTURE_RAMPART && (structure.my || structure.isPublic))) continue;
         walkable[tile] = 0;
@@ -218,12 +226,12 @@ function liveState(room) {
     }
     // Work tiles of parked creeps (tower supplier, storage and upgrade miners) are occupied for
     // good: never count them as a way through.
-    const service = [];
-    for (const kind of ['Supply', 'storageMiner', 'upgradeMiner']) {
+    const service = {};
+    for (const kind in SERVED_BY) {
         const flag = Game.flags[room.name + kind];
         if (flag && flag.pos.roomName === room.name) {
             walkable[tileOf(flag.pos)] = 0;
-            service.push(tileOf(flag.pos));
+            service[tileOf(flag.pos)] = SERVED_BY[kind];
         }
     }
     const mineral = runtimeCache.find(room, FIND_MINERALS)[0];
@@ -300,10 +308,19 @@ function releaseSealed(room, live) {
     if (!live.spawns.length) return 0;
     if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.indexOf(room.name) !== -1) return 0;
     const label = connectivity.components(live.walkable);
+    // Our sites for such structures that nothing could reach once built (placed by an older plan):
+    // removed; the builder places the kind again where it can be reached (replacementTile).
+    for (const site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
+        if (!SERVICED.has(site.structureType)) continue;
+        if (connectivity.accessible(live.walkable, live.req, tileOf(site.pos), label, site.structureType)) continue;
+        console.log('[base] ' + room.name + ': removed ' + site.structureType + ' site at ' + site.pos.x + ',' + site.pos.y + ' (nothing could reach it)');
+        site.remove();
+        return 1;
+    }
     for (const structure of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
         if (!SERVICED.has(structure.structureType)) continue;
         const tile = tileOf(structure.pos);
-        if (connectivity.accessible(live.walkable, live.req, tile, label)) continue;
+        if (connectivity.accessible(live.walkable, live.req, tile, label, structure.structureType)) continue;
         const where = structure.structureType + ' at ' + structure.pos.x + ',' + structure.pos.y;
         if (structure.structureType === STRUCTURE_EXTENSION && structure.destroy() === OK) {
             console.log('[base] ' + room.name + ': removed ' + where + ' (walled in: no hauler can reach it); rebuilt once reachable');
@@ -324,9 +341,51 @@ function replacementTile(room, plan, kind) {
         if (!PASSABLE.has(structure.structureType) || structure.structureType === STRUCTURE_CONTAINER) occupied.add(tileOf(structure.pos));
     }
     for (const site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) occupied.add(tileOf(site.pos));
+    const type = TYPES[kind];
+    const access = SERVICED.has(type) && type;
+    let unusable;
     for (const tile of (plan.structures[kind] || [])) {
         if (occupied.has(tile)) continue;
-        if (!connectivity.blocks(live.walkable, live.req, before, tile, SERVICED.has(TYPES[kind]))) return tile;
+        if (!connectivity.blocks(live.walkable, live.req, before, tile, access)) return tile;
+        if (unusable === undefined) unusable = tile;
+    }
+    // Every free planned tile is unusable (shard3 E29N43: the power spawn's only free neighbour
+    // would have been the storage miner's tile). Move that planned tile to the nearest free tile
+    // around the storage that works, so the structure still gets rebuilt.
+    if (unusable !== undefined && RELOCATABLE.has(kind)) return relocate(room, plan, kind, unusable, live, before, occupied);
+    return undefined;
+}
+
+const RELOCATABLE = new Set(['powerSpawn', 'factory', 'terminal', 'nuker', 'observer', 'tower', 'extension', 'spawn']);
+const RELOCATE_RANGE = 8;
+
+function relocate(room, plan, kind, from, live, before, occupied) {
+    const anchor = room.storage ? tileOf(room.storage.pos) : plan.anchor;
+    if (anchor === undefined) return undefined;
+    const reserved = new Set(plan.roads.concat(plan.paths));
+    for (const k in plan.structures) for (const t of plan.structures[k]) reserved.add(t);
+    for (const k in plan.flags || {}) reserved.add(plan.flags[k]);
+    const type = TYPES[kind];
+    const ax = (anchor / 50) | 0, ay = anchor % 50;
+    const tiles = [];
+    for (let x = Math.max(2, ax - RELOCATE_RANGE); x <= Math.min(47, ax + RELOCATE_RANGE); x++) {
+        for (let y = Math.max(2, ay - RELOCATE_RANGE); y <= Math.min(47, ay + RELOCATE_RANGE); y++) {
+            const t = x * 50 + y;
+            if (!live.walkable[t] || occupied.has(t) || reserved.has(t)) continue;
+            tiles.push([Math.max(Math.abs(x - ax), Math.abs(y - ay)), t]);
+        }
+    }
+    tiles.sort((a, b) => a[0] - b[0]);
+    for (const [, t] of tiles) {
+        if (connectivity.blocks(live.walkable, live.req, before, t, SERVICED.has(type) && type)) continue;
+        const stored = Memory.basePlan && Memory.basePlan[room.name];
+        if (!stored || !stored.s || !stored.s[kind]) return undefined;
+        stored.s[kind] = pack(unpack(stored.s[kind]).map(tile => (tile === from ? t : tile)));
+        stored.t = Game.time;   // planOf decodes the changed plan again
+        plan.structures[kind] = plan.structures[kind].map(tile => (tile === from ? t : tile));
+        console.log('[base] ' + room.name + ': ' + kind + ' moved from ' + ((from / 50) | 0) + ',' + (from % 50) + ' to ' +
+            ((t / 50) | 0) + ',' + (t % 50) + ' (the planned tile could not be reached)');
+        return t;
     }
     return undefined;
 }
@@ -372,10 +431,14 @@ function buildRoom(room, plan) {
     const live = liveState(room);
     if (removeBlockingSites(room, live)) again = true;
     const reachable = live.spawns.length ? connectivity.status(live.walkable, live.req) : null;
+    let refused = false;   // a planned tile was refused this kind: it would cut a path or be unreachable
     const site = (tile, type) => {
         if (budget <= 0) return false;
         const blocksMovement = !PASSABLE.has(type);
-        if (blocksMovement && reachable && connectivity.blocks(live.walkable, live.req, reachable, tile, SERVICED.has(type))) return false;
+        if (blocksMovement && reachable && connectivity.blocks(live.walkable, live.req, reachable, tile, SERVICED.has(type) && type)) {
+            refused = true;
+            return false;
+        }
         if (room.createConstructionSite((tile / 50) | 0, tile % 50, type) !== OK) return false;
         budget--;
         add({ x: (tile / 50) | 0, y: tile % 50 }, type);
@@ -421,6 +484,13 @@ function buildRoom(room, plan) {
             }
             if (site(tile, type)) counts[type] = (counts[type] || 0) + 1;
         }
+        // Still short and a planned tile was refused: a usable planned tile, or the plan's tile moved
+        // somewhere reachable (replacementTile), so a migrated structure is still rebuilt.
+        if (refused && RELOCATABLE.has(kind) && (counts[type] || 0) < allowed && budget > 0) {
+            const tile = replacementTile(room, plan, kind);
+            if (tile !== undefined && site(tile, type)) counts[type] = (counts[type] || 0) + 1;
+        }
+        refused = false;
     }
 
     // Base roads beside something already built or being built. Never on a wall tile (tunnels

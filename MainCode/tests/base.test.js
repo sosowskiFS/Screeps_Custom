@@ -275,3 +275,27 @@ test('another player\'s leftovers in a room we claimed are destroyed and the roo
     assert.deepEqual(calls, [['destroy', g.STRUCTURE_STORAGE], ['destroy', g.STRUCTURE_TERMINAL], ['remove', 'spawn site']], 'neutral walls stay');
     assert.equal(g.Memory.basePlan.E25N43, undefined, 'replanned fresh');
 });
+
+test('a parked miner does not serve a power spawn; a boxed-in planned tile is moved (shard3 E29N43)', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(8, existing);
+    const p = (x, y) => ({ x, y, roomName: 'W1N1', lookFor: () => [] });
+    const add = (type, x, y) => existing.push({ structureType: type, my: true, pos: p(x, y) });
+    // Around 27,12: towers 26,11 26,12, extension 28,11, spawn 28,12, factory 27,11, walls 27,13 28,13,
+    // and the storage miner parked on 26,13.
+    add(g.STRUCTURE_TOWER, 26, 11); add(g.STRUCTURE_TOWER, 26, 12); add(g.STRUCTURE_EXTENSION, 28, 11);
+    add(g.STRUCTURE_SPAWN, 28, 12); add(g.STRUCTURE_FACTORY, 27, 11);
+    add(g.STRUCTURE_WALL, 27, 13); add(g.STRUCTURE_WALL, 28, 13);
+    g.Game.flags = { W1N1storageMiner: { pos: p(26, 13) } };
+    const plan = { mode: 'fresh', anchor: I(25, 12), flags: {}, roads: [], paths: [], structures: { powerSpawn: [I(27, 12)] } };
+    g.Memory.basePlan = { W1N1: { v: builder.VERSION, t: 1, s: { powerSpawn: builder.pack([I(27, 12)]) } } };
+
+    const c = builder.liveState(room);
+    builder.buildRoom(room, plan);
+    const placed = sites.filter(s => s[2] === g.STRUCTURE_POWER_SPAWN).map(s => s[0] + ',' + s[1]);
+    assert.equal(placed.length, 1);
+    assert.notEqual(placed[0], '27,12', 'not on the boxed-in tile');
+    const moved = builder.unpack(g.Memory.basePlan.W1N1.s.powerSpawn)[0];
+    assert.equal(X(moved) + ',' + Y(moved), placed[0], 'the stored plan follows');
+    assert.ok(c.req.service.has(I(26, 13)), 'the miner tile is a service tile');
+});

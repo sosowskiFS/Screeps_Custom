@@ -10,7 +10,9 @@
 //     the room haulers walk; the enclosed Supply tile touching the storage does not count)
 //   - every structure a hauler has to reach (extensions, spawns, towers, labs, links, terminal,
 //     factory, power spawn, nuker) keeps a free neighbour reachable from the exits, unless it
-//     touches a parked work tile (Supply, storageMiner, upgradeMiner: the creep there serves it). A new site for such a
+//     touches a parked work tile whose creep serves that kind (the Supply tile's supplier: towers
+//     and spawns; the miners: their link). A power spawn beside the storage miner is not served:
+//     the operator has to stand next to it to renew (shard3 E29N43). A new site for such a
 //     structure must itself be reachable that way (blocks(..., needsAccess)).
 // Anything that was reachable before the site must still be reachable with it. Existing sites
 // that already cut such a path are found and removed (base.builder).
@@ -45,7 +47,8 @@ function reach(walkable, seeds) {
 /**
  * The places that must stay reachable.
  * room: { spawns: [tile], storage: tile|undefined, sources: [tile], mineral: tile|undefined,
- *         controller: tile|undefined, serviced: [tile], service: [tile] (parked work tiles) }
+ *         controller: tile|undefined, serviced: [tile | { t, type }],
+ *         service: [tile] (serves every kind) or { tile: [kinds] } (parked work tiles) }
  * Returns { perSpawn: [{ seeds, groups, tile }], shared: { seeds, groups } } where each group is a
  * list of tiles (reachable = any of them reached). perSpawn has one entry per free tile next to a
  * spawn (tile = that tile).
@@ -65,16 +68,21 @@ function requirements(walkable, room) {
         }
         return out;
     };
-    const service = new Set(room.service || []);
+    // tile -> kinds served (null: every kind)
+    const service = new Map();
+    if (Array.isArray(room.service)) for (const t of room.service) service.set(t, null);
+    else for (const t in room.service || {}) service.set(Number(t), new Set(room.service[t]));
     const perSpawnGroups = [exits];
     const shared = [];
     if (room.storage !== undefined) shared.push(around(room.storage, 1));
     for (const source of room.sources || []) shared.push(around(source, 1));
     if (room.mineral !== undefined) shared.push(around(room.mineral, 1));
     if (room.controller !== undefined) shared.push(around(room.controller, 3));
-    for (const tile of room.serviced || []) {
+    for (const entry of room.serviced || []) {
+        const tile = typeof entry === 'number' ? entry : entry.t;
+        const type = typeof entry === 'number' ? undefined : entry.type;
         const next = around(tile, 1);
-        if (next.some(t => service.has(t))) continue;
+        if (next.some(t => serves(service, t, type))) continue;
         shared.push(next);
     }
     const perSpawn = [];
@@ -131,21 +139,28 @@ function keeps(before, after) {
     return before.every((ok, i) => !ok || after[i]);
 }
 
-// Can a creep serve a structure on `tile`: a free neighbour connected to the room exits, or a
-// parked work tile next to it?
-function accessible(walkable, req, tile, label = components(walkable)) {
-    const exitIds = new Set();
-    for (const e of req.shared.seeds) if (walkable[e]) exitIds.add(label[e]);
-    return neighbors(tile).some(n => req.service.has(n) || (walkable[n] && exitIds.has(label[n])));
+function serves(service, tile, type) {
+    if (!service.has(tile)) return false;
+    const kinds = service.get(tile);
+    return kinds === null || type === undefined || kinds.has(type);
 }
 
-// Would blocking `tile` cut anything? With needsAccess, also refuse when the structure placed
-// there could not be reached itself. (walkable is restored before returning.)
+// Can a creep serve a structure of `type` on `tile`: a free neighbour connected to the room
+// exits, or a parked work tile next to it whose creep serves that kind?
+function accessible(walkable, req, tile, label = components(walkable), type) {
+    const exitIds = new Set();
+    for (const e of req.shared.seeds) if (walkable[e]) exitIds.add(label[e]);
+    return neighbors(tile).some(n => serves(req.service, n, type) || (walkable[n] && exitIds.has(label[n])));
+}
+
+// Would blocking `tile` cut anything? With needsAccess (true, or the structure type), also refuse
+// when the structure placed there could not be reached itself. (walkable is restored.)
 function blocks(walkable, req, before, tile, needsAccess = false) {
     if (!walkable[tile]) return false;
     walkable[tile] = 0;
     const label = components(walkable);
-    const cut = !keeps(before, status(walkable, req, label)) || (needsAccess && !accessible(walkable, req, tile, label));
+    const type = typeof needsAccess === 'string' ? needsAccess : undefined;
+    const cut = !keeps(before, status(walkable, req, label)) || (needsAccess && !accessible(walkable, req, tile, label, type));
     walkable[tile] = 1;
     return cut;
 }
