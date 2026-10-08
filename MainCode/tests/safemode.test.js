@@ -59,3 +59,10 @@ test('never in an established room, without a charge, or while another room has 
         assert.deepEqual(s.activated, [], JSON.stringify(opts));
     }
 });
+
+test('no attempt (and no failed-attempt spam) while the controller is attack-blocked', () => {
+    const s = setup({ log: [attack('raider', 'spawn')] });
+    s.g.Game.rooms.E29N36.controller.upgradeBlocked = 230;
+    s.run();
+    assert.deepEqual(s.activated, []);
+});

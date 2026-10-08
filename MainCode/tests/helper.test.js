@@ -156,3 +156,17 @@ test('walls around the controller are brought to 10k hits per RCL; a blocked con
     s.run();
     assert.ok(!plain(s.calls).some(c => c[0] === 'upgrade'), 'no upgrading while blocked');
 });
+
+test('a helper blocked on its way is never marked parked (two blocked helpers used to freeze each other: shardX E29N36)', () => {
+    const site = { id: 'site', structureType: 'STRUCTURE_EXTENSION', progress: 1543, progressTotal: 3000, pos: { x: 3, y: 21 } };
+    const s = setup({ carry: { energy: 400 }, sites: [site] });
+    s.creep.pos.x = 4; s.creep.pos.y = 16;          // 5 away: has to walk
+    s.creep.memory.onPoint = 1;                      // marked last tick
+    s.creep.travelTo = () => s.g.OK;                 // blocked: no move happens
+    s.run();
+    assert.equal(s.creep.memory.onPoint, undefined, 'standing still because blocked is not working');
+    s.creep.pos.x = 4; s.creep.pos.y = 19;           // in range 3 of the site now
+    s.g.Game.time++;
+    s.run();
+    assert.equal(s.creep.memory.onPoint, 1, 'building in place: parked');
+});

@@ -82,7 +82,8 @@ function run() {
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
         const c = room.controller;
-        if (!c || !c.my || c.safeMode || !c.safeModeAvailable || c.safeModeCooldown) continue;
+        // An attacked controller (upgradeBlocked) cannot enter safe mode until the block ends.
+        if (!c || !c.my || c.safeMode || !c.safeModeAvailable || c.safeModeCooldown || c.upgradeBlocked > 0) continue;
         const reason = threat(room);
         if (!reason || safeModeActiveElsewhere(name)) continue;
         const result = c.activateSafeMode();

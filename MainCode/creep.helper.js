@@ -12,11 +12,10 @@
 //           storage, container, then the rest; the furthest along first, then the nearest) so
 //           structures finish one by one, then upgrading. While the controller cannot be upgraded
 //           (attacked), the builder places the rest of the base instead (base.builder).
-// Builds and upgrades from range 3; any tick it stands still working it is parked (onPoint), so
+// Builds and upgrades from range 3; any tick it actually works in place it is parked (onPoint), so
 // other creeps neither swap it off its tile nor path through it.
 const runtimeCache = require('runtime.cache');
 const { loadForTrip } = require('creep.logistics');
-const { Traveler } = require('traveler');
 
 const WORK_RANGE = 3;
 const SLOT_CACHE_TICKS = 1500;
@@ -155,7 +154,9 @@ function gather(creep) {
         creep.memory.targetSource = source.id;
     }
     delete creep.memory.lootTarget;
-    if (creep.harvest(source) === ERR_NOT_IN_RANGE) creep.travelTo(source, { range: 1 });
+    const result = creep.harvest(source);
+    if (result === ERR_NOT_IN_RANGE) creep.travelTo(source, { range: 1 });
+    else if (result === OK) creep._working = true;
     return true;
 }
 
@@ -187,6 +188,7 @@ function fill(creep, target) {
 
 function workAt(creep, target, action) {
     if (action === ERR_NOT_IN_RANGE) creep.travelTo(target, { range: WORK_RANGE, maxRooms: 1 });
+    else if (action === OK) creep._working = true;
 }
 
 // One working step.
@@ -240,6 +242,7 @@ function travel(creep) {
 
 var creep_Helper = {
     run: function(creep) {
+        creep._working = false;           // set by a successful harvest/build/repair/upgrade this tick
         if (loadForTrip(creep)) return;   // a full load from home first
         if (creep.room.name !== creep.memory.destination) {
             delete creep.memory.onPoint;
@@ -247,9 +250,11 @@ var creep_Helper = {
             return;
         }
         this.act(creep);
-        // Standing still this tick (harvesting, building, upgrading): parked, so other creeps
-        // neither swap it off its tile nor path through it.
-        if (!Traveler.movedThisTick(creep)) creep.memory.onPoint = 1;
+        // Actually working in place this tick (a harvest, build, repair or upgrade that succeeded):
+        // parked, so other creeps neither swap it off its tile nor path through it. Never merely
+        // for standing still: two helpers blocked in each other's way were both marked parked,
+        // became walls to each other's paths and froze for good (shardX E29N36).
+        if (creep._working) creep.memory.onPoint = 1;
         else delete creep.memory.onPoint;
     },
 

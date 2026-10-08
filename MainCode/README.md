@@ -148,7 +148,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
       - then towers below 500;
       - then construction **one site at a time**: spawn, tower, extension, storage, container, the rest; the furthest along first, then the nearest. Every helper pours into the same structure;
       - otherwise upgrading.
-    - **Positioning:** it builds and upgrades from range 3, and makes no repairs or detours to sign. Any tick it stands still working it is parked (`onPoint`), so others neither swap it off its tile nor path through it.
+    - **Positioning:** it builds and upgrades from range 3, and makes no repairs or detours to sign. Only on a tick it actually works in place (a successful harvest, build, repair or upgrade) is it parked (`onPoint`), so others neither swap it off its tile nor path through it. It is never parked merely for standing still: two helpers blocked in each other's way were both marked parked, became walls to each other's paths and froze (shardX E29N36).
   - **Retiring:** a support hauler retires when trucking is no longer wanted, or when it couldn't finish another round trip.
 - **Young rooms** (ours without their own terminal; RCL7+ with a storage always counts as established, so a migration rebuilding the terminal changes nothing; `room.stage.js`) spend energy on building and upgrading:
   - **No upkeep structures:** no road or rampart sites are placed by auto-build, planned routes, extension roads, the rampart pass in `system.rooms`, or creeps walking for that room. Road and rampart sites already there are removed.
@@ -158,7 +158,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - a structure in the room damaged, dismantling included;
   - or our controller attacked.
   - **What doesn't count:** hostiles merely in the room. A quad stuck on an exit next door marched in and out of shardX's E29N36 without touching anything. Invaders, source keepers, whitelisted players, and attackers already gone don't count either.
-  - **Guards:** only with a charge available, no cooldown, and no other room of ours on the shard in safe mode. It notifies by `Game.notify`.
+  - **Guards:** only with a charge available, no cooldown, the controller not attack-blocked (the game refuses then), and no other room of ours on the shard in safe mode. It notifies by `Game.notify`.
   - **The older trigger:** `tower.Operate`'s proximity rule (a player creep within 5 of a tower below RCL7) now skips rooms under construction.
 - **Room guard** (`creep.roomGuard.js`): once a room is claimed, its sponsor (auto-expansion; for shardX, the home room) keeps a ranger there.
   - **Body:** the power-harvest rangers' builds, by the sponsor's spawn energy.
