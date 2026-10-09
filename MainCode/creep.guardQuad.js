@@ -155,9 +155,35 @@ function snake(members, goal, post) {
     }
     const leader = list[0];
     if (leader.fatigue) return;
-    if (list.some((c, i) => i && c.room.name === list[i - 1].room.name && (c.fatigue || range(c, list[i - 1]) > 1))) return;
+    // Wait for stragglers, but never on an exit tile: a leader parked on the border blocks the
+    // followers arriving from the other side and the line bounces there.
+    const straggling = list.some((c, i) => i && c.room.name === list[i - 1].room.name && (c.fatigue || range(c, list[i - 1]) > 1));
+    if (straggling && !onEdge(leader)) return;
     leader.travelTo(goal.pos || goal, options);
 }
+function onEdge(c) {
+    return c.pos.x === 0 || c.pos.y === 0 || c.pos.x === 49 || c.pos.y === 49;
+}
+
+// The last room before the target on the route (avoiding claimed and closed rooms): where the
+// squad forms up before going in. Recomputed when the leader changes room.
+function stagingRoom(leader, target) {
+    const m = leader.memory, from = leader.room.name;
+    if (m.guardStaging && m.guardStaging.from === from && m.guardStaging.to === target) return m.guardStaging.room;
+    let room = from;
+    if (from !== target) {
+        const Traveler = require('traveler').Traveler;
+        const route = Game.map.findRoute(from, target, {
+            routeCallback: name => (name === target || name === from || !Traveler.checkAvoid(name) ? 1 : Infinity),
+        });
+        if (Array.isArray(route) && route.length >= 2) room = route[route.length - 2].room;
+    }
+    m.guardStaging = { from, to: target, room };
+    return room;
+}
+
+const ASSEMBLE_TIMEOUT = 30;     // ticks to form up at the staging spot (after the walk there) before going in anyway
+
 function advance(members, goal, goalRange, post) {
     const leader = members[0], m = leader.memory;
     if (m.guardSnake) {
@@ -180,30 +206,67 @@ function portal(members, portalObject) {
     squads.publish(true);
     snake(members, portalObject.pos, false);
 }
+// Travel: single file all the way (through portals too) to the staging room, the last room before
+// the target. There the squad forms its 2x2 a few tiles from the exit, then crosses in quick single
+// file and fights as a quad inside (defend). Moving as a 2x2 through open rooms broke formation
+// whenever one member was blocked and the squad bounced in place (shardX E30N40).
 function travel(members) {
     const leader = members[0], m = leader.memory;
-    const corner = m.xShard && m.xShard.c;
-    const target = corner || m.destination;
     for (const c of members) c.memory.guardPhase = 'traveling';
-    const sameRoom = members.every(c => c.room.name === leader.room.name);
-    if (corner && leader.room.name === corner) {
-        const p = leader.room.find(FIND_STRUCTURES).find(s => s.structureType === STRUCTURE_PORTAL && s.destination && s.destination.shard === m.guardTargetShard);
-        if (!p) { m.guardBlocked = 'portal missing'; return; }
-        if (!sameRoom || range(leader, p) <= 3 || members.length < 4) { portal(members, p); return; }
-        const result = formationMove(members, p.pos, 3);
-        if (result === 'narrow') portal(members, p);
+    const corner = m.xShard && m.xShard.c;
+    if (corner && Game.shard.name !== m.guardTargetShard) {
+        if (leader.room.name === corner) {
+            const p = leader.room.find(FIND_STRUCTURES).find(s => s.structureType === STRUCTURE_PORTAL && s.destination && s.destination.shard === m.guardTargetShard);
+            if (!p) { m.guardBlocked = 'portal missing'; return; }
+            portal(members, p);
+            return;
+        }
+        snake(members, position(25, 25, corner), false);
         return;
     }
-    const goal = position(25, 25, target);
-    if (!sameRoom) { snake(members, goal, false); return; }
-    if (leader.room.name === target) return;
-    const exit = Game.map.findExit(leader.room.name, target);
-    if (typeof exit !== 'number' || exit < 0) { m.guardBlocked = 'route unavailable'; return; }
-    const tiles = leader.room.find(exit);
-    const edge = leader.pos.findClosestByRange(tiles);
-    if (!edge) return;
-    if (range(leader, edge) <= 3 || members.length < 4) { snake(members, goal, false); return; }
-    advance(members, edge, 3, false);
+    const target = m.destination;
+    if (leader.room.name === target) {
+        snake(members, position(25, 25, target), false);   // the rest of the line follows in
+        return;
+    }
+    const staging = stagingRoom(leader, target);
+    if (!members.every(c => c.room.name === staging)) {
+        delete m.guardGo;
+        delete m.guardStageAnchor;
+        snake(members, position(25, 25, staging), false);
+        return;
+    }
+    // All in the staging room: form up near the exit into the target, then go in.
+    const exit = Game.map.findExit(staging, target);
+    const tiles = typeof exit === 'number' && exit > 0 ? leader.room.find(exit) : [];
+    // The exit tile nearest the leader; ties (a whole border is often equally far) go to the one
+    // straight across, not to whichever comes first (a corner).
+    let door = null, best = Infinity;
+    for (const t of tiles) {
+        const score = range(leader, t) * 100 + Math.abs(t.x - leader.pos.x) + Math.abs(t.y - leader.pos.y);
+        if (score < best) { best = score; door = t; }
+    }
+    if (!door) { m.guardBlocked = 'route unavailable'; return; }
+    // Formed (or out of time): go, and stay going. Re-forming once the line has started across
+    // would bring the back-and-forth right back.
+    if (!m.guardGo) {
+        // The formation spot is chosen once and kept: recomputed from the moving leader each tick,
+        // the doorway and spot slid along with it and the squad chased them into a corner.
+        // It may take the walk there plus ASSEMBLE_TIMEOUT to form up, then the squad goes anyway.
+        if (!m.guardStageAnchor) {
+            const a = nearestAnchor(leader.room, members, door, 4);
+            m.guardStageAnchor = a ? { x: a.x, y: a.y, until: Game.time + range(leader, a) * 2 + ASSEMBLE_TIMEOUT } : { none: 1 };
+        }
+        const a = m.guardStageAnchor;
+        const anchor = !a.none && Game.time < a.until ? position(a.x, a.y, staging) : null;
+        if (anchor && !assembled(members, anchor)) {
+            assemble(members, anchor);
+            return;
+        }
+        m.guardGo = Game.time;
+        for (const c of members) c.memory.guardAssembled = members.length === 4;
+    }
+    snake(members, position(25, 25, target), false);
 }
 function defend(members) {
     const leader = members[0], room = leader.room;

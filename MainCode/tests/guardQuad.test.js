@@ -150,3 +150,46 @@ test('whitelisted creeps are never targeted and an outmatched squad never reques
     for(const c of w.squad)if(c.intent){const step=w.q.STEPS[c.intent];assert.ok(c.pos.x+step[0]>0&&c.pos.x+step[0]<49);}
     assert.equal(w.actions.some(a=>a[1]==='travel'&&a[3].maxRooms!==1),false);
 });
+
+// The squad in POST, the room just before its target (TARGET lies east): staging.
+function staged() {
+    const w=world();
+    for(const c of w.squad)c.memory.destination='TARGET';
+    w.g.FIND_EXIT_RIGHT=3;
+    w.g.Game.map.findRoute=(from,to)=>[{exit:3,room:to}];
+    w.g.Game.map.findExit=()=>3;
+    const find=w.room.find;
+    w.room.find=type=>type===3?Array.from({length:48},(_,i)=>new w.Pos(49,i+1)):find(type);
+    return w;
+}
+test('staging: the quad forms up a few tiles from the exit into the target, then goes in single file without re-forming',()=>{
+    const w=staged();
+    for(let tick=0;tick<120;tick++){w.q.run(w.squad[0]);if(w.squad[0].memory.guardGo)break;w.apply();}
+    assert.ok(w.squad[0].memory.guardGo,'formed (or timed out) and going');
+    const door=new w.Pos(49,20);
+    assert.ok(w.squad.every(c=>c.pos.getRangeTo(door)<=6),JSON.stringify(w.squad.map(c=>[c.pos.x,c.pos.y])));
+    assert.equal(w.q.assembled(w.squad,w.squad[0].pos),true,'a 2x2 before crossing');
+    const lead=w.actions.find(a=>a[0]==='c0'&&a[1]==='travel'&&a[2].roomName==='TARGET');
+    assert.ok(lead,'the leader heads into the target');
+    w.apply();w.q.run(w.squad[0]);
+    assert.ok(!w.actions.some(a=>a[1]==='travel'&&a[3].range===0&&a[3].maxRooms===1),'no re-forming once going');
+});
+test('away from the staging room the squad moves single file, never as a 2x2 block',()=>{
+    const w=staged();
+    w.g.Game.map.findRoute=(from,to)=>[{exit:3,room:'MID'},{exit:3,room:to}];   // POST -> MID -> TARGET: MID stages
+    w.q.run(w.squad[0]);
+    const moves=w.actions.filter(a=>a[1]==='move');
+    assert.ok(!(moves.length===4&&new Set(moves.map(a=>a[2])).size===1),'no formation step');
+    const lead=w.actions.find(a=>a[0]==='c0'&&a[1]==='travel');
+    assert.ok(lead&&lead[2].roomName==='MID','heading for the staging room');
+});
+test('a snake leader standing on an exit tile does not wait for stragglers there',()=>{
+    const w=world();
+    w.squad[0].pos=new w.Pos(49,20);w.squad[1].pos=new w.Pos(45,20);   // straggler 4 behind
+    w.q.snake(w.squad,new w.Pos(25,25,'NEXT'),false);
+    assert.ok(w.actions.some(a=>a[0]==='c0'&&a[1]==='travel'),'steps on instead of blocking the border');
+    const x=world();
+    x.squad[0].pos=new x.Pos(30,20);x.squad[1].pos=new x.Pos(26,20);
+    x.q.snake(x.squad,new x.Pos(25,25,'NEXT'),false);
+    assert.ok(!x.actions.some(a=>a[0]==='c0'&&a[1]==='travel'),'inside the room it waits as before');
+});
