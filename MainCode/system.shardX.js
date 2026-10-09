@@ -504,7 +504,23 @@ function run() {
 
 // ---------------------------------------------------------------- console
 
+// Full reset (works while switched off). On shard2: forget the claim attempt (mode, targets,
+// orders, travellers and the quad targets for shardX rooms; quad members still on shard2 go home,
+// unboost and recycle) and clear what shard2 publishes to the other shards. On shardX: drop its
+// orders and attacked-room latches. Map knowledge (portals, rooms seen by scouts) is kept.
+function reset() {
+    const s = state();
+    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty']) delete s[k];
+    s.queue = {};
+    const recalled = require('system.guardSquads').forget(X_SHARD);
+    writeISM(null);
+    return 'shardX reset on ' + Game.shard.name + ': mode off, no targets or orders' +
+        (recalled ? ', ' + recalled + ' quad member(s) recalled' : '') + '; scouted map data kept' +
+        (Game.shard.name === COORD_SHARD ? '. Run shardX("reset") on shardX too to clear its leftovers.' : '');
+}
+
 function command(cmd) {
+    if (cmd === 'reset') return reset();
     if (!enabled()) return 'shardX is switched off (system.shardX ENABLED = false; Memory.settings.shardX = true turns it back on)';
     const s = state();
     if (cmd === 'scout' || cmd === 'claim' || cmd === 'cancel') {
@@ -536,6 +552,6 @@ function command(cmd) {
 
 module.exports = {
     enabled,
-    run, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

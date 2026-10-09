@@ -234,7 +234,10 @@ function updateTarget(t) {
         q.remaining = q.complete ? Math.min(...q.slots.map(s => (s.expires - now) / clock().ms)) : 0;
         if (q.complete) complete.push(q);
     }
-    const switchedOff = t.shard === 'shardX' && !require('system.shardX').enabled();
+    // A shardX room is only guarded during a claim attempt: shardX switched on, in claim (or done)
+    // mode, with the room still one of its targets. Otherwise (switched off, scouting, reset) the
+    // target is dropped once its squads are recalled, so a later scout run never restarts quads.
+    const switchedOff = t.shard === 'shardX' && !claimTarget(t.room);
     if (switchedOff) t.stopped = true;
     if (t.stopped) {
         // Lost, or shardX switched off: squads bound for it go home, unboost and recycle
@@ -246,6 +249,7 @@ function updateTarget(t) {
             }
         }
         t.squads = t.squads.filter(q => q.slots.some(s => s.name));
+        if (switchedOff) delete state().targets[key(t.shard, t.room)];
         return;
     }
     const desired = t.desired || DESIRED_SQUADS;
@@ -279,8 +283,38 @@ function updateTarget(t) {
     }
     t.squads = t.squads.filter(q => !q.retired || q.slots.some(s => s.name));
 }
+function claimTarget(room) {
+    const xs = Game.shard.name === 'shard2' ? Memory.xs : ism.get('shard2', 'xs');
+    return !!(require('system.shardX').enabled() && xs && (xs.mode === 'claim' || xs.mode === 'done') &&
+        (xs.targets || []).some(t => t.r === room));
+}
+// Forget every guard target on a shard (shardX('reset')): squads still on this shard go home and
+// recycle. Returns the number of creeps recalled.
+function forget(shard) {
+    const s = state();
+    let recalled = 0;
+    for (const id of Object.keys(s.targets)) {
+        const t = s.targets[id];
+        if (t.shard !== shard) continue;
+        for (const c of localMembers()) {
+            if (c.memory.destination === t.room && c.memory.guardTargetShard === t.shard && !c.memory.guardRecall) {
+                c.memory.guardRecall = 1;
+                recalled++;
+            }
+        }
+        delete s.targets[id];
+    }
+    if (shard === Game.shard.name) for (const name of Object.keys(s.rooms)) delete s.rooms[name];
+    return recalled;
+}
 function run() {
     const s = state(); clock();
+    // An attacked-room latch outlives the room: drop it once the room is no longer ours (owned
+    // rooms are always visible). Otherwise a lost room stays "escalated" and re-arms quads later.
+    for (const name of Object.keys(s.rooms)) {
+        const room = Game.rooms[name];
+        if (!room || !room.controller || !room.controller.my) delete s.rooms[name];
+    }
     for (const room of Object.values(Game.rooms)) {
         if (room.controller && room.controller.my && !stage.established(room)) {
             if (room.controller.safeMode) latch(room, 'safe mode observed');
@@ -368,6 +402,6 @@ function report() {
     }
     return rows;
 }
-module.exports = { state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
+module.exports = { forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
     report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart,
     DESIRED_SQUADS, SIEGE_RAMPART_HITS, BOOSTS_BY_PART };

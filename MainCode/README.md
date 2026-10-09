@@ -229,6 +229,8 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 - **Recall:** everything still bound for the portal is recalled (`creep.recall.js`). It walks home; boosted creeps unboost at a free lab, dropping half the compounds for the salvager; then it recycles at a spawn. A creep already on the far side retires there.
 - **Lost targets generally:** guard squads whose target room is lost (not graduated) are recalled the same way.
 - **To resume:** set `ENABLED` back to `true` (or `Memory.settings.shardX = true` on each shard), then `shardX('scout')` / `shardX('claim')` on shard2.
+- **Quads only during a claim:** a shardX room is guarded by quads only while shardX is on, in claim (or done) mode, and the room is still one of its targets. Otherwise the quad target is dropped and its members are recalled. Before this, the old E29N36 target outlived the attempt and restarted quads when shardX was switched back on to scout.
+- **Attacked-room flags expire:** a room flagged as attacked loses the flag once it's no longer ours, so a lost room can't re-arm quads later.
 
 `system.shardX.js`, controlled from the shard2 console. shard1 and shard3 follow shard2's mode through InterShardMemory. The same code must also run on shardX.
 
@@ -247,6 +249,10 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 - **`shardX('claim')`:** stops scouting. shard2 picks the 3 best candidates, each from a different home on any home shard, spaced like auto-expansion.
   - Each home's own shard sends a claimer through the same corner, then keeps 4 helpers there until shardX reports a terminal. From then on shardX's own auto-expansion takes over.
 - **`shardX('cancel')`** stops everything; **`shardX()`** shows status on any shard.
+- **`shardX('reset')`** (works while switched off) forgets the whole attempt before a fresh start.
+  - **On shard2:** clears the mode, targets, orders, travellers and quad targets for shardX rooms, and what shard2 publishes to the other shards. Quad members still on shard2 go home, unboost and recycle.
+  - **On shardX:** clears its orders and attacked-room flags.
+  - Creeps already on shardX are left alone. Scouted map data (portals, rooms seen) is kept.
 
 ## One creep per job with several spawns
 
