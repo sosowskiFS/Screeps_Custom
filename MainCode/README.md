@@ -178,8 +178,12 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - The sponsor reserves T3 TOUGH, MOVE, ranged and healing minerals for both formations plus a replacement quad, moves itself to the front of empire energy/material transfer queues, and protects the stock from sales. Siege energy targets rise to 500k storage / 150k terminal. Temporary lab leases suspend reactions in those labs and are serviced by lab workers. No mineral purchases are added.
   - Boosting runs before departure, with at most 100 ticks of local preparation and an earlier coverage deadline when necessary. Missing minerals are skipped; partial or unboosted squads still deploy. Unboosted MOVE makes these bodies much slower.
   - **Travel:** squads move in **single file** all the way, portals included, to the **staging room**: the last room before the target on a route avoiding claimed and closed rooms.
-    - There they form the 2x2 a few tiles from the doorway into the target. The doorway and formation spot are chosen once and kept, because recomputed from the moving leader they slid along with it. Forming may take the walk there plus 30 ticks, then the squad goes anyway.
-    - They then cross in quick single file and fight as a quad inside.
+    - There they form the 2x2 right against the border into the target, on a stretch where the exit tiles and the two tiles behind them in the target are walkable. The spot is chosen once and kept, because recomputed from the moving leader it slid along with it. Forming may take the walk there plus 30 ticks, then the squad goes anyway.
+    - **Entry by pairs:** the front pair steps across and one tile further in; the back pair closes up to the border, then follows once the front has made room. The squad finishes as a 2x2 inside, in 3 ticks when unopposed.
+      - Members already inside hold and shoot or heal anything in range while they wait. They never retreat during entry: judged alone, the first pair would lose against a larger force and walk back out, which was the shardX E29N36 border bounce.
+      - If the back pair still cannot get in after 20 ticks it goes anyway. After 60 ticks the entry is dropped and the rest cross single file.
+    - Without such a spot (a narrow exit), the 2x2 forms a few tiles back and the squad crosses in quick single file.
+    - A member that crosses alone before the squad has committed to going in comes back out to the others.
     - A single-file leader never waits on an exit tile, which blocked followers coming across.
     - Moving as a 2x2 through open rooms broke formation whenever one member was blocked, and the squad bounced in place (shardX E30N40).
   - **In the target room,** the shared controller moves the squad as a 2x2 footprint, waits for fatigue or occupied tiles, and uses single file at chokepoints. Two posted squads are included in one room-wide strength decision, and ranged members use mass attack when its aggregate damage beats focused fire. During safe mode they hold the room instead of retreating. Once posted, they never pursue enemies outside the room; idle squads park near the controller. The healer prioritizes threatened members.
@@ -427,9 +431,13 @@ Rooms without an operator in them get power into the power spawn in two ways:
 
 `system.labs.js` replaces the per-room producer flags (`<room>XGHO2Producer` and the rest). The Overhaul branch ignores those flags, so they can stay for the Nightmare branch.
 
-- **Plan:** every 100 ticks the planner adds up terminal, storage and lab contents across all rooms and compares them with a target per lab room (T3 boosts, plus G for nukers; `TARGET_PER_ROOM`). It takes the end products furthest below target first and walks each one's recipe tree. Every reaction in that tree whose two inputs are in stock is a candidate.
-- **Assign:** each room with at least 6 labs (labs 4 and 5 are the reagents, 6+ are outputs) gets one reaction in `Memory.labJobs[room]`. A room keeps its reaction while it is still a candidate, or while its labs still hold a batch, so labs are not flushed every check. New assignments prefer reactions whose inputs are already in that room's terminal, which saves shipping. A product goes to at most 2 rooms, plus 1 room for every 6,000 missing.
-- **Surplus:** when every target is met and nothing is blocked, idle labs make T3 up to 2× target. The market sells anything above 1.5× target.
+- **Plan:** every 100 ticks the planner adds up terminal, storage and lab contents across the shard's rooms and compares them with a target per lab room (T3 boosts, plus G for nukers; `TARGET_PER_ROOM`). It walks each short end product's recipe tree. Every reaction in that tree whose two inputs are in stock is a candidate.
+- **Priority:**
+  1. Boosts a guard squad is waiting for.
+  2. Combat boosts: attack (XUH2O), ranged (XKHO2), heal (XLHO2), dismantle (XZH2O), move (XZHO2) and tough (XGHO2), each with a target of 10k per lab room. The one lowest against its target goes first.
+  3. Upgrade (XGH2O) and repair (XLH2O), only once every combat boost is at its target. Until then they aren't made at all, not even by otherwise idle labs.
+- **Assign:** each room with at least 6 labs (labs 4 and 5 are the reagents, 6+ are outputs) gets one reaction in `Memory.labJobs[room]`. A room keeps its reaction while it is still a candidate, or while its labs still hold a batch, so labs are not flushed every check. New assignments prefer reactions whose inputs are already in that room's terminal, which saves shipping. A product goes to 1 room for every 6,000 missing, up to 2 rooms or 1 per 4 lab rooms, whichever is more (7 with shard2's 25).
+- **Spare rooms:** lab rooms left over once the shortages are covered make boosts beyond target, up to 2× target and lowest stock first. Upgrade and repair stay excluded while a combat boost is short. The market sells anything above 1.5× target.
 - **Run:** the lab worker follows the room's current reaction every tick. When it changes, labs still holding the old minerals are emptied into the terminal. It no longer swaps flags, suicides to pick up a new recipe, or places sell orders. Terminal logistics request only the current reagents and withdraw requests for old ones.
 - **Manual:** `Memory.labOverride[room] = RESOURCE_...` pins a room to one product. `WarBoosts` still swaps the boost labs.
 

@@ -27,7 +27,7 @@ test('planner walks recipe trees and gives each room a reaction it can run, pref
     });
     const jobs = plain(labs.plan());
     assert.deepEqual(jobs.A, { p: R('HYDROXIDE'), a: R('HYDROGEN'), b: R('OXYGEN'), since: 1 }, 'OH feeds every acid/alkalide');
-    assert.equal(jobs.B.p, R('LEMERGIUM_HYDRIDE'), 'B already holds L and H: makes LH towards XLH2O');
+    assert.notEqual(jobs.B.p, R('LEMERGIUM_HYDRIDE'), 'no LH towards repair XLH2O while combat boosts are short');
 
     // Next plan keeps the same reactions (no lab flush), even though OH is still first in line.
     g.Game.time = 100;
@@ -39,6 +39,8 @@ test('intermediates on hand move production up the chain; met targets free the l
         A: { [R('LEMERGIUM_HYDRIDE')]: 6000, [R('HYDROXIDE')]: 6000 },
         B: { [R('LEMERGIUM_ACID')]: 6000, [R('CATALYST')]: 6000 },
     });
+    // Combat boosts fully stocked: repair is next.
+    for (const res of labs.COMBAT) g.Game.rooms.B.terminal.store[res] = labs.TARGET_PER_ROOM[res] * 2;
     let jobs = plain(labs.plan());
     assert.equal(jobs.A.p, R('LEMERGIUM_ACID'));
     assert.equal(jobs.B.p, R('CATALYZED_LEMERGIUM_ACID'));
@@ -77,4 +79,31 @@ test('lab reactions follow the plan; terminal logistics request its reagents and
     assert.deepEqual(plain(g.Memory.mineralNeed[R('HYDROGEN')]), ['A']);
     assert.deepEqual(plain(g.Memory.mineralNeed[R('OXYGEN')]), ['A']);
     assert.deepEqual(plain(g.Memory.mineralNeed[R('CATALYST')]), [], 'previous reaction\'s reagent no longer requested');
+});
+
+test('combat boosts first, lowest stock first; upgrade and repair wait; spare rooms build combat boosts past target', () => {
+    // Shard2-like: heal well below target, the other combat boosts above it, repair/upgrade nearly empty.
+    const names = Array.from({ length: 12 }, (_, i) => 'R' + i);
+    const stores = {};
+    for (const name of names) stores[name] = { [R('CATALYST')]: 20000, [R('LEMERGIUM_ALKALIDE')]: 20000,
+        [R('LEMERGIUM_ACID')]: 20000, [R('GHODIUM_ACID')]: 20000, [R('ZYNTHIUM_ALKALIDE')]: 20000, [R('GHODIUM_ALKALIDE')]: 20000 };
+    const { g, labs } = world(stores);
+    const n = names.length;
+    const set = (res, ratio) => { g.Game.rooms.R0.terminal.store[res] = Math.floor(labs.TARGET_PER_ROOM[res] * n * ratio); };
+    for (const res of labs.COMBAT) set(res, 1.6);
+    set(R('CATALYZED_LEMERGIUM_ALKALIDE'), 0.3);   // heal
+    set(R('CATALYZED_ZYNTHIUM_ALKALIDE'), 1.2);    // move: above target, lowest of the rest
+    set(R('GHODIUM'), 2);
+    const jobs = Object.values(plain(labs.plan()));
+    const count = p => jobs.filter(j => j.p === R(p)).length;
+    assert.equal(count('CATALYZED_LEMERGIUM_ALKALIDE'), 3, 'heal takes the most rooms allowed (12 lab rooms / 4)');
+    assert.equal(count('CATALYZED_LEMERGIUM_ACID') + count('CATALYZED_GHODIUM_ACID'), 0, 'no repair/upgrade while heal is short');
+    assert.ok(count('CATALYZED_ZYNTHIUM_ALKALIDE') >= 1, 'spare rooms build the next-lowest combat boost: ' + JSON.stringify(jobs.map(j => j.p)));
+
+    // Heal stocked: repair and upgrade are made now.
+    set(R('CATALYZED_LEMERGIUM_ALKALIDE'), 1.6);
+    g.Game.time = 100;
+    const after = Object.values(plain(labs.plan()));
+    assert.ok(after.some(j => j.p === R('CATALYZED_LEMERGIUM_ACID')) && after.some(j => j.p === R('CATALYZED_GHODIUM_ACID')),
+        JSON.stringify(after.map(j => j.p)));
 });

@@ -164,6 +164,60 @@ function snake(members, goal, post) {
 function onEdge(c) {
     return c.pos.x === 0 || c.pos.y === 0 || c.pos.x === 49 || c.pos.y === 49;
 }
+function onBorder(x, y) { return x === 0 || y === 0 || x === 49 || y === 49; }
+
+// Going in by pairs. dir is the direction into the target (a FIND_EXIT_* constant has the value of
+// the direction toward that exit). The front pair stands one step from the exit tiles.
+const BREACH_WAIT = 20;    // ticks the back pair waits for the front pair to clear the edge, then goes anyway
+const BREACH_ABORT = 60;   // ticks after which an unfinished entry falls back to single file
+function lined(c, dir) { return onBorder(c.pos.x + STEPS[dir][0], c.pos.y + STEPS[dir][1]); }
+// How far inside the target a creep is, counted from the border it came in over.
+function depth(c, dir) {
+    const [dx, dy] = STEPS[dir];
+    return dx > 0 ? c.pos.x : dx < 0 ? 49 - c.pos.x : dy > 0 ? c.pos.y : 49 - c.pos.y;
+}
+// The 2x2 spot against the border into the target: two members one step from exit tiles, and the
+// tiles they land on in the target (plus the next one in, to make room) walkable. null: no such spot.
+function breachAnchor(room, members, dir, target) {
+    const [dx, dy] = STEPS[dir];
+    const matrix = grid(room, members, true);
+    const here = room.getTerrain ? room.getTerrain() : Game.map.getRoomTerrain(room.name);
+    const there = Game.map.getRoomTerrain(target);
+    const leader = members[0];
+    let best = null, score = Infinity;
+    for (let x = 1; x <= 47; x++) for (let y = 1; y <= 47; y++) {
+        if (matrix.get(x, y) >= 255) continue;
+        const exits = OFFSETS.map(([ox, oy]) => [x + ox + dx, y + oy + dy]).filter(([ex, ey]) => onBorder(ex, ey));
+        if (exits.length !== 2) continue;
+        const open = exits.every(([ex, ey]) => {
+            const lx = dx ? 49 - ex : ex, ly = dy ? 49 - ey : ey;   // the matching tile on the target's side
+            return here.get(ex, ey) !== TERRAIN_MASK_WALL && there.get(lx, ly) !== TERRAIN_MASK_WALL &&
+                there.get(lx + dx, ly + dy) !== TERRAIN_MASK_WALL;
+        });
+        if (!open) continue;
+        const candidate = Math.max(Math.abs(x - leader.pos.x), Math.abs(y - leader.pos.y)) * 100 +
+            Math.abs(x - leader.pos.x) + Math.abs(y - leader.pos.y);
+        if (candidate < score) { score = candidate; best = position(x, y, room.name); }
+    }
+    return best;
+}
+// The front pair steps in and one tile further (off the edge); the back pair closes up to the
+// border once the front has crossed, and follows in once the front has made room. Members inside
+// hold there (combat in run shoots and heals) until the whole party is in.
+function breach(party, b, target) {
+    const inside = c => c.room.name === target;
+    const front = party.filter(c => b.front.includes(c.name)), back = party.filter(c => !b.front.includes(c.name));
+    for (const c of front) {
+        if (!c.fatigue && (!inside(c) || depth(c, b.dir) < 1)) c.move(b.dir);
+    }
+    const late = Game.time - b.since >= BREACH_WAIT;
+    const crossed = late || front.every(inside);
+    const clear = late || front.every(c => inside(c) && depth(c, b.dir) >= 1);
+    for (const c of back) {
+        if (c.fatigue || inside(c)) continue;
+        if (lined(c, b.dir) ? clear : crossed) c.move(b.dir);
+    }
+}
 
 // The last room before the target on the route (avoiding claimed and closed rooms): where the
 // squad forms up before going in. Recomputed when the leader changes room.
@@ -236,7 +290,9 @@ function travel(members) {
         snake(members, position(25, 25, staging), false);
         return;
     }
-    // All in the staging room: form up near the exit into the target, then go in.
+    // All in the staging room: form up against the border into the target, then go in by pairs.
+    // A spot from before pair entry (no v) is dropped, and with it a latched single-file go.
+    if (m.guardStageAnchor && !m.guardStageAnchor.v) { delete m.guardStageAnchor; delete m.guardGo; }
     const exit = Game.map.findExit(staging, target);
     const tiles = typeof exit === 'number' && exit > 0 ? leader.room.find(exit) : [];
     // The exit tile nearest the leader; ties (a whole border is often equally far) go to the one
@@ -253,9 +309,11 @@ function travel(members) {
         // The formation spot is chosen once and kept: recomputed from the moving leader each tick,
         // the doorway and spot slid along with it and the squad chased them into a corner.
         // It may take the walk there plus ASSEMBLE_TIMEOUT to form up, then the squad goes anyway.
+        // Against the border when the terrain allows; otherwise a few tiles back, crossing single file.
         if (!m.guardStageAnchor) {
-            const a = nearestAnchor(leader.room, members, door, 4);
-            m.guardStageAnchor = a ? { x: a.x, y: a.y, until: Game.time + range(leader, a) * 2 + ASSEMBLE_TIMEOUT } : { none: 1 };
+            const edge = breachAnchor(leader.room, members, exit, target);
+            const a = edge || nearestAnchor(leader.room, members, door, 4);
+            m.guardStageAnchor = a ? { v: 2, x: a.x, y: a.y, edge: !!edge, until: Game.time + range(leader, a) * 2 + ASSEMBLE_TIMEOUT } : { v: 2, none: 1 };
         }
         const a = m.guardStageAnchor;
         const anchor = !a.none && Game.time < a.until ? position(a.x, a.y, staging) : null;
@@ -263,15 +321,23 @@ function travel(members) {
             assemble(members, anchor);
             return;
         }
+        for (const c of members) { c.memory.guardAssembled = members.length === 4; c.memory.guardCommitted = 1; }
+        if (anchor && a.edge) {
+            const b = { dir: exit, from: staging, since: Game.time, names: members.map(c => c.name),
+                front: members.filter(c => lined(c, exit)).map(c => c.name) };
+            for (const c of members) c.memory.guardBreach = Object.assign({}, b);
+            delete m.guardStageAnchor;
+            breach(members, b, target);
+            return;
+        }
         m.guardGo = Game.time;
-        for (const c of members) c.memory.guardAssembled = members.length === 4;
     }
     snake(members, position(25, 25, target), false);
 }
 function defend(members) {
     const leader = members[0], room = leader.room;
     for (const c of members) {
-        c.memory.guardPhase = 'arrived'; delete c.memory.xShard;
+        c.memory.guardPhase = 'arrived'; c.memory.guardCommitted = 1; delete c.memory.xShard;
         if (c.memory.guardArrival === undefined) c.memory.guardArrival = Game.time;
     }
     const { info, focus, retreat } = combat(members);
@@ -303,6 +369,35 @@ function run(creep) {
     if (!members.length) return;
     let preparing = false;
     for (const c of members) if (boosts.boost(c)) preparing = true;
+    const fight = list => { for (const name of new Set(list.map(c => c.room.name))) combat(list.filter(c => c.room.name === name)); };
+    // Going in by pairs: the members inside hold and shoot; no defend (its retreat would walk the
+    // first pair back out before the second pair is in).
+    const holder = members.find(c => c.memory.guardBreach);
+    if (holder) {
+        const b = holder.memory.guardBreach, target = holder.memory.destination;
+        const party = members.filter(c => b.names.includes(c.name));
+        const done = party.every(atPost), strayed = party.some(c => !atPost(c) && c.room.name !== b.from);
+        if (done || strayed || Game.time - b.since > BREACH_ABORT) {
+            for (const c of members) delete c.memory.guardBreach;
+        } else {
+            fight(party);
+            breach(party, b, target);
+            const others = members.filter(c => !b.names.includes(c.name) && atPost(c));
+            if (others.length) defend(others);
+            return;
+        }
+    }
+    // A member that crossed alone before the squad went in (no breach or single-file go yet) comes
+    // back out to the others waiting next door, so the squad enters formed.
+    const early = members.filter(atPost), waiting = members.filter(c => !atPost(c));
+    if (early.length && waiting.length && !members.some(c => c.memory.guardCommitted)) {
+        const next = waiting[0].room.name, exits = Game.map.describeExits(next) || {};
+        if (waiting.every(c => c.room.name === next) && Object.values(exits).includes(waiting[0].memory.destination)) {
+            fight(members);
+            for (const c of early) if (!c.fatigue) c.travelTo(position(25, 25, next), { range: 20 });
+            return;
+        }
+    }
     // Posted survivors keep fighting even while their casualty replacement is prepared elsewhere.
     const posted = members.filter(atPost);
     if (posted.length) defend(posted);
@@ -323,7 +418,7 @@ function run(creep) {
         }
     }
     // Transit combat is defensive; it does not replace the squad's movement orders.
-    for (const name of new Set(members.map(c => c.room.name))) combat(members.filter(c => c.room.name === name));
+    fight(members);
     travel(members);
 }
 module.exports = { run, grid, assembled, formationMove, nearestAnchor, snake, combat, range, OFFSETS, STEPS };

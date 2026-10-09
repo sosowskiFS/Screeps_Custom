@@ -162,17 +162,83 @@ function staged() {
     w.room.find=type=>type===3?Array.from({length:48},(_,i)=>new w.Pos(49,i+1)):find(type);
     return w;
 }
-test('staging: the quad forms up a few tiles from the exit into the target, then goes in single file without re-forming',()=>{
-    const w=staged();
-    for(let tick=0;tick<120;tick++){w.q.run(w.squad[0]);if(w.squad[0].memory.guardGo)break;w.apply();}
-    assert.ok(w.squad[0].memory.guardGo,'formed (or timed out) and going');
-    const door=new w.Pos(49,20);
-    assert.ok(w.squad.every(c=>c.pos.getRangeTo(door)<=6),JSON.stringify(w.squad.map(c=>[c.pos.x,c.pos.y])));
-    assert.equal(w.q.assembled(w.squad,w.squad[0].pos),true,'a 2x2 before crossing');
-    const lead=w.actions.find(a=>a[0]==='c0'&&a[1]==='travel'&&a[2].roomName==='TARGET');
-    assert.ok(lead,'the leader heads into the target');
-    w.apply();w.q.run(w.squad[0]);
-    assert.ok(!w.actions.some(a=>a[1]==='travel'&&a[3].range===0&&a[3].maxRooms===1),'no re-forming once going');
+// POST and TARGET side by side: stepping onto x=49 of POST lands on x=0 of TARGET (if free).
+function twoRooms() {
+    const w=staged(),g=w.g,squad=w.squad,hostiles=[];
+    const here=r=>squad.filter(c=>c.room===r);
+    const target={name:'TARGET',controller:null,getTerrain:()=>({get:()=>0}),
+        find:type=>type===g.FIND_STRUCTURES?[]:type===g.FIND_CREEPS?here(target).concat(hostiles):
+            type===g.FIND_MY_CREEPS?here(target):type===g.FIND_HOSTILE_CREEPS?hostiles:[]};
+    g.Game.rooms.TARGET=target;
+    const find=w.room.find;
+    w.room.find=type=>type===g.FIND_CREEPS?here(w.room):type===g.FIND_MY_CREEPS?here(w.room):type===g.FIND_HOSTILE_CREEPS?[]:find(type);
+    g.Game.map.getRoomTerrain=()=>({get:()=>0});
+    g.Game.map.describeExits=name=>name==='POST'?{3:'TARGET'}:{7:'POST'};
+    const steps=w.q.STEPS;
+    const apply=()=>{
+        const spot=c=>c.intent?{x:c.pos.x+steps[c.intent][0],y:c.pos.y+steps[c.intent][1],room:c.room}:{x:c.pos.x,y:c.pos.y,room:c.room};
+        const taken=(p,self,moving)=>squad.concat(hostiles).some(o=>o!==self&&o.room===p.room&&(moving.has(o)?spot(o):o.pos).x===p.x&&(moving.has(o)?spot(o):o.pos).y===p.y);
+        const moving=new Set(squad.filter(c=>c.intent&&!c.fatigue));
+        for(let pass=0;pass<5;pass++)for(const c of [...moving])if(taken(spot(c),c,moving))moving.delete(c);
+        for(const c of squad){
+            if(moving.has(c)){const p=spot(c);c.pos=new w.Pos(p.x,p.y,c.room.name);}
+            delete c.intent;
+            // Border crossing (blocked landing: stays on the exit tile).
+            if(c.room===w.room&&c.pos.x===49&&!squad.concat(hostiles).some(o=>o.room===target&&o.pos.x===0&&o.pos.y===c.pos.y)){
+                c.room=target;c.pos=new w.Pos(0,c.pos.y,'TARGET');
+            }
+        }
+        w.next();
+    };
+    for(const h of hostiles)h.room=target;
+    return Object.assign(w,{target,hostiles,apply});
+}
+test('staging: the quad forms a 2x2 against the border, then enters two at a time and finishes formed inside',()=>{
+    const w=twoRooms();
+    const trace=[];
+    for(let tick=0;tick<120;tick++){w.q.run(w.squad[0]);if(w.squad[0].memory.guardBreach)break;w.apply();}
+    const b=w.squad[0].memory.guardBreach;
+    assert.ok(b,'formed and going in by pairs');
+    assert.equal(JSON.stringify(b.front.slice().sort()),'["c1","c3"]','the pair nearest the border goes first');
+    assert.ok(w.squad.every(c=>c.room===w.room&&c.pos.x>=47),JSON.stringify(w.squad.map(c=>[c.pos.x,c.pos.y])));
+    assert.equal(w.q.assembled(w.squad,w.squad[0].pos),true,'a 2x2 against the border');
+    assert.ok(w.actions.filter(a=>a[1]==='move'&&a[2]===b.dir).map(a=>a[0]).sort().join()==='c1,c3','only the front pair steps first');
+    w.apply();
+    for(let tick=0;tick<10&&w.squad.some(c=>c.room!==w.target);tick++){
+        w.q.run(w.squad[0]);w.apply();
+        trace.push(w.squad.map(c=>c.room.name[0]+c.pos.x));
+        const front=w.squad.filter(c=>b.front.includes(c.name)),back=w.squad.filter(c=>!b.front.includes(c.name));
+        if(back.some(c=>c.room===w.target))assert.ok(front.every(c=>c.room===w.target&&c.pos.x>=1),'the back pair only follows once the front made room: '+JSON.stringify(trace));
+    }
+    assert.ok(w.squad.every(c=>c.room===w.target),JSON.stringify(trace));
+    assert.equal(w.q.assembled(w.squad,w.squad[0].pos),true,'a 2x2 inside: '+JSON.stringify(w.squad.map(c=>[c.pos.x,c.pos.y])));
+    w.q.run(w.squad[0]);
+    assert.ok(w.squad.every(c=>!c.memory.guardBreach),'entry finished');
+});
+test('the front pair shoots hostiles in range while it waits inside for the back pair, and never backs out',()=>{
+    const w=twoRooms();
+    for(let tick=0;tick<120&&!w.squad[0].memory.guardBreach;tick++){w.q.run(w.squad[0]);w.apply();}
+    const b=w.squad[0].memory.guardBreach;
+    // A strong enemy just inside: alone, the front pair would lose (defend would retreat).
+    w.hostiles.push({name:'e',id:'e',room:w.target,owner:{username:'Harabi'},pos:new w.Pos(3,w.squad[1].pos.y,'TARGET'),
+        body:Array.from({length:50},()=>({type:w.g.RANGED_ATTACK,hits:100})),hits:5000,hitsMax:5000});
+    w.q.run(w.squad[0]);w.apply();             // the front pair steps in
+    w.q.run(w.squad[0]);
+    const front=w.squad.filter(c=>b.front.includes(c.name));
+    assert.ok(front.every(c=>c.room===w.target));
+    assert.ok(w.actions.some(a=>a[0]==='c1'&&(a[1]==='fire'||a[1]==='mass')),'the ranged front member shoots: '+JSON.stringify(w.actions));
+    const back=w.actions.filter(a=>b.front.includes(a[0])&&a[1]==='move'&&a[2]!==b.dir);
+    assert.equal(back.length,0,'no front member moves back toward the border');
+    assert.ok(!w.actions.some(a=>b.front.includes(a[0])&&a[1]==='travel'),'no retreat path');
+});
+test('a member that slipped in alone before the squad committed comes back out to the others',()=>{
+    const w=twoRooms();
+    w.squad[0].room=w.target;w.squad[0].pos=new w.Pos(0,20,'TARGET');
+    w.q.run(w.squad[1]);
+    assert.ok(w.actions.some(a=>a[0]==='c0'&&a[1]==='travel'&&a[2].roomName==='POST'),JSON.stringify(w.actions));
+    w.squad[0].memory.guardCommitted=1;w.next();
+    w.q.run(w.squad[1]);
+    assert.ok(!w.actions.some(a=>a[0]==='c0'&&a[1]==='travel'&&a[2].roomName==='POST'),'a committed squad does not pull back');
 });
 test('away from the staging room the squad moves single file, never as a 2x2 block',()=>{
     const w=staged();
