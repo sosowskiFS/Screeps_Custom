@@ -89,6 +89,7 @@ function park(creep) {
 module.exports = {
     body, leadTime, covered,
     run: function(creep) {
+        if (creep.memory.guardRecall) return require('creep.recall').recall(creep);   // mission cancelled
         if (creep.memory.guardAwaitManifest) return;
         if (creep.memory.guardSquad) return require('creep.guardQuad').run(creep);
         const dest = creep.memory.destination;

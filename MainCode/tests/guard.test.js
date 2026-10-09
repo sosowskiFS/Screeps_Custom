@@ -5,6 +5,7 @@ const { harness, plain } = require('./harness');
 function load() {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
+    h.context.Memory.settings = Object.assign({}, h.context.Memory.settings, { shardX: true });   // these tests exercise shardX switched on
     g.CREEP_LIFE_TIME = 1500;
     g.console = { log: () => {} };
     return { h, g, guard: h.load('creep.roomGuard') };

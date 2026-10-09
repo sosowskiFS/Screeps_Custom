@@ -136,6 +136,8 @@ function register(shard, room, home, corner, distance) {
     const rr = report && report.rooms && report.rooms[room];
     t.stopped = !!(r && (!r.controller || !r.controller.my || stage.established(r))) ||
         !!(fresh(report) && rr && (rr.owned === false || rr.established));
+    // Lost (no longer ours), as opposed to graduated: squads still on their way are recalled.
+    t.lost = !!(r && (!r.controller || !r.controller.my)) || !!(fresh(report) && rr && rr.owned === false);
     return t;
 }
 function observe(t) {
@@ -232,7 +234,17 @@ function updateTarget(t) {
         q.remaining = q.complete ? Math.min(...q.slots.map(s => (s.expires - now) / clock().ms)) : 0;
         if (q.complete) complete.push(q);
     }
+    const switchedOff = t.shard === 'shardX' && !require('system.shardX').enabled();
+    if (switchedOff) t.stopped = true;
     if (t.stopped) {
+        // Lost, or shardX switched off: squads bound for it go home, unboost and recycle
+        // (creep.recall) instead of walking on (shardX E29N36 was lost while two quads were on
+        // their way). A room that graduated keeps the squads already posted or travelling.
+        if (t.lost || switchedOff) {
+            for (const c of localMembers()) {
+                if (c.memory.destination === t.room && c.memory.guardTargetShard === t.shard) c.memory.guardRecall = 1;
+            }
+        }
         t.squads = t.squads.filter(q => q.slots.some(s => s.name));
         return;
     }
@@ -281,7 +293,7 @@ function run() {
         register(Game.shard.name, e.t, e.sp, undefined, d);
     }
     const xs = Game.shard.name === 'shard2' ? Memory.xs : ism.get('shard2', 'xs');
-    if (xs && xs.mode === 'claim') for (const t of xs.targets || []) {
+    if (xs && xs.mode === 'claim' && require('system.shardX').enabled()) for (const t of xs.targets || []) {
         const [shard, home] = t.h.split(':');
         if (shard === Game.shard.name) register('shardX', t.r, home, t.e, t.t);
     }

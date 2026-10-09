@@ -215,6 +215,12 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 
 ## Settling shardX (one-time)
 
+**Switched off** (`ENABLED = false` in `system.shardX.js`): shardX's E29N36 was attacked and lost.
+- **What stops:** no scouting, claiming, helpers or guard squads, whatever mode shard2 has saved. Its queue is cleared, and the guard squads stop treating shardX rooms as targets.
+- **Recall:** everything still bound for the portal is recalled (`creep.recall.js`). It walks home; boosted creeps unboost at a free lab, dropping half the compounds for the salvager; then it recycles at a spawn. A creep already on the far side retires there.
+- **Lost targets generally:** guard squads whose target room is lost (not graduated) are recalled the same way.
+- **To resume:** set `ENABLED` back to `true` (or `Memory.settings.shardX = true` on each shard), then `shardX('scout')` / `shardX('claim')` on shard2.
+
 `system.shardX.js`, controlled from the shard2 console. shard1 and shard3 follow shard2's mode through InterShardMemory. The same code must also run on shardX.
 
 - **`shardX('scout')`:** shard2, shard1 and shard3 each send one 1-MOVE scout every 100 ticks. They rotate through the nearest highway corner of each of their homes, and the scout comes from that home.

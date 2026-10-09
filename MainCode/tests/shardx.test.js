@@ -5,6 +5,7 @@ const { harness, plain } = require('./harness');
 function setup(shard = 'shard2', remote = {}) {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
+    h.context.Memory.settings = Object.assign({}, h.context.Memory.settings, { shardX: true });   // these tests exercise shardX switched on
     g.Game.time = 5000;
     g.Game.shard = { name: shard };
     g.console = { log: () => {} };

@@ -35,6 +35,15 @@ const badRooms = require('system.badRooms');
 const remoteMining = require('system.remoteMining');
 
 const X_SHARD = 'shardX';
+// Off switch. shardX's E29N36 was attacked and lost (2026-10): no scouting, claiming, helpers or
+// guards while false, whatever mode shard2 has saved. Creeps still bound for the portal are recalled
+// home (creep.recall). To resume: set ENABLED to true, or Memory.settings.shardX = true on each home
+// shard (and shardX), then shardX('scout') / shardX('claim') on shard2.
+const ENABLED = false;
+
+function enabled() {
+    return ENABLED || !!(Memory.settings && Memory.settings.shardX === true);
+}
 const COORD_SHARD = 'shard2';
 const HOME_SHARDS = ['shard2', 'shard1', 'shard3'];
 const SCOUT_EVERY = 100;
@@ -153,6 +162,10 @@ function nearCorners(homeList = homes()) {
 function portalStep(creep) {
     const x = creep.memory.xShard;
     if (!x || Game.shard.name === X_SHARD) return false;
+    if (!enabled()) {
+        require('creep.recall').recall(creep);   // switched off: home, unboost, recycle
+        return true;
+    }
     if (creep.memory.priority === 'helper' && require('creep.logistics').loadForTrip(creep)) return true;
     if (creep.room.name !== x.c) {
         creep.travelTo(new RoomPosition(25, 25, x.c), { range: 20 });
@@ -464,6 +477,7 @@ function mapTravellers(travellers) {
 
 // Spawning hook (system.spawning): { body, memory } for this home, or null.
 function spawnOrder(roomName) {
+    if (!enabled()) return null;
     const s = Memory.xs;
     const order = s && s.queue && s.queue[roomName];
     if (!order) return null;
@@ -480,6 +494,10 @@ function spawned(roomName) {
 }
 
 function run() {
+    if (!enabled()) {
+        if (Memory.xs && Memory.xs.queue && Object.keys(Memory.xs.queue).length) Memory.xs.queue = {};
+        return;
+    }
     if (Game.shard.name === X_SHARD) runX();
     else if (HOME_SHARDS.includes(Game.shard.name)) runHome();
 }
@@ -487,6 +505,7 @@ function run() {
 // ---------------------------------------------------------------- console
 
 function command(cmd) {
+    if (!enabled()) return 'shardX is switched off (system.shardX ENABLED = false; Memory.settings.shardX = true turns it back on)';
     const s = state();
     if (cmd === 'scout' || cmd === 'claim' || cmd === 'cancel') {
         if (Game.shard.name !== COORD_SHARD) return 'run this on ' + COORD_SHARD + ' (the other shards follow it)';
@@ -516,6 +535,7 @@ function command(cmd) {
 }
 
 module.exports = {
+    enabled,
     run, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };
