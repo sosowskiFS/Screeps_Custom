@@ -1,3 +1,4 @@
+const remoteMining = require('system.remoteMining');
 const speech = require('creep.speech');
 const runtimeCache = require('runtime.cache');
 const combat = require('combat.tactics');
@@ -108,8 +109,8 @@ var creep_farMining = {
                     if (thisMineral) {
                         if (thisMineral.lastCooldown >= 28) {
                             //Too much time to spend on harvesting this
-                            if (Game.flags[creep.memory.targetFlag]) {
-                                Game.flags[creep.memory.targetFlag].remove();
+                            if (remoteMining.target(creep)) {
+                                remoteMining.target(creep).remove();
                             }
                             creep.memory.retire = true;
                         } else {
@@ -131,8 +132,8 @@ var creep_farMining = {
                             creep.travelTo(mineralLocations[0]);
                         } else {
                             //No mineral anymore, delete flag.
-                            if (Game.flags[creep.memory.targetFlag]) {
-                                Game.flags[creep.memory.targetFlag].remove();
+                            if (remoteMining.target(creep)) {
+                                remoteMining.target(creep).remove();
                             }
                             creep.memory.retire = true;
                         }
@@ -182,8 +183,15 @@ var creep_farMining = {
                     creep.memory.priority = 'farGuardNearDeath';
                 }
 
-                // Simplified guard flag management - only check every 10 ticks
-                if (Game.time % 10 == 0) {
+                if (creep.memory.node) {
+                    // A node guard (system.remoteMining): its post is the node's room; while home
+                    // has been under attack for 100+ ticks it holds at home instead (what the
+                    // flag guards did by swapping their flag for a TEMP one).
+                    const homeHeld = Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100;
+                    creep.memory.destination = homeHeld ? creep.memory.homeRoom : creep.memory.node.r;
+                    targetFlag = homeHeld ? { name: 'home', pos: new RoomPosition(25, 25, creep.memory.homeRoom) } : remoteMining.target(creep);
+                } else if (Game.time % 10 == 0) {
+                    // Flag guards - only check every 10 ticks
                     if (Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom) > -1 && Memory.attackDuration >= 100) {
                         // createFlag needs vision of the flag's room; only remove the original once the
                         // replacement exists, so a failed swap can never lose the guard flag.
@@ -201,9 +209,13 @@ var creep_farMining = {
                     }
                 }
 
-                targetFlag = Game.flags[targetFlagName];
-                tempTargetFlag = Game.flags[tempTargetFlagName];
-                if (targetFlag) {
+                if (!creep.memory.node) {
+                    targetFlag = Game.flags[targetFlagName];
+                    tempTargetFlag = Game.flags[tempTargetFlagName];
+                }
+                if (creep.memory.node) {
+                    // destination set above
+                } else if (targetFlag) {
                     if (targetFlag.pos.roomName != creep.memory.destination) {
                         creep.memory.destination = targetFlag.pos.roomName;
                     }
@@ -261,7 +273,7 @@ var creep_farMining = {
                         });
                     }
                 } else if (creep.room.name != creep.memory.destination) {
-                    if (targetFlagName.includes("eFarGuard")) {
+                    if (targetFlagName && targetFlagName.includes("eFarGuard")) {
                         if (!creep.memory.thisPath) {
                             var thisPath = Game.map.findRoute(creep.room.name, creep.memory.destination, {
                                 routeCallback(roomName, fromRoomName) {
@@ -414,8 +426,8 @@ var creep_farMining = {
                 } else if (healerIsNear) {
                     creep.memory.getOutOfStartRoom = true;
 
-                    if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos.roomName != creep.pos.roomName) {
-                        creep.travelTo(new RoomPosition(25, 25, Game.flags[creep.memory.targetFlag].pos.roomName));
+                    if (remoteMining.target(creep) && remoteMining.target(creep).pos.roomName != creep.pos.roomName) {
+                        creep.travelTo(new RoomPosition(25, 25, remoteMining.target(creep).pos.roomName));
                     } else {
                         //In target room
                         if (closeFoe) {

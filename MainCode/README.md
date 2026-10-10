@@ -86,15 +86,21 @@ Damage disables body parts front to back, and creeps never regenerate. A unit wh
 
 ## Automatic remote mining
 
-`system.remoteMining.js` (phase `remoteMining`) places remote-mining flags for every home room with storage.
+`system.remoteMining.js` (phase `remoteMining`) runs remote mining for every home room from the moment it has a storage: scouting, choosing sources, and staffing them as mining **nodes** kept in memory. No flags are needed.
 
-- **Intel.** Rooms within 2 of a home are summarised in `Memory.remoteIntel`: sources, owner, reservation, keeper lairs, hostile towers. Vision comes from observer sweeps, our own creeps (visible rooms refresh every 1,000 ticks), or a 1-MOVE scout (50 energy). The scout spawns automatically for homes without an observer when nearby intel is missing or older than 20,000 ticks. A `MineScout` flag still forces one.
+- **Scouting.** Every room within 2 of a home is looked at, nearest first, and summarised in `Memory.remoteIntel`: sources, owner, reservation, keeper lairs, hostile towers.
+  - **Who looks:** the home's observer if it has one (it asks for the nearest room due a look before its normal sweep); otherwise a 1-MOVE scout (50 energy). Our own creeps passing through also refresh intel (every 1,000 ticks at most). A `MineScout` flag still forces a scout.
+  - **Looking again:** free rooms after 20,000 ticks; rooms another player reserved after 30,000; rooms another player owns after 50,000. Owned rooms used to be skipped for good once seen.
 - **Selection.** A source qualifies when, after paying for the creeps that mine it, it still returns at least half its 10 energy/tick.
   - **Costs counted:** the far miner (1,130 per 1,500 ticks), as many mules as the round trip needs (at most 3), and its share of the room's reserver. A reserver adds a tick of reservation per CLAIM part per working tick, so it costs about 1.4 energy/tick per room at any size.
   - **What this changes:** it used to need one mule to carry 85% of the output alone, which at RCL4 (1,300 energy, 650-carry mules) meant only sources within a ~76-tick round trip. An RCL4 home now mines out to about 150–170 ticks, with 2–3 mules on the far sources.
   - The round trip comes from a terrain path from home storage that pays swamp cost when loaded, and is cached per source. Excluded: owned rooms, player-reserved rooms, Source Keeper rooms, rooms with towers, `Memory.blockedRooms`, rooms in a different novice/respawn area, sources another home mines, and rooms with 4+ strikes.
-- **Flags.** Qualifying sources fill free `FarMining` slots nearest-first, so the 25M/50M rampart caps drop the farthest first. Each mined room gets one `FarGuard` flag at its centre. Manual flags are never moved or removed. Auto flags are tracked in `Memory.remoteAuto` and removed when their source leaves the plan. Plans refresh every 2,000 ticks, at most one home and 10 new path searches per tick.
-- **Vision.** Flags can only be created in visible rooms. A room waiting for a flag is queued, the home's observer looks at it (or its scout includes it in the route), and the flags are placed on the first tick it's visible.
+- **Nodes.** The plan (`Memory.remotePlan[home].list`, nearest first: room, source id, position, round trip) is the list of mining nodes. Plans refresh every 2,000 ticks, at most one home and 10 new path searches per tick.
+  - **Staffing** (`spawn.BuildFarCreeps`, after hand-placed flags): guards for a node room under attack (sized to the recorded threat, as before), then per node a miner, the mules its trip needs, and the room's reserver when its reservation runs low.
+  - **Rampart caps:** with a 50mCap flag only the first two nodes are staffed, and with a 25mCap flag the first four (as the flag slots were).
+  - **Creeps carry their node** (`memory.node`). `remoteMining.target(creep)` gives the roles the same `pos`/`room`/`remove()` target a flag did; removing a node (room taken, miner attacked) backs the room off. Node guards hold at home while it has been under attack for 100+ ticks, as flag guards did with their TEMP flags.
+  - **Old auto flags** (tracked in `Memory.remoteAuto`) are retired for every home: their creeps get the node in memory, then the flag is removed. Entries for homes we no longer own just lose their flags.
+  - **Hand-placed flags** (FarMining, FarGuard, SK rooms, minerals) work exactly as before, and their sources are left out of the plan. The road planner routes to nodes as it did to flags.
 - **Opt out:** `Memory.settings.autoRemote = false` (all homes) or a `<home>NoAutoRemote` flag (one home).
 
 **Remote bodies.**
@@ -111,7 +117,7 @@ Damage disables body parts front to back, and creeps never regenerate. A unit wh
 
 **Disabling unsafe remotes** (`Memory.remoteStatus`). A strike is registered when a player attacks a miner, when player fighters appear and our forces there aren't clearly winning, or when the room is claimed. Repeats within 100 ticks count as the same incident. A strike disables the **whole room**: every source, mule, reserver and guard. The back-off doubles per strike (1,500 → 3,000 → 6,000 … up to 50,000 ticks). Remote creeps assigned to a disabled room wait at home instead of walking in.
 
-When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its auto flags) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.
+When the back-off ends, the room stays disabled until it has been seen clear: the observer looks first, otherwise a scout checks, or any passing creep. Seen hostile again means another strike. Strikes reset after 30,000 quiet ticks; at 4 strikes the planner drops the room (and its nodes) until then. Legacy `FarMiningN;tick` flags from the old system are still restored as before.
 
 ## Automatic expansion
 
@@ -411,7 +417,7 @@ Rooms with a storage start out adopted (see above), and then move onto the layou
 `system.roads.js` (phase `roads`) keeps a road plan per owned room in `Memory.roadPlan[room]`. It's refreshed every 5,000 ticks, at most one room per tick, and only when the CPU governor allows path-heavy work.
 
 - **Core:** existing roads next to our structures, i.e. the generated base layout (extension/lab fields, storage and spawn surroundings).
-- **Routes:** paths from storage (or a spawn) to every spawn, tower, lab, terminal, factory, power spawn, nuker and link, to extensions with no adjacent road, to the controller (range 3), sources, the mineral, and this room's `FarMining` flags. Existing roads cost 1, plains 3 and swamps 15, and each path lowers the cost of the tiles it uses, so routes merge into shared trunks.
+- **Routes:** paths from storage (or a spawn) to every spawn, tower, lab, terminal, factory, power spawn, nuker and link, to extensions with no adjacent road, to the controller (range 3), sources, the mineral, this room's mining nodes and its `FarMining` flags. Existing roads cost 1, plains 3 and swamps 15, and each path lowers the cost of the tiles it uses, so routes merge into shared trunks.
 - **Repair** (tower road repair, early-room workers) only touches planned roads. Everything else decays: about 50k ticks on plains, much longer on swamp/wall tiles.
 - **Building:** missing route tiles get road sites, 10 per pass, never on wall tiles, and only while there are under 90 construction sites in total.
 - **Walking creeps** no longer drop road sites in planned rooms. Rooms without a plan keep the old behavior.

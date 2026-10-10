@@ -117,6 +117,7 @@ var spawn_BuildFarCreeps = {
             }
 
             var jobSpecific = undefined;
+            var node = undefined;   // a mining node (system.remoteMining) instead of a flag
 
             // Check mining operations using helper function
             if (prioritizedRole === '') {
@@ -170,6 +171,21 @@ var spawn_BuildFarCreeps = {
                 }
             }
 
+            // Mining nodes (system.remoteMining's plan): guards for attacked node rooms, then a miner,
+            // its mules and the room's reserver per node, nearest first. Hand-placed flags above
+            // come first.
+            if (prioritizedRole === '') {
+                const job = nodeJob(thisRoom, controlledCreeps, Flag25, Flag50);
+                if (job) {
+                    prioritizedRole = job.role;
+                    roomTarget = job.room;
+                    node = job.node;
+                    flagName = undefined;
+                    if (job.role === 'farMule') storageID = thisRoom.storage.id;
+                    if (job.role === 'farGuard') sizedGuard = job.body;
+                }
+            }
+
             // Check mineral mining operations
             if (prioritizedRole === '' && thisRoom.terminal) {
                 const mineralConfigs = [
@@ -204,12 +220,13 @@ var spawn_BuildFarCreeps = {
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name,
                                 deathWarn: _.size(farClaimerConfig) * 5,
-                                targetFlag: flagName
+                                targetFlag: flagName,
+                                node: node
                             },
                             directions: buildDirections
                         });
                         global.setSpawnBusy(spawn);
-                        Memory.FarClaimerNeeded[Game.flags[flagName].pos.roomName] = false;
+                        Memory.FarClaimerNeeded[roomTarget] = false;
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMiner') {
@@ -224,6 +241,7 @@ var spawn_BuildFarCreeps = {
                                 homeRoom: thisRoom.name,
                                 deathWarn: _.size(farMinerConfig) * 8,
                                 targetFlag: flagName,
+                                node: node,
                                 jobSpecific: jobSpecific
                             },
                             directions: buildDirections
@@ -232,7 +250,7 @@ var spawn_BuildFarCreeps = {
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, '', spawn.name);
                     }
                 } else if (prioritizedRole == 'farMule') {
-                    var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable, thisRoom, remoteMining.tripFor(thisRoom.name, Game.flags[flagName]));
+                    var farMuleConfig = getMuleBuild(thisRoom.energyCapacityAvailable, thisRoom, node ? node.trip : remoteMining.tripFor(thisRoom.name, Game.flags[flagName]));
                     let configCost = calculateConfigCost(farMuleConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -244,7 +262,8 @@ var spawn_BuildFarCreeps = {
                                 storageSource: storageID,
                                 fromSpawn: spawn.id,
                                 deathWarn: _.size(farMuleConfig) * 6,
-                                targetFlag: flagName
+                                targetFlag: flagName,
+                                node: node
                             },
                             directions: buildDirections
                         });
@@ -266,7 +285,8 @@ var spawn_BuildFarCreeps = {
                                 homeRoom: thisRoom.name,
                                 fromSpawn: spawn.id,
                                 deathWarn: _.size(farGuardConfig) * warnMulti,
-                                targetFlag: flagName
+                                targetFlag: flagName,
+                                node: node
                             },
                             directions: buildDirections
                         });
@@ -288,7 +308,8 @@ var spawn_BuildFarCreeps = {
                                 fromSpawn: spawn.id,
                                 storageSource: storageID,
                                 deathWarn: _.size(farMinerConfig) * 5,
-                                targetFlag: flagName
+                                targetFlag: flagName,
+                                node: node
                             },
                             directions: buildDirections
                         });
@@ -300,6 +321,40 @@ var spawn_BuildFarCreeps = {
 
         }
     }
+}
+
+// The next creep the home's mining nodes need, or null: { role, room, node, body? }.
+//   farGuard    a node room in FarRoomsUnderAttack: guards sized to the recorded threat (as the flag
+//               guards); none when no affordable body would win, or the room is backed off
+//   farMiner    one per node;  farMule  as many as the node's round trip needs (remoteMining.haul)
+//   farClaimer  one per node room while its reservation needs topping up (FarClaimerNeeded)
+// Nodes past the 25M/50M rampart caps (third and later with 50mCap, fifth and later with 25mCap)
+// are skipped, like the flag slots.
+function nodeJob(thisRoom, controlledCreeps, Flag25, Flag50) {
+    const all = remoteMining.nodes(thisRoom.name).filter((n, i) => !(Flag50 && i >= 2) && !(Flag25 && i >= 4));
+    if (!all.length) return null;
+    const mine = Object.values(controlledCreeps).filter(c => c && c.memory && c.memory.homeRoom === thisRoom.name && c.memory.node);
+    const of = (role, test) => mine.filter(c => c.memory.priority === role && test(c.memory.node)).length;
+    const rooms = Array.from(new Set(all.map(n => n.r)));
+    for (const room of rooms) {
+        if (Memory.FarRoomsUnderAttack.indexOf(room) === -1) continue;
+        const threat = combatIntel.remoteThreat(room);
+        const plan = threat ? guardPlanFor(threat, thisRoom.energyCapacityAvailable) : null;
+        if (threat && !plan) continue;                                   // nothing affordable wins: don't feed them
+        if (remoteMining.isDisabled(room) && !plan) continue;
+        const wanted = Math.max(plan ? plan.count : 1, combatIntel.isOutmatched(room) ? 2 : 1);
+        if (of('farGuard', n => n.r === room) < wanted) return { role: 'farGuard', room, node: remoteMining.guardRef(room), body: plan ? plan.body : null };
+    }
+    for (const n of all) {
+        if (remoteMining.isDisabled(n.r)) continue;
+        if (!of('farMiner', m => m.id === n.id)) return { role: 'farMiner', room: n.r, node: remoteMining.nodeRef(n) };
+        if (of('farMule', m => m.id === n.id) < remoteMining.haul(thisRoom.energyCapacityAvailable, n.trip).mules) {
+            return { role: 'farMule', room: n.r, node: remoteMining.nodeRef(n) };
+        }
+        const claimers = Object.values(controlledCreeps).filter(c => c && c.memory && c.memory.priority === 'farClaimer' && c.memory.destination === n.r).length;
+        if (!claimers && Memory.FarClaimerNeeded[n.r]) return { role: 'farClaimer', room: n.r, node: remoteMining.nodeRef(n) };
+    }
+    return null;
 }
 
 function getClaimerBuild(energyCap) {
@@ -516,4 +571,5 @@ spawn_BuildFarCreeps.getMuleBuild = getMuleBuild;   // exposed for tests
 spawn_BuildFarCreeps.guardBodyFor = guardBodyFor;
 spawn_BuildFarCreeps.guardPlanFor = guardPlanFor;
 spawn_BuildFarCreeps.getClaimerBuild = getClaimerBuild;
+spawn_BuildFarCreeps.nodeJob = nodeJob;
 module.exports = spawn_BuildFarCreeps;

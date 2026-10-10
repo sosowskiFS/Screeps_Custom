@@ -8,7 +8,7 @@ var creep_farMiner = {
     		creep.memory.priority = 'farMinerNearDeath';
     	}
 
-    	if (creep.hits < 400 && Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].room && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
+    	if (creep.hits < 400 && remoteMining.target(creep) && remoteMining.target(creep).room && remoteMining.target(creep).room.name == creep.room.name) {
             // Simplified hostile detection - check for any hostile creeps
             var hostiles = creep.pos.findInRange(FIND_HOSTILE_CREEPS, 3, {
             	filter: (eCreep) => !Memory.whiteList.includes(eCreep.owner.username)
@@ -16,7 +16,7 @@ var creep_farMiner = {
             
             if (hostiles.length > 0) {
                 let hostile = hostiles[0];
-                if (hostile.owner.username != 'Invader' && hostile.owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
+                if (hostile.owner.username != 'Invader' && hostile.owner.username != 'Source Keeper' && remoteMining.target(creep)) {
     				creep.attack(hostile);
                 	
                 	if (Memory.FarRoomsUnderAttack.indexOf(creep.room.name) == -1) {
@@ -38,8 +38,8 @@ var creep_farMiner = {
         if (creep.room.name != creep.memory.destination) {
         	if (Game.flags[creep.memory.targetFlag + "Here"] && Game.flags[creep.memory.targetFlag + "Here"].pos) {
         		creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
-        	} else if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
-        		creep.travelTo(Game.flags[creep.memory.targetFlag]);
+        	} else if (remoteMining.target(creep) && remoteMining.target(creep).pos) {
+        		creep.travelTo(remoteMining.target(creep));
         	} else {
         		creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
         	}
@@ -52,8 +52,8 @@ var creep_farMiner = {
         	if (Game.time % 50 == 0) {
                 if (creep.room.controller && creep.room.controller.owner && creep.room.controller.owner.username != "Montblanc") {
                     // Someone has taken control of this room, remove flag
-                    if (Game.flags[creep.memory.targetFlag]) {
-                        Game.flags[creep.memory.targetFlag].remove();
+                    if (remoteMining.target(creep)) {
+                        remoteMining.target(creep).remove();
                     }
                 } else if (creep.room.controller && creep.room.controller.reservation) {
         			if (creep.room.controller.reservation.username != 'Montblanc') {
@@ -149,8 +149,8 @@ var creep_farMiner = {
             	}
             } else {
                 // Find and cache the source ID
-                if (Game.flags[creep.memory.targetFlag]) {
-                	let markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
+                if (remoteMining.target(creep)) {
+                	let markedSources = remoteMining.target(creep).pos.lookFor(LOOK_SOURCES);
                 	if (markedSources.length) {
                 		creep.memory.mineSource = markedSources[0].id;
                 		// Try to harvest immediately after finding source
@@ -158,7 +158,7 @@ var creep_farMiner = {
                 			creep.travelTo(markedSources[0]);
                 		}
                 	} else {
-                		creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                		creep.travelTo(remoteMining.target(creep));
                 	}
                 }
             }

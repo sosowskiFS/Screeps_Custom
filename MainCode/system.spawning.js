@@ -376,8 +376,10 @@ function processFarMiningSpawn(spawn, thisRoom, energyIndex, spawnRoleCache) {
     ];
 
     const hasFarMiningFlag = farMiningFlags.some(flag => Game.flags[roomName + flag]);
+    // Mining nodes (system.remoteMining's plan) need no flag.
+    const hasNodes = require('system.remoteMining').nodes(roomName).length > 0;
 
-    if (hasFarMiningFlag) {
+    if (hasFarMiningFlag || hasNodes) {
         const runningAssaultFlag = Game.flags[roomName + "RunningAssault"];
         if (runningAssaultFlag) {
             var attackers = getRoomRoleCount(spawnRoleCache, roomName, 'assattacker') + getRoomRoleCount(spawnRoleCache, roomName, 'assranger');

@@ -64,28 +64,31 @@ test('a source another home already mines (plan or manual flag) is left alone', 
     assert.deepEqual(plain(g.Memory.remotePlan.E5N5.list), []);
 });
 
-test('flags fill free slots nearest-first, keep manual flags, add one guard per room, drop unplanned ones', () => {
-    const { g, home, intel, remote } = world({ 'E5N6:20': 30 });
+test('mining nodes come from the plan, with no flags; old auto flags are retired and their creeps moved to the node', () => {
+    const { g, home, intel, remote } = world();
     intel('E6N5', [['a', 10, 10], ['b', 40, 40]]);
-    intel('E5N6', [['c', 20, 20]]);
     g.Game.rooms.E6N5 = { name: 'E6N5' };
-    g.Game.rooms.E5N6 = { name: 'E5N6' };
-    // Manual flag already in slot 1 on some other source: untouched, slot skipped.
-    g.Game.flags.E5N5FarMining = { name: 'E5N5FarMining', pos: { x: 1, y: 1, roomName: 'E4N5' } };
+    // A hand-placed flag on b: left to its own creeps, not planned again.
+    g.Game.flags.E5N5FarMining = { name: 'E5N5FarMining', pos: { x: 40, y: 40, roomName: 'E6N5' } };
+    // An old auto flag on a, with its miner.
+    let removed = false;
+    g.Game.flags.E5N5FarMining2 = { name: 'E5N5FarMining2', pos: { x: 10, y: 10, roomName: 'E6N5' }, remove: () => { removed = true; delete g.Game.flags.E5N5FarMining2; } };
+    g.Memory.remoteAuto = { E5N5: { E5N5FarMining2: 'a' } };
+    g.Game.creeps = { m: { memory: { priority: 'farMiner', homeRoom: 'E5N5', targetFlag: 'E5N5FarMining2' } } };
     remote.planHome(home);
+    assert.deepEqual(plain(remote.nodes('E5N5')).map(n => n.id), ['a'], 'b is under a hand-placed flag');
     remote.applyPlan(home);
-    const at = name => g.Game.flags[name] && [g.Game.flags[name].pos.roomName, g.Game.flags[name].pos.x];
-    assert.deepEqual(at('E5N5FarMining'), ['E4N5', 1], 'manual flag kept');
-    assert.deepEqual([at('E5N5FarMining2'), at('E5N5FarMining3'), at('E5N5FarMining4')], [['E6N5', 10], ['E6N5', 40], ['E5N6', 20]]);
-    assert.deepEqual([at('E5N5FarGuard'), at('E5N5FarGuard2')], [['E6N5', 25], ['E5N6', 25]], 'one guard flag per mined room');
-
-    // E5N6 gets reserved by a player: its auto flags go, the manual flag stays.
-    intel('E5N6', [['c', 20, 20]], { r: 'rival' });
-    remote.planHome(home);
-    remote.applyPlan(home);
-    assert.equal(g.Game.flags.E5N5FarMining4, undefined);
-    assert.equal(g.Game.flags.E5N5FarGuard2, undefined);
-    assert.ok(g.Game.flags.E5N5FarMining && g.Game.flags.E5N5FarMining2);
+    assert.equal(removed, true, 'the auto flag is retired');
+    assert.ok(g.Game.flags.E5N5FarMining, 'the hand-placed flag stays');
+    const m = g.Game.creeps.m.memory;
+    assert.equal(m.targetFlag, undefined);
+    assert.deepEqual([m.node.id, m.node.r, m.node.x], ['a', 'E6N5', 10], 'its miner now works the node');
+    // The resolver gives roles a flag-like target.
+    const t = remote.target(g.Game.creeps.m);
+    assert.deepEqual([t.pos.roomName, t.pos.x, t.pos.y], ['E6N5', 10, 10]);
+    assert.equal(t.room, g.Game.rooms.E6N5);
+    t.remove();
+    assert.equal(remote.isDisabled('E6N5'), true, 'removing a node backs the room off');
 });
 
 test('player attacks disable the room with escalating back-off and a safety check before resuming', () => {
@@ -178,22 +181,46 @@ test('round trips are cached and a large first plan spreads its path searches ov
     assert.equal(searches, 12, 'fully cached');
 });
 
-test('flags for rooms without vision are queued, requested from observer/scout, and placed once visible', () => {
-    const { g, home, intel, remote } = world();
-    g.Game.cpu.bucket = 9000;
-    intel('E6N5', [['a', 10, 10]], { t: 1 });
-    remote.planHome(home);
-    assert.doesNotThrow(() => remote.applyPlan(home), 'no vision: no exception');
-    assert.equal(g.Game.flags.E5N5FarMining, undefined);
-    assert.deepEqual([...remote.pendingRoomsFor('E5N5')], ['E6N5']);
-    assert.ok(remote.scoutTargets('E5N5').includes('E6N5'), 'scout route includes it');
-    assert.equal(remote.observeRequest('E5N5'), 'E6N5', 'observer looks at it');
+test('scouting: every room within 2 at first; reserved and owned rooms only rarely again; observers ask for the nearest due room', () => {
+    const { g, intel, remote } = world();
+    g.Game.time = 100;
+    const due = () => remote.scoutTargets('E5N5');
+    assert.equal(due().length, 24, 'nothing known: all 24 rooms within 2');
+    assert.equal(g.Game.map.getRoomLinearDistance('E5N5', due()[0]), 1, 'nearest first');
+    for (const r of due()) intel(r, [['s' + r, 10, 10]], { t: 100 });
+    intel('E6N5', [['x', 1, 1]], { t: 100, r: 'rival' });
+    intel('E7N7', [['y', 1, 1]], { t: 100, o: 'rival' });
+    assert.equal(due().length, 0, 'all fresh');
+    g.Game.time = 100 + 20000;
+    assert.ok(due().includes('E5N6') && !due().includes('E6N5') && !due().includes('E7N7'), 'free rooms first');
+    g.Game.time = 100 + 30000;
+    assert.ok(due().includes('E6N5') && !due().includes('E7N7'), 'reserved rooms after 30000');
+    g.Game.time = 100 + 50000;
+    assert.ok(due().includes('E7N7'), 'owned rooms after 50000');
+    assert.equal(remote.observeRequest('E5N5'), due()[0], 'an observer home looks at the nearest due room');
+});
 
-    // Vision arrives (scout or observer): the next tick places the flags.
-    g.Game.rooms.E6N5 = { name: 'E6N5', find: () => [] };
-    g.Game.rooms.E5N5 = Object.assign(home, { controller: { my: true }, find: () => [] });
-    g.Game.spawns = {};
-    remote.run();
-    assert.deepEqual([g.Game.flags.E5N5FarMining.pos.roomName, g.Game.flags.E5N5FarGuard.pos.roomName], ['E6N5', 'E6N5']);
-    assert.deepEqual([...remote.pendingRoomsFor('E5N5')], []);
+test('nodes are staffed without flags: a miner, the mules its trip needs, the reserver, guards when attacked', () => {
+    const { h, g } = world();
+    g.Memory.FarRoomsUnderAttack = []; g.Memory.FarClaimerNeeded = {};
+    const far = h.load('spawn.BuildFarCreeps');
+    g.Memory.remotePlan = { E5N5: { t: 1, list: [{ r: 'E6N5', id: 'a', x: 10, y: 10, trip: 136 }] } };
+    const room = { name: 'E5N5', energyCapacityAvailable: 1300 };
+    const creeps = [];
+    const add = (priority, extra = {}) => creeps.push({ memory: Object.assign({ priority, homeRoom: 'E5N5', node: { id: 'a', r: 'E6N5' } }, extra) });
+    const job = () => { const j = far.nodeJob(room, creeps, false, false); return j && j.role; };
+    assert.equal(job(), 'farMiner');
+    add('farMiner');
+    assert.equal(job(), 'farMule');
+    add('farMule'); add('farMule');
+    assert.equal(job(), 'farMule', 'a 136-tick trip at 1300 energy needs 3 mules');
+    add('farMule');
+    assert.equal(job(), null, 'fully staffed; no reserver needed yet');
+    g.Memory.FarClaimerNeeded.E6N5 = true;
+    assert.equal(job(), 'farClaimer');
+    g.Memory.FarRoomsUnderAttack.push('E6N5');
+    const guard = far.nodeJob(room, creeps, false, false);
+    assert.equal(guard.role, 'farGuard');
+    assert.equal(guard.node.r, 'E6N5');
+    assert.equal(far.nodeJob(room, creeps, false, true) && far.nodeJob(room, creeps, false, true).role, 'farGuard', 'the first two nodes survive a 50mCap');
 });

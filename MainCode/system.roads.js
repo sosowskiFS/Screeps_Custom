@@ -154,6 +154,10 @@ function planRoom(room) {
     for (const name in Game.flags) {
         if (name.startsWith(room.name + 'FarMining')) targets.push({ pos: Game.flags[name].pos, range: 1, remote: true });
     }
+    // Mining nodes (system.remoteMining) route like the flags did.
+    for (const n of require('system.remoteMining').nodes(room.name)) {
+        targets.push({ pos: new RoomPosition(n.x, n.y, n.r), range: 1, remote: true });
+    }
 
     const routes = new Set();
     for (const target of targets) {

@@ -21,12 +21,14 @@ function storeOf(contents, capacity) {
 }
 
 function setup() {
+    let ctx;
     const h = harness({
         'combat.intel': { roomIntel: () => ({ threats: [], friends: [] }), isDangerous: () => false, assess: () => ({}) },
-        'system.remoteMining': { isDisabled: () => false },
+        'system.remoteMining': { isDisabled: () => false, target: creep => ctx.Game.flags[creep.memory.targetFlag] },
         traveler: { Traveler: {} },
     });
     const g = h.context;
+    ctx = g;
     h.load('runtime.memory').ensureInitialized();
     g.RoomPosition = function (x, y, roomName) { Object.assign(this, { x, y, roomName }); };
     const pos = (x, y, roomName) => ({ x, y, roomName,

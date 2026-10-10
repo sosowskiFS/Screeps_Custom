@@ -1,15 +1,20 @@
-// system.remoteMining — automatic remote-mining source selection and room safety.
+// system.remoteMining — automatic remote mining: scouting, source selection and room safety.
 //
-// Intel:  any visible room near a home room is summarised in Memory.remoteIntel (sources,
-//         owner, reservation, keeper lairs, hostile towers). Vision comes from observers,
-//         our creeps, or a 1-MOVE scout sent when intel is missing or stale.
-// Plan:   a source is worth mining when, after paying for the creeps that mine it (the miner,
-//         as many mules as its round trip needs, at most MAX_MULES, and its share of the room's
-//         reserver), it still returns at least MIN_NET_SHARE of its output. (It used to need a
-//         single mule to carry it all: at RCL4 that meant only sources within ~76 ticks.)
-//         Qualifying sources fill free FarMining slots nearest-first (slot order is what the 25M/50M
-//         rampart caps cut), with one FarGuard flag per mined room. Manual flags are never
-//         touched; auto flags are tracked in Memory.remoteAuto and removed when unplanned.
+// Scout:  from the moment a home has a storage, every room within REMOTE_RANGE (2) is looked at:
+//         its observer if it has one, otherwise a 1-MOVE scout (50 energy). Each look is
+//         summarised in Memory.remoteIntel (sources, owner, reservation, keeper lairs, hostile
+//         towers). Rooms are looked at again when their intel gets old: free rooms after
+//         INTEL_STALE, rooms another player reserved after RESCOUT_RESERVED, rooms another player
+//         owns after RESCOUT_OWNED (they rarely change hands).
+// Plan:   for each source in a free room, the round trip from the home's storage. A source is
+//         worth mining when, after paying for the creeps that mine it (the miner, as many mules as
+//         its round trip needs, at most MAX_MULES, and its share of the room's reserver), it still
+//         returns at least MIN_NET_SHARE of its output. The plan (Memory.remotePlan[home].list,
+//         nearest first) is the list of mining nodes: spawn.BuildFarCreeps staffs each node
+//         directly and its creeps carry the node in memory (target()). No flags are placed any
+//         more; flags this system placed before are removed and their creeps moved to their node.
+//         Hand-placed FarMining/FarGuard flags still work as before, and their sources are left
+//         to them.
 // Safety: player attacks register strikes per room (Memory.remoteStatus). A struck room
 //         stops spawning for an escalating back-off, and only resumes after it has been
 //         seen clear (observer, passing creep, or scout) once the back-off has passed.
@@ -32,8 +37,10 @@ const cost = part => (typeof BODYPART_COST !== 'undefined' && BODYPART_COST[part
 const TRIP_OVERHEAD = 6;           // withdraw, transfer and exit-tile ticks per round trip
 const INTEL_REFRESH = 1000;        // re-record visible rooms at most this often
 const INTEL_STALE = 20000;         // older intel needs a scout
+const RESCOUT_RESERVED = 30000;    // a room another player reserved: looked at again this rarely
+const RESCOUT_OWNED = 50000;       // a room another player owns: rarer still
 const PLAN_INTERVAL = 2000;        // re-plan each home this often
-const APPLY_INTERVAL = 50;         // reconcile flags this often
+const APPLY_INTERVAL = 50;         // retire old auto flags this often
 const TRIP_TTL = 50000;            // cached round trips (terrain paths barely change)
 const PATHS_PER_PLAN = 10;         // new path searches per tick; a big first plan spreads out
 const SLOTS = ['', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -188,31 +195,39 @@ function interestRooms() {
     return rooms;
 }
 
-// ---------------------------------------------------------------- flag placement
+// ---------------------------------------------------------------- nodes
 
-// RoomPosition.createFlag throws in rooms without vision. Rooms waiting for a flag are queued
-// here (heap; re-queued by the next applyPlan after a global reset) and get vision from the
-// observer or the scout; run() places their flags on the first tick they are visible.
-const pendingFlags = Object.create(null); // roomName -> Set(homeName)
-
-function queueFlag(roomName, homeName) {
-    (pendingFlags[roomName] || (pendingFlags[roomName] = new Set())).add(homeName);
+// A plan entry is a node: { r: room, id: source id, x, y, trip }. Slot order (nearest first) is
+// what the 25M/50M rampart caps cut: from the third node with a 50mCap flag, from the fifth with
+// a 25mCap flag (spawn.BuildFarCreeps).
+function nodes(homeName) {
+    const plan = Memory.remotePlan && Memory.remotePlan[homeName];
+    return plan ? plan.list : [];
 }
 
-function placeFlag(x, y, roomName, name, homeName) {
-    if (!Game.rooms[roomName]) {
-        queueFlag(roomName, homeName);
-        return false;
-    }
-    return new RoomPosition(x, y, roomName).createFlag(name) === name;
+// What a remote creep works for: its hand-placed flag, or its node. Either way an object with
+// name, pos, room and remove(), as the roles used to get from Game.flags. Removing a node (the
+// room was taken, or the miner was attacked) registers an incident: the room is backed off.
+function target(creep) {
+    const m = creep.memory;
+    const flag = m.targetFlag && Game.flags[m.targetFlag];
+    if (flag) return flag;
+    const n = m.node;
+    if (!n) return undefined;
+    return {
+        name: 'node:' + n.id, pos: new RoomPosition(n.x, n.y, n.r),
+        get room() { return Game.rooms[n.r]; },
+        remove() { noteIncident(n.r, 'mining stopped (' + creep.name + ')'); },
+    };
 }
 
-function pendingRoomsFor(homeName) {
-    const rooms = [];
-    for (const roomName in pendingFlags) {
-        if (pendingFlags[roomName].has(homeName)) rooms.push(roomName);
-    }
-    return rooms;
+// A node as a creep carries it.
+function nodeRef(entry) {
+    return { id: entry.id, r: entry.r, x: entry.x, y: entry.y, trip: entry.trip };
+}
+// A room's guard post (centre), for farGuard creeps sent to a node's room.
+function guardRef(roomName) {
+    return { id: 'room:' + roomName, r: roomName, x: 25, y: 25, guard: 1 };
 }
 
 // ---------------------------------------------------------------- planning
@@ -290,17 +305,18 @@ function planHome(home) {
     const intel = mem('remoteIntel');
     const homeStatus = (Game.map.getRoomStatus(home.name) || {}).status;
 
-    // Sources another home already mines (planned or manually flagged) stay theirs.
+    // Sources another home already mines, and any source under a hand-placed FarMining flag (this
+    // home's too: the flag's creeps mine it), stay theirs. Old auto flags being retired don't count.
     const taken = new Set();
     for (const other in plans) {
         if (other === home.name) continue;
         for (const entry of plans[other].list) taken.add(entry.id);
     }
+    const auto = Memory.remoteAuto || {};
     for (const name in Game.flags) {
-        if (name.includes('FarMining') && !name.startsWith(home.name)) {
-            const pos = Game.flags[name].pos;
-            taken.add(flagKey(pos.roomName, pos.x, pos.y));
-        }
+        if (!name.includes('FarMining') || Object.values(auto).some(a => a[name] !== undefined)) continue;
+        const pos = Game.flags[name].pos;
+        taken.add(flagKey(pos.roomName, pos.x, pos.y));
     }
 
     const trips = mem('remoteTrips')[home.name] || (Memory.remoteTrips[home.name] = {});
@@ -332,67 +348,35 @@ function planHome(home) {
     plans[home.name] = { t: complete ? Game.time : Game.time - PLAN_INTERVAL + 5, list: list.slice(0, SLOTS.length) };
 }
 
-// Make flags match the plan: drop auto flags no longer planned, fill free slots nearest-first.
-// Removal and creation of the same name cannot happen in one tick, so this runs repeatedly.
+// Flags this system used to place are retired: their creeps carry the node instead (so none is
+// orphaned), then the flag goes. Hand-placed flags are never touched.
 function applyPlan(home) {
-    const plan = Memory.remotePlan && Memory.remotePlan[home.name];
-    if (!plan) return;
-    const auto = mem('remoteAuto')[home.name] || (Memory.remoteAuto[home.name] = {});
-    const plannedSources = new Set(plan.list.map(entry => entry.id));
-    const plannedRooms = new Set(plan.list.map(entry => entry.r));
-
-    for (const flagName in auto) {
-        const flag = Game.flags[flagName];
-        const key = auto[flagName];
-        if (!flag) {
-            delete auto[flagName]; // removed by hand (or renamed): forget it
-        } else if (key.startsWith('room:') ? !plannedRooms.has(key.slice(5)) : !plannedSources.has(key)) {
-            flag.remove();
-            delete auto[flagName];
+    const auto = Memory.remoteAuto && Memory.remoteAuto[home.name];
+    if (!auto) return;
+    const byId = {};
+    for (const entry of nodes(home.name)) byId[entry.id] = entry;
+    for (const flagName of Object.keys(auto)) {
+        const flag = Game.flags[flagName], key = auto[flagName];
+        let ref = null;
+        if (key.startsWith('room:')) ref = guardRef(key.slice(5));
+        else if (byId[key]) ref = nodeRef(byId[key]);
+        else if (flag) ref = { id: key, r: flag.pos.roomName, x: flag.pos.x, y: flag.pos.y };
+        for (const name in Game.creeps) {
+            const m = Game.creeps[name].memory;
+            if (m.targetFlag !== flagName) continue;
+            delete m.targetFlag;
+            if (ref) m.node = ref;
         }
+        if (flag) flag.remove();
+        delete auto[flagName];
     }
-
-    // What this home already covers, including manual and legacy timed-out (";") flags.
-    const covered = new Set();
-    const guarded = new Set();
-    for (const name in Game.flags) {
-        if (!name.startsWith(home.name)) continue;
-        const pos = Game.flags[name].pos;
-        if (name.startsWith(home.name + 'FarMining')) covered.add(flagKey(pos.roomName, pos.x, pos.y));
-        else if (name.startsWith(home.name + 'FarGuard')) guarded.add(pos.roomName);
-    }
-    const freeSlot = prefix => {
-        for (const suffix of SLOTS) {
-            const name = home.name + prefix + suffix;
-            if (!Game.flags[name] && !auto[name]) return name;
-        }
-        return undefined;
-    };
-
-    for (const entry of plan.list) {
-        if (!covered.has(flagKey(entry.r, entry.x, entry.y))) {
-            const name = freeSlot('FarMining');
-            if (!name) break;
-            if (placeFlag(entry.x, entry.y, entry.r, name, home.name)) {
-                auto[name] = entry.id;
-                covered.add(flagKey(entry.r, entry.x, entry.y));
-            }
-        }
-        if (!guarded.has(entry.r)) {
-            const name = freeSlot('FarGuard');
-            if (name && placeFlag(25, 25, entry.r, name, home.name)) {
-                auto[name] = 'room:' + entry.r;
-                guarded.add(entry.r);
-            }
-        }
-    }
+    if (!Object.keys(auto).length) delete Memory.remoteAuto[home.name];
 }
 
 // Round trip (ticks) the planner computed for the source under this flag, if it planned it.
 function tripFor(homeName, flag) {
-    const plan = Memory.remotePlan && Memory.remotePlan[homeName];
-    if (!plan || !flag) return undefined;
-    const entry = plan.list.find(e => e.r === flag.pos.roomName && e.x === flag.pos.x && e.y === flag.pos.y);
+    if (!flag) return undefined;
+    const entry = nodes(homeName).find(e => e.r === flag.pos.roomName && e.x === flag.pos.x && e.y === flag.pos.y);
     return entry ? entry.trip : undefined;
 }
 
@@ -406,15 +390,20 @@ function haulFor(home, flag) {
 
 // ---------------------------------------------------------------- scouting
 
-// Rooms a home should look at: missing/stale intel, or disabled rooms due a safety check.
+// Rooms a home should look at, nearest first: never seen, intel gone stale (rarer for rooms other
+// players reserve or own), or disabled and due a safety check.
+function rescoutAge(record) {
+    if (record.o && record.o !== ME) return RESCOUT_OWNED;
+    if (record.r && record.r !== ME && record.r !== 'Invader') return RESCOUT_RESERVED;
+    return INTEL_STALE;
+}
 function scoutTargets(homeName) {
     const intel = Memory.remoteIntel || {};
     const targets = [];
     for (const roomName of nearbyRooms(homeName)) {
+        if (!require('room.status').open(roomName)) continue;   // closed rooms cannot be entered
         const record = intel[roomName];
-        const unknown = !record || Game.time - record.t >= INTEL_STALE;
-        const awaitingFlag = pendingFlags[roomName] && pendingFlags[roomName].has(homeName);
-        if ((unknown && !(record && record.o && record.o !== ME)) || needsProbe(roomName) || awaitingFlag) targets.push(roomName);
+        if (!record || Game.time - record.t >= rescoutAge(record) || needsProbe(roomName)) targets.push(roomName);
     }
     targets.sort((a, b) => Game.map.getRoomLinearDistance(homeName, a) - Game.map.getRoomLinearDistance(homeName, b));
     return targets;
@@ -430,14 +419,14 @@ function needsScout(home) {
     return scoutTargets(home.name).length > 0;
 }
 
-// Observer homes: point the observer at a room due a safety check before normal scanning.
+// Observer homes: a room due a safety check first, then the nearest room due a look (the scout's
+// list); otherwise the observer's normal sweep.
 function observeRequest(homeName) {
     if (!enabled(homeName)) return undefined;
     for (const roomName of nearbyRooms(homeName)) {
         if (needsProbe(roomName)) return roomName;
     }
-    const awaiting = pendingRoomsFor(homeName);
-    return awaiting.length ? awaiting[0] : undefined;
+    return scoutTargets(homeName)[0];
 }
 
 // ---------------------------------------------------------------- tick
@@ -445,19 +434,24 @@ function observeRequest(homeName) {
 function run() {
     if (Game.time % 100 === 0) refreshVisibleIntel();
 
-    for (const roomName in pendingFlags) {
-        if (!Game.rooms[roomName]) continue;
-        const homes = pendingFlags[roomName];
-        delete pendingFlags[roomName];
-        for (const homeName of homes) {
-            const home = Game.rooms[homeName];
-            if (home && home.controller && home.controller.my) applyPlan(home);
-        }
-    }
-
     for (const roomName of interestRooms()) {
         const room = Game.rooms[roomName];
         if (room) inspectRoom(room);
+    }
+
+    // Retire the flags this system used to place, for every home (also homes not mining now, so
+    // no old flag outlives the switch to nodes); a home that is gone just loses its flags.
+    if (Memory.remoteAuto && Game.time % APPLY_INTERVAL === 0) {
+        for (const homeName of Object.keys(Memory.remoteAuto)) {
+            const home = Game.rooms[homeName];
+            if (home && home.controller && home.controller.my) {
+                applyPlan(home);
+                continue;
+            }
+            for (const flagName in Memory.remoteAuto[homeName]) if (Game.flags[flagName]) Game.flags[flagName].remove();
+            delete Memory.remoteAuto[homeName];
+        }
+        if (!Object.keys(Memory.remoteAuto).length) delete Memory.remoteAuto;
     }
 
     if (!governor.allows('planning')) return;
@@ -481,6 +475,6 @@ function run() {
 
 module.exports = {
     run, recordIntel, noteIncident, isDisabled, needsProbe, needsScout, scoutTargets, observeRequest,
-    planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE, pendingRoomsFor,
+    planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE, nodes, target, nodeRef, guardRef, rescoutAge,
     haul, haulFor, netGain, worthMining,
 };

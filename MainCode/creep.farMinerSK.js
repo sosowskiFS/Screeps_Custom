@@ -1,3 +1,4 @@
+const remoteMining = require('system.remoteMining');
 const runtimeCache = require('runtime.cache');
 var creep_farMinerSK = {
 
@@ -16,11 +17,11 @@ var creep_farMinerSK = {
             creep.heal(creep);
         }
 
-        if (creep.hits < 400 && Game.flags[creep.memory.targetFlag].room.name == creep.room.name) {
+        if (creep.hits < 400 && remoteMining.target(creep).room.name == creep.room.name) {
             //Determine if attacker is player, if so, delete flag.
-            if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && Game.flags[creep.memory.targetFlag]) {
+            if (hostiles.length > 0 && hostiles[0].owner.username != 'Invader' && hostiles[0].owner.username != 'Source Keeper' && remoteMining.target(creep)) {
                 console.log(creep.memory.tragetFlag + ' was removed due to an attack by ' + hostiles[0].owner.username);
-                Game.flags[creep.memory.targetFlag].remove();
+                remoteMining.target(creep).remove();
             } else if (hostiles.length > 0 && hostiles[0].owner.username == 'Source Keeper') {
                 console.log(creep.memory.targetFlag + ' died early. TTL ' + creep.ticksToLive);
             }
@@ -56,8 +57,8 @@ var creep_farMinerSK = {
             if (creep.room.name != creep.memory.destination) {
                 if (Game.flags[creep.memory.targetFlag + "Here"] && Game.flags[creep.memory.targetFlag + "Here"].pos) {
                     creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
-                } else if (Game.flags[creep.memory.targetFlag] && Game.flags[creep.memory.targetFlag].pos) {
-                    creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                } else if (remoteMining.target(creep) && remoteMining.target(creep).pos) {
+                    creep.travelTo(remoteMining.target(creep));
                 } else {
                     creep.travelTo(new RoomPosition(25, 25, creep.memory.destination));
                 }
@@ -81,7 +82,7 @@ var creep_farMinerSK = {
                     }
                     if (mineTarget && _.sum(creep.carry) <= 40 && mineTarget.energy > 0 && StorageOK) {
                         if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag])
+                            creep.travelTo(remoteMining.target(creep))
                         }
                         if (Game.flags[creep.memory.targetFlag + "Here"]) {
                             creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
@@ -89,13 +90,13 @@ var creep_farMinerSK = {
                     } else if (Game.flags[creep.memory.targetFlag + "Here"] && mineTarget) {
                         creep.travelTo(Game.flags[creep.memory.targetFlag + "Here"]);
                     } else if (mineTarget && !creep.pos.isNearTo(mineTarget)) {
-                        creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                        creep.travelTo(remoteMining.target(creep));
                     }
                 } else {
                     //Get the source ID while in the room
                     var markedSources = [];
-                    if (Game.flags[creep.memory.targetFlag]) {
-                        markedSources = Game.flags[creep.memory.targetFlag].pos.lookFor(LOOK_SOURCES);
+                    if (remoteMining.target(creep)) {
+                        markedSources = remoteMining.target(creep).pos.lookFor(LOOK_SOURCES);
                     }
                     if (markedSources.length) {
                         creep.memory.mineSource = markedSources[0].id;
@@ -103,7 +104,7 @@ var creep_farMinerSK = {
                     mineTarget = Game.getObjectById(creep.memory.mineSource);
                     if (mineTarget) {
                         if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(Game.flags[creep.memory.targetFlag]);
+                            creep.travelTo(remoteMining.target(creep));
                         }
                     }
                 }
