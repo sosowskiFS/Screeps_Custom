@@ -31,26 +31,34 @@ function prioritizeEnergy(name) {
 }
 function prepare() {
     const next = {};
+    const at = name => next[name] || (next[name] = { need: {}, assignments: {} });
     for (const t of Object.values(squads.state().targets)) {
-        const room = Game.rooms[t.home];
-        if (t.stopped || !room) continue;
-        const r = next[t.home] || (next[t.home] = { need: {}, assignments: {} });
+        if (t.stopped || !Game.rooms[t.home]) continue;
         // Reserve both required formations before their just-in-time safe-mode departure, plus
-        // one complete replacement. Existing pending squads are counted below; boosted posted
-        // squads no longer need minerals.
+        // one complete replacement, each at the home that would build it (sponsor or helper home,
+        // squads.chooseHome). Existing pending squads are counted below, at their own home;
+        // boosted posted squads no longer need minerals.
         const desired = t.desired || squads.DESIRED_SQUADS || 2;
-        const represented = t.squads.filter(q => !q.retired).length;
-        const standby = Math.max(1, desired - represented + 1);
-        for (let n = 0; n < standby; n++) addSquad(r.need, room);
-        for (const q of t.squads) {
-            if (q.retired) continue;
+        const live = t.squads.filter(q => !q.retired);
+        const standby = Math.max(1, desired - live.length + 1);
+        const planned = live.slice();
+        const homes = new Set();
+        for (let n = 0; n < standby; n++) {
+            const home = squads.chooseHome(t, planned);
+            planned.push({ home });
+            if (Game.rooms[home]) { addSquad(at(home).need, Game.rooms[home]); homes.add(home); }
+        }
+        for (const q of live) {
+            const home = squads.homeOf(t, q), room = Game.rooms[home];
+            if (!room) continue;
             for (const slot of q.slots) {
                 const creep = slot.name && Game.creeps[slot.name];
                 if (slot.name && (!creep || creep.memory.guardBoostDone)) continue;
-                add(r.need, requirements(creep ? creep.body : squads.body(room.energyCapacityAvailable, slot.slot)));
+                add(at(home).need, requirements(creep ? creep.body : squads.body(room.energyCapacityAvailable, slot.slot)));
+                homes.add(home);
             }
         }
-        prioritizeEnergy(t.home);
+        for (const home of homes) prioritizeEnergy(home);
     }
     for (const name in next) {
         const r = next[name], room = Game.rooms[name], list = labs(room);

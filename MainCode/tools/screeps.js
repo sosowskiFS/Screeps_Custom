@@ -2,7 +2,8 @@
 // Read-only Screeps API client for debugging (never runs code on the account).
 //
 // Token: SCREEPS_TOKEN env var, else the bare token in viewtoken.env at the repo root
-// (git-ignored). The token is sent only to screeps.com and never printed.
+// (git-ignored). The token has full access to the account, so this client only ever makes read
+// requests (GET); it is sent only to screeps.com and never printed.
 //
 //   node tools/screeps.js me                     account check (username, GCL, CPU)
 //   node tools/screeps.js memory [path]          Memory or one dot path, e.g. rooms.E27N43

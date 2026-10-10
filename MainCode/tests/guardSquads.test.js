@@ -253,3 +253,39 @@ test('cross-shard safe mode countdown is published and starts source orders near
     s.advance();report.at=s.now();report.rooms.NEW.safeMode=1000;s.messages.shardX=JSON.stringify({guards:report});
     s.sys.run();assert.ok(s.sys.spawnOrder('HOME'));
 });
+test('the sponsor builds one quad and the nearest capable room to the target builds the other',()=>{
+    const s=setup(),g=s.g;
+    const store=values=>Object.assign({getFreeCapacity:()=>100000},values);
+    const room=(name,cap=12900)=>({name,energyCapacityAvailable:cap,controller:{my:true,level:8},storage:{store:store({})},terminal:{store:store({})},find:()=>[]});
+    g.Game.rooms.NEAR=room('NEAR');g.Game.rooms.FAR=room('FAR');g.Game.rooms.SMALL=room('SMALL',5600);
+    g.Game.spawns.B={room:g.Game.rooms.NEAR,spawning:null};g.Game.spawns.C={room:g.Game.rooms.FAR,spawning:null};g.Game.spawns.D={room:g.Game.rooms.SMALL,spawning:null};
+    for(const n of ['HOME','NEAR','FAR','SMALL'])g.Memory.labList[n]=['l1','l2','l3'];
+    const dist={HOME:3,NEAR:3,FAR:5,SMALL:1};
+    g.Game.map.getRoomLinearDistance=(a)=>dist[a]===undefined?20:dist[a];
+    const t=escalate(s,2);
+    assert.equal(t.helper,'NEAR','nearest room able to build the same quad (SMALL is too small)');
+    assert.equal(t.squads.map(q=>q.home).join(),'HOME');
+    s.advance();s.sys.run();
+    assert.equal(t.squads.map(q=>q.home).join(),'HOME,NEAR');
+    // Each home spawns only its own squad.
+    const home=s.sys.spawnOrder('HOME'),near=s.sys.spawnOrder('NEAR');
+    assert.equal(home.squad.id,t.squads[0].id);assert.equal(near.squad.id,t.squads[1].id);
+    assert.equal(near.memory.homeRoom,'NEAR');
+    assert.equal(s.sys.spawnOrder('FAR'),null);
+    // Boost minerals are reserved at both homes.
+    s.h.load('system.guardBoosts').prepare();
+    assert.ok(g.Memory.guardBoosts.rooms.HOME&&g.Memory.guardBoosts.rooms.NEAR,JSON.stringify(Object.keys(g.Memory.guardBoosts.rooms)));
+});
+test('squads made before homes existed keep the room that started them; empty ones are shared out',()=>{
+    const s=setup(),g=s.g;
+    const store=values=>Object.assign({getFreeCapacity:()=>100000},values);
+    g.Game.rooms.NEAR={name:'NEAR',energyCapacityAvailable:12900,controller:{my:true,level:8},storage:{store:store({})},terminal:{store:store({})},find:()=>[]};
+    g.Game.spawns.B={room:g.Game.rooms.NEAR,spawning:null};
+    g.Memory.labList.HOME=['l1'];g.Memory.labList.NEAR=['l1'];
+    g.Game.map.getRoomLinearDistance=()=>3;
+    const t=escalate(s,2);
+    t.squads=[{id:'a',created:1,slots:[{slot:0,name:'x',memory:{homeRoom:'HOME'}},{slot:1},{slot:2},{slot:3}]},
+        {id:'b',created:2,slots:[{slot:0},{slot:1},{slot:2},{slot:3}]}];
+    s.advance();s.sys.run();
+    assert.equal(t.squads.map(q=>q.home).join(),'HOME,NEAR');
+});

@@ -153,10 +153,57 @@ function observe(t) {
     }
     return out;
 }
-function newSquad(t) {
+// Squad homes. One room boosting both quads could not keep up (shardX W1N22: E1N16 built every
+// squad while E3N18, as close to the W0N20 portal, built none). The sponsor builds one quad; a
+// helper home, the nearest room to the portal corner (or to the target) able to build and boost
+// the same quad, builds the other. Each new squad goes to whichever of the two has fewer squads
+// that will still be alive when it arrives (ties: the sponsor). No helper: the sponsor builds all.
+const HELPER_RECHECK = 1000;   // ticks between helper-home choices
+const HELPER_SLACK = 3;        // a helper may be at most this many rooms farther than the sponsor
+function canBuildQuads(name, sponsor) {
+    const room = Game.rooms[name], s = Game.rooms[sponsor];
+    if (!room || !room.controller || !room.controller.my || !room.storage || !room.terminal) return false;
+    if (require('system.retire').retiring(name)) return false;
+    if (!((Memory.labList && Memory.labList[name]) || []).length) return false;
+    if (!Object.values(Game.spawns).some(sp => sp.room.name === name)) return false;
+    return !s || room.energyCapacityAvailable >= s.energyCapacityAvailable;
+}
+function helperHome(t) {
+    if (t.helperAt !== undefined && Game.time - t.helperAt < HELPER_RECHECK && (!t.helper || canBuildQuads(t.helper, t.home))) return t.helper || null;
+    if (!Game.map.getRoomLinearDistance) return null;
+    const goal = t.corner || t.room, far = name => Game.map.getRoomLinearDistance(name, goal);
+    const limit = far(t.home) + HELPER_SLACK;
+    let best = null;
+    for (const name in Game.rooms) {
+        if (name === t.home || !canBuildQuads(name, t.home) || far(name) > limit) continue;
+        if (!best || far(name) < far(best)) best = name;
+    }
+    t.helper = best;
+    t.helperAt = Game.time;
+    return best;
+}
+function chooseHome(t, others) {
+    const helper = helperHome(t);
+    const pool = helper ? [t.home, helper] : [t.home];
+    const load = {};
+    for (const h of pool) load[h] = 0;
+    for (const q of others) if ((q.home || t.home) in load) load[q.home || t.home]++;
+    return pool.reduce((best, h) => (load[h] < load[best] ? h : best), pool[0]);
+}
+function homeOf(t, q) { return q.home || t.home; }
+// Squads made before homes were assigned: one already spawning stays where it started; an
+// empty one gets a home now.
+function assignHomes(t) {
+    for (const q of t.squads) {
+        if (q.home) continue;
+        const started = q.slots.find(s => s.memory && s.memory.homeRoom);
+        q.home = started ? started.memory.homeRoom : chooseHome(t, t.squads.filter(o => o !== q && o.home && !o.retired));
+    }
+}
+function newSquad(t, others = []) {
     const s = state();
     const id = Game.shard.name + '/' + t.room + '/' + (++s.serial);
-    const q = { id, created: Game.time, slots: [0, 1, 2, 3].map(slot => ({ slot, phase: 'missing' })) };
+    const q = { id, created: Game.time, home: chooseHome(t, others), slots: [0, 1, 2, 3].map(slot => ({ slot, phase: 'missing' })) };
     t.squads.push(q);
     return q;
 }
@@ -203,6 +250,7 @@ function leadTime(t) {
 }
 function updateTarget(t) {
     const seen = observe(t), now = Date.now();
+    assignHomes(t);
     const complete = [];
     for (const q of t.squads) {
         for (const slot of q.slots) {
@@ -274,11 +322,12 @@ function updateTarget(t) {
     const future = t.squads.filter(q => !q.retired && (!q.complete || q.remaining > t.lead));
     // Allocate at most one manifest per tick. This keeps publication and lab reservations
     // deterministic while still filling both formations long before a meaningful deadline.
-    if (future.length < desired) newSquad(t);
+    if (future.length < desired) newSquad(t, future);
 
     t.gap = complete.length < desired;
     if (t.gap && (!t.warned || Game.time - t.warned >= 500)) {
-        console.log('[guards] ' + key(t.shard, t.room) + ': quad coverage incomplete; replenishing from ' + t.home);
+        console.log('[guards] ' + key(t.shard, t.room) + ': quad coverage incomplete; replenishing from ' +
+            Array.from(new Set(t.squads.map(q => homeOf(t, q)))).join(' and '));
         t.warned = Game.time;
     }
     t.squads = t.squads.filter(q => !q.retired || q.slots.some(s => s.name));
@@ -341,12 +390,12 @@ function run() {
 }
 function spawnOrder(home) {
     for (const t of Object.values(state().targets)) {
-        if (t.home !== home || t.stopped) continue;
+        if (t.stopped || !t.squads.some(q => homeOf(t, q) === home)) continue;
         const remaining = safeModeRemaining(t.shard, t.room);
         if (remaining > (t.lead || leadTime(t)) + PREDEPLOY_MARGIN) continue;
         const activeIds = Array.isArray(t.active) ? t.active : t.active ? [t.active] : [];
         const pending = t.squads.filter(q => !q.retired && !activeIds.includes(q.id));
-        const candidates = pending.length ? pending : t.squads.filter(q => !q.retired);
+        const candidates = (pending.length ? pending : t.squads.filter(q => !q.retired)).filter(q => homeOf(t, q) === home);
         for (const q of candidates) {
             const slot = q.slots.find(s => !s.name);
             if (!slot) continue;
@@ -378,14 +427,14 @@ function spawned(order) {
     publish(true);
 }
 function report() {
-    const rows = Object.values(state().targets).map(t => ({ target: key(t.shard, t.room), sponsor: t.home,
+    const rows = Object.values(state().targets).map(t => ({ target: key(t.shard, t.room), sponsor: t.home, helper: t.helper,
         stopped: t.stopped, safeMode: t.safeMode, gap: t.gap, replacementLead: t.lead, remaining: t.remaining,
         estimatedReplacementTicks: (() => {
             const q = t.squads.find(q => !q.retired && q.id !== t.active);
             return q ? Math.max(0, t.lead - (Game.time - q.created)) : undefined;
         })(),
         shortages: require('system.guardBoosts').shortages(t.home),
-        squads: t.squads.map(q => ({ id: q.id, active: Array.isArray(t.active) ? t.active.includes(q.id) : q.id === t.active, retired: !!q.retired,
+        squads: t.squads.map(q => ({ id: q.id, home: homeOf(t, q), active: Array.isArray(t.active) ? t.active.includes(q.id) : q.id === t.active, retired: !!q.retired,
             slots: q.slots.map(s => ({ slot: s.slot, name: s.name, phase: s.phase, arrived: !!s.arrived, boosts: s.boosts, blocked: s.blocked })) })) }));
     const local = {};
     for (const c of localMembers()) {
@@ -402,6 +451,6 @@ function report() {
     }
     return rows;
 }
-module.exports = { forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
+module.exports = { chooseHome, helperHome, homeOf, forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
     report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart,
     DESIRED_SQUADS, SIEGE_RAMPART_HITS, BOOSTS_BY_PART };
