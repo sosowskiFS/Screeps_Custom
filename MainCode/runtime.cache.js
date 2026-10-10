@@ -49,6 +49,7 @@ function homeCreeps(roomName) {
     return data.homes[roomName] || [];
 }
 function marketOrders(resourceType, type, predicate) {
+    if (!require('runtime.world').market()) return [];   // Seasonal World: no orders to trade with
     const orders = current().orders;
     const key = type + ':' + resourceType;
     if (!orders[key]) orders[key] = Game.market.getAllOrders({ resourceType, type });

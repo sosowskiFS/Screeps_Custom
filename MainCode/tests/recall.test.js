@@ -8,6 +8,7 @@ function load() {
     g.Game.shard = { name: 'shard2' };
     g.console = { log: () => {} };
     g.RoomPosition = class { constructor(x, y, roomName) { this.x = x; this.y = y; this.roomName = roomName; } };
+    g.InterShardMemory = { getLocal: () => '', setLocal: () => {}, getRemote: () => null };   // the MMO: several shards
     return { h, g };
 }
 

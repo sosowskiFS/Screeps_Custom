@@ -84,6 +84,15 @@ Damage disables body parts front to back, and creeps never regenerate. A unit wh
 - **Power collector:** when damaged, walks to the nearest power healer in the room that can still heal, and waits beside it until fully healed. Healers heal it whenever their attacker has 1,000 hits to spare. Once the bank falls, healers stay to heal damaged collectors in the room, and only suicide when nobody there needs healing.
 - **Any of these with every MOVE part disabled** waits if a healer is within 3 tiles (a collector waits for any working power healer in the room), otherwise suicides so a replacement spawns (its cargo stays in the tombstone for collectors). The power attacker waiting below 2,500 hits for its healers is unchanged.
 
+## Seasonal World
+
+`runtime.world.js` tells the code which world it runs in. The Seasonal World is recognised by its shard name (`shardSeason`). `Memory.settings.world = 'season'` forces season behaviour on a private server running a season mod, and `'mmo'` forces the reverse. No season-specific mechanics are handled yet, only what the Seasonal World lacks:
+
+- **No market trading:** there are no NPC orders, and deals and sends between different players aren't processed. Market operations (selling compounds, repricing, pixel and CPU-unlock trades), order-book reads and terminal sales to other players are skipped. Terminal sends between our own rooms still work and are priced with the game's formula (`world.transactionCost`).
+- **No pixels or account resources:** pixels aren't generated (`Game.cpu.generatePixel` isn't there), and CPU unlocks aren't used (CPU is fixed).
+- **One shard:** InterShardMemory reads and writes are no-ops, and shardX scouting, claiming and guard quads are off. Power creeps are created and assigned on this shard: on the MMO only shard2 creates them and shardX comes first.
+- Everything else (rooms, expansion, remote mining, labs, defence) runs as on the MMO.
+
 ## Automatic remote mining
 
 `system.remoteMining.js` (phase `remoteMining`) runs remote mining for every home room from the moment it has a storage: scouting, choosing sources, and staffing them as mining **nodes** kept in memory. No flags are needed.

@@ -42,6 +42,7 @@ test('construction membership stays live; market queries use resource/type index
     sites.push({ id: 'new' });
     assert.equal(cache.find(room, g.FIND_CONSTRUCTION_SITES).length, 1);
     const calls = [];
+    g.Game.market.deal = () => g.OK;   // a world with a market (runtime.world)
     g.Game.market.getAllOrders = filter => { calls.push(plain(filter)); return [{ id: 'a', price: 1 }, { id: 'b', price: 2 }]; };
     cache.marketOrders('energy', 'buy').reverse();
     assert.equal(cache.marketOrders('energy', 'buy')[0].id, 'a');

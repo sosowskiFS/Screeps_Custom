@@ -146,7 +146,8 @@ var market_buyers = {
             const MaxSaleAmount = thisTerminal.store.getFreeCapacity() <= 5000 ? TerminalEnergy + 5000 : 30000;
             const panicSell = thisTerminal.store.getFreeCapacity() <= 5000;
             
-            if (!hasSent && TerminalEnergy >= sellEnergyCap && (Game.time % 1000 === 0 || panicSell)) {
+            // Selling to other players' buy orders (not in the Seasonal World: no market there).
+            if (!hasSent && TerminalEnergy >= sellEnergyCap && (Game.time % 1000 === 0 || panicSell) && require('runtime.world').market()) {
                 for (const mineral of sellMinerals) {
                     if (!noStoreMinerals.includes(mineral) && Memory.mineralTotals[mineral] < 75000) {
                         continue; // Not a lot stockpiled, skip the sell

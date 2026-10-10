@@ -102,7 +102,7 @@ function shouldRun(name, tier) {
 }
 
 function maybeGeneratePixel() {
-    if (typeof Game.cpu.generatePixel !== 'function') return;
+    if (!require('runtime.world').pixels()) return;   // Seasonal World, private servers: no pixels
     const cost = typeof PIXEL_CPU_COST !== 'undefined' ? PIXEL_CPU_COST : 10000;
     if (Game.cpu.bucket < cost) return;
     const gov = state();

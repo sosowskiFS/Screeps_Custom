@@ -46,6 +46,7 @@ const X_SHARD = 'shardX';
 const ENABLED = true;
 
 function enabled() {
+    if (!require('runtime.world').multiShard()) return false;   // Seasonal World: one shard, no shardX
     const setting = Memory.settings && Memory.settings.shardX;
     if (setting === false) return false;
     return ENABLED || setting === true;

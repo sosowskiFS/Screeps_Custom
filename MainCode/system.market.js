@@ -288,6 +288,7 @@ function sellCompounds() {
 
 function handleMarketOperations() {
     if (Game.time % 50 !== 0) return;
+    if (!require('runtime.world').market()) return;   // Seasonal World: no trading with other players
     cleanupOrders();
     const intershard = managesIntershard();
     if (intershard) buyCpuUnlocks();
@@ -298,6 +299,7 @@ function handleMarketOperations() {
 }
 
 function handleCPUUnlocking() {
+    if (!require('runtime.world').accountResources()) return;   // Seasonal World: fixed CPU, no unlocks
     if (Game.shard.name == MARKET_SHARD) {
         let today = new Date();
         // Without a token unlock() just fails; checking first also stops a notify every tick.

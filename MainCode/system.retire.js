@@ -178,13 +178,13 @@ function drainTerminal(room) {
     if (goods.length) {
         const resource = goods[0];
         let amount = Math.min(terminal.store[resource], free);
-        const cost = Game.market.calcTransactionCost(amount, room.name, to);
+        const cost = require('runtime.world').transactionCost(amount, room.name, to);
         if (cost > energy) amount = Math.floor(amount * energy / cost);
         return amount >= MIN_SEND && terminal.send(resource, amount, to, 'retiring ' + room.name) === OK;
     }
     const waiting = goodsIn(room.storage).length + goodsIn(factoryOf(room)).length;
     if (waiting) return false;   // keep the energy to ship the goods still on their way
-    const ratio = Game.market.calcTransactionCost(10000, room.name, to) / 10000;
+    const ratio = require('runtime.world').transactionCost(10000, room.name, to) / 10000;
     const amount = Math.min(Math.floor(energy / (1 + ratio)), free);
     return amount >= 1000 && terminal.send(RESOURCE_ENERGY, amount, to, 'retiring ' + room.name) === OK;
 }
@@ -217,7 +217,7 @@ function nextHaul(room) {
 
 function finish(room) {
     const name = room.name;
-    for (const id in Game.market.orders) {
+    if (require('runtime.world').market()) for (const id in Game.market.orders) {
         if (Game.market.orders[id].roomName === name) Game.market.cancelOrder(id);
     }
     const result = room.controller.unclaim();

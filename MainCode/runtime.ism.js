@@ -6,12 +6,13 @@
 // other's key (shardX's 'xs' was lost on every 100th tick, so shard2 never saw any candidates).
 // Here the local data is parsed once and kept in heap: every set() changes that one object and
 // writes it out whole, so no key is ever dropped. Remote shards are read at most once per tick.
-// Without InterShardMemory (private servers, tests without a stub) everything is a no-op.
+// Without InterShardMemory (private servers, tests without a stub) or other shards (the Seasonal
+// World, runtime.world) everything is a no-op.
 let local = null;
 const remote = { tick: -1, data: Object.create(null) };
 
 function available() {
-    return typeof InterShardMemory !== 'undefined';
+    return typeof InterShardMemory !== 'undefined' && require('runtime.world').multiShard();
 }
 
 function parse(raw) {

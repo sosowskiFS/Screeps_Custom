@@ -46,7 +46,16 @@ function buildLevels() {
     return BUILD.reduce((sum, [, level]) => sum + level, 0);
 }
 
+// A single-shard world (the Seasonal World, private servers): this shard is the top shard and the
+// creator, and there is nobody to wait for or release creeps to.
+function single() {
+    return !require('runtime.world').multiShard();
+}
+function topShard() { return single() ? Game.shard.name : TOP_SHARD; }
+function creatorShard() { return single() ? Game.shard.name : CREATOR_SHARD; }
+
 function priorityOf(shard) {
+    if (single()) return shard === Game.shard.name ? 0 : 1;
     const i = PRIORITY.indexOf(shard);
     return i === -1 ? PRIORITY.length : i;
 }
@@ -68,6 +77,7 @@ function writeLocal(entry) {
 
 function otherShards() {
     const out = {};
+    if (single()) return out;
     if (!Memory.pcSilent) Memory.pcSilent = {};
     for (const shard of PRIORITY.concat(Object.keys(Game.cpu.shardLimits || {}))) {
         if (shard === Game.shard.name || out[shard] !== undefined) continue;
@@ -249,8 +259,8 @@ function run() {
     }
 
     // 5. shardX waiting: lower shards give creeps up (shard1 first).
-    const top = others[TOP_SHARD];
-    if (here !== TOP_SHARD && top && top.need > 0 && RELEASE_ORDER.includes(here)) {
+    const top = others[topShard()];
+    if (here !== topShard() && top && top.need > 0 && RELEASE_ORDER.includes(here)) {
         const unmet = top.need - free.length;
         const earlier = RELEASE_ORDER.slice(0, RELEASE_ORDER.indexOf(here)).some(s => others[s] && others[s].assigned > 0);
         if (unmet > 0 && !earlier && Date.now() - (Memory.pcReleased || 0) > RELEASE_GAP_MS) {
@@ -273,7 +283,7 @@ function run() {
     }
 
     // 6. New creeps.
-    if (here === CREATOR_SHARD) createIfAffordable();
+    if (here === creatorShard()) createIfAffordable();
     if (building) reserved.push(building);
     writeLocal({ t: Date.now(), need: needing.length, reserved, claims: Object.keys(Memory.pcClaims || {}), assigned });
 }
@@ -315,7 +325,7 @@ function nextUpgrade(powers, creepLevel, target = build(), info = POWER_INFO) {
 // Every tick on the creator shard: one upgrade for the creep being built.
 function upgradeBuild() {
     const name = Memory.pcBuild;
-    if (!name || Game.shard.name !== CREATOR_SHARD) return;
+    if (!name || Game.shard.name !== creatorShard()) return;
     const pc = Game.powerCreeps[name];
     if (!pc) return;   // created this tick: appears next tick
     const power = nextUpgrade(pc.powers || {}, pc.level);
@@ -333,4 +343,4 @@ function tick() {
     run();
 }
 
-module.exports = { run: tick, assignmentPass: run, nextUpgrade, freeLevels, createIfAffordable, unassign, powerRooms, buildLevels, PRIORITY };
+module.exports = { creatorShard, topShard, run: tick, assignmentPass: run, nextUpgrade, freeLevels, createIfAffordable, unassign, powerRooms, buildLevels, PRIORITY };
