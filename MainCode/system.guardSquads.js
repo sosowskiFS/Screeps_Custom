@@ -12,10 +12,10 @@ function state() {
     return Memory.guardSquads || (Memory.guardSquads = { rooms: {}, targets: {}, serial: 0 });
 }
 function key(shard, room) { return shard + ':' + room; }
+// Every member is the same (combat.bodies.quadMember): TOUGH, RANGED_ATTACK and HEAL about 4:1,
+// MOVE, in that order. (slot is kept for callers; the dedicated healer is gone.)
 function body(capacity, slot) {
-    const part = slot === 3 ? HEAL : RANGED_ATTACK;
-    const blocks = Math.max(0, Math.min(10, Math.floor(capacity / (slot === 3 ? 810 : 510))));
-    return Array(blocks).fill(TOUGH).concat(Array(blocks).fill(MOVE), Array(blocks * 3).fill(part));
+    return require('combat.bodies').quadMember(capacity);
 }
 function clock() {
     const s = state(), now = Date.now();
@@ -415,7 +415,7 @@ function spawnOrder(home) {
             const name = 'gq-' + Game.shard.name + '-' + (++state().serial).toString(36);
             const memory = { priority: 'roomGuard', homeRoom: home, destination: t.room,
                 guardTargetShard: t.shard, guardSquad: q.id, guardSlot: slot.slot,
-                guardKind: slot.slot === 3 ? 'healer' : 'ranged', guardPhase: 'boosting',
+                guardKind: 'quad', guardPhase: 'boosting',
                 guardDeparture: Game.time + Math.max(0, Math.floor(t.remaining - travelTicks(t, 4) - 50)),
                 guardRoster: q.slots.filter(s => s.name).map(s => s.name) };
             if (!activeIds.length) delete memory.guardDeparture;

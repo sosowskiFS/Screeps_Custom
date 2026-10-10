@@ -50,19 +50,23 @@ test('escalation is latched only for young owned rooms; bootstrap is shard-speci
     const old = { name: 'OLD', controller: { my: true, level: 7 }, storage: {} };
     x.sys.latch(old, 'test'); assert.equal(x.sys.escalated('shardX', 'OLD'), false);
 });
-test('body costs and full-quad mineral requirements match the approved compositions', () => {
+test('every quad member is alike: TOUGH, RANGED_ATTACK and HEAL about 4:1, then MOVE, HEAL last; quad minerals', () => {
     const s = setup(), g = s.g, boost = s.h.load('system.guardBoosts');
     const cost = { tough: 10, move: 50, ranged_attack: 150, heal: 250 };
-    assert.equal(s.sys.body(12900, 0).reduce((n,p) => n + cost[p], 0), 5100);
-    assert.equal(s.sys.body(12900, 3).reduce((n,p) => n + cost[p], 0), 8100);
-    assert.equal(s.sys.body(2300, 3).length, 10);
+    const full = plain(s.sys.body(12900, 0));
+    assert.equal(full.reduce((n,p) => n + cost[p], 0), 5900);
+    assert.deepEqual(plain(s.sys.body(12900, 3)), full, 'no dedicated healer');
+    const runs = full.filter((p, i) => p !== full[i - 1]);
+    assert.deepEqual(runs, [g.TOUGH, g.RANGED_ATTACK, g.MOVE, g.HEAL], 'order: TOUGH, ranged, MOVE, HEAL');
+    assert.deepEqual([g.TOUGH, g.RANGED_ATTACK, g.MOVE, g.HEAL].map(t => full.filter(p => p === t).length), [10, 22, 10, 8]);
+    assert.equal(s.sys.body(2300, 3).length, 15);
     assert.equal(s.sys.body(500, 0).length, 0);
     const minerals = {};
     for (let i = 0; i < 4; i++) for (const [r,n] of Object.entries(boost.requirements(s.sys.body(12900,i)))) minerals[r] = (minerals[r] || 0) + n;
     assert.equal(minerals[g.RESOURCE_CATALYZED_GHODIUM_ALKALIDE], 1200);
     assert.equal(minerals[g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE], 1200);
-    assert.equal(minerals[g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE], 2700);
-    assert.equal(minerals[g.RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE], 900);
+    assert.equal(minerals[g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE], 2640);
+    assert.equal(minerals[g.RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE], 960);
 });
 test('four accepted slots are unique, failed attempts do not reserve, actual opaque names are preserved', () => {
     const s = setup(); escalate(s);
@@ -123,12 +127,12 @@ test('cross-shard snapshots age in milliseconds, not by subtracting unrelated Ga
     assert.equal(s.sys.fresh(JSON.parse(s.messages.shardX).guards), false);
     assert.ok(t.remaining < 450, 'stale data cannot refresh the old TTL');
 });
-test('manifests restore healer identity after a global reset and remove source-only portal state', () => {
+test('manifests restore member identity after a global reset and remove source-only portal state', () => {
     const s = setup(); escalate(s); const orders = spawnAll(s), healer = orders[3];
     const x = setup(); x.g.Game.shard.name = 'shardX'; x.messages.shard2 = s.messages.shard2;
     const c = { name: healer.name, memory:{} };
     assert.equal(x.sys.adopt(c),true);
-    assert.equal(x.g.Memory.creeps[c.name].guardKind,'healer');
+    assert.equal(x.g.Memory.creeps[c.name].guardSlot,3);
     assert.equal(x.g.Memory.creeps[c.name].xShard,undefined);
     assert.equal(x.g.Memory.creeps[c.name].guardBoostDone,true);
 });
@@ -155,7 +159,7 @@ test('reservations include pending plus future quad, prefer existing labs, and p
     const list=Array.from({length:10},(_,i)=>({id:'lab'+i,mineralType:i===0?range:null,mineralAmount:i===0?3000:0,store:s.store({})}));
     g.Memory.labList.HOME=list.map(l=>l.id); g.Game.getObjectById=id=>list.find(l=>l.id===id);
     escalate(s);
-    assert.equal(b.reserved('HOME',range),8100);
+    assert.equal(b.reserved('HOME',range),7920);   // three formations x 4 members x 22 RANGED_ATTACK x 30
     assert.equal(b.assignment('HOME','lab0'),range);
     assert.equal(Object.keys(b.roomState('HOME').assignments).length,4);
     assert.equal(b.assignment('HOME','lab3'),undefined);

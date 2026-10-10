@@ -1239,7 +1239,8 @@ Object.assign(spawn_BuildCreeps5, {
             totalParts += 5;
         }
 
-        return config;
+        // Ranged parts in front of the MOVE parts (combat.bodies.order).
+        return require('combat.bodies').order(config);
     }
 });
 

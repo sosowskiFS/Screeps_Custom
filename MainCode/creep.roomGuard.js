@@ -11,16 +11,11 @@ const combatIntel = require('combat.intel');
 const PARK_RANGE = 3;
 const LOW_HEALTH = 0.35;         // as combat.tactics: below this a fighter would retreat
 
-// The guard body: the power-harvest rangers' builds, by the spawning room's energy.
+// The guard body (combat.bodies.roomGuard): a full-speed kiter, ranged parts in front, MOVE behind
+// them and HEAL last. The old RCL7/8 body had its 25 MOVE in front (every hit cost speed, so a
+// kiter got away) and 2 ATTACK parts whose swings cancelled that tick's heal.
 function body(energyCapacity) {
-    energyCapacity = Number(energyCapacity) || 0;
-    if (energyCapacity >= 4450) {
-        return [].concat(Array(25).fill(MOVE), Array(15).fill(RANGED_ATTACK), Array(2).fill(ATTACK), Array(8).fill(HEAL));
-    }
-    if (energyCapacity >= 2300) return [].concat(Array(10).fill(RANGED_ATTACK), Array(11).fill(MOVE), [HEAL]);
-    if (energyCapacity >= 1760) return [].concat([TOUGH], Array(7).fill(RANGED_ATTACK), Array(9).fill(MOVE), [HEAL]);
-    const pairs = Math.max(1, Math.min(10, Math.floor(energyCapacity / 200)));   // smaller sponsors
-    return [].concat(Array(pairs).fill(RANGED_ATTACK), Array(pairs).fill(MOVE));
+    return require('combat.bodies').roomGuard(energyCapacity);
 }
 
 function healSelf(creep) {

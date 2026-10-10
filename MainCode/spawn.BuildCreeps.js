@@ -146,61 +146,9 @@ var spawn_BuildCreeps = {
             global.setSpawnBusy(spawn);
         } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenderCount < 2 && !harvestSource && !defenseWatch.isDraining(thisRoom.name)) {
             //Try to produce millitary units
-                 var ToughCount = 0;
-                var MoveCount = 0;
-                var AttackCount = 0;
-                var RangedCount = 0;
-                var HealCount = 0;
-                var totalParts = 0;
-
-                var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex];
-                var thisBuildAmount = 500;
-                while ((remainingEnergy / thisBuildAmount) >= 1) {
-                    //switch (ChosenPriority) {
-                    //case 'melee':
-                    //ToughCount = ToughCount + 1;
-                    MoveCount = MoveCount + 2;
-                    RangedCount = RangedCount + 3;
-                    remainingEnergy = remainingEnergy - 500;
-                    //RangedCount = RangedCount + 1;
-                    totalParts = totalParts + 5;
-                    //break;
-                    //case 'ranged':
-                    //MoveCount = MoveCount + 2;
-                    //RangedCount = RangedCount + 2;
-                    //totalParts = totalParts + 4;
-                    //remainingEnergy = remainingEnergy - 400;
-                    //break;
-                    //}
-
-                    if (totalParts >= 50) {
-                        break;
-                    }
-                }
-
-                var ChosenCreepSet = [];
-                while (ToughCount > 0) {
-                    ChosenCreepSet.push(TOUGH);
-                    ToughCount--;
-                }
-                while (AttackCount > 0) {
-                    ChosenCreepSet.push(ATTACK);
-                    AttackCount--;
-                }
-                while (RangedCount > 0) {
-                    ChosenCreepSet.push(RANGED_ATTACK);
-                    RangedCount--;
-                }
-                while (MoveCount > 0) {
-                    ChosenCreepSet.push(MOVE);
-                    MoveCount--;
-                }
-
-                if (ChosenCreepSet.length > 50) {
-                    while (ChosenCreepSet.length > 50) {
-                        ChosenCreepSet.splice(0, 1)
-                    }
-                }
+                // RANGED_ATTACK/MOVE pairs (+ HEAL), ranged parts in front (combat.bodies).
+                var ChosenCreepSet = require('combat.bodies').youngDefender(Memory.CurrentRoomEnergy[energyIndex]);
+                var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex] - require('combat.bodies').cost(ChosenCreepSet);
 
                 Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
 

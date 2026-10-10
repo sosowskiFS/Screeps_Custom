@@ -47,6 +47,9 @@ var spawn_BuildFarCreeps = {
                 }
             }
 
+            // Default guards: damage parts in front of MOVE, HEAL last (combat.bodies.order).
+            farGuardConfig = require('combat.bodies').order(farGuardConfig);
+
             var prioritizedRole = '';
             var roomTarget = '';
             var flagName = '';
