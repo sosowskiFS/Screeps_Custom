@@ -450,19 +450,23 @@ function buildRoom(room, plan) {
     // them go, so builders spend everything on structures and upgrading. Exception: roads on the
     // swamp tiles that measurably slow the room's creeps (system.swampRoads).
     const established = stage.established(room);
-    // A developing room whose attack triggered safe mode gets a deliberately tiny siege shell:
-    // current spawns, current towers, and the supplier's Supply tile only.
-    const siege = !established && require('system.guardSquads').escalated(Game.shard.name, room.name);
-    const siegeRamparts = new Set();
-    if (siege && rcl >= RAMPART_RCL) {
+    // Every developing room gets a deliberately tiny rampart shell, attacked or not: its current
+    // spawns, towers and storage, and the Supply tile once a supplier stands there (it only spawns
+    // with a storage and towers). It buys time against a random assault; an attack only raises the
+    // hits the shell is kept at (system.guardSquads.rampartCap).
+    const shellRamparts = new Set();
+    if (!established && rcl >= RAMPART_RCL) {
         for (const structure of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
-            if (structure.structureType === STRUCTURE_SPAWN || structure.structureType === STRUCTURE_TOWER) {
-                siegeRamparts.add(tileOf(structure.pos));
+            if (structure.structureType === STRUCTURE_SPAWN || structure.structureType === STRUCTURE_TOWER ||
+                structure.structureType === STRUCTURE_STORAGE) {
+                shellRamparts.add(tileOf(structure.pos));
             }
         }
+        const supplier = runtimeCache.homeCreeps(room.name).some(c => c.memory &&
+            (c.memory.priority === 'supplier' || c.memory.priority === 'supplierNearDeath'));
         const supply = Game.flags[room.name + 'Supply'];
         const supplyTile = supply ? tileOf(supply.pos) : plan.flags && plan.flags.Supply;
-        if (supplyTile !== undefined) siegeRamparts.add(supplyTile);
+        if (supplier && supplyTile !== undefined) shellRamparts.add(supplyTile);
     }
     const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
     // Young and no tower yet: hostile creeps can stomp construction sites unopposed, so only the
@@ -474,7 +478,7 @@ function buildRoom(room, plan) {
     if (!established) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
             const type = s.structureType;
-            const keepSiegeRampart = type === STRUCTURE_RAMPART && siegeRamparts.has(tileOf(s.pos));
+            const keepSiegeRampart = type === STRUCTURE_RAMPART && shellRamparts.has(tileOf(s.pos));
             const held = towerless && s.progress === 0 && !keepSiegeRampart && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
                 type !== STRUCTURE_CONTAINER && type !== STRUCTURE_WALL;
             const swampRoad = type === STRUCTURE_ROAD && require('system.swampRoads').wanted(room.name, s.pos.x, s.pos.y);
@@ -491,8 +495,8 @@ function buildRoom(room, plan) {
     else if (built(STRUCTURE_TOWER) < towersAllowed) kinds = ['tower'];
     else if (towerless) kinds = [];
 
-    // Spend the small per-pass site budget on the siege shell before ordinary extensions.
-    for (const tile of siegeRamparts) {
+    // Spend the small per-pass site budget on the rampart shell before ordinary extensions.
+    for (const tile of shellRamparts) {
         if (budget <= 0) break;
         const here = occupied.get(tile);
         if (here && here.includes(STRUCTURE_RAMPART)) continue;

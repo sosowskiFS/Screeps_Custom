@@ -5,6 +5,7 @@ const SOURCES = ['shard0', 'shard1', 'shard2', 'shard3', 'shardX'];
 const DESIRED_SQUADS = 2;       // a latched developing room was attacked: hold two quads, not one
 const PREDEPLOY_MARGIN = 250;   // arrive during safe mode, when hostile attacks and healing are disabled
 const SIEGE_RAMPART_HITS = 250000;
+const SHELL_RAMPART_HITS = 50000;   // a young room's rampart shell when not under attack (~500 energy each)
 const BOOSTS_BY_PART = () => ({ [TOUGH]: RESOURCE_CATALYZED_GHODIUM_ALKALIDE,
     [MOVE]: RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE, [RANGED_ATTACK]: RESOURCE_CATALYZED_KEANIUM_ALKALIDE,
     [HEAL]: RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE });
@@ -54,13 +55,26 @@ function safeModeRemaining(shard, room) {
     const elapsed = Math.max(0, Date.now() - report.at) / Math.max(100, report.ms || 3000);
     return Math.max(0, Math.ceil(r.safeMode - elapsed));
 }
+// A young room's rampart shell (base.builder): over its spawns, towers and storage, and the
+// supplier's Supply tile. Every young room has one; an attack only raises the hits it is kept at.
 function protectedRampart(room, rampart) {
     if (!room || !rampart || !rampart.pos || rampart.structureType !== STRUCTURE_RAMPART) return false;
     const x = rampart.pos.x, y = rampart.pos.y;
     const supply = Game.flags[room.name + 'Supply'];
     if (supply && supply.pos.x === x && supply.pos.y === y) return true;
     return require('runtime.cache').find(room, FIND_MY_STRUCTURES).some(s => s.pos &&
-        (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER) && s.pos.x === x && s.pos.y === y);
+        (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER || s.structureType === STRUCTURE_STORAGE) &&
+        s.pos.x === x && s.pos.y === y);
+}
+// Hits a young room keeps its shell ramparts at: SHELL_RAMPART_HITS, or SIEGE_RAMPART_HITS once it
+// has been attacked (escalated). Established rooms (terminal) have no cap here.
+function rampartCap(room) {
+    if (!room || stage.established(room)) return Infinity;
+    return escalated(Game.shard.name, room.name) ? SIEGE_RAMPART_HITS : SHELL_RAMPART_HITS;
+}
+// Young room: is this rampart one to repair now? (A shell rampart below its cap.)
+function shellRampartDue(room, rampart) {
+    return protectedRampart(room, rampart) && rampart.hits < rampartCap(room);
 }
 function localMembers() {
     return Object.values(Game.creeps).filter(c => c.memory && c.memory.guardSquad);
@@ -462,5 +476,5 @@ function report() {
     return rows;
 }
 module.exports = { chooseHome, helperHome, homeOf, forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
-    report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart,
-    DESIRED_SQUADS, SIEGE_RAMPART_HITS, BOOSTS_BY_PART };
+    report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart, rampartCap, shellRampartDue,
+    DESIRED_SQUADS, SIEGE_RAMPART_HITS, SHELL_RAMPART_HITS, BOOSTS_BY_PART };

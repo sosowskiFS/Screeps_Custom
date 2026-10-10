@@ -26,7 +26,6 @@ const NEAR_LOOT = 3;             // loose energy this close is worth a partial t
 const STORE_MIN = 400;
 const TOWER_MIN = 500;
 const DOWNGRADE_MIN = 3000;
-const SIEGE_RAMPART_HITS = 250000; // three-ish posts cost only ~7.5k energy to raise from zero
 const SITE_ORDER = [STRUCTURE_SPAWN, STRUCTURE_WALL, STRUCTURE_TOWER, STRUCTURE_EXTENSION, STRUCTURE_STORAGE, STRUCTURE_CONTAINER];
 const CONTROLLER_WALL_HITS = 10000;   // x RCL: walls around the controller (base.builder) are kept at this
 const SIGN = '「輝く猫」(ﾐⓛᆽⓛﾐ)✧';
@@ -259,10 +258,12 @@ function* jobs(creep) {
     const low = towers.filter(t => t.store[RESOURCE_ENERGY] < TOWER_MIN);
     if (low.length) yield { k: 'fill', id: creep.pos.findClosestByRange(low).id };
     const guards = require('system.guardSquads');
-    if (guards.escalated(Game.shard.name, room.name)) {
-        const ramparts = mine.filter(s => s.structureType === STRUCTURE_RAMPART && s.hits < SIEGE_RAMPART_HITS &&
+    // The young room's rampart shell, to its cap (higher once the room has been attacked).
+    {
+        const cap = guards.rampartCap(room);
+        const ramparts = cap === Infinity ? [] : mine.filter(s => s.structureType === STRUCTURE_RAMPART && s.hits < cap &&
             guards.protectedRampart(room, s));
-        if (ramparts.length) yield { k: 'repair', id: creep.pos.findClosestByRange(ramparts).id, to: SIEGE_RAMPART_HITS };
+        if (ramparts.length) yield { k: 'repair', id: creep.pos.findClosestByRange(ramparts).id, to: cap };
     }
     if (controller && controller.my) {
         const to = CONTROLLER_WALL_HITS * controller.level;

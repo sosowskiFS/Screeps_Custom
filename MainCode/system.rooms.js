@@ -104,11 +104,12 @@ function manageRoomStructures(thisRoom) {
         (Memory.repairTarget[thisRoom.name] === "" && Game.time % 50 == 0)) {
         Memory.repairTarget[thisRoom.name] = "";
         const guardSquads = require('system.guardSquads');
-        const siege = guardSquads.escalated(Game.shard.name, thisRoom.name);
+        // Young rooms: ramparts only their shell, and only below its cap (towers used to raise any
+        // rampart toward its maximum as the least-hit structure).
+        const young = guardSquads.rampartCap(thisRoom) !== Infinity;
         const repairTarget = leastHits(runtimeCache.find(thisRoom, FIND_STRUCTURES, {
             filter: (structure) => {
-                if (siege && structure.structureType === STRUCTURE_RAMPART &&
-                    (!guardSquads.protectedRampart(thisRoom, structure) || structure.hits >= guardSquads.SIEGE_RAMPART_HITS)) return false;
+                if (young && structure.structureType === STRUCTURE_RAMPART && !guardSquads.shellRampartDue(thisRoom, structure)) return false;
                 return (structure.structureType != STRUCTURE_ROAD && structure.structureType != STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 200) ||
                     (structure.structureType == STRUCTURE_CONTAINER && structure.hitsMax - structure.hits >= 50000);
             }

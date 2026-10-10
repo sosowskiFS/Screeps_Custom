@@ -260,7 +260,9 @@ function getUpgraderMax(room) {
 // it is below half.
 function needsRepair(structure) {
     const type = structure.structureType;
-    if (type === STRUCTURE_ROAD || type === STRUCTURE_WALL || type === STRUCTURE_RAMPART) return false;
+    // The rampart shell (spawn, towers, storage, Supply tile) up to its cap; no other rampart.
+    if (type === STRUCTURE_RAMPART) return !!structure.room && require('system.guardSquads').shellRampartDue(structure.room, structure);
+    if (type === STRUCTURE_ROAD || type === STRUCTURE_WALL) return false;
     if (type === STRUCTURE_CONTAINER) return structure.hits < structure.hitsMax / 2;
     return structure.hitsMax - structure.hits >= 200;
 }

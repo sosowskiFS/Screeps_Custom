@@ -190,10 +190,11 @@ test('a tower the controller level now allows is placed before anything else', (
     const t = plan.structures.spawn[0];
     existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
     builder.buildRoom(room);
-    assert.deepEqual(sites.map(s => s[2]).filter(t => t !== g.STRUCTURE_WALL), [g.STRUCTURE_TOWER], 'RCL3 allows one tower: only it (and the controller walls), no extensions yet');
+    assert.deepEqual(sites.map(s => s[2]).filter(t => t !== g.STRUCTURE_WALL && t !== g.STRUCTURE_RAMPART), [g.STRUCTURE_TOWER], 'RCL3 allows one tower: only it (and the controller walls), no extensions yet');
+    assert.deepEqual(sites.filter(s => s[2] === g.STRUCTURE_RAMPART).map(s => s[0] + ',' + s[1]), [X(t) + ',' + Y(t)], 'the spawn\'s shell rampart');
 });
 
-test('a young room (no terminal) gets no road or rampart sites, and loses the ones it had', () => {
+test('a young room (no terminal) gets no road sites and no ramparts off its shell, and loses the ones it had', () => {
     const existing = [];
     const { g, room, sites, builder } = builderRoom(5, existing);
     const removed = [];
@@ -206,21 +207,38 @@ test('a young room (no terminal) gets no road or rampart sites, and loses the on
     existing.push({ structureType: g.STRUCTURE_TOWER, my: true, pos: { x: 1, y: 1, roomName: room.name, lookFor: () => [] } });   // RCL5: 2 towers
     builder.buildRoom(room);
     const types = sites.map(s => s[2]);
-    assert.ok(!types.includes(g.STRUCTURE_ROAD) && !types.includes(g.STRUCTURE_RAMPART));
-    assert.deepEqual(removed, ['road', 'rampart']);
+    assert.ok(!types.includes(g.STRUCTURE_ROAD));
+    const shell = new Set(existing.map(s => s.pos.x + ',' + s.pos.y));
+    assert.ok(sites.filter(s => s[2] === g.STRUCTURE_RAMPART).every(s => shell.has(s[0] + ',' + s[1])), 'ramparts only over the shell');
+    assert.deepEqual(removed, ['road', 'rampart'], 'the stray rampart site at 3,3 goes');
 });
 
-test('an attacked young room prioritizes ramparts only over its spawn, tower, and supplier', () => {
+test('every young room gets a rampart shell over its spawn, towers and storage, and the Supply tile once a supplier stands there', () => {
     const existing = [];
-    const { h, g, room, sites, builder } = builderRoom(5, existing);
+    const { g, room, sites, builder } = builderRoom(5, existing);
     builder.planRoom(room);
     buildCore(g, builder, room, existing);
     const plan = builder.planOf(room.name);
-    h.load('system.guardSquads').latch(room, 'safe mode');
+    const st = plan.structures.storage[0];
+    existing.push({ structureType: g.STRUCTURE_STORAGE, my: true, pos: { x: X(st), y: Y(st), roomName: room.name, lookFor: () => [] } });
+    builder.buildRoom(room, plan);   // not attacked
+    const at = () => sites.filter(s => s[2] === g.STRUCTURE_RAMPART).map(s => s[0] + ',' + s[1]).sort();
+    assert.deepEqual(at(), existing.map(s => s.pos.x + ',' + s.pos.y).sort(), 'no supplier yet: no Supply-tile rampart');
+    sites.length = 0;
+    g.Game.time++;
+    g.Game.creeps.sup = { name: 'sup', memory: { priority: 'supplier', homeRoom: room.name } };
     builder.buildRoom(room, plan);
-    const ramparts = sites.filter(s => s[2] === g.STRUCTURE_RAMPART).map(s => s[0] + ',' + s[1]).sort();
-    const protectedTiles = existing.map(s => s.pos.x + ',' + s.pos.y).concat(X(plan.flags.Supply) + ',' + Y(plan.flags.Supply)).sort();
-    assert.deepEqual(ramparts, protectedTiles);
+    assert.ok(at().includes(X(plan.flags.Supply) + ',' + Y(plan.flags.Supply)), 'the supplier spawned: its tile too');
+});
+
+test('the shell is kept at 50k hits, 250k once the room has been attacked, and no cap once established', () => {
+    const { h, g, room } = builderRoom(5, []);
+    const guards = h.load('system.guardSquads');
+    assert.equal(guards.rampartCap(room), 50000);
+    guards.latch(room, 'attacked');
+    assert.equal(guards.rampartCap(room), 250000);
+    room.terminal = { my: true };
+    assert.equal(guards.rampartCap(room), Infinity);
 });
 
 test('builder places only what the RCL allows, a few sites per pass, plus the layout flags', () => {
@@ -324,7 +342,8 @@ test('a young room without a tower builds nothing but its spawn: controller firs
     const t = builder.planOf(room.name).structures.spawn[0];
     existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
     builder.buildRoom(room);
-    assert.deepEqual(sites.filter(s => s[2] !== g.STRUCTURE_WALL), [], 'RCL2, no tower possible yet: no extension sites (walls around the controller only)');
+    assert.deepEqual(sites.filter(s => s[2] !== g.STRUCTURE_WALL && s[2] !== g.STRUCTURE_RAMPART), [], 'RCL2, no tower possible yet: no extension sites (walls around the controller only)');
+    assert.deepEqual(sites.filter(s => s[2] === g.STRUCTURE_RAMPART).map(s => s[0] + ',' + s[1]), [X(t) + ',' + Y(t)], 'and the spawn\'s shell rampart');
     assert.deepEqual(removed, [g.STRUCTURE_EXTENSION], 'the container for the miners stays');
 });
 

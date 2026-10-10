@@ -404,9 +404,10 @@ var tower_Operate = {
             } else if (Memory.repairTarget[tower.room.name]) {
                 let decayingRampart = Game.getObjectById(Memory.repairTarget[tower.room.name]);
                 const guards = require('system.guardSquads');
-                const siege = guards.escalated(Game.shard.name, tower.room.name);
-                const siegeRampart = siege && decayingRampart && decayingRampart.structureType === STRUCTURE_RAMPART;
-                const siegeCap = siegeRampart ? guards.SIEGE_RAMPART_HITS : Infinity;
+                // Young rooms keep their rampart shell at its cap (system.guardSquads.rampartCap).
+                const cap = guards.rampartCap(tower.room);
+                const siegeRampart = cap !== Infinity && decayingRampart && decayingRampart.structureType === STRUCTURE_RAMPART;
+                const siegeCap = siegeRampart ? cap : Infinity;
                 if (decayingRampart && decayingRampart.hits != decayingRampart.hitsMax && decayingRampart.hits < siegeCap) {
                     if (!siegeRampart || guards.protectedRampart(tower.room, decayingRampart)) tower.repair(decayingRampart);
                     else Memory.repairTarget[tower.room.name] = "";

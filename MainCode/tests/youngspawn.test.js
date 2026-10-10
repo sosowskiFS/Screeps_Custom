@@ -112,6 +112,7 @@ function staffRoom({ residents = [], structures = [], sources = [], storage, ene
             type === g.FIND_CONSTRUCTION_SITES ? Array(sites).fill({}) : [] };
     for (const s of sources) s.room = room;
     for (const s of structures) {
+        s.room = room;
         if (!s.structureType.startsWith('STRUCTURE_')) s.structureType = g['STRUCTURE_' + s.structureType.toUpperCase()];
         if (s.store && s.store.energy !== undefined) s.store[g.RESOURCE_ENERGY] = s.store.energy;
     }
@@ -173,4 +174,17 @@ test('source containers nearly full: an extra upgrader spends the overflow', () 
     assert.equal(r.spawned.length, 0, '3 upgraders at RCL3 with energy to spare: enough');
     r = staffRoom({ sources: [s1], residents, structures: [container] });
     assert.equal(r.spawned[0].role, 'upgrader');
+});
+
+test('the rampart shell over the spawn is repaired up to its cap; ramparts off the shell are not', () => {
+    const s1 = source('s1', 10, 10);
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), worker('distributor'), worker('upgrader'), worker('upgrader'), worker('upgrader')];
+    const spawn = () => ({ structureType: 'spawn', my: true, hits: 5000, hitsMax: 5000, pos: near(20, 20) });
+    const rampart = hits => ({ structureType: 'rampart', my: true, hits, hitsMax: 1000000, pos: near(20, 20) });
+    let r = staffRoom({ sources: [s1], residents, structures: [spawn(), rampart(1000)] });
+    assert.equal(r.spawned[0] && r.spawned[0].role, 'repair', 'shell rampart at 1000: repairer');
+    r = staffRoom({ sources: [s1], residents, structures: [spawn(), rampart(60000)] });
+    assert.ok(!r.spawned.some(c => c.role === 'repair'), 'at the 50k cap: none');
+    r = staffRoom({ sources: [s1], residents, structures: [spawn(), Object.assign(rampart(1000), { pos: near(30, 30) })] });
+    assert.ok(!r.spawned.some(c => c.role === 'repair'), 'a rampart off the shell: none');
 });
