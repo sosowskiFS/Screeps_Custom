@@ -215,6 +215,7 @@ global.roomReport = room;
 global.expansion = limit => require('system.expansion').report(limit);
 global.retireRooms = arg => require('system.retire').report(arg);
 global.shardX = (cmd, picks) => require('system.shardX').command(cmd, picks);
+global.tempGuard = (room, home, count, ticks) => require('system.tempGuards').command(room, home, count, ticks);
 global.guardSquads = () => { const result = require('system.guardSquads').report(); print(json(result)); return result; };
 
 module.exports = { mem, memCreeps, room, print, memoryMentions };

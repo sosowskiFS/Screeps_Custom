@@ -164,6 +164,11 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **Guards:** only with a charge available, no cooldown, the controller not attack-blocked (the game refuses then), and no other room of ours on the shard in safe mode. It notifies by `Game.notify`.
   - **No safe mode possible:** an attacked room that can't have safe mode is still flagged as attacked, so its guard quads are sent. The game allows only one room per shard in safe mode, so with several young rooms attacked at once, only the first gets it. Before, only a safe mode activation flagged a room, so the others got no quads.
   - **The older trigger:** `tower.Operate`'s proximity rule (a player creep within 5 of a tower below RCL7) now skips rooms under construction.
+- **Temporary guards** (`system.tempGuards.js`) hold a room we don't own, such as a portal room where shardX travellers are being picked off.
+  - **Console:** `tempGuard('W0N20', 'E1N16', 3, 5000)` keeps 3 room guards from E1N16 in W0N20 for 5,000 ticks. `tempGuard('W0N20')` cancels it (guards already out live out their time), and `tempGuard()` lists active orders.
+  - Each replacement is ordered before the guard it replaces dies (spawn time plus the measured trip).
+  - **Gathering:** a group starting from nothing waits at home until all are spawned (at most 150 ticks), then sets out together, so no guard arrives alone.
+  - **Spawning:** ahead of shardX orders, one order per tick.
 - **Room guard** (`creep.roomGuard.js`): once a room is claimed, its sponsor (auto-expansion; for shardX, the home room) keeps a ranger there.
   - **Body:** the power-harvest rangers' builds, by the sponsor's spawn energy.
   - **Behaviour:** on the way it doesn't fight, only steps away from armed hostiles that come close.
@@ -225,11 +230,13 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 
 ## Settling shardX (one-time)
 
-**Switched off** (`ENABLED = false` in `system.shardX.js`): shardX's E29N36 was attacked and lost.
+**On/off switch:** `ENABLED = true` in `system.shardX.js`, so a deploy doesn't switch it off. `Memory.settings.shardX = false` switches it off on that shard without a deploy.
+
+**While switched off:**
 - **What stops:** no scouting, claiming, helpers or guard squads, whatever mode shard2 has saved. Its queue is cleared, and the guard squads stop treating shardX rooms as targets.
 - **Recall:** everything still bound for the portal is recalled (`creep.recall.js`). It walks home; boosted creeps unboost at a free lab, dropping half the compounds for the salvager; then it recycles at a spawn. A creep already on the far side retires there.
 - **Lost targets generally:** guard squads whose target room is lost (not graduated) are recalled the same way.
-- **To resume:** set `ENABLED` back to `true` (or `Memory.settings.shardX = true` on each shard), then `shardX('scout')` / `shardX('claim')` on shard2.
+- **To resume:** remove `Memory.settings.shardX = false` (or set it to `true`), then `shardX('scout')` / `shardX('claim')` on shard2.
 - **Quads only during a claim:** a shardX room is guarded by quads only while shardX is on, in claim (or done) mode, and the room is still one of its targets. Otherwise the quad target is dropped and its members are recalled. Before this, the old E29N36 target outlived the attempt and restarted quads when shardX was switched back on to scout.
 - **Attacked-room flags expire:** a room flagged as attacked loses the flag once it's no longer ours, so a lost room can't re-arm quads later.
 

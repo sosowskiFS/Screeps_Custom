@@ -185,6 +185,14 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
 function processSpecialSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
     const roomName = thisRoom.name;
 
+    // Temporary guards (system.tempGuards) for a room we don't own, e.g. a portal room where
+    // shardX travellers are picked off: ahead of the shardX orders they protect.
+    const tg = require('system.tempGuards').spawnOrder(roomName);
+    if (tg && !isSpawnBusy(spawn) && spawn.spawnCreep(tg.body, tg.name, { memory: tg.memory }) === OK) {
+        global.setSpawnBusy(spawn);
+        return;
+    }
+
     // shardX settling (system.shardX): scouts, claimers and helpers sent through the portal. Ahead
     // of this room's own expansion support: the shardX foothold comes first.
     const xOrder = shardX.spawnOrder(roomName);

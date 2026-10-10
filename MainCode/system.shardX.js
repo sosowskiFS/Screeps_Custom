@@ -39,14 +39,16 @@ const badRooms = require('system.badRooms');
 const remoteMining = require('system.remoteMining');
 
 const X_SHARD = 'shardX';
-// Off switch. shardX's E29N36 was attacked and lost (2026-10): no scouting, claiming, helpers or
-// guards while false, whatever mode shard2 has saved. Creeps still bound for the portal are recalled
-// home (creep.recall). To resume: set ENABLED to true, or Memory.settings.shardX = true on each home
-// shard (and shardX), then shardX('scout') / shardX('claim') on shard2.
-const ENABLED = false;
+// On/off switch. While off: no scouting, claiming, helpers or guards, whatever mode shard2 has
+// saved, and creeps still bound for the portal are recalled home (creep.recall). On in code;
+// Memory.settings.shardX = false switches it off on that shard without a deploy (true switches it
+// on when ENABLED is false).
+const ENABLED = true;
 
 function enabled() {
-    return ENABLED || !!(Memory.settings && Memory.settings.shardX === true);
+    const setting = Memory.settings && Memory.settings.shardX;
+    if (setting === false) return false;
+    return ENABLED || setting === true;
 }
 const COORD_SHARD = 'shard2';
 const HOME_SHARDS = ['shard2', 'shard1', 'shard3'];
@@ -631,7 +633,7 @@ function manualTargets(picks, cands) {
 
 function command(cmd, picks) {
     if (cmd === 'reset') return reset();
-    if (!enabled()) return 'shardX is switched off (system.shardX ENABLED = false; Memory.settings.shardX = true turns it back on)';
+    if (!enabled()) return 'shardX is switched off (Memory.settings.shardX = false, or ENABLED = false in system.shardX)';
     const s = state();
     if (cmd === 'candidates') {
         // On a home shard: shardX's reported candidates, to review before hand-picking.

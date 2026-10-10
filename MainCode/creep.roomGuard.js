@@ -92,6 +92,7 @@ module.exports = {
         if (creep.memory.guardRecall) return require('creep.recall').recall(creep);   // mission cancelled
         if (creep.memory.guardAwaitManifest) return;
         if (creep.memory.guardSquad) return require('creep.guardQuad').run(creep);
+        if (creep.memory.tempGuard && require('system.tempGuards').waiting(creep)) return;   // gathering at home
         const dest = creep.memory.destination;
         delete creep.memory.regroupUntil;   // a guard never falls back home
         if (creep.room.name !== dest) {
@@ -105,6 +106,7 @@ module.exports = {
         if (creep.memory.trip === undefined) {
             creep.memory.trip = CREEP_LIFE_TIME - creep.ticksToLive;
             if (Memory.expansion && Memory.expansion.t === dest) Memory.expansion.guardTrip = creep.memory.trip;
+            if (creep.memory.tempGuard) require('system.tempGuards').arrived(creep);
         }
         // The shared fight logic only when it would not retreat: a lost fight sends a creep home,
         // and the guard then walked straight back in, bouncing on the room border (shardX E29N36).

@@ -49,7 +49,8 @@ test('shardX switched off: no orders, the queue is cleared, and creeps bound for
     const { h, g } = load();
     g.Memory.xs = { mode: 'claim', queue: { E32N39: { kind: 'claimer', memory: {} } }, targets: [{ r: 'E29N36', h: 'shard2:E32N39', e: 'E30N40' }] };
     const x = h.load('system.shardX');
-    assert.equal(x.enabled(), false);
+    g.Memory.settings = { shardX: false };
+    assert.equal(x.enabled(), false, 'Memory.settings.shardX = false switches it off');
     assert.equal(x.spawnOrder('E32N39'), null);
     x.run();
     assert.deepEqual(plain(g.Memory.xs.queue), {});
