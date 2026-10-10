@@ -154,7 +154,7 @@ var spawn_BuildFarCreeps = {
                                 farMinerConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                             }
                             break;
-                        } else if (mules.length < 1) {
+                        } else if (mules.length < remoteMining.haulFor(thisRoom, Game.flags[thisRoom.name + config.flag]).mules) {
                             prioritizedRole = 'farMule';
                             roomTarget = Game.flags[thisRoom.name + config.flag].pos.roomName;
                             flagName = Game.flags[thisRoom.name + config.flag].name;
@@ -321,16 +321,12 @@ function getClaimerBuild(energyCap) {
 }
 
 // Far mule: CARRY/MOVE 1:1 (full speed on unpaved plains even when full; remote rooms have no
-// roads). Sized to the source: enough capacity for one round trip of output plus 15%, so close
-// sources don't get (and don't lose) a 2500-energy hauler. Unplanned (manual) flags get the max.
-// The old single ATTACK part was never used.
+// roads). Sized to the source (system.remoteMining.haul): the source's mules together carry one
+// round trip of output plus 15%, so close sources don't get (and don't lose) a 2500-energy
+// hauler, and far ones get several. Unplanned (manual) flags get the max.
 function getMuleBuild(energyCap, thisRoom, trip) {
     const affordable = Math.min(25, Math.floor(energyCap / (BODYPART_COST[CARRY] + BODYPART_COST[MOVE])));
-    let pairs = affordable;
-    if (trip) {
-        const needed = Math.ceil(remoteMining.SOURCE_RATE * trip * 1.15 / CARRY_CAPACITY);
-        pairs = Math.max(4, Math.min(affordable, needed));
-    }
+    const pairs = trip ? remoteMining.haul(energyCap, trip).pairs : affordable;
     const body = [];
     for (let i = 0; i < pairs; i++) body.push(CARRY);
     for (let i = 0; i < pairs; i++) body.push(MOVE);

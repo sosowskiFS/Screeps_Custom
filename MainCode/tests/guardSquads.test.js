@@ -17,6 +17,8 @@ function setup(overrides = {}) {
     g.Game.spawns.A = { room: home, spawning: null };
     g.Memory.expansion = { st: 'develop', sp: 'HOME', t: 'NEW' };
     const sys = h.load('system.guardSquads');
+    // Scheduling tests: every home can boost MOVE (the MOVE rule has its own tests).
+    h.load('system.guardBoosts').moveReady = () => true;
     const advance = (ticks = 1, ms = ticks * 3000) => { g.Game.time += ticks; now += ms; };
     return { h, g, sys, home, target, messages, advance, now: () => now, store };
 }
@@ -138,7 +140,7 @@ test('boost preparation is bounded, uses available partial T3 and skips absent m
         boostCreep:(c,n) => { boosted += n; c.body[0].boost=res; lab.store[res]=0; return g.OK; } };
     g.Game.getObjectById = id => id === 'lab' ? lab : null; g.Memory.labList.HOME=['lab'];
     g.Memory.guardBoosts = { rooms: { HOME:{need:{[res]:60},assignments:{lab:res}} } };
-    const c = { memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.RANGED_ATTACK,hits:100},{type:g.RANGED_ATTACK,hits:100}, {type:g.MOVE,hits:100}],pos:{isNearTo:()=>true} };
+    const c = { memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.RANGED_ATTACK,hits:100},{type:g.RANGED_ATTACK,hits:100}, {type:g.MOVE,hits:100,boost:g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE}],pos:{isNearTo:()=>true} };
     assert.equal(b.boost(c),true); assert.equal(boosted,1);
     s.advance(); assert.equal(b.boost(c),false); assert.equal(c.memory.guardBoostDone,true);
     s.home.storage.store[res]=300;
@@ -288,4 +290,36 @@ test('squads made before homes existed keep the room that started them; empty on
         {id:'b',created:2,slots:[{slot:0},{slot:1},{slot:2},{slot:3}]}];
     s.advance();s.sys.run();
     assert.equal(t.squads.map(q=>q.home).join(),'HOME,NEAR');
+});
+test('a quad member never leaves with unboosted MOVE: other boosts keep their window, MOVE is waited for',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const XZ=g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
+    const lab={id:'zlab',store:s.store({[XZ]:0,[g.RESOURCE_ENERGY]:2000}),
+        boostCreep:(c,n)=>{c.body.filter(p=>p.type===g.MOVE).slice(0,n).forEach(p=>p.boost=XZ);lab.store[XZ]-=30*n;return g.OK;}};
+    g.Game.getObjectById=id=>id==='zlab'?lab:null;g.Memory.labList.HOME=['zlab'];
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[XZ]:60},assignments:{zlab:XZ}}}};
+    const c={memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.MOVE,hits:100},{type:g.MOVE,hits:100},{type:g.RANGED_ATTACK,hits:100}],pos:{isNearTo:()=>true}};
+    assert.equal(b.boost(c),true);
+    s.advance(500);                                   // far past the 100-tick window
+    assert.equal(b.boost(c),true,'still waiting for XZHO2');
+    assert.match(c.memory.guardBlocked,/XZHO2/);
+    lab.store[XZ]=60;s.home.storage.store[XZ]=60;
+    assert.equal(b.boost(c),true);                    // boosts now
+    assert.equal(b.boost(c),false,'MOVE boosted: leaves');
+    assert.equal(c.memory.guardBoostDone,true);
+});
+test('a quad member is only spawned where an XZHO2 lab can boost all its MOVE',()=>{
+    const h=harness(),g=h.context;h.load('runtime.memory').ensureInitialized();
+    const b=h.load('system.guardBoosts'),XZ=g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
+    const store=v=>Object.assign({getFreeCapacity:()=>100000},v);
+    g.Game.rooms.HOME={name:'HOME',storage:{store:store({[XZ]:0})},terminal:{store:store({})}};
+    const parts=Array(10).fill(g.MOVE).concat(Array(30).fill(g.RANGED_ATTACK));
+    assert.equal(b.moveReady('HOME',parts),false,'no lab leased');
+    const lab={id:'zlab',store:store({})};g.Game.getObjectById=id=>id==='zlab'?lab:null;g.Memory.labList.HOME=['zlab'];
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[XZ]:1200},assignments:{zlab:XZ}}}};
+    assert.equal(b.moveReady('HOME',parts),false,'lab but no XZHO2');
+    g.Game.rooms.HOME.storage.store[XZ]=300;
+    assert.equal(b.moveReady('HOME',parts),true,'10 MOVE x 30 = 300');
+    g.Game.creeps.w={memory:{guardSquad:'q',homeRoom:'HOME'},body:Array(10).fill(0).map(()=>({type:g.MOVE,hits:100}))};
+    assert.equal(b.moveReady('HOME',parts),false,'a member already waiting takes that stock');
 });

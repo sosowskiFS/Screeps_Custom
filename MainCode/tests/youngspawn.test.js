@@ -94,3 +94,83 @@ test('young repairers keep strengthening the weakest controller wall beyond help
     walls[0].hits=70000;g.Game.time++;h.load('creep.workV2').run(creep,25);assert.equal(repaired[1],'other');
     assert.equal(h.load('creep.registry').tierOf(creep),'essential');
 });
+
+// A young room for the staffing pass: structures, sources and residents as given.
+function staffRoom({ residents = [], structures = [], sources = [], storage, energy = 800, level = 3, sites = 0, flags = {} } = {}) {
+    const { h, g, build } = load(), spawned = [];
+    g.Memory.sourceList = { NEW: sources.map(s => s.id) };
+    g.Memory.CurrentRoomEnergy = ['NEW', energy];
+    g.Memory.autoBuildRooms = ['NEW'];
+    g.setSpawnBusy = () => {};
+    Object.assign(g.Game.flags, flags);
+    const objects = {};
+    for (const s of sources) objects[s.id] = s;
+    g.Game.getObjectById = id => objects[id];
+    const room = { name: 'NEW', storage, energyAvailable: energy, energyCapacityAvailable: energy, controller: { my: true, level, pos: { x: 40, y: 40 } },
+        getTerrain: () => ({ get: () => 0 }),
+        find: type => type === g.FIND_STRUCTURES || type === g.FIND_MY_STRUCTURES ? structures :
+            type === g.FIND_CONSTRUCTION_SITES ? Array(sites).fill({}) : [] };
+    for (const s of sources) s.room = room;
+    for (const s of structures) {
+        if (!s.structureType.startsWith('STRUCTURE_')) s.structureType = g['STRUCTURE_' + s.structureType.toUpperCase()];
+        if (s.store && s.store.energy !== undefined) s.store[g.RESOURCE_ENERGY] = s.store.energy;
+    }
+    const spawn = { name: 'S', pos: { isNearTo: () => false },
+        spawnCreep: (body, name, opts) => { spawned.push({ role: opts.memory.priority, source: opts.memory.sourceLocation, body: plain(body) }); return g.OK; } };
+    build.run(spawn, [], room, residents.map(r => Object.assign({}, r, { memory: Object.assign({ homeRoom: 'NEW' }, r.memory) })), 1);
+    return { spawned, g };
+}
+const near = (x, y) => ({ inRangeTo: (p, r) => Math.max(Math.abs(p.x - x), Math.abs(p.y - y)) <= r, x, y });
+const source = (id, x, y) => ({ id, pos: Object.assign(near(x, y), { x, y }) });
+const worker = (priority, work = 5, extra = {}) => ({ memory: Object.assign({ priority }, extra), getActiveBodyparts: t => (t === 'work' || t === 'WORK' ? work : 1) });
+
+test('a source gets more harvesters until it has 5 WORK (small early bodies); then none', () => {
+    const s1 = source('s1', 10, 10), s2 = source('s2', 30, 30);
+    let r = staffRoom({ sources: [s1, s2], energy: 300, level: 1, residents: [worker('harvester', 2, { sourceLocation: 's1' }), worker('harvester', 5, { sourceLocation: 's2' })] });
+    assert.equal(r.spawned[0].role, 'harvester');
+    assert.equal(r.spawned[0].source, 's1', 'the source short of WORK gets a second harvester');
+    r = staffRoom({ sources: [s1, s2], residents: [worker('harvester', 5, { sourceLocation: 's1' }), worker('harvester', 5, { sourceLocation: 's2' }), worker('distributor'), worker('upgrader'), worker('upgrader'), worker('upgrader')] });
+    assert.ok(!r.spawned.some(c => c.role === 'harvester'), 'both sources at 5 WORK: ' + JSON.stringify(r.spawned));
+});
+
+test('no supplier before the storage (it only takes from the storage), even with a Supply flag', () => {
+    const s1 = source('s1', 10, 10);
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), worker('distributor'), worker('upgrader'), worker('upgrader'), worker('upgrader')];
+    const tower = { structureType: 'tower', hits: 3000, hitsMax: 3000, pos: near(20, 20) };
+    let r = staffRoom({ sources: [s1], residents, structures: [tower], flags: { NEWSupply: { pos: { isNearTo: () => false } } } });
+    assert.ok(!r.spawned.some(c => c.role === 'supplier'), JSON.stringify(r.spawned));
+    r = staffRoom({ sources: [s1], residents, structures: [tower], storage: { store: { energy: 1000 } }, level: 4 });
+    assert.equal(r.spawned[0].role, 'supplier', 'storage and towers: the supplier feeds the towers');
+});
+
+test('decaying roads and walls alone spawn no repairer; a damaged spawn or a half-broken container does', () => {
+    const s1 = source('s1', 10, 10);
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), worker('distributor'), worker('upgrader'), worker('upgrader'), worker('upgrader')];
+    const road = { structureType: 'road', hits: 1000, hitsMax: 5000, pos: near(5, 5) };
+    const rampart = { structureType: 'rampart', hits: 1000, hitsMax: 300000, pos: near(6, 6) };
+    const container = { structureType: 'container', hits: 200000, hitsMax: 250000, store: { energy: 0 }, pos: near(11, 11) };
+    let r = staffRoom({ sources: [s1], residents, structures: [road, rampart, container] });
+    assert.ok(!r.spawned.some(c => c.role === 'repair'), JSON.stringify(r.spawned));
+    r = staffRoom({ sources: [s1], residents, structures: [road, Object.assign({}, container, { hits: 100000 })] });
+    assert.equal(r.spawned[0].role, 'repair');
+});
+
+test('helpers stand in for the builder, then upgraders (one upgrader always kept)', () => {
+    const s1 = source('s1', 10, 10);
+    const base = [worker('harvester', 5, { sourceLocation: 's1' }), worker('distributor')];
+    const helper = worker('helper', 8, { destination: 'NEW', homeRoom: 'E1N1' });
+    let r = staffRoom({ sources: [s1], residents: base.concat([worker('upgrader')]), sites: 3 });
+    assert.ok(r.spawned.some(c => c.role === 'upgrader' || c.role === 'builder'), 'no helpers: builder and upgraders wanted');
+    r = staffRoom({ sources: [s1], residents: base.concat([worker('upgrader'), helper, helper, helper]), sites: 3 });
+    assert.equal(r.spawned.length, 0, 'three helpers cover the builder and the other upgraders: ' + JSON.stringify(r.spawned));
+});
+
+test('source containers nearly full: an extra upgrader spends the overflow', () => {
+    const s1 = source('s1', 10, 10);
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), worker('distributor'), worker('upgrader'), worker('upgrader'), worker('upgrader')];
+    const container = { structureType: 'container', hits: 250000, hitsMax: 250000, store: { energy: 1900 }, pos: near(11, 11) };
+    let r = staffRoom({ sources: [s1], residents, structures: [Object.assign({}, container, { store: { energy: 300 } })] });
+    assert.equal(r.spawned.length, 0, '3 upgraders at RCL3 with energy to spare: enough');
+    r = staffRoom({ sources: [s1], residents, structures: [container] });
+    assert.equal(r.spawned[0].role, 'upgrader');
+});

@@ -3,9 +3,11 @@
 // Intel:  any visible room near a home room is summarised in Memory.remoteIntel (sources,
 //         owner, reservation, keeper lairs, hostile towers). Vision comes from observers,
 //         our creeps, or a 1-MOVE scout sent when intel is missing or stale.
-// Plan:   a source is worth mining only if one max-size far mule can carry most of its
-//         output home: capacity / round trip >= COLLECT_SHARE x SOURCE_RATE. Qualifying
-//         sources fill free FarMining slots nearest-first (slot order is what the 25M/50M
+// Plan:   a source is worth mining when, after paying for the creeps that mine it (the miner,
+//         as many mules as its round trip needs, at most MAX_MULES, and its share of the room's
+//         reserver), it still returns at least MIN_NET_SHARE of its output. (It used to need a
+//         single mule to carry it all: at RCL4 that meant only sources within ~76 ticks.)
+//         Qualifying sources fill free FarMining slots nearest-first (slot order is what the 25M/50M
 //         rampart caps cut), with one FarGuard flag per mined room. Manual flags are never
 //         touched; auto flags are tracked in Memory.remoteAuto and removed when unplanned.
 // Safety: player attacks register strikes per room (Memory.remoteStatus). A struck room
@@ -20,7 +22,13 @@ const maintenance = require('system.maintenance');
 const ME = 'Montblanc';
 const REMOTE_RANGE = 2;            // rooms (linear) from home considered for mining
 const SOURCE_RATE = 10;            // 3000 energy / 300 ticks when reserved (claimers keep it so)
-const COLLECT_SHARE = 0.85;        // a mule must haul at least this share of the output
+const MIN_NET_SHARE = 0.5;         // a source must keep at least this share of its output after creep costs
+const MAX_MULES = 3;               // mules per source at most (CPU)
+const MINER_COST = 1130;           // the far miner body (spawn.BuildFarCreeps)
+const RESERVER_WORK = 450;         // ticks a reserver works at the controller (600 life less the trip)
+const RESERVE_REFILL = 4000;       // reservation it can usefully add (a new one is sent below 1000; max 5000)
+const COST = { carry: 50, move: 50, claim: 600 };
+const cost = part => (typeof BODYPART_COST !== 'undefined' && BODYPART_COST[part]) || COST[part];
 const TRIP_OVERHEAD = 6;           // withdraw, transfer and exit-tile ticks per round trip
 const INTEL_REFRESH = 1000;        // re-record visible rooms at most this often
 const INTEL_STALE = 20000;         // older intel needs a scout
@@ -209,6 +217,34 @@ function pendingRoomsFor(homeName) {
 
 // ---------------------------------------------------------------- planning
 
+// Hauling for one source: mules of up to 25 CARRY/MOVE pairs (as many as the home affords),
+// together carrying one round trip of output plus 15%.
+function haul(energyCapacity, trip) {
+    const affordable = Math.max(1, Math.min(25, Math.floor(energyCapacity / (cost(CARRY) + cost(MOVE)))));
+    const total = Math.ceil(SOURCE_RATE * trip * 1.15 / CARRY_CAPACITY);
+    const mules = Math.max(1, Math.ceil(total / affordable));
+    return { mules, pairs: Math.max(4, Math.min(affordable, Math.ceil(total / mules))) };
+}
+
+// Energy per tick a source returns after its creeps: the miner, its mules and its share of the
+// room's reserver. A reserver (CLAIM/MOVE pairs as spawn.BuildFarCreeps builds them) adds a tick
+// of reservation per CLAIM per working tick, so one covers CLAIM x RESERVER_WORK ticks (up to the
+// refill window) before the next is due: about 1.4 energy/tick per room at any size.
+function netGain(energyCapacity, trip, sourcesInRoom) {
+    const h = haul(energyCapacity, trip);
+    const pair = cost(CLAIM) + cost(MOVE);
+    const claims = Math.max(1, Math.min(8, Math.floor(energyCapacity / pair)));
+    const reserverPerTick = claims * pair / Math.min(RESERVE_REFILL + RESERVER_WORK, claims * RESERVER_WORK);
+    const life = typeof CREEP_LIFE_TIME === 'number' ? CREEP_LIFE_TIME : 1500;
+    const spend = MINER_COST / life + h.mules * h.pairs * (cost(CARRY) + cost(MOVE)) / life +
+        reserverPerTick / Math.max(1, sourcesInRoom);
+    return SOURCE_RATE - spend;
+}
+
+function worthMining(energyCapacity, trip, sourcesInRoom) {
+    return haul(energyCapacity, trip).mules <= MAX_MULES && netGain(energyCapacity, trip, sourcesInRoom) >= SOURCE_RATE * MIN_NET_SHARE;
+}
+
 function muleCapacity(energyCapacity) {
     // Mirrors getMuleBuild in spawn.BuildFarCreeps: CARRY/MOVE pairs only (max 25).
     const pairs = Math.max(0, Math.min(25, Math.floor(energyCapacity / 100)));
@@ -253,7 +289,6 @@ function planHome(home) {
     const plans = mem('remotePlan');
     const intel = mem('remoteIntel');
     const homeStatus = (Game.map.getRoomStatus(home.name) || {}).status;
-    const capacity = muleCapacity(home.energyCapacityAvailable);
 
     // Sources another home already mines (planned or manually flagged) stay theirs.
     const taken = new Set();
@@ -287,7 +322,7 @@ function planHome(home) {
                 cached = trips[id] = { t: Game.time, trip: roundTrip(home.storage.pos, new RoomPosition(x, y, roomName)) || null };
             }
             const trip = cached.trip === null ? undefined : cached.trip;
-            if (trip === undefined || capacity / trip < SOURCE_RATE * COLLECT_SHARE) continue;
+            if (trip === undefined || !worthMining(home.energyCapacityAvailable, trip, intel[roomName].s.length)) continue;
             list.push({ r: roomName, id, x, y, trip });
         }
     }
@@ -359,6 +394,14 @@ function tripFor(homeName, flag) {
     if (!plan || !flag) return undefined;
     const entry = plan.list.find(e => e.r === flag.pos.roomName && e.x === flag.pos.x && e.y === flag.pos.y);
     return entry ? entry.trip : undefined;
+}
+
+// Mules for the source under this flag: { mules, pairs } from its planned round trip; a manual
+// (unplanned) flag gets one max-size mule.
+function haulFor(home, flag) {
+    const trip = tripFor(home.name, flag);
+    if (!trip) return { mules: 1, pairs: Math.max(1, Math.min(25, Math.floor(home.energyCapacityAvailable / (cost(CARRY) + cost(MOVE))))) };
+    return haul(home.energyCapacityAvailable, trip);
 }
 
 // ---------------------------------------------------------------- scouting
@@ -439,4 +482,5 @@ function run() {
 module.exports = {
     run, recordIntel, noteIncident, isDisabled, needsProbe, needsScout, scoutTargets, observeRequest,
     planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE, pendingRoomsFor,
+    haul, haulFor, netGain, worthMining,
 };

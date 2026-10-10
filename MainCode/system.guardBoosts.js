@@ -90,25 +90,46 @@ function shortages(name) {
     if (r) for (const mineral in r.need) out[mineral] = Math.max(0, r.need[mineral] - stock(room, mineral));
     return out;
 }
+// MOVE is the one boost a quad never leaves without (XZHO2: 4x fatigue removed). Unboosted, a quad
+// of 10 MOVE to 40 other parts crawls at a quarter speed and the trip outlasts it.
+const MOVE_BOOST = () => RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
+function moveBoosted(creep) {
+    return !(creep.body || []).some(p => p.type === MOVE && !p.boost && p.hits !== 0);
+}
 let usedTick, usedLabs = new Set();
+// Boost a quad member at its home's leased labs. The other boosts get a bounded window (100 ticks,
+// or the safe-mode departure) and are skipped when absent; MOVE is waited for however long it takes
+// (squads.spawnOrder only spawns a member when its home has an XZHO2 lab and the stock for it).
 function boost(creep) {
     const m = creep.memory;
     if (m.guardBoostDone) return false;
     if (creep.spawning) return true;
     if (m.guardBoostStart === undefined) m.guardBoostStart = Game.time;
     const deadline = Math.min(m.guardBoostStart + 100, m.guardDeparture === undefined ? Infinity : m.guardDeparture);
-    const finish = () => { m.guardBoostDone = true; m.guardPhase = 'assembling'; return false; };
-    if (Game.time >= deadline || creep.room.name !== m.homeRoom) return finish();
+    const finish = () => { m.guardBoostDone = true; m.guardPhase = 'assembling'; delete m.guardBlocked; return false; };
+    if (creep.room.name !== m.homeRoom) return finish();
+    const late = Game.time >= deadline;
+    if (late && moveBoosted(creep)) return finish();
+    // Not done until MOVE is boosted: wait at home, saying why.
+    const waitForMove = reason => { m.guardPhase = 'boosting'; m.guardBlocked = reason; return true; };
     if (usedTick !== Game.time) { usedTick = Game.time; usedLabs = new Set(); }
     const needed = requirements(creep.body);
     const room = creep.room, r = roomState(room.name);
-    if (!r) return finish();
+    if (!r) return moveBoosted(creep) ? finish() : waitForMove('no boost labs leased for XZHO2');
     m.guardSkipped = m.guardSkipped || [];
-    for (const resource in needed) {
-        if (m.guardSkipped.includes(resource)) continue;
+    // MOVE first; after the deadline, MOVE only.
+    const order = Object.keys(needed).sort((a, b) => (b === MOVE_BOOST()) - (a === MOVE_BOOST()))
+        .filter(resource => !late || resource === MOVE_BOOST());
+    for (const resource of order) {
+        const isMove = resource === MOVE_BOOST();
+        if (!isMove && m.guardSkipped.includes(resource)) continue;
         const labId = Object.keys(r.assignments).find(id => r.assignments[id] === resource);
         const lab = labId && Game.getObjectById(labId);
-        if (!lab || stock(room, resource) < 30) { m.guardSkipped.push(resource); continue; }
+        if (!lab || stock(room, resource) < 30) {
+            if (isMove) return waitForMove(lab ? 'waiting for XZHO2 stock' : 'waiting for an XZHO2 lab');
+            m.guardSkipped.push(resource);
+            continue;
+        }
         m.guardPhase = 'boosting';
         if (usedLabs.has(lab.id)) return true;
         const count = Math.min(needed[resource] / 30, Math.floor((lab.store[resource] || 0) / 30),
@@ -120,9 +141,25 @@ function boost(creep) {
         else if (result !== ERR_NOT_ENOUGH_RESOURCES && result !== ERR_TIRED) m.guardSkipped.push(resource);
         return true;
     }
-    return finish();
+    return moveBoosted(creep) ? finish() : waitForMove('XZHO2 not applied yet');
 }
-module.exports = { prepare, stock, requirements, reserved, assignment, empireNeed, shortages, roomState, boost };
+// Can this home boost every MOVE part of a member with this body? An XZHO2 lab leased here, and
+// enough XZHO2 for it on top of what members already waiting at home will still take.
+function moveReady(homeName, parts) {
+    const room = Game.rooms[homeName], r = roomState(homeName), resource = MOVE_BOOST();
+    const need = requirements(parts)[resource] || 0;
+    if (!need) return true;
+    if (!room || !r) return false;
+    const labId = Object.keys(r.assignments).find(id => r.assignments[id] === resource);
+    if (!labId || !Game.getObjectById(labId)) return false;
+    let pending = 0;
+    for (const c of Object.values(Game.creeps)) {
+        if (!c.memory || !c.memory.guardSquad || c.memory.guardBoostDone || c.memory.homeRoom !== homeName) continue;
+        pending += requirements((c.body || []).filter(p => p.type === MOVE))[resource] || 0;
+    }
+    return stock(room, resource) - pending >= need;
+}
+module.exports = { prepare, stock, requirements, reserved, assignment, empireNeed, shortages, roomState, boost, moveBoosted, moveReady };
 // Lease hauling runs before legacy instructions. It also releases any stale legacy lab task.
 function workLabs(creep) {
     const room = creep.room, r = roomState(room.name);

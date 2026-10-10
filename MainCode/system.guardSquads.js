@@ -401,6 +401,13 @@ function spawnOrder(home) {
             if (!slot) continue;
             const parts = body(Game.rooms[home].energyCapacityAvailable, slot.slot);
             if (!parts.length) continue;
+            // A member waits at home until its MOVE is boosted: never spawn one this home cannot
+            // boost (no XZHO2 lab leased, or not enough XZHO2).
+            if (!require('system.guardBoosts').moveReady(home, parts)) {
+                t.moveBlocked = home;
+                continue;
+            }
+            delete t.moveBlocked;
             slot.phase = 'queued';
             const name = 'gq-' + Game.shard.name + '-' + (++state().serial).toString(36);
             const memory = { priority: 'roomGuard', homeRoom: home, destination: t.room,

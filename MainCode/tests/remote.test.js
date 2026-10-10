@@ -33,7 +33,7 @@ function world(extraCost = {}) {
     return { h, g, home, intel, remote: h.load('system.remoteMining') };
 }
 
-test('planner keeps sources a max-size mule can keep up with, nearest first', () => {
+test('planner keeps sources that stay well net-positive after their creeps, nearest first', () => {
     const { g, home, intel, remote } = world({ 'E6N5:40': 40, 'E5N6:20': 2 });
     assert.equal(remote.muleCapacity(5600), 1250, '25 CARRY at full energy (no ATTACK part)');
     intel('E6N5', [['a', 10, 10], ['b', 40, 40]]);   // adjacent: round trips 56 and 136
@@ -44,13 +44,15 @@ test('planner keeps sources a max-size mule can keep up with, nearest first', ()
     intel('E6N6', [['own', 5, 5]], { o: 'rival' });  // owned
     remote.planHome(home);
     const plan = plain(g.Memory.remotePlan.E5N5.list).map(e => e.id);
-    // 1250 / trip >= 8.5 energy/tick  ->  trip <= 147
     assert.deepEqual(plan, ['a', 'c', 'far', 'b']);
 
     g.Memory.remotePlan = {};
     const small = Object.assign({}, home, { energyCapacityAvailable: 1300 }); // 13 pairs = 650 carry -> trip <= 76
     remote.planHome(small);
-    assert.deepEqual(plain(g.Memory.remotePlan.E5N5.list).map(e => e.id), ['a', 'c'], 'smaller mules: two-room source is out of reach');
+    // Smaller mules: the farther sources now get several mules each and still return well over half.
+    assert.deepEqual(plain(g.Memory.remotePlan.E5N5.list).map(e => e.id), ['a', 'c', 'far', 'b']);
+    assert.deepEqual(plain(remote.haul(1300, 136)), { mules: 3, pairs: 11 });
+    assert.equal(remote.worthMining(1300, 200, 1), false, 'too far: more than 3 mules, or under half the output left');
 });
 
 test('a source another home already mines (plan or manual flag) is left alone', () => {

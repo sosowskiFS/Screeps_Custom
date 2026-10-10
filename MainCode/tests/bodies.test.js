@@ -20,7 +20,7 @@ test('far mules are sized to their round trip, at full off-road speed, with no d
     const tiny = far.getMuleBuild(12900, null, 5);
     assert.equal(count(tiny, g.CARRY), 4, 'never below 4 pairs');
     const poor = far.getMuleBuild(800, null, 140);
-    assert.equal(count(poor, g.CARRY), 8, 'limited by room energy');
+    assert.equal(count(poor, g.CARRY), 7, 'limited by room energy: 33 pairs needed, so 5 mules of 7');
 });
 
 test('reservers are CLAIM/MOVE pairs only', () => {

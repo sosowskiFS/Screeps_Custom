@@ -443,6 +443,12 @@ function returnDistributor(creep, target) {
     return returnIfEmptied(creep, target, {}, 0, source);
 }
 
+// Young-room repair targets besides the controller walls (as spawn.BuildCreeps counts them): no
+// roads, other walls or ramparts.
+function repairable(structure) {
+    return require('spawn.BuildCreeps').needsRepair(structure);
+}
+
 function findNewRepairTarget(creep, creepEnergy) {
     if (creepEnergy > 0 && creep.room.controller && creep.room.controller.level < 5) {
         const walls = require('system.claimDefense').controllerWalls(creep.room).filter(w => w.hits < w.hitsMax);
@@ -526,9 +532,7 @@ function findNewRepairTarget(creep, creepEnergy) {
         }
     } else {
         var closestDamagedStructure = [];
-        closestDamagedStructure = runtimeCache.find(creep.room, FIND_STRUCTURES, {
-            filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
-        });
+        closestDamagedStructure = runtimeCache.find(creep.room, FIND_STRUCTURES, { filter: repairable });
 
         if (closestDamagedStructure.length > 0) {
             closestDamagedStructure.sort(repairCompare);
@@ -545,9 +549,7 @@ function findNewRepairTarget(creep, creepEnergy) {
 
 function moveToNewTarget(creep) {
     var closestDamagedStructure = [];
-    closestDamagedStructure = runtimeCache.find(creep.room, FIND_STRUCTURES, {
-        filter: (structure) => (structure.structureType != STRUCTURE_ROAD) && (structure.hitsMax - structure.hits >= 200)
-    });
+    closestDamagedStructure = runtimeCache.find(creep.room, FIND_STRUCTURES, { filter: repairable });
 
     if (closestDamagedStructure.length > 0) {
         closestDamagedStructure.sort(repairCompare);

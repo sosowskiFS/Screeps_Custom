@@ -447,7 +447,8 @@ function buildRoom(room, plan) {
     };
 
     // Young room (no terminal yet, room.stage): no roads or ramparts, and sites already placed for
-    // them go, so builders spend everything on structures and upgrading.
+    // them go, so builders spend everything on structures and upgrading. Exception: roads on the
+    // swamp tiles that measurably slow the room's creeps (system.swampRoads).
     const established = stage.established(room);
     // A developing room whose attack triggered safe mode gets a deliberately tiny siege shell:
     // current spawns, current towers, and the supplier's Supply tile only.
@@ -476,7 +477,8 @@ function buildRoom(room, plan) {
             const keepSiegeRampart = type === STRUCTURE_RAMPART && siegeRamparts.has(tileOf(s.pos));
             const held = towerless && s.progress === 0 && !keepSiegeRampart && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
                 type !== STRUCTURE_CONTAINER && type !== STRUCTURE_WALL;
-            if (type === STRUCTURE_ROAD || (type === STRUCTURE_RAMPART && !keepSiegeRampart) || held) s.remove();
+            const swampRoad = type === STRUCTURE_ROAD && require('system.swampRoads').wanted(room.name, s.pos.x, s.pos.y);
+            if ((type === STRUCTURE_ROAD && !swampRoad) || (type === STRUCTURE_RAMPART && !keepSiegeRampart) || (held && !swampRoad)) s.remove();
         }
     }
 

@@ -39,6 +39,7 @@ const phases = [
     ['minerals', labs.run],
     ['construction', construction.handleAutoBuildRoomsRegeneration],
     ['roads', roads.run],
+    ['swampRoads', () => require('system.swampRoads').run()],   // young rooms: roads only on costly swamp tiles
     ['badRooms', badRooms.update],
     ['expansion', expansion.run],
     ['retire', retire.run],

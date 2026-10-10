@@ -53,10 +53,14 @@ var spawn_BuildCreeps = {
             }
         }
 
-        // Dynamic creep limits based on room level and available energy
-        let harvesterMax = Math.min(2, strSources.length);
+        // Dynamic creep limits based on room level and available energy.
+        // Harvesters: every source mined to 5 WORK (its full 10 energy/tick). Early bodies (RCL1-2)
+        // are too small for 5 WORK, so a source gets more harvesters until it has 5 WORK or no
+        // free tile left; one harvester per source used to leave a third or more unmined.
+        const harvestSource = sourceShortOfWork(thisRoom, strSources, RoomCreeps);
         let builderMax = runtimeCache.find(thisRoom, FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0;
         let upgraderMax = getUpgraderMax(thisRoom);
+        // Walls around the controller: one local repairer keeps strengthening them (claim defense).
         const controllerWalls = require('system.claimDefense').controllerWalls(thisRoom);
         let repairMax = controllerWalls.length ? 1 : getRepairMax(thisRoom);
         let supplierMax = 0;
@@ -82,15 +86,14 @@ var spawn_BuildCreeps = {
             }
         }
 
-        if (strSources.length == 1) {
-            harvesterMax = 1;
-            // Don't reduce other limits for single source rooms - they still need workers
-        }
-
         //For Level 4+ with storage
         if (thisRoom.storage) {
-            supplierMax = 1; // Always have at least 1 supplier when storage exists
-            
+            // The supplier feeds towers from the storage: only with both. Before the storage the
+            // distributor fills the towers (it used to be spawned for any Supply flag, and could
+            // not even pick up energy).
+            const towers = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
+            supplierMax = towers.length ? 1 : 0;
+
             // Scale upgraders based on energy availability and room level
             if (thisRoom.storage.store[RESOURCE_ENERGY] >= 50000) {
                 upgraderMax = Math.min(upgraderMax + 1, 4);
@@ -99,10 +102,19 @@ var spawn_BuildCreeps = {
                 upgraderMax = Math.min(upgraderMax + 1, 5);
             }
         }
-        
-        // Ensure suppliers are enabled if Supply flag exists
-        if (Game.flags[thisRoom.name + "Supply"] && supplierMax === 0) {
-            supplierMax = 1;
+
+        // Energy piling up in the source containers (nobody spends it fast enough): an extra
+        // upgrader per nearly full container, so the harvest is spent instead of overflowing.
+        upgraderMax = Math.min(UPGRADER_CAP, upgraderMax + Math.min(2, fullSourceContainers(thisRoom, strSources)));
+
+        // Helpers from a sponsor (creep.helper) build and upgrade here: each one present stands in
+        // for the room's own builder, then for an upgrader (one upgrader is always kept).
+        let helpers = RoomCreeps.filter(c => c && c.memory && c.memory.priority === 'helper' && c.memory.destination === roomName).length;
+        if (helpers) {
+            const fromBuilder = Math.min(helpers, builderMax);
+            builderMax -= fromBuilder;
+            helpers -= fromBuilder;
+            upgraderMax = Math.max(1, upgraderMax - helpers);
         }
 
         if (Game.flags[thisRoom.name + "upFocus"]) {
@@ -132,7 +144,7 @@ var spawn_BuildCreeps = {
             }
 
             global.setSpawnBusy(spawn);
-        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenderCount < 2 && harvesterCount >= harvesterMax && !defenseWatch.isDraining(thisRoom.name)) {
+        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenderCount < 2 && !harvestSource && !defenseWatch.isDraining(thisRoom.name)) {
             //Try to produce millitary units
                  var ToughCount = 0;
                 var MoveCount = 0;
@@ -201,20 +213,14 @@ var spawn_BuildCreeps = {
 					directions: buildDirections
                 });
                 global.setSpawnBusy(spawn);
-        } else if ((harvesterCount < harvesterMax || builderCount < builderMax || upgraderCount < upgraderMax || repairerCount < repairMax || supplierCount < supplierMax || distributorCount < distributorMax)) {
+        } else if ((harvestSource || builderCount < builderMax || upgraderCount < upgraderMax || repairerCount < repairMax || supplierCount < supplierMax || distributorCount < distributorMax)) {
             var prioritizedRole = 'harvester';
             var creepSourceID = '';
-            
+
             // Prioritize essential roles first, then support roles
-            if (harvesterCount < harvesterMax) {
+            if (harvestSource) {
                 prioritizedRole = 'harvester';
-                if (assignedSlot1Count > 0) {
-                    //Assign slot 2
-                    creepSourceID = strSources[1];
-                } else {
-                    //Assign slot 1
-                    creepSourceID = strSources[0];
-                }
+                creepSourceID = harvestSource;
                 bestWorker = getMinerConfig(budget, ownCreeps, harvesterCount);
             } else if (distributorCount < distributorMax && thisRoom.energyCapacityAvailable >= 150) {
                 prioritizedRole = 'distributor';
@@ -300,63 +306,92 @@ function getUpgraderMax(room) {
     return 1; // RCL 8 needs fewer upgraders
 }
 
+// Young-room repair work (creep.workV2) besides the controller walls: what a repairer would
+// actually be sent to. Roads are patched by passing creeps; other walls and ramparts are not
+// raised here; source containers are kept up by their harvesters, so a container only counts once
+// it is below half.
+function needsRepair(structure) {
+    const type = structure.structureType;
+    if (type === STRUCTURE_ROAD || type === STRUCTURE_WALL || type === STRUCTURE_RAMPART) return false;
+    if (type === STRUCTURE_CONTAINER) return structure.hits < structure.hitsMax / 2;
+    return structure.hitsMax - structure.hits >= 200;
+}
+
 function getRepairMax(room) {
-    // Only spawn repairers when there are damaged structures
-    const damagedStructures = runtimeCache.find(room, FIND_STRUCTURES, {
-        filter: (structure) => structure.hits < structure.hitsMax && structure.structureType != STRUCTURE_WALL && structure.structureType != STRUCTURE_RAMPART
-    });
-    return damagedStructures.length > 0 ? 1 : 0;
+    // Only spawn repairers when there is something a repairer would repair (decaying roads used
+    // to keep one alive permanently, and it then worked on walls).
+    return runtimeCache.find(room, FIND_STRUCTURES, { filter: needsRepair }).length > 0 ? 1 : 0;
+}
+
+const UPGRADER_CAP = 6;
+const SOURCE_WORK = 5;            // WORK parts that harvest a source's full output
+
+// Free tiles around a source (harvest positions), cached per source.
+const slotCache = {};
+function harvestSlots(source) {
+    if (slotCache[source.id] !== undefined) return slotCache[source.id];
+    const terrain = source.room.getTerrain();
+    let n = 0;
+    for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+            if ((dx || dy) && terrain.get(source.pos.x + dx, source.pos.y + dy) !== TERRAIN_MASK_WALL) n++;
+        }
+    }
+    return (slotCache[source.id] = n);
+}
+
+// The source that most needs another harvester: below 5 WORK with a free tile left (fewest WORK
+// first), or undefined. A creep ordered this tick (no body yet) counts as a full harvester.
+function sourceShortOfWork(room, sourceIds, roomCreeps) {
+    let best, bestWork = Infinity;
+    for (const id of sourceIds) {
+        const source = Game.getObjectById(id);
+        if (!source) continue;
+        const assigned = roomCreeps.filter(c => c && c.memory && c.memory.priority === 'harvester' && c.memory.sourceLocation === id);
+        const work = assigned.reduce((n, c) => n + (c.pending || typeof c.getActiveBodyparts !== 'function' ? SOURCE_WORK : c.getActiveBodyparts(WORK)), 0);
+        if (work >= SOURCE_WORK || assigned.length >= harvestSlots(source)) continue;
+        if (work < bestWork) { best = id; bestWork = work; }
+    }
+    return best;
+}
+
+// Containers beside the sources that are nearly full: harvested energy about to overflow.
+function fullSourceContainers(room, sourceIds) {
+    const sources = sourceIds.map(id => Game.getObjectById(id)).filter(Boolean);
+    return runtimeCache.find(room, FIND_STRUCTURES, { filter: { structureType: STRUCTURE_CONTAINER } })
+        .filter(c => c.store[RESOURCE_ENERGY] >= 1500 && sources.some(s => s.pos.inRangeTo(c.pos, 2))).length;
 }
 
 function getDistributorMax(room) {
     return 1;
 }
 
+// Young rooms have no roads (they come with the terminal, room.stage), so bodies are built for
+// unpaved ground. Fatigue per tile is 2 per WORK and per loaded CARRY on plains (10 on swamp),
+// and each MOVE removes 2: MOVE = WORK + CARRY keeps a loaded creep at full speed on plains.
+// Bodies are whole blocks sized to the energy on hand; the old worker body dropped MOVE parts to
+// fit (800 energy: 5 WORK, 5 CARRY, 1 MOVE, one tile per 5-10 ticks off-road).
+//   repair    [WORK, CARRY, MOVE]: moves at full speed empty, half loaded; repairs most of the trip
+//   upgrader  [WORK, CARRY, MOVE]: stands at the controller most of its life; walks half speed loaded
+//   builder   [WORK, CARRY, CARRY, MOVE, MOVE]: walks between sites all day; a load lasts twice as
+//             long (a WORK builds 5/tick) and it walks at full speed empty, two-thirds loaded
+const WORKER_BLOCKS = {
+    repair: { block: [WORK, CARRY, MOVE], max: 6 },
+    upgrader: { block: [WORK, CARRY, MOVE], max: 8 },
+    builder: { block: [WORK, CARRY, CARRY, MOVE, MOVE], max: 5 },
+};
 function getWorkerConfig(energyCap, role) {
-    if (role === 'repair') {
-        const blocks = Math.min(6, Math.floor(energyCap / 200));
-        return Array(blocks).fill(WORK).concat(Array(blocks).fill(CARRY), Array(blocks).fill(MOVE));
+    let spec = WORKER_BLOCKS[role] || WORKER_BLOCKS.upgrader;
+    if (energyCap < calculateConfigCost(spec.block)) spec = WORKER_BLOCKS.upgrader;   // not one block yet: the basic one
+    const cost = calculateConfigCost(spec.block);
+    const blocks = Math.max(1, Math.min(spec.max, Math.floor(energyCap / cost), Math.floor(50 / spec.block.length)));
+    // Same part types together: WORK first, MOVE last.
+    const body = [];
+    for (const type of [WORK, CARRY, MOVE]) {
+        const n = spec.block.filter(p => p === type).length * blocks;
+        for (let i = 0; i < n; i++) body.push(type);
     }
-    // Generic worker configuration for upgraders, builders, and repairers
-    let config = [];
-    let remainingEnergy = energyCap;
-    
-    // Minimum viable config
-    if (remainingEnergy < 200) return [MOVE, WORK, CARRY];
-    
-    // Calculate optimal WORK/CARRY/MOVE ratio
-    let workParts = 0;
-    let carryParts = 0;
-    let moveParts = 0;
-    
-    // For workers, prioritize WORK parts for efficiency
-    while (remainingEnergy >= 150 && workParts < 6) { // WORK(100) + CARRY(50) = 150
-        workParts++;
-        carryParts++;
-        remainingEnergy -= 150;
-    }
-    
-    // Add additional CARRY for builders/repairers who need to transport more
-    if ((role === 'builder' || role === 'repair') && remainingEnergy >= 50 && carryParts < workParts * 2) {
-        let additionalCarry = Math.min(Math.floor(remainingEnergy / 50), workParts);
-        carryParts += additionalCarry;
-        remainingEnergy -= additionalCarry * 50;
-    }
-    
-    // Calculate MOVE parts (1 MOVE per 2 other parts, minimum 1)
-    moveParts = Math.max(1, Math.ceil((workParts + carryParts) / 2));
-    
-    // Adjust if we don't have enough energy for moves
-    while (moveParts * 50 > remainingEnergy && moveParts > 1) {
-        moveParts--;
-    }
-    
-    // Build the config
-    for (let i = 0; i < workParts; i++) config.push(WORK);
-    for (let i = 0; i < carryParts; i++) config.push(CARRY);
-    for (let i = 0; i < moveParts; i++) config.push(MOVE);
-    
-    return config;
+    return body;
 }
 
 function getSupplierConfig(energyCap) {
@@ -413,12 +448,9 @@ function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
     // Calculate remaining energy after WORK parts and the first CARRY
     let remainingEnergy = energyCap - (workParts * workCost) - carryCost;
     
-    // Add extra CARRY if we have room and energy (miners don't need much CARRY, but some is useful)
-    if (remainingEnergy >= carryCost * 2) {
-        carryParts = 2; // 2 CARRY parts is usually sufficient for miners
-        remainingEnergy -= carryCost;   // the second (the first is paid above)
-    }
-    
+    // One CARRY only: a harvester stands on its container and harvests straight into it; the CARRY
+    // is for building and repairing that container. (A second one was 50 energy for nothing.)
+
     // Calculate MOVE parts - we want enough to move at normal speed
     // Rule: 1 MOVE per 2 other parts for normal speed on roads, more for off-road
     let totalOtherParts = workParts + carryParts;
@@ -437,46 +469,18 @@ function getMinerConfig(energyCap, numRoomCreeps, numHarvesters) {
 }
 
 function getDistributorConfig(energyCap, numRoomCreeps, numHarvesters) {
-    // Distributors focus on moving energy efficiently
-    // Lower energy requirement for early game rooms
-    if (energyCap < 250) {
-        return [MOVE, CARRY, CARRY]; // Very minimal distributor for RCL 1-2 (150)
-    }
-    
-    return [MOVE, MOVE, CARRY, CARRY, CARRY]; // Early game distributor
-    
-    //rest is whatever
-    let config = [];
-    let remainingEnergy = energyCap;
-    let carryParts = 0;
-    let moveParts = 0;
-    
-    // Add CARRY and MOVE parts in 2:1 ratio for efficiency
-    while (remainingEnergy >= 100 && carryParts < 10) { // CARRY(50) + MOVE(50) = 100
-        carryParts += 2;
-        moveParts += 1;
-        remainingEnergy -= 100;
-        
-        if (remainingEnergy >= 50 && carryParts < 12) {
-            carryParts++;
-            remainingEnergy -= 50;
-        }
-    }
-    
-    // Ensure minimum configuration
-    if (carryParts < 3) {
-        carryParts = 3;
-        moveParts = 2;
-    }
-    
-    // Build the config
-    for (let i = 0; i < carryParts; i++) config.push(CARRY);
-    for (let i = 0; i < moveParts; i++) config.push(MOVE);
-    
-    return config;
-    
+    // CARRY/MOVE 1:1: full speed loaded on unpaved ground. Sized to the energy on hand, up to 8 pairs
+    // (400 per trip); it used to stay at 150 carried (5 parts) whatever the room could afford, so
+    // an RCL3-4 room needed 6-9 slow trips per refill.
+    if (energyCap < 200) return [CARRY, MOVE];
+    const pairs = Math.min(8, Math.floor(energyCap / 100));
+    return Array(pairs).fill(CARRY).concat(Array(pairs).fill(MOVE));
 }
 
 spawn_BuildCreeps.getMinerConfig = getMinerConfig;
+spawn_BuildCreeps.getWorkerConfig = getWorkerConfig;
+spawn_BuildCreeps.getDistributorConfig = getDistributorConfig;
+spawn_BuildCreeps.needsRepair = needsRepair;
+spawn_BuildCreeps.sourceShortOfWork = sourceShortOfWork;
 spawn_BuildCreeps.fitBody = fitBody;
 module.exports = spawn_BuildCreeps;
