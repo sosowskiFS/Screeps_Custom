@@ -75,3 +75,19 @@ test('an attacked-room latch is dropped once the room is no longer ours', () => 
     assert.equal(s.sys.escalated('shardX', 'E29N36'), false);
     assert.equal(s.sys.escalated('shardX', 'MINE'), true);
 });
+
+test('a declaimed shardX room still being claimed keeps its quads (reclaim), and is a quad target even with no attack latch', () => {
+    const s = setup();
+    s.messages.shardX = JSON.stringify({
+        guards: { at: 1000000, ms: 3000, rooms: { E29N36: { owned: false, escalated: true } }, members: {} },
+        xs: { progress: { E29N36: { cl: 0, lost: 1 } } },
+    });
+    s.sys.run();
+    assert.equal(s.g.Game.creeps.q0.memory.guardRecall, undefined, 'not recalled while the room is being reclaimed');
+    // Fresh state, no target and no latch: the lost room becomes a target from the progress report.
+    const t = setup();
+    delete t.sys.state().targets['shardX:E29N36'];
+    t.messages.shardX = JSON.stringify({ guards: { at: 1000000, ms: 3000, rooms: {}, members: {} }, xs: { progress: { E29N36: { cl: 0, lost: 1 } } } });
+    t.sys.run();
+    assert.ok(t.sys.state().targets['shardX:E29N36'], 'quads are scheduled for the reclaim');
+});

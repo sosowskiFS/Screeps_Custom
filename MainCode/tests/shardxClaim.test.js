@@ -137,3 +137,56 @@ test('hand-picked targets are not topped up automatically when one is lost', () 
     assert.match(s.x.command('claim'), /picking/);
     assert.equal(s.g.Memory.xs.manual, undefined);
 });
+
+test('a lost room is reclaimed: claimer and helpers wait while armed players hold it or the controller is blocked', () => {
+    const s = setup({ E36N36: { cl: 0, lost: 1, hz: 2, hp: 0 } });
+    s.g.Game.notify = () => {};
+    const kinds = [];
+    for (let i = 0; i < 6; i++) { const o = s.cycle(); if (o) kinds.push(o.kind); }
+    assert.deepEqual(kinds, [], 'armed hostiles and no guard of ours: nothing walks in');
+    s.remote.shardX.progress = { E36N36: { cl: 0, lost: 1, hz: 2, gq: 4, hp: 0 } };
+    assert.equal(s.cycle().kind, 'claimer', 'our quad holds the room: the claimer goes');
+    s.g.Game.time += 1000;
+    s.remote.shardX.progress = { E36N36: { cl: 0, lost: 1, hz: 0, ub: 900, hp: 0 } };
+    assert.equal(s.cycle(), undefined, 'controller blocked longer than the trip (300): wait');
+    s.remote.shardX.progress = { E36N36: { cl: 0, lost: 1, hz: 0, ub: 100, hp: 0 } };
+    assert.equal(s.cycle().kind, 'claimer');
+});
+
+test('rooms all done, then one is lost: back to claim mode, which reclaims it', () => {
+    const s = setup({ E36N36: { cl: 0, lost: 1, hz: 0 } });
+    const notes = [];
+    s.g.Game.notify = t => notes.push(t);
+    s.g.Memory.xs.mode = 'done';
+    s.g.Game.time = 5050;
+    s.x.run();
+    assert.equal(s.g.Memory.xs.mode, 'claim');
+    assert.match(notes[0], /E36N36 lost/);
+});
+
+test('shardX reports a room it held and no longer owns as lost, with armed hostiles and the controller block', () => {
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.Memory.settings = Object.assign({}, g.Memory.settings, { shardX: true });
+    g.Game.shard = { name: 'shardX' };
+    g.console = { log: () => {} };
+    const written = {};
+    g.InterShardMemory = { getLocal: () => written.v || '', setLocal: v => { written.v = v; },
+        getRemote: sh => (sh === 'shard2' ? JSON.stringify({ xs: { mode: 'claim', targets: [{ r: 'E36N36', h: 'shard2:E28N48', e: 'E40N40', t: 300 }] } }) : null) };
+    g.Game.map.getRoomLinearDistance = () => 3;
+    const controller = { my: true, upgradeBlocked: 0 };
+    const hostiles = [];
+    g.Game.rooms = { E36N36: { name: 'E36N36', controller, find: type => (type === g.FIND_HOSTILE_CREEPS ? hostiles : []) } };
+    g.Game.creeps = {};
+    g.Memory.xs = { seen: {}, tag: {} };
+    const x = h.load('system.shardX');
+    const report = () => { h.load('runtime.cache').invalidateRoom && h.load('runtime.cache').invalidateRoom('E36N36'); g.Game.time += 100; x.run(); return JSON.parse(written.v).xs.progress.E36N36; };
+    g.Game.time = 0;
+    assert.equal(report().lost, undefined, 'ours: not lost');
+    controller.my = false; controller.upgradeBlocked = 800;
+    hostiles.push({ owner: { username: 'Harabi' }, body: [{ type: g.RANGED_ATTACK }] }, { owner: { username: 'Invader' }, body: [{ type: g.ATTACK }] });
+    const p = report();
+    assert.equal(p.lost, 1);
+    assert.equal(p.hz, 1, 'players only, not NPC invaders');
+    assert.equal(p.ub, 800);
+});

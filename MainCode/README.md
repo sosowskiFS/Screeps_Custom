@@ -294,6 +294,12 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
     - **Owned by another player:** never attacked. It's reported, the target is dropped, and the next best candidate takes its place. The lost room and its neighbours aren't picked again for 50,000 ticks.
     - **Any other refusal** is reported (`er` in shardX's progress), and claimers keep coming.
   - **Spacing:** two neighbouring candidates are never both picked; picks stay more than 2 rooms apart.
+- **Reclaiming a lost room.** shardX remembers every target it has held. One that is no longer ours (declaimed by an attacker) is reported as lost, with the armed player creeps in it and the controller's attack block (`upgradeBlocked`).
+  - **Notice:** shard2 logs it and sends a `Game.notify`. If every room had its terminal (mode `done`, when support had stopped), it switches back to `claim`.
+  - **Quads first:** the lost room stays a guard-quad target even without an attack flag, and quads already bound for it are no longer recalled (they used to be, as for any lost room).
+  - **Claimer and helpers wait** while armed players are in the room and none of our guards is, and while the controller's attack block would outlast the claimer's trip. Then claimers keep coming until it's ours again, a reservation is worn down as for any claim, and helpers follow.
+  - **Taken by another player** (they claimed it): dropped and reported as before; it can't be claimed without attacking their controller.
+  - `shardX()` shows a lost target as "lost: reclaiming", with the hostiles and the controller block.
 - **`shardX('candidates')`** (shard2) lists the candidates shardX reports (up to 30): room, score, trip ticks, sponsor and corner.
 - **`shardX('claim', ['E19N28', 'E22N31@E32N33', 'W1N22'])`** claims the named candidates instead of automatic picks.
   - Each room must be one of shardX's reported candidates.

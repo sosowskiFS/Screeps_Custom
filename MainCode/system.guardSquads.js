@@ -122,9 +122,9 @@ function adopt(creep) {
     }
     return false;
 }
-function register(shard, room, home, corner, distance) {
+function register(shard, room, home, corner, distance, force) {
     const s = state(), id = key(shard, room);
-    if (!escalated(shard, room) && !s.targets[id]) return;
+    if (!force && !escalated(shard, room) && !s.targets[id]) return;
     let t = s.targets[id];
     if (!t) t = s.targets[id] = { shard, room, home, corner, distance, squads: [], samples: {} };
     t.home = home; t.corner = corner; t.distance = distance;
@@ -291,7 +291,8 @@ function updateTarget(t) {
         // Lost, or shardX switched off: squads bound for it go home, unboost and recycle
         // (creep.recall) instead of walking on (shardX E29N36 was lost while two quads were on
         // their way). A room that graduated keeps the squads already posted or travelling.
-        if (t.lost || switchedOff) {
+        // (A shardX room still being claimed is being reclaimed: its squads stay.)
+        if ((t.lost && !(t.shard === 'shardX' && claimTarget(t.room))) || switchedOff) {
             for (const c of localMembers()) {
                 if (c.memory.destination === t.room && c.memory.guardTargetShard === t.shard) c.memory.guardRecall = 1;
             }
@@ -378,7 +379,9 @@ function run() {
     const xs = Game.shard.name === 'shard2' ? Memory.xs : ism.get('shard2', 'xs');
     if (xs && xs.mode === 'claim' && require('system.shardX').enabled()) for (const t of xs.targets || []) {
         const [shard, home] = t.h.split(':');
-        if (shard === Game.shard.name) register('shardX', t.r, home, t.e, t.t);
+        // A room that was ours and was declaimed is reclaimed with quads first: always a target.
+        const p = (ism.get('shardX', 'xs') || {}).progress || {};
+        if (shard === Game.shard.name) register('shardX', t.r, home, t.e, t.t, !!(p[t.r] && p[t.r].lost));
     }
     for (const t of Object.values(s.targets)) {
         // Refresh graduation/ownership even after expansion has removed its target.

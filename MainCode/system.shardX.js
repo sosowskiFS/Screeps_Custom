@@ -367,6 +367,9 @@ function candidates(checks = PLAN_CHECKS) {
     return out.slice(0, TOP_CANDS);
 }
 
+const NPC = new Set(['Invader', 'Source Keeper']);
+function runtimeCacheFind(room, type) { return require('runtime.cache').find(room, type); }
+
 function runX() {
     adopt();
     if (Game.time % 100 !== 0) return;
@@ -397,6 +400,18 @@ function runX() {
             if (m.priority !== 'roomGuard' || m.destination !== t.r) continue;
             progress[t.r].gd = Math.max(progress[t.r].gd || 0, Game.creeps[n].ticksToLive || 0);
             if (m.trip !== undefined) progress[t.r].gt = m.trip;
+            if (Game.creeps[n].room.name === t.r) progress[t.r].gq = (progress[t.r].gq || 0) + 1;   // guards on post
+        }
+        // Lost: ours before, not now (declaimed). The reclaim (shard2, scheduleSupport) waits for
+        // the room to be clear of armed players (or held by our guards) and for the controller's
+        // attack block to run out.
+        const held = xState().held || (xState().held = {});
+        if (progress[t.r].cl) held[t.r] = Game.time;
+        else if (held[t.r]) progress[t.r].lost = 1;
+        if (room) {
+            progress[t.r].hz = runtimeCacheFind(room, FIND_HOSTILE_CREEPS).filter(h => !NPC.has(h.owner.username) &&
+                !(Memory.whiteList || []).includes(h.owner.username) && h.body.some(p => p.type === ATTACK || p.type === RANGED_ATTACK)).length;
+            if (c && c.upgradeBlocked > 0) progress[t.r].ub = c.upgradeBlocked;
         }
     }
     const scouts = Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'xScout').length;
@@ -472,7 +487,12 @@ function scheduleSupport(list, progress) {
                 continue;
             }
         }
-        if (!p.cl) {
+        // Reclaiming a room that was ours (declaimed by an attacker): the guard quads go first
+        // (system.guardSquads keeps the room a target); claimer and helpers wait while armed
+        // players are there and no guard of ours is, and while the controller's attack block would
+        // outlast the claimer's trip. They would only be fed to the attackers.
+        const reclaimWait = p.lost && !p.cl && ((p.hz > 0 && !p.gq) || (p.ub || 0) > (t.t || 300));
+        if (!p.cl && !reclaimWait) {
             // Claimers until one succeeds: a new one once none is on its way (here or on shardX)
             // and the last one has had time to get there. A reservation by another player gets a
             // claimer with many CLAIM parts to wear it down first.
@@ -486,8 +506,9 @@ function scheduleSupport(list, progress) {
             }
         }
         // Helpers from the start, alongside the claimer: they arrive loaded and get to work the
-        // moment the room is ours, instead of setting out only after the claim.
-        if ((p.hp || 0) + inFlight('helper') < HELPERS && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
+        // moment the room is ours, instead of setting out only after the claim. (Not into a room
+        // being reclaimed until it is safe, as for the claimer.)
+        if (!reclaimWait && (p.hp || 0) + inFlight('helper') < HELPERS && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
             s.last[t.r + ':h'] = Game.time;
             queue(home, { kind: 'helper', memory: Object.assign({ priority: 'helper', previousPriority: 'helper' }, base) });
         }
@@ -502,6 +523,19 @@ function runHome() {
     }
     const m = mode();
     if (m === 'scout' && Game.time % SCOUT_EVERY === 0) scheduleScout(readISM(X_SHARD));
+    // All rooms had their terminal ('done'), but one has since been lost: back to claiming, which
+    // reclaims it (quads first, then claimer and helpers once it is safe).
+    if (m === 'done' && here === COORD_SHARD && Game.time % 25 === 0) {
+        const prog = (readISM(X_SHARD) || {}).progress || {};
+        const lost = (s.targets || []).filter(t => prog[t.r] && prog[t.r].lost);
+        if (lost.length) {
+            s.mode = 'claim';
+            s.dirty = 1;
+            const text = '[shardX] ' + lost.map(t => t.r).join(', ') + ' lost (declaimed); reclaiming';
+            console.log(text);
+            Game.notify(text);
+        }
+    }
     if (m === 'claim' && Game.time % 25 === 0) {
         const x = readISM(X_SHARD) || {};
         if (here === COORD_SHARD) {
@@ -526,6 +560,22 @@ function runHome() {
             }
         }
         const list = targets();
+        if (here === COORD_SHARD) {
+            const prog = x.progress || {};
+            s.lostSeen = s.lostSeen || {};
+            for (const t of list) {
+                const p = prog[t.r] || {};
+                if (p.lost && !p.cl && !s.lostSeen[t.r]) {
+                    s.lostSeen[t.r] = Game.time;
+                    const text = '[shardX] ' + t.r + ' lost (declaimed); reclaiming once it is clear';
+                    console.log(text);
+                    Game.notify(text);
+                } else if (p.cl && s.lostSeen[t.r]) {
+                    console.log('[shardX] ' + t.r + ' reclaimed');
+                    delete s.lostSeen[t.r];
+                }
+            }
+        }
         scheduleSupport(list, x.progress || {});
         if (here === COORD_SHARD && list.length && list.every(t => (x.progress || {})[t.r] && x.progress[t.r].tm)) {
             s.mode = 'done';
@@ -588,7 +638,7 @@ function run() {
 // orders and attacked-room latches. Map knowledge (portals, rooms seen by scouts) is kept.
 function reset() {
     const s = state();
-    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty', 'skip', 'block', 'manual']) delete s[k];
+    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty', 'skip', 'block', 'manual', 'held', 'lostSeen']) delete s[k];
     s.queue = {};
     const recalled = require('system.guardSquads').forget(X_SHARD);
     writeISM(null);
@@ -678,7 +728,8 @@ function command(cmd, picks) {
         lines.push('corners here: ' + nearCorners().map(c => c.corner + (s.noPortal && s.noPortal[c.corner] ? ' (no portal)' : '') + ' from ' + c.home).join(', '));
         for (const t of targets()) {
             const p = (x.progress || {})[t.r] || {};
-            const block = p.ow ? ' (owned by ' + p.ow + ')' : p.rs ? ' (reserved by ' + p.rs.u + ', ' + p.rs.e + ' ticks left)' : p.er !== undefined ? ' (claim refused: ' + p.er + ')' : '';
+            const block = p.lost && !p.cl ? ' (lost: reclaiming' + (p.hz ? ', ' + p.hz + ' armed hostiles' : '') + (p.ub ? ', controller blocked ' + p.ub : '') + ')' :
+                p.ow ? ' (owned by ' + p.ow + ')' : p.rs ? ' (reserved by ' + p.rs.u + ', ' + p.rs.e + ' ticks left)' : p.er !== undefined ? ' (claim refused: ' + p.er + ')' : '';
             lines.push('  ' + t.r + ' from ' + t.h + ' via ' + t.e + ': ' + (p.tm ? 'terminal built' : p.cl ? 'claimed, ' + (p.hp || 0) + ' helpers' : 'not claimed yet' + block));
         }
     }
