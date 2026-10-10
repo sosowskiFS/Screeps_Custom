@@ -13,6 +13,8 @@
 // a tile next to the controller: once the controller is attacked, safe mode is blocked.
 // Only with a charge available, no cooldown, and no other room of ours on this shard already in
 // safe mode (the game allows one at a time). tower.Operate's proximity rule skips these rooms.
+// An attacked room that cannot have safe mode (another room has it, no charge, cooldown, blocked
+// controller) is still flagged as attacked, so guard quads are sent (system.guardSquads).
 const stage = require('room.stage');
 
 const NPC = new Set(['Invader', 'Source Keeper']);
@@ -82,10 +84,14 @@ function run() {
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
         const c = room.controller;
-        // An attacked controller (upgradeBlocked) cannot enter safe mode until the block ends.
-        if (!c || !c.my || c.safeMode || !c.safeModeAvailable || c.safeModeCooldown || c.upgradeBlocked > 0) continue;
+        if (!c || !c.my || c.safeMode) continue;
         const reason = threat(room);
-        if (!reason || safeModeActiveElsewhere(name)) continue;
+        if (!reason) continue;
+        // An attacked controller (upgradeBlocked) cannot enter safe mode until the block ends.
+        if (!c.safeModeAvailable || c.safeModeCooldown || c.upgradeBlocked > 0 || safeModeActiveElsewhere(name)) {
+            require('system.guardSquads').latch(room, 'attacked without safe mode: ' + reason);
+            continue;
+        }
         const result = c.activateSafeMode();
         const text = 'SAFE MODE ' + (result === OK ? 'activated' : 'failed (' + result + ')') + ' in ' + name + ' (under construction): ' + reason;
         console.log('[safeMode] ' + text);

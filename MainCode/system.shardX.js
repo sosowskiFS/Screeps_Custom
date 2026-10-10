@@ -2,7 +2,11 @@
 //
 // Console (shard2):  shardX('scout')  scouting on every home shard (shard1/shard3 follow shard2)
 //                    shardX('claim')  stop scouting, pick 3 rooms, claim and support them
+//                    shardX('claim', ['E19N28', 'E22N31@E32N33'])  claim these candidates instead
+//                                     (ROOM@HOME: sponsor other than the scouted one)
+//                    shardX('candidates')  list shardX's reported candidates
 //                    shardX('cancel') stop everything;  shardX() status (on any shard)
+//                    shardX('reset')  forget the attempt (works while switched off)
 //
 // Scouting
 //   Home shards (HOME_SHARDS): every SCOUT_EVERY ticks each shard sends one 1-MOVE scout,
@@ -55,7 +59,10 @@ const TICKS_PER_ROOM = 50;
 const SCOUT_LIFE = 1500;
 const RESEEN = 20000;
 const HELPERS = 4;
-const CLAIMER_GAP = 700;
+const CLAIMER_GAP = 300;          // at least this between claimer orders (more: the trip, see scheduleSupport)
+const MAX_TARGETS = 3;
+const SKIP_FOR = 50000;           // a target someone else claimed first is not picked again for this long
+const BLOCK_TTL = 1500;           // a claimer's report of what blocks a target (shardX ticks)
 const HELPER_GAP = 150;
 const GUARD_GAP = 400;           // between guard orders (one in transit is invisible to shardX)
 const TOP_CANDS = 30;
@@ -71,6 +78,13 @@ const BODIES = {
 
 function state() {
     return Memory.xs || (Memory.xs = {});
+}
+
+// A claimer that must first wear down another player's reservation: each CLAIM takes a tick off
+// it per tick (the reservation also runs down by itself), so as many as the home can afford.
+function breakerBody(capacity) {
+    const n = Math.max(1, Math.min(25, Math.floor(capacity / (BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]))));
+    return Array(n).fill(CLAIM).concat(Array(n).fill(MOVE));
 }
 
 // ---------------------------------------------------------------- inter-shard memory
@@ -312,6 +326,20 @@ function runScout(creep) {
     }
 }
 
+function myName() {
+    for (const name in Game.creeps) return Game.creeps[name].owner.username;
+    for (const name in Game.spawns) return Game.spawns[name].owner.username;
+    return undefined;
+}
+
+// Called by a claimer at a shardX target: what blocks the claim (null: nothing).
+function noteBlock(roomName, info) {
+    const s = xState();
+    if (!s.block) s.block = {};
+    if (info) s.block[roomName] = Object.assign({ t: Game.time }, info);
+    else delete s.block[roomName];
+}
+
 function myRooms() {
     return Object.keys(Game.rooms).filter(n => Game.rooms[n].controller && Game.rooms[n].controller.my);
 }
@@ -347,7 +375,20 @@ function runX() {
             cl: room && room.controller && room.controller.my ? 1 : 0,
             tm: room && room.terminal && room.terminal.my ? 1 : 0,
             hp: Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'helper' && Game.creeps[n].memory.destination === t.r).length,
+            cx: Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'claimer' && Game.creeps[n].memory.destination === t.r).length,
         };
+        // What stands in the claim's way: another owner (shard2 picks another room) or another
+        // player's reservation (the next claimer comes with many CLAIM parts). Seen live, or as
+        // reported by our last claimer there.
+        const c = room && room.controller, block = (xState().block || {})[t.r];
+        if (c && !c.my) {
+            if (c.owner) progress[t.r].ow = c.owner.username;
+            else if (c.reservation && c.reservation.username !== myName()) progress[t.r].rs = { u: c.reservation.username, e: c.reservation.ticksToEnd };
+        } else if (!c && block && Game.time - block.t < BLOCK_TTL) {
+            if (block.ow) progress[t.r].ow = block.ow;
+            if (block.rs) progress[t.r].rs = { u: block.rs, e: Math.max(0, block.e - (Game.time - block.t)) };
+            if (block.err !== undefined) progress[t.r].er = block.err;
+        }
         // Guards here: the longest remaining life, and the latest measured trip (spawn to arrival).
         for (const n in Game.creeps) {
             const m = Game.creeps[n].memory;
@@ -380,16 +421,24 @@ function scheduleScout(x) {
     return next;
 }
 
-// Pick the targets: best candidates first, each from a different home, spaced like auto-expansion.
-function pick(cands) {
+// Pick targets: best candidates first, each from a different home, spaced like auto-expansion
+// (never within 2 rooms of another pick: two neighbouring candidates are never both taken).
+// existing: targets already held; skip: rooms recently lost to another player.
+function pick(cands, existing = [], skip = {}) {
     const picks = [];
-    const used = new Set();
+    const all = existing.slice();
+    const used = new Set(existing.map(p => p.h));
     for (const cand of cands) {
-        if (picks.length >= 3) break;
+        if (all.length >= MAX_TARGETS) break;
         if (!cand.h || used.has(cand.h) || cand.t > CLAIM_TICKS) continue;
-        if (picks.some(p => linear(p.r, cand.r) <= 2)) continue;
+        // Lost to another player recently: neither that room nor its neighbours (the candidate
+        // list may predate the claim).
+        if (Object.keys(skip).some(r => Game.time - skip[r] < SKIP_FOR && linear(r, cand.r) <= 1)) continue;
+        if (all.some(p => p.r === cand.r || linear(p.r, cand.r) <= 2)) continue;
         used.add(cand.h);
-        picks.push({ r: cand.r, h: cand.h, e: cand.e, t: cand.t });
+        const p = { r: cand.r, h: cand.h, e: cand.e, t: cand.t };
+        picks.push(p);
+        all.push(p);
     }
     return picks;
 }
@@ -422,11 +471,21 @@ function scheduleSupport(list, progress) {
             }
         }
         if (!p.cl) {
-            if (!inFlight('claimer') && Game.time - (s.last[t.r + ':c'] || 0) > CLAIMER_GAP) {
+            // Claimers until one succeeds: a new one once none is on its way (here or on shardX)
+            // and the last one has had time to get there. A reservation by another player gets a
+            // claimer with many CLAIM parts to wear it down first.
+            const gap = Math.max(CLAIMER_GAP, (t.t || 300) + 150);
+            if (!inFlight('claimer') && !p.cx && Game.time - (s.last[t.r + ':c'] || 0) > gap) {
                 s.last[t.r + ':c'] = Game.time;
-                queue(home, { kind: 'claimer', memory: Object.assign({ priority: 'claimer' }, base) });
+                const memory = Object.assign({ priority: 'claimer' }, base);
+                if (p.rs) memory.breaker = 1;
+                queue(home, { kind: 'claimer', memory });
+                continue;
             }
-        } else if ((p.hp || 0) + inFlight('helper') < HELPERS && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
+        }
+        // Helpers from the start, alongside the claimer: they arrive loaded and get to work the
+        // moment the room is ours, instead of setting out only after the claim.
+        if ((p.hp || 0) + inFlight('helper') < HELPERS && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
             s.last[t.r + ':h'] = Game.time;
             queue(home, { kind: 'helper', memory: Object.assign({ priority: 'helper', previousPriority: 'helper' }, base) });
         }
@@ -443,11 +502,26 @@ function runHome() {
     if (m === 'scout' && Game.time % SCOUT_EVERY === 0) scheduleScout(readISM(X_SHARD));
     if (m === 'claim' && Game.time % 25 === 0) {
         const x = readISM(X_SHARD) || {};
-        if (here === COORD_SHARD && !(s.targets && s.targets.length)) {
-            s.targets = pick(x.cands || []);
-            console.log('[shardX] ' + (s.targets.length ? 'claiming ' + s.targets.map(t => t.r + ' (from ' + t.h + ')').join(', ')
-                : 'no usable candidates yet (' + (x.cands || []).length + ' reported by ' + X_SHARD + '); retrying'));
-            s.dirty = 1;
+        if (here === COORD_SHARD) {
+            // A target someone else claimed first is dropped (and not picked again for a while);
+            // free places are filled with the next best candidates.
+            const prog = x.progress || {};
+            const keep = (s.targets || []).filter(t => !(prog[t.r] && prog[t.r].ow));
+            for (const t of s.targets || []) {
+                if (keep.includes(t)) continue;
+                (s.skip || (s.skip = {}))[t.r] = Game.time;
+                console.log('[shardX] ' + t.r + ' was claimed by ' + prog[t.r].ow + ' first; picking another room');
+            }
+            // Hand-picked targets (shardX('claim', [...])) are not topped up with automatic picks.
+            const add = !s.manual && keep.length < MAX_TARGETS ? pick(x.cands || [], keep, s.skip) : [];
+            if (add.length) console.log('[shardX] claiming ' + add.map(t => t.r + ' (from ' + t.h + ')').join(', '));
+            else if (s.manual && keep.length < (s.targets || []).length) console.log('[shardX] hand-picked targets left: ' +
+                (keep.map(t => t.r).join(', ') || 'none') + '; pick more with shardX("claim", [...])');
+            else if (!s.manual && !keep.length) console.log('[shardX] no usable candidates yet (' + (x.cands || []).length + ' reported by ' + X_SHARD + '); retrying');
+            if (add.length || keep.length !== (s.targets || []).length) {
+                s.targets = keep.concat(add);
+                s.dirty = 1;
+            }
         }
         const list = targets();
         scheduleSupport(list, x.progress || {});
@@ -485,7 +559,9 @@ function spawnOrder(roomName) {
         delete s.queue[roomName];
         return null;
     }
-    const body = order.kind === 'roomGuard' ? require('creep.roomGuard').body(Game.rooms[roomName].energyCapacityAvailable) : BODIES[order.kind];
+    const capacity = Game.rooms[roomName].energyCapacityAvailable;
+    const body = order.kind === 'roomGuard' ? require('creep.roomGuard').body(capacity)
+        : order.kind === 'claimer' && order.memory.breaker ? breakerBody(capacity) : BODIES[order.kind];
     return { body, memory: order.memory };
 }
 
@@ -510,7 +586,7 @@ function run() {
 // orders and attacked-room latches. Map knowledge (portals, rooms seen by scouts) is kept.
 function reset() {
     const s = state();
-    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty']) delete s[k];
+    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty', 'skip', 'block', 'manual']) delete s[k];
     s.queue = {};
     const recalled = require('system.guardSquads').forget(X_SHARD);
     writeISM(null);
@@ -519,12 +595,69 @@ function reset() {
         (Game.shard.name === COORD_SHARD ? '. Run shardX("reset") on shardX too to clear its leftovers.' : '');
 }
 
-function command(cmd) {
+// Hand-picked claim targets: ['E19N28', 'E22N31@E32N33', 'W1N22@shard3:E29N43']. Each room must be
+// one of the candidates shardX reports. Its sponsor is the candidate's (the home with the fastest
+// scouted trip) unless named after '@': another home on this shard (it goes through its own
+// nearest corner; the trip is estimated) or the scouted one on another shard. Sponsors must differ.
+// Returns { targets } or { error }.
+function manualTargets(picks, cands) {
+    const out = [];
+    for (const spec of picks) {
+        const [room, sponsor] = String(spec).split('@');
+        const cand = cands.find(c => c.r === room);
+        if (!cand) return { error: room + ' is not one of the ' + cands.length + ' candidates shardX reports (shardX("candidates") lists them)' };
+        let t = { r: room, h: cand.h, e: cand.e, t: cand.t };
+        if (sponsor) {
+            const h = sponsor.includes(':') ? sponsor : Game.shard.name + ':' + sponsor;
+            if (h !== cand.h) {
+                const [shard, home] = h.split(':');
+                if (shard !== Game.shard.name) return { error: room + ': a sponsor on ' + shard + ' can only be the scouted one (' + cand.h + ')' };
+                if (!homes().includes(home)) return { error: room + ': ' + home + ' is not a home room here (needs a storage and a spawn)' };
+                const s = state();
+                const corner = nearCorners([home]).find(c => !(s.noPortal && s.noPortal[c.corner]));
+                if (!corner) return { error: room + ': no usable corner portal near ' + home };
+                const trip = (linear(home, corner.corner) + linear(corner.corner, room)) * TICKS_PER_ROOM;
+                if (trip > CLAIM_TICKS) return { error: room + ' from ' + home + ': about ' + trip + ' ticks, over the ' + CLAIM_TICKS + '-tick claim limit' };
+                t = { r: room, h, e: corner.corner, t: trip };
+            }
+        }
+        if (out.some(o => o.r === t.r)) return { error: room + ' is listed twice' };
+        const clash = out.find(o => o.h === t.h);
+        if (clash) return { error: clash.r + ' and ' + room + ' both have sponsor ' + t.h + '; give one another with ROOM@HOME' };
+        out.push(t);
+    }
+    return { targets: out };
+}
+
+function command(cmd, picks) {
     if (cmd === 'reset') return reset();
     if (!enabled()) return 'shardX is switched off (system.shardX ENABLED = false; Memory.settings.shardX = true turns it back on)';
     const s = state();
+    if (cmd === 'candidates') {
+        // On a home shard: shardX's reported candidates, to review before hand-picking.
+        const cands = (readISM(X_SHARD) || {}).cands || [];
+        const lines = [cands.length + ' candidates reported by ' + X_SHARD + ' (room, score, ticks, sponsor, corner):'];
+        for (const c of cands) lines.push('  ' + c.r + '  score ' + c.s + '  ' + c.t + ' ticks  ' + c.h + '  via ' + c.e);
+        console.log(lines.join('\n'));
+        return cands.length + ' candidates';
+    }
+    if (cmd === 'claim' && picks !== undefined) {
+        if (Game.shard.name !== COORD_SHARD) return 'run this on ' + COORD_SHARD + ' (the other shards follow it)';
+        const list = Array.isArray(picks) ? picks : [picks];
+        if (!list.length) return 'name at least one room: shardX("claim", ["E19N28", "E22N31@E32N33"])';
+        const r = manualTargets(list, (readISM(X_SHARD) || {}).cands || []);
+        if (r.error) return r.error;
+        s.mode = 'claim';
+        s.targets = r.targets;
+        s.manual = 1;
+        s.queue = {};
+        s.dirty = 1;
+        return 'claiming ' + r.targets.map(t => t.r + ' (from ' + t.h + ' via ' + t.e + ', ~' + t.t + ' ticks)').join(', ') +
+            (r.targets.some((t, i) => r.targets.some((o, j) => j > i && linear(o.r, t.r) <= 2)) ? '; note: some are within 2 rooms of each other' : '');
+    }
     if (cmd === 'scout' || cmd === 'claim' || cmd === 'cancel') {
         if (Game.shard.name !== COORD_SHARD) return 'run this on ' + COORD_SHARD + ' (the other shards follow it)';
+        if (cmd === 'claim') delete s.manual;
         s.mode = cmd === 'cancel' ? undefined : cmd;
         s.queue = {};
         s.dirty = 1;
@@ -543,7 +676,8 @@ function command(cmd) {
         lines.push('corners here: ' + nearCorners().map(c => c.corner + (s.noPortal && s.noPortal[c.corner] ? ' (no portal)' : '') + ' from ' + c.home).join(', '));
         for (const t of targets()) {
             const p = (x.progress || {})[t.r] || {};
-            lines.push('  ' + t.r + ' from ' + t.h + ' via ' + t.e + ': ' + (p.tm ? 'terminal built' : p.cl ? 'claimed, ' + (p.hp || 0) + ' helpers' : 'not claimed yet'));
+            const block = p.ow ? ' (owned by ' + p.ow + ')' : p.rs ? ' (reserved by ' + p.rs.u + ', ' + p.rs.e + ' ticks left)' : p.er !== undefined ? ' (claim refused: ' + p.er + ')' : '';
+            lines.push('  ' + t.r + ' from ' + t.h + ' via ' + t.e + ': ' + (p.tm ? 'terminal built' : p.cl ? 'claimed, ' + (p.hp || 0) + ' helpers' : 'not claimed yet' + block));
         }
     }
     console.log(lines.join('\n'));
@@ -552,6 +686,6 @@ function command(cmd) {
 
 module.exports = {
     enabled,
-    run, reset, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, manualTargets, noteBlock, breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

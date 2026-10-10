@@ -1,5 +1,38 @@
 const expansion = require('system.expansion');
 
+// A shardX claim target (system.shardX). Never attacks a room someone else owns: that is reported
+// and shard2 picks another room. Another player's reservation is worn down first
+// (attackController takes a tick per CLAIM part), then the room is claimed. Anything else that
+// stops the claim is reported too; shard2 keeps sending claimers until one succeeds.
+function claimX(creep) {
+    const shardX = require('system.shardX');
+    const room = creep.room, c = room.controller;
+    if (!c || c.my) { creep.suicide(); return; }
+    if (c.owner) {
+        shardX.noteBlock(room.name, { ow: c.owner.username });
+        creep.suicide();
+        return;
+    }
+    const reserved = c.reservation && c.reservation.username !== creep.owner.username;
+    shardX.noteBlock(room.name, reserved ? { rs: c.reservation.username, e: c.reservation.ticksToEnd } : null);
+    if (!creep.pos.isNearTo(c)) {
+        creep.travelTo(c, { range: 1, ignoreRoads: true, offRoad: true });
+        return;
+    }
+    if (reserved) {
+        creep.attackController(c);
+        return;
+    }
+    const result = creep.claimController(c);
+    if (result !== OK) {
+        shardX.noteBlock(room.name, { err: result });
+        creep.suicide();
+        return;
+    }
+    c.pos.createFlag('InitAutoBuild', COLOR_GREEN, COLOR_WHITE);
+    creep.suicide();
+}
+
 var creep_claimer = {
 
     /** @param {Creep} creep **/
@@ -47,6 +80,8 @@ var creep_claimer = {
                     });
                 }
             }
+        } else if (creep.memory.xTarget) {
+            claimX(creep);
         } else {
             const forExpansion = Memory.expansion && Memory.expansion.t === creep.room.name;
             if (forExpansion && creep.room.controller.owner != undefined && !creep.room.controller.my) {
@@ -106,4 +141,5 @@ var creep_claimer = {
     }
 };
 
+creep_claimer.claimX = claimX;
 module.exports = creep_claimer;

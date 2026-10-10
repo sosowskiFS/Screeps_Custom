@@ -162,6 +162,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - or our controller attacked.
   - **What doesn't count:** hostiles merely in the room. A quad stuck on an exit next door marched in and out of shardX's E29N36 without touching anything. Invaders, source keepers, whitelisted players, and attackers already gone don't count either.
   - **Guards:** only with a charge available, no cooldown, the controller not attack-blocked (the game refuses then), and no other room of ours on the shard in safe mode. It notifies by `Game.notify`.
+  - **No safe mode possible:** an attacked room that can't have safe mode is still flagged as attacked, so its guard quads are sent. The game allows only one room per shard in safe mode, so with several young rooms attacked at once, only the first gets it. Before, only a safe mode activation flagged a room, so the others got no quads.
   - **The older trigger:** `tower.Operate`'s proximity rule (a player creep within 5 of a tower below RCL7) now skips rooms under construction.
 - **Room guard** (`creep.roomGuard.js`): once a room is claimed, its sponsor (auto-expansion; for shardX, the home room) keeps a ranger there.
   - **Body:** the power-harvest rangers' builds, by the sponsor's spawn energy.
@@ -247,7 +248,20 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 - **Candidates:** the auto-expansion rules (the base planner must fit, 2 checks per 100 ticks), plus a controller reachable within 500 ticks. Highway and source-keeper rooms count as known neighbours, since nobody can claim them.
 - **Spawn priority:** a home's spawns take shardX orders (scouts, claimer, helpers) before its own auto-expansion support.
 - **`shardX('claim')`:** stops scouting. shard2 picks the 3 best candidates, each from a different home on any home shard, spaced like auto-expansion.
-  - Each home's own shard sends a claimer through the same corner, then keeps 4 helpers there until shardX reports a terminal. From then on shardX's own auto-expansion takes over.
+  - Each home's own shard sends a claimer through the same corner, and **helpers from the start**: 4 at a time until shardX reports a terminal, so they arrive loaded and work the moment the room is claimed. From then on shardX's own auto-expansion takes over.
+  - **Claimers until claimed:** a new claimer goes once none is on its way (on the home shard or reported on shardX) and the last one has had time to arrive (the trip plus 150 ticks, at least 300).
+  - **On arrival** (`creep.claimer.js`, shardX targets):
+    - **Reserved by another player:** the claimer wears the reservation down with `attackController` (a tick per CLAIM part per tick), then claims. Once shardX reports the reservation, the next claimer is a breaker with as many CLAIM parts as the home can afford (19 at RCL8).
+    - **Owned by another player:** never attacked. It's reported, the target is dropped, and the next best candidate takes its place. The lost room and its neighbours aren't picked again for 50,000 ticks.
+    - **Any other refusal** is reported (`er` in shardX's progress), and claimers keep coming.
+  - **Spacing:** two neighbouring candidates are never both picked; picks stay more than 2 rooms apart.
+- **`shardX('candidates')`** (shard2) lists the candidates shardX reports (up to 30): room, score, trip ticks, sponsor and corner.
+- **`shardX('claim', ['E19N28', 'E22N31@E32N33', 'W1N22'])`** claims the named candidates instead of automatic picks.
+  - Each room must be one of shardX's reported candidates.
+  - **Sponsor:** by default the home with the fastest scouted trip. `ROOM@HOME` names another home on shard2 instead; it goes through that home's nearest corner, the trip is estimated from the room distance, and it must stay within the 500-tick claim limit. A sponsor on another shard can only be the scouted one (`ROOM@shard3:E29N43`).
+  - Sponsors must all differ, and a warning is shown when picks are within 2 rooms of each other.
+  - Hand-picked targets aren't refilled: one lost to another player is dropped and reported, and you pick its replacement. A plain `shardX('claim')` goes back to automatic picks.
+- **Status** (`shardX()` on shard2) shows what blocks each target: another owner, another player's reservation and its ticks left, or a refused claim.
 - **`shardX('cancel')`** stops everything; **`shardX()`** shows status on any shard.
 - **`shardX('reset')`** (works while switched off) forgets the whole attempt before a fresh start.
   - **On shard2:** clears the mode, targets, orders, travellers and quad targets for shardX rooms, and what shard2 publishes to the other shards. Quad members still on shard2 go home, unboost and recycle.

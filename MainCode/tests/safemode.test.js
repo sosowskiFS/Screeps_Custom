@@ -13,7 +13,7 @@ function setup({ terminal = false, otherSafe = false, available = 1, log = [], o
     const activated = [];
     const room = { name: 'E29N36', terminal: terminal ? { my: true } : undefined, getEventLog: () => log, find: () => [],
         controller: { my: true, level: 2, safeModeAvailable: available, activateSafeMode: () => { activated.push('E29N36'); return g.OK; } } };
-    const other = { name: 'E1N1', getEventLog: () => [], controller: { my: true, safeMode: otherSafe ? 1000 : undefined, safeModeAvailable: 0 } };
+    const other = { name: 'E1N1', getEventLog: () => [], find: () => [], controller: { my: true, safeMode: otherSafe ? 1000 : undefined, safeModeAvailable: 0 } };
     g.Game.rooms = { E29N36: room, E1N1: other };
     const all = Object.assign({
         raider: { owner: { username: 'raider' } },
@@ -25,7 +25,7 @@ function setup({ terminal = false, otherSafe = false, available = 1, log = [], o
     }, objects);
     g.Game.getObjectById = id => all[id] || null;
     g.Memory.whiteList = ['friend'];
-    return { g, activated, run: () => h.load('system.safeMode').run() };
+    return { h, g, activated, run: () => h.load('system.safeMode').run() };
 }
 
 const attack = (by, target, damage = 300) => ({ event: 1, objectId: by, data: { targetId: target, damage, attackType: 1 } });
@@ -58,6 +58,19 @@ test('never in an established room, without a charge, or while another room has 
         s.run();
         assert.deepEqual(s.activated, [], JSON.stringify(opts));
     }
+});
+
+test('an attacked room that cannot have safe mode is still flagged for guard quads', () => {
+    for (const opts of [{ available: 0 }, { otherSafe: true }]) {
+        const s = setup(Object.assign({ log: [attack('raider', 'spawn')] }, opts));
+        s.g.Game.shard.name = 'shardX';
+        s.run();
+        const guards = s.h.load('system.guardSquads');
+        assert.equal(guards.escalated('shardX', 'E29N36'), true, JSON.stringify(opts));
+    }
+    const quiet = setup({ otherSafe: true });
+    quiet.run();
+    assert.equal(quiet.h.load('system.guardSquads').escalated(quiet.g.Game.shard.name, 'E29N36'), false, 'not without an attack');
 });
 
 test('no attempt (and no failed-attempt spam) while the controller is attack-blocked', () => {
