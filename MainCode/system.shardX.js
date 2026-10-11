@@ -409,6 +409,15 @@ function runX() {
         const held = xState().held || (xState().held = {});
         if (progress[t.r].cl) held[t.r] = Game.time;
         else if (held[t.r]) progress[t.r].lost = 1;
+        // Each loss counts: once reclaimed, the room is built fortified (fortified()).
+        const lostMark = xState().lostMark || (xState().lostMark = {});
+        if (progress[t.r].lost && !lostMark[t.r]) {
+            lostMark[t.r] = Game.time;
+            const losses = xState().losses || (xState().losses = {});
+            losses[t.r] = (losses[t.r] || 0) + 1;
+        } else if (progress[t.r].cl && lostMark[t.r]) {
+            delete lostMark[t.r];
+        }
         if (room) {
             progress[t.r].hz = runtimeCacheFind(room, FIND_HOSTILE_CREEPS).filter(h => !NPC.has(h.owner.username) &&
                 !(Memory.whiteList || []).includes(h.owner.username) && h.body.some(p => p.type === ATTACK || p.type === RANGED_ATTACK)).length;
@@ -682,8 +691,36 @@ function manualTargets(picks, cands) {
     return { targets: out };
 }
 
+// A shardX room claimed again after being lost (or marked by hand) is built fortified until its
+// second tower stands (RCL5): towers only, ramparts over them (and over a spawn it already has),
+// and walls on every free tile around the controller (base.builder). Everything else it would
+// build (spawn, extensions, roads...) is what the attacker's dismantlers tore down, and its
+// claimers went for the controller: shardX E22N32, W1N22 and W1N9 were overrun repeatedly by
+// Harabi's claimers and 25-WORK dismantlers. The sponsor's helpers and guards carry the room.
+const FORTIFY_UNTIL_TOWERS = 2;
+function fortified(room) {
+    if (!room || Game.shard.name !== X_SHARD || !room.controller || !room.controller.my) return false;
+    const s = Memory.xs || {};
+    if (!((s.losses && s.losses[room.name] > 0) || (s.fortify && s.fortify[room.name]))) return false;
+    const towers = require('runtime.cache').find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } }).length;
+    return towers < FORTIFY_UNTIL_TOWERS;
+}
+
 function command(cmd, picks) {
     if (cmd === 'reset') return reset();
+    if (cmd === 'fortify' || cmd === 'unfortify') {
+        // On shardX: shardX('fortify', ['W1N22']) builds those rooms fortified (as after a loss).
+        if (Game.shard.name !== X_SHARD) return 'run this on ' + X_SHARD;
+        const list = Array.isArray(picks) ? picks : picks ? [picks] : [];
+        if (!list.length) return 'fortified: ' + (Object.keys(xState().fortify || {}).concat(Object.keys(xState().losses || {}))
+            .filter((r, i, a) => a.indexOf(r) === i).join(', ') || 'none');
+        const marks = xState().fortify || (xState().fortify = {});
+        for (const r of list) {
+            if (cmd === 'fortify') marks[r] = Game.time;
+            else { delete marks[r]; if (xState().losses) delete xState().losses[r]; }
+        }
+        return cmd + ': ' + list.join(', ');
+    }
     if (!enabled()) return 'shardX is switched off (Memory.settings.shardX = false, or ENABLED = false in system.shardX)';
     const s = state();
     if (cmd === 'candidates') {
@@ -740,6 +777,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, manualTargets, noteBlock, breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

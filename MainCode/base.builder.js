@@ -454,6 +454,9 @@ function buildRoom(room, plan) {
     // spawns, towers and storage, and the Supply tile once a supplier stands there (it only spawns
     // with a storage and towers). It buys time against a random assault; an attack only raises the
     // hits the shell is kept at (system.guardSquads.rampartCap).
+    // A shardX room reclaimed after a loss is built fortified (system.shardX.fortified): towers only,
+    // ramparts over them (and over a spawn it already has), walls around the controller.
+    const fortified = !established && require('system.shardX').fortified(room);
     const shellRamparts = new Set();
     if (!established && rcl >= RAMPART_RCL) {
         for (const structure of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
@@ -466,7 +469,7 @@ function buildRoom(room, plan) {
             (c.memory.priority === 'supplier' || c.memory.priority === 'supplierNearDeath'));
         const supply = Game.flags[room.name + 'Supply'];
         const supplyTile = supply ? tileOf(supply.pos) : plan.flags && plan.flags.Supply;
-        if (supplier && supplyTile !== undefined) shellRamparts.add(supplyTile);
+        if (supplier && supplyTile !== undefined && !fortified) shellRamparts.add(supplyTile);
     }
     const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
     // Young and no tower yet: hostile creeps can stomp construction sites unopposed, so only the
@@ -474,7 +477,9 @@ function buildRoom(room, plan) {
     // upgrade the controller meanwhile. Containers stay: miners need them.
     // While the controller cannot be upgraded (attacked: upgradeBlocked) the builders would have
     // nothing to do, so the other structures go down after all.
-    const towerless = !established && built(STRUCTURE_TOWER) === 0 && !(room.controller.upgradeBlocked > 0);
+    // Only for a room someone else carries (room.stage.supported): its sponsor's helpers bring the
+    // energy. A room on its own needs its extensions to grow (Seasonal W1N7 sat at RCL2 with none).
+    const towerless = !established && stage.supported(room) && built(STRUCTURE_TOWER) === 0 && !(room.controller.upgradeBlocked > 0);
     if (!established) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
             const type = s.structureType;
@@ -482,7 +487,9 @@ function buildRoom(room, plan) {
             const held = towerless && s.progress === 0 && !keepSiegeRampart && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
                 type !== STRUCTURE_CONTAINER && type !== STRUCTURE_WALL;
             const swampRoad = type === STRUCTURE_ROAD && require('system.swampRoads').wanted(room.name, s.pos.x, s.pos.y);
-            if ((type === STRUCTURE_ROAD && !swampRoad) || (type === STRUCTURE_RAMPART && !keepSiegeRampart) || (held && !swampRoad)) s.remove();
+            // Fortified: towers, shell ramparts and walls only; even a started spawn goes.
+            const offFortify = fortified && type !== STRUCTURE_TOWER && type !== STRUCTURE_WALL && !keepSiegeRampart;
+            if ((type === STRUCTURE_ROAD && !swampRoad) || (type === STRUCTURE_RAMPART && !keepSiegeRampart) || (held && !swampRoad) || offFortify) s.remove();
         }
     }
 
@@ -491,7 +498,8 @@ function buildRoom(room, plan) {
     // (and built) before anything else; a young room with no tower possible yet gets nothing more.
     const towersAllowed = Math.min((CONTROLLER_STRUCTURES[STRUCTURE_TOWER] || {})[rcl] || 0, (plan.structures.tower || []).length);
     let kinds = ORDER;
-    if (built(STRUCTURE_SPAWN) === 0 && (plan.structures.spawn || []).length) kinds = ['spawn'];
+    if (fortified) kinds = built(STRUCTURE_TOWER) < towersAllowed ? ['tower'] : [];   // no spawn first either
+    else if (built(STRUCTURE_SPAWN) === 0 && (plan.structures.spawn || []).length) kinds = ['spawn'];
     else if (built(STRUCTURE_TOWER) < towersAllowed) kinds = ['tower'];
     else if (towerless) kinds = [];
 
@@ -578,7 +586,7 @@ function buildRoom(room, plan) {
         }
     }
 
-    if (!established) controllerWalls(room, plan, rcl, site, occupied);
+    if (!established) controllerWalls(room, plan, rcl, site, occupied, fortified);
 
     ensureExtractor(room, rcl, budget);
 
@@ -596,12 +604,13 @@ function buildRoom(room, plan) {
 // roads, paths, work tiles) and never where it would cut a path (site() checks). Walls, not
 // ramparts: ramparts decay. Helpers repair them to CONTROLLER_WALL_HITS x RCL.
 const CONTROLLER_FAR = 8;
-function controllerWalls(room, plan, rcl, site, occupied) {
+// A fortified room walls its controller in wherever it is (its attackers came for the controller).
+function controllerWalls(room, plan, rcl, site, occupied, always) {
     const controller = room.controller;
     if (rcl < 2 || !controller || plan.anchor === undefined) return;
     const c = tileOf(controller.pos);
     const ax = (plan.anchor / 50) | 0, ay = plan.anchor % 50;
-    if (Math.max(Math.abs(controller.pos.x - ax), Math.abs(controller.pos.y - ay)) < CONTROLLER_FAR) return;
+    if (!always && Math.max(Math.abs(controller.pos.x - ax), Math.abs(controller.pos.y - ay)) < CONTROLLER_FAR) return;
     const reserved = new Set(plan.roads.concat(plan.paths));
     for (const k in plan.structures) for (const t of plan.structures[k]) reserved.add(t);
     for (const k in plan.flags || {}) reserved.add(plan.flags[k]);

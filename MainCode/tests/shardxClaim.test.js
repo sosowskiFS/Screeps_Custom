@@ -189,4 +189,12 @@ test('shardX reports a room it held and no longer owns as lost, with armed hosti
     assert.equal(p.lost, 1);
     assert.equal(p.hz, 1, 'players only, not NPC invaders');
     assert.equal(p.ub, 800);
+    assert.equal(g.Memory.xs.losses.E36N36, 1, 'the loss is counted (the room is built fortified once reclaimed)');
+    report();
+    assert.equal(g.Memory.xs.losses.E36N36, 1, 'once per loss, not per report');
+    controller.my = true; report();
+    controller.my = false; report();
+    assert.equal(g.Memory.xs.losses.E36N36, 2, 'lost again after a reclaim');
+    assert.match(x.command('fortify', ['W1N22']), /fortify: W1N22/);
+    assert.ok(g.Memory.xs.fortify.W1N22, 'marked by hand');
 });

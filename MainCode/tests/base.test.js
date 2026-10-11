@@ -331,9 +331,10 @@ test('a parked miner does not serve a power spawn; a boxed-in planned tile is mo
     assert.ok(c.req.service.has(I(26, 13)), 'the miner tile is a service tile');
 });
 
-test('a young room without a tower builds nothing but its spawn: controller first until RCL3', () => {
+test('a supported young room without a tower builds nothing but its spawn: controller first until RCL3', () => {
     const existing = [];
     const { g, room, sites, builder } = builderRoom(2, existing);
+    g.Memory.expansion = { t: 'W1N1' };   // a sponsor's helpers carry it
     const removed = [];
     const site = (type, x) => ({ structureType: type, progress: 0, pos: { x, y: 2 }, remove: () => removed.push(type) });
     room.find = (find => type => (type === g.FIND_MY_CONSTRUCTION_SITES
@@ -373,4 +374,58 @@ test('while the controller is blocked from upgrading, a tower-less young room ge
     room.controller.upgradeBlocked = 800;
     builder.buildRoom(room);
     assert.ok(sites.some(s => s[2] === g.STRUCTURE_EXTENSION), 'extensions to build instead of upgrading');
+});
+
+// shardX room reclaimed after a loss: fortified until its second tower.
+function fortifiedRoom(rcl, existing = []) {
+    const r = builderRoom(rcl, existing);
+    r.g.Game.shard.name = 'shardX';
+    r.g.Memory.xs = { losses: { W1N1: 1 } };
+    return r;
+}
+test('a reclaimed shardX room builds only towers (no spawn first), ramparts over them, and walls the controller in', () => {
+    const existing = [];
+    const { g, room, sites, builder } = fortifiedRoom(3, existing);
+    const removed = [];
+    room.find = (find => type => (type === g.FIND_MY_CONSTRUCTION_SITES
+        ? [{ structureType: g.STRUCTURE_EXTENSION, progress: 500, pos: { x: 2, y: 2 }, remove: () => removed.push('extension') },
+            { structureType: g.STRUCTURE_SPAWN, progress: 0, pos: { x: 3, y: 3 }, remove: () => removed.push('spawn') }]
+        : find(type)))(room.find);
+    builder.planRoom(room);
+    builder.buildRoom(room);
+    const types = sites.map(s => s[2]);
+    assert.ok(types.includes(g.STRUCTURE_TOWER), 'its tower');
+    assert.ok(!types.includes(g.STRUCTURE_SPAWN) && !types.includes(g.STRUCTURE_EXTENSION), JSON.stringify(types));
+    assert.ok(types.includes(g.STRUCTURE_WALL), 'controller walls even with the controller near the base');
+    assert.deepEqual(removed.sort(), ['extension', 'spawn'], 'started sites for anything else go');
+    // The tower stands: its rampart, still nothing else.
+    const t = builder.planOf(room.name).structures.tower[0];
+    existing.push({ structureType: g.STRUCTURE_TOWER, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
+    sites.length = 0;
+    builder.buildRoom(room);
+    assert.deepEqual(sites.filter(s => s[2] !== g.STRUCTURE_WALL).map(s => s[2]), [g.STRUCTURE_RAMPART]);
+});
+test('the fortified build ends with the second tower; rooms never lost (or on other shards) are not fortified', () => {
+    const { h, g, room } = fortifiedRoom(5, []);
+    const x = h.load('system.shardX');
+    assert.equal(x.fortified(room), true);
+    room.find = type => (type === g.FIND_MY_STRUCTURES ? [1, 2].map(i => ({ structureType: g.STRUCTURE_TOWER, id: 't' + i })) : []);
+    h.load('runtime.cache').invalidateRoom(room.name);
+    assert.equal(x.fortified(room), false, 'two towers: the normal build resumes');
+    const other = builderRoom(5, []);
+    other.g.Game.shard.name = 'shardX';
+    assert.equal(other.h.load('system.shardX').fortified(other.room), false, 'never lost');
+    const mmo = builderRoom(5, []);
+    mmo.g.Memory.xs = { losses: { W1N1: 1 } };
+    assert.equal(mmo.h.load('system.shardX').fortified(mmo.room), false, 'shardX only');
+});
+
+test('a young room on its own (no sponsor) builds its extensions at RCL2 without waiting for a tower', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(2, existing);
+    builder.planRoom(room);
+    const t = builder.planOf(room.name).structures.spawn[0];
+    existing.push({ structureType: g.STRUCTURE_SPAWN, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
+    builder.buildRoom(room);
+    assert.ok(sites.filter(s => s[2] === g.STRUCTURE_EXTENSION).length > 0, JSON.stringify(sites.map(s => s[2])));
 });

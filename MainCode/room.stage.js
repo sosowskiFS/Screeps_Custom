@@ -13,9 +13,20 @@ function established(roomOrName) {
     return !!(room.terminal && room.terminal.my);
 }
 
+// Does someone else carry this young room: an auto-expansion target (sponsor helpers), any shardX
+// room (sponsored from the home shards), or sponsor helpers working in it? A room on its own
+// (a fresh start, the Seasonal World) has to build everything itself.
+function supported(roomOrName) {
+    const room = typeof roomOrName === 'string' ? Game.rooms[roomOrName] : roomOrName;
+    if (!room) return false;
+    if (Memory.expansion && Memory.expansion.t === room.name) return true;
+    if (Game.shard && Game.shard.name === 'shardX') return true;
+    return Object.values(Game.creeps).some(c => c.memory && c.memory.priority === 'helper' && c.memory.destination === room.name);
+}
+
 // May roads/ramparts be placed in `roomName` for work done on behalf of `homeName`?
 function upkeepAllowed(roomName, homeName) {
     return established(roomName) && (!homeName || established(homeName));
 }
 
-module.exports = { established, upkeepAllowed };
+module.exports = { established, upkeepAllowed, supported };

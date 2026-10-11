@@ -42,6 +42,7 @@ function record(room, entry) {
 
 // End of a window: road sites on the costliest swamp tiles, then a fresh count.
 function place(room, entry) {
+    if (require('system.shardX').fortified(room)) { entry.t = Game.time; entry.h = {}; return 0; }   // towers only
     const towers = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
     const tiles = Object.keys(entry.h).map(Number).filter(tile => entry.h[tile] >= THRESHOLD)
         .sort((a, b) => entry.h[b] - entry.h[a]);
