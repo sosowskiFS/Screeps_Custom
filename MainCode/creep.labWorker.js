@@ -198,7 +198,8 @@ var creep_labWorker = {
             }
         }
 
-        if (!foundWork && !operatorPresent(roomName)) {
+        // Not while boosting needs it on the minerals (system.guardBoosts.mineralsUrgent).
+        if (!foundWork && !operatorPresent(roomName) && !require('system.guardBoosts').mineralsUrgent(creep.room)) {
             creep.memory.previousPriority = 'labWorker';
             creep.memory.priority = 'distributor';
             creep.memory.hasDistributed = false;

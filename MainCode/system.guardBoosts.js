@@ -96,6 +96,23 @@ const MOVE_BOOST = () => RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE;
 function moveBoosted(creep) {
     return !(creep.body || []).some(p => p.type === MOVE && !p.boost && p.hits !== 0);
 }
+// Out of the way while waiting at home: at least PARK_RANGE from the labs, storage and terminal.
+// A crowd of quad members waiting beside the labs kept the lab worker from reaching them (E1N16:
+// sixteen members around the lab block, the XZHO2 lab empty with 4,000 in the storage).
+const PARK_RANGE = 4;
+function parkAway(creep) {
+    const room = creep.room;
+    if (!room || creep.fatigue || creep.room.name !== creep.memory.homeRoom || !creep.pos || !creep.pos.inRangeTo) return false;
+    const busy = labs(room).concat([room.storage, room.terminal].filter(Boolean));
+    if (!busy.some(s => creep.pos.inRangeTo(s, PARK_RANGE - 1))) return false;
+    const path = PathFinder.search(creep.pos, busy.map(s => ({ pos: s.pos, range: PARK_RANGE })), {
+        flee: true, maxRooms: 1, plainCost: 2, swampCost: 10,
+        roomCallback: name => (name === room.name ? require('traveler').Traveler.getStructureMatrix(room) : false),
+    });
+    if (!path.path.length) return false;
+    creep.move(creep.pos.getDirectionTo(path.path[0]));
+    return true;
+}
 let usedTick, usedLabs = new Set();
 // Boost a quad member at its home's leased labs. The other boosts get a bounded window (100 ticks,
 // or the safe-mode departure) and are skipped when absent; MOVE is waited for however long it takes
@@ -111,7 +128,7 @@ function boost(creep) {
     const late = Game.time >= deadline;
     if (late && moveBoosted(creep)) return finish();
     // Not done until MOVE is boosted: wait at home, saying why.
-    const waitForMove = reason => { m.guardPhase = 'boosting'; m.guardBlocked = reason; return true; };
+    const waitForMove = reason => { m.guardPhase = 'boosting'; m.guardBlocked = reason; parkAway(creep); return true; };
     if (usedTick !== Game.time) { usedTick = Game.time; usedLabs = new Set(); }
     const needed = requirements(creep.body);
     const room = creep.room, r = roomState(room.name);
@@ -134,7 +151,13 @@ function boost(creep) {
         if (usedLabs.has(lab.id)) return true;
         const count = Math.min(needed[resource] / 30, Math.floor((lab.store[resource] || 0) / 30),
             Math.floor((lab.store[RESOURCE_ENERGY] || 0) / 20));
-        if (!count) return true; // locally available: give the lab worker its bounded preparation window
+        if (!count) {
+            // In stock but not in the lab yet: the lab worker is bringing it. Wait out of its way.
+            m.guardBlocked = 'waiting for ' + resource + ' in its lab';
+            parkAway(creep);
+            return true;
+        }
+        delete m.guardBlocked;
         if (!creep.pos.isNearTo(lab)) { creep.travelTo(lab, { range: 1, maxRooms: 1 }); return true; }
         const result = lab.boostCreep(creep, count);
         if (result === OK) usedLabs.add(lab.id);
@@ -159,8 +182,49 @@ function moveReady(homeName, parts) {
     }
     return stock(room, resource) - pending >= need;
 }
-module.exports = { prepare, stock, requirements, reserved, assignment, empireNeed, shortages, roomState, boost, moveBoosted, moveReady };
+module.exports = { prepare, stock, requirements, reserved, assignment, empireNeed, shortages, roomState, boost, moveBoosted, moveReady,
+    labNeedingEnergy, mineralsUrgent, energyHaulers, labEnergyWant, parkAway };
 // Lease hauling runs before legacy instructions. It also releases any stale legacy lab task.
+// Energy a leased lab needs for the boosts planned in it: 20 per boosted part (a part takes 30 of
+// the compound), at most a full lab. It used to be filled to 2000 regardless.
+const BOOST_ENERGY_PER_PART = 20, MINERAL_PER_PART = 30;
+function labEnergyWant(r, mineral) {
+    return Math.min(2000, Math.ceil((r.need[mineral] || 0) / MINERAL_PER_PART) * BOOST_ENERGY_PER_PART);
+}
+function mineralWant(r, mineral) {
+    return Math.min(3000, r.need[mineral] || 0);
+}
+// A leased lab short of energy for its boosts (closest to the creep), or null. Distributors and
+// mules fill these (creep.distributor) once the spawns and extensions are full.
+function labNeedingEnergy(creep) {
+    const room = creep.room, r = roomState(room.name);
+    if (!r) return null;
+    const labs = Object.keys(r.assignments).map(id => Game.getObjectById(id)).filter(lab => lab &&
+        (lab.store[RESOURCE_ENERGY] || 0) < labEnergyWant(r, r.assignments[lab.id]) && lab.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+    return labs.length ? creep.pos.findClosestByRange(labs) : null;
+}
+// Boost work that needs the lab worker on minerals right now: a leased lab short of its compound
+// (with stock to bring), or a quad member at home still waiting to be boosted. While true the lab
+// worker does not turn distributor, and one that has comes back.
+function mineralsUrgent(room) {
+    const r = room && roomState(room.name);
+    if (!r) return false;
+    for (const id of Object.keys(r.assignments)) {
+        const lab = Game.getObjectById(id), mineral = r.assignments[id];
+        if (!lab) continue;
+        if (lab.mineralType && lab.mineralType !== mineral && lab.mineralAmount > 0) return true;
+        if ((lab.store[mineral] || 0) < mineralWant(r, mineral) && stock(room, mineral) - (lab.store[mineral] || 0) > 0) return true;
+    }
+    return Object.values(Game.creeps).some(c => c.memory && c.memory.guardSquad && !c.memory.guardBoostDone &&
+        c.memory.homeRoom === room.name);
+}
+// Creeps that fill lab energy here (other than lab workers on loan as distributors).
+function energyHaulers(room) {
+    return Object.values(Game.creeps).filter(c => c.memory && c.room && c.room.name === room.name && !c.spawning &&
+        c.memory.homeRoom === room.name && c.memory.previousPriority !== 'labWorker' &&
+        ['distributor', 'distributorNearDeath', 'mule', 'muleNearDeath'].includes(c.memory.priority)).length > 0;
+}
+
 function workLabs(creep) {
     const room = creep.room, r = roomState(room.name);
     const leaseIds = r ? Object.keys(r.assignments) : [];
@@ -200,8 +264,11 @@ function workLabs(creep) {
                 return true;
             }
         }
-        for (const resource of [RESOURCE_ENERGY, mineral]) {
-            const want = resource === RESOURCE_ENERGY ? 2000 : Math.min(3000, r.need[mineral]);
+        // The compound only: lab energy is the distributors' job (labNeedingEnergy). Only a room
+        // with no distributor or mule leaves the energy to the lab worker too, after the compounds.
+        const resources = energyHaulers(room) ? [mineral] : [mineral, RESOURCE_ENERGY];
+        for (const resource of resources) {
+            const want = resource === RESOURCE_ENERGY ? labEnergyWant(r, mineral) : mineralWant(r, mineral);
             const missing = want - (lab.store[resource] || 0);
             if (missing <= 0) continue;
             const source = [room.terminal, room.storage].find(s => s && s.store[resource] > 0);

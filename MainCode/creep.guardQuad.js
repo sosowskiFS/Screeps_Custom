@@ -369,6 +369,8 @@ function run(creep) {
     if (!members.length) return;
     let preparing = false;
     for (const c of members) if (boosts.boost(c)) preparing = true;
+    // Members done boosting while the rest still are: wait away from the labs (boosts.parkAway).
+    if (preparing) for (const c of members) if (c.memory.guardBoostDone && !c.spawning) boosts.parkAway(c);
     const fight = list => { for (const name of new Set(list.map(c => c.room.name))) combat(list.filter(c => c.room.name === name)); };
     // Going in by pairs: the members inside hold and shoot; no defend (its retreat would walk the
     // first pair back out before the second pair is in).

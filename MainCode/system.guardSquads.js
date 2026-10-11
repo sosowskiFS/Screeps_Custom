@@ -173,17 +173,27 @@ function observe(t) {
 // the same quad, builds the other. Each new squad goes to whichever of the two has fewer squads
 // that will still be alive when it arrives (ties: the sponsor). No helper: the sponsor builds all.
 const HELPER_RECHECK = 1000;   // ticks between helper-home choices
+const HELPER_RECHECK_NONE = 100;   // ...when none was found
+// A squad's empty slots are refilled only while it is forming (a casualty or failed spawn early
+// on). An older squad is not topped up: its members' replacements are the next squad. Refilling
+// them made squads live forever (E1N16: squads 31 and 32 refilled for 7,000+ ticks next to their
+// replacements 41 and 55, four quads for a target that wants two).
+const REFILL_WINDOW = 600;
 const HELPER_SLACK = 3;        // a helper may be at most this many rooms farther than the sponsor
 function canBuildQuads(name, sponsor) {
     const room = Game.rooms[name], s = Game.rooms[sponsor];
     if (!room || !room.controller || !room.controller.my || !room.storage || !room.terminal) return false;
     if (require('system.retire').retiring(name)) return false;
-    if (!((Memory.labList && Memory.labList[name]) || []).length) return false;
+    // Labs counted in the room itself: Memory.labList is heap-only and empty on the first tick after
+    // a global reset (every deploy), when this used to find no helper anywhere and cache that.
+    if (require('runtime.cache').find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }).length < 3) return false;
     if (!Object.values(Game.spawns).some(sp => sp.room.name === name)) return false;
     return !s || room.energyCapacityAvailable >= s.energyCapacityAvailable;
 }
 function helperHome(t) {
-    if (t.helperAt !== undefined && Game.time - t.helperAt < HELPER_RECHECK && (!t.helper || canBuildQuads(t.helper, t.home))) return t.helper || null;
+    // "No helper" is re-checked sooner than a helper found.
+    const recheck = t.helper ? HELPER_RECHECK : HELPER_RECHECK_NONE;
+    if (t.helperAt !== undefined && Game.time - t.helperAt < recheck && (!t.helper || canBuildQuads(t.helper, t.home))) return t.helper || null;
     if (!Game.map.getRoomLinearDistance) return null;
     const goal = t.corner || t.room, far = name => Game.map.getRoomLinearDistance(name, goal);
     const limit = far(t.home) + HELPER_SLACK;
@@ -324,6 +334,10 @@ function updateTarget(t) {
     // Once newer replacements are fully posted, old squads may finish their lives without
     // reserving another generation of replacements.
     for (const q of complete.slice(desired)) q.retired = true;
+    // Past forming with nobody left: done (not refilled).
+    for (const q of t.squads) {
+        if (!q.retired && Game.time - q.created > REFILL_WINDOW && !q.slots.some(s => s.name)) q.retired = true;
+    }
 
     // Do not burn creep life through the whole safe-mode window. Begin early enough to finish
     // spawning, boosting and travelling, with time to kill staged hostiles while they cannot heal.
@@ -412,7 +426,8 @@ function spawnOrder(home) {
         if (remaining > (t.lead || leadTime(t)) + PREDEPLOY_MARGIN) continue;
         const activeIds = Array.isArray(t.active) ? t.active : t.active ? [t.active] : [];
         const pending = t.squads.filter(q => !q.retired && !activeIds.includes(q.id));
-        const candidates = (pending.length ? pending : t.squads.filter(q => !q.retired)).filter(q => homeOf(t, q) === home);
+        const candidates = (pending.length ? pending : t.squads.filter(q => !q.retired))
+            .filter(q => homeOf(t, q) === home && Game.time - q.created <= REFILL_WINDOW);
         for (const q of candidates) {
             const slot = q.slots.find(s => !s.name);
             if (!slot) continue;
@@ -475,6 +490,6 @@ function report() {
     }
     return rows;
 }
-module.exports = { chooseHome, helperHome, homeOf, forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
+module.exports = { REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
     report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart, rampartCap, shellRampartDue,
     DESIRED_SQUADS, SIEGE_RAMPART_HITS, SHELL_RAMPART_HITS, BOOSTS_BY_PART };

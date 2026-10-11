@@ -53,6 +53,18 @@ module.exports = {
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
             creep.memory.priority = 'distributorNearDeath';
         }
+        // A lab worker on loan, needed back for boosting: put the load away and go back at once.
+        const boosts = require('system.guardBoosts');
+        if (creep.memory.previousPriority == 'labWorker' && boosts.mineralsUrgent(creep.room)) {
+            const carried = Object.keys(creep.store).find(r => creep.store[r] > 0);
+            if (!carried) {
+                creep.memory.priority = 'labWorker';
+                return;
+            }
+            const home = [creep.room.storage, creep.room.terminal].find(s => s && s.store.getFreeCapacity(carried) > 0);
+            if (home && creep.transfer(home, carried) === ERR_NOT_IN_RANGE) creep.travelTo(home);
+            return;
+        }
         if (servicePowerSpawn(creep)) return;
 
         if (_.sum(creep.carry) <= 0) {
@@ -178,6 +190,11 @@ module.exports = {
                     }
                 }
             }
+        } else if (creep.store[RESOURCE_ENERGY] > 0 && boosts.labNeedingEnergy(creep)) {
+            // Spawns and extensions full: the energy the leased boost labs need (the lab worker
+            // stays on the compounds).
+            const lab = boosts.labNeedingEnergy(creep);
+            if (creep.transfer(lab, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(lab);
         } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
             if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                 creep.memory.hasDistributed = true;

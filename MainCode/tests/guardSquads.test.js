@@ -262,7 +262,8 @@ test('cross-shard safe mode countdown is published and starts source orders near
 test('the sponsor builds one quad and the nearest capable room to the target builds the other',()=>{
     const s=setup(),g=s.g;
     const store=values=>Object.assign({getFreeCapacity:()=>100000},values);
-    const room=(name,cap=12900)=>({name,energyCapacityAvailable:cap,controller:{my:true,level:8},storage:{store:store({})},terminal:{store:store({})},find:()=>[]});
+    const labsIn=()=>[1,2,3].map(i=>({structureType:g.STRUCTURE_LAB,id:'lab'+i}));
+    const room=(name,cap=12900)=>({name,energyCapacityAvailable:cap,controller:{my:true,level:8},storage:{store:store({})},terminal:{store:store({})},find:type=>type===g.FIND_MY_STRUCTURES?labsIn():[]});
     g.Game.rooms.NEAR=room('NEAR');g.Game.rooms.FAR=room('FAR');g.Game.rooms.SMALL=room('SMALL',5600);
     g.Game.spawns.B={room:g.Game.rooms.NEAR,spawning:null};g.Game.spawns.C={room:g.Game.rooms.FAR,spawning:null};g.Game.spawns.D={room:g.Game.rooms.SMALL,spawning:null};
     for(const n of ['HOME','NEAR','FAR','SMALL'])g.Memory.labList[n]=['l1','l2','l3'];
@@ -285,7 +286,7 @@ test('the sponsor builds one quad and the nearest capable room to the target bui
 test('squads made before homes existed keep the room that started them; empty ones are shared out',()=>{
     const s=setup(),g=s.g;
     const store=values=>Object.assign({getFreeCapacity:()=>100000},values);
-    g.Game.rooms.NEAR={name:'NEAR',energyCapacityAvailable:12900,controller:{my:true,level:8},storage:{store:store({})},terminal:{store:store({})},find:()=>[]};
+    g.Game.rooms.NEAR={name:'NEAR',energyCapacityAvailable:12900,controller:{my:true,level:8},storage:{store:store({})},terminal:{store:store({})},find:type=>type===g.FIND_MY_STRUCTURES?[1,2,3].map(i=>({structureType:g.STRUCTURE_LAB,id:'l'+i})):[]};
     g.Game.spawns.B={room:g.Game.rooms.NEAR,spawning:null};
     g.Memory.labList.HOME=['l1'];g.Memory.labList.NEAR=['l1'];
     g.Game.map.getRoomLinearDistance=()=>3;
@@ -326,4 +327,73 @@ test('a quad member is only spawned where an XZHO2 lab can boost all its MOVE',(
     assert.equal(b.moveReady('HOME',parts),true,'10 MOVE x 30 = 300');
     g.Game.creeps.w={memory:{guardSquad:'q',homeRoom:'HOME'},body:Array(10).fill(0).map(()=>({type:g.MOVE,hits:100}))};
     assert.equal(b.moveReady('HOME',parts),false,'a member already waiting takes that stock');
+});
+test('boost labs: the lab worker carries the compound first and leaves lab energy to a distributor; energy only for what the boosts use',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const res=g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    const lab={id:'lab',mineralType:undefined,mineralAmount:0,store:s.store({}),pos:{}};
+    g.Game.getObjectById=id=>id==='lab'?lab:null;
+    s.home.terminal.store[res]=3000;s.home.terminal.store[g.RESOURCE_ENERGY]=50000;
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[res]:2640},assignments:{lab:res}}}};
+    const calls=[];
+    const worker=()=>({room:s.home,memory:{},carry:{},carryCapacity:100,
+        withdraw:(t,r)=>{calls.push(['withdraw',r]);return g.OK;},transfer:()=>g.OK});
+    // A distributor lives here: the lab worker takes the compound, not energy.
+    g.Game.creeps.d={memory:{priority:'distributor',homeRoom:'HOME'},room:s.home};
+    b.workLabs(worker());
+    assert.deepEqual(calls[0],['withdraw',res]);
+    assert.equal(b.labEnergyWant(g.Memory.guardBoosts.rooms.HOME,res),1760,'88 parts x 20 (it used to fill 2000)');
+    // Compound in: the lab still needs energy, and that is the distributor's job.
+    lab.store[res]=3000;lab.mineralType=res;lab.mineralAmount=3000;calls.length=0;
+    assert.equal(b.workLabs(worker()),false,'nothing for the lab worker');
+    const dist={room:s.home,pos:{findClosestByRange:l=>l[0]}};
+    assert.equal(b.labNeedingEnergy(dist),lab);
+    lab.store[g.RESOURCE_ENERGY]=1760;
+    assert.equal(b.labNeedingEnergy(dist),null,'enough for the planned boosts');
+    // No distributor or mule: the lab worker fills energy itself (after the compound).
+    delete g.Game.creeps.d;lab.store[g.RESOURCE_ENERGY]=0;
+    b.workLabs(worker());
+    assert.deepEqual(calls[0],['withdraw',g.RESOURCE_ENERGY]);
+});
+test('while boosting needs it, the lab worker does not go off as a distributor, and one that did comes back',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const res=g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    const lab={id:'lab',mineralType:undefined,mineralAmount:0,store:s.store({}),pos:{}};
+    g.Game.getObjectById=id=>id==='lab'?lab:null;
+    s.home.terminal.store[res]=3000;
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[res]:2640},assignments:{lab:res}}}};
+    assert.equal(b.mineralsUrgent(s.home),true,'the lab is short of its compound');
+    lab.store[res]=2640;
+    assert.equal(b.mineralsUrgent(s.home),false);
+    g.Game.creeps.q={memory:{guardSquad:'q',homeRoom:'HOME'},room:s.home};
+    assert.equal(b.mineralsUrgent(s.home),true,'a member waiting at home to be boosted');
+    // A lab worker on loan as a distributor, empty: straight back.
+    const loan={room:s.home,memory:{priority:'distributor',previousPriority:'labWorker'},store:{},carry:{},ticksToLive:1000};
+    s.h.load('creep.distributor').run(loan);
+    assert.equal(loan.memory.priority,'labWorker');
+});
+test('an old squad is not refilled (its replacement is the next squad), and is retired once nobody is left',()=>{
+    const s=setup();const t=escalate(s,1);const orders=spawnAll(s);
+    post(s,orders,1400);s.advance();s.sys.run();
+    const q=t.squads[0];
+    s.g.Game.time=q.created+s.sys.REFILL_WINDOW+1;
+    delete s.g.Game.creeps[orders[3].name];s.advance();s.sys.run();
+    const o=s.sys.spawnOrder('HOME');
+    assert.ok(!o||o.squad.id!==q.id,'the old squad does not get a new member');
+    for(const x of orders)delete s.g.Game.creeps[x.name];
+    s.advance();s.sys.run();
+    assert.ok(!t.squads.some(x=>x.id===q.id)||q.retired,'retired with nobody left');
+});
+test('a member waiting at home steps away from the labs, storage and terminal',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const lab={id:'lab',pos:{x:20,y:20}};g.Game.getObjectById=id=>id==='lab'?lab:null;g.Memory.labList.HOME=['lab'];
+    s.home.storage.pos={x:22,y:20};s.home.terminal.pos={x:23,y:20};
+    const at=(x,y)=>({x,y,roomName:'HOME',inRangeTo:(o,r)=>Math.max(Math.abs((o.pos||o).x-x),Math.abs((o.pos||o).y-y))<=r,getDirectionTo:()=>3});
+    g.PathFinder={search:()=>({path:[{x:25,y:25}]})};
+    s.h.load('traveler').Traveler.getStructureMatrix=()=>({});
+    const moved=[];
+    const near={room:s.home,memory:{homeRoom:'HOME'},pos:at(21,21),move:d=>moved.push(d)};
+    assert.equal(b.parkAway(near),true);assert.equal(moved.length,1);
+    const far={room:s.home,memory:{homeRoom:'HOME'},pos:at(10,10),move:d=>moved.push(d)};
+    assert.equal(b.parkAway(far),false,'already clear: stays');
 });
