@@ -259,3 +259,17 @@ test('a snake leader standing on an exit tile does not wait for stragglers there
     x.q.snake(x.squad,new x.Pos(25,25,'NEXT'),false);
     assert.ok(!x.actions.some(a=>a[0]==='c0'&&a[1]==='travel'),'inside the room it waits as before');
 });
+test('our construction sites for blocking structures are off the formation map (W1N22: a quad around a spawn site never formed)',()=>{
+    const w=world();
+    const sites=[{structureType:w.g.STRUCTURE_SPAWN,pos:new w.Pos(11,20)},{structureType:w.g.STRUCTURE_ROAD,pos:new w.Pos(15,15)}];
+    const find=w.room.find;
+    w.room.find=type=>type===w.g.FIND_MY_CONSTRUCTION_SITES?sites:find(type);
+    const tiles=w.q.grid(w.room,w.squad,false);
+    assert.equal(tiles.get(11,20),255,'spawn site');
+    assert.notEqual(tiles.get(15,15),255,'a road site is walkable');
+    const footprint=w.q.grid(w.room,w.squad,true);
+    assert.equal(footprint.get(10,20),255,'no 2x2 that covers the spawn site');
+    const anchor=w.q.nearestAnchor(w.room,w.squad,new w.Pos(10,20),1);
+    const cells=w.q.OFFSETS.map(([dx,dy])=>(anchor.x+dx)+','+(anchor.y+dy));
+    assert.ok(!cells.includes('11,20'),'formed up beside it: '+cells.join(' '));
+});

@@ -30,6 +30,14 @@ function grid(room, members, footprint, dynamic = true) {
         else if (s.structureType !== STRUCTURE_CONTAINER && s.structureType !== STRUCTURE_PORTAL &&
             !(s.structureType === STRUCTURE_RAMPART && (s.my || s.isPublic))) tiles.set(s.pos.x, s.pos.y, 255);
     }
+    // Our construction sites for structures that block movement: Traveler routes around them (a
+    // creep on one stops it being built), so a formation tile on one could never be reached and the
+    // quad waited to form up forever (shardX W1N22: around a spawn site). Roads, containers and
+    // ramparts don't block.
+    for (const site of room.find(FIND_MY_CONSTRUCTION_SITES)) {
+        const t = site.structureType;
+        if (t !== STRUCTURE_ROAD && t !== STRUCTURE_CONTAINER && t !== STRUCTURE_RAMPART && site.pos) tiles.set(site.pos.x, site.pos.y, 255);
+    }
     // Sources, minerals, controller and hostile construction sites are not walkable.
     const fixed = room.find(FIND_SOURCES).concat(room.find(FIND_MINERALS));
     if (room.controller) fixed.push(room.controller);
