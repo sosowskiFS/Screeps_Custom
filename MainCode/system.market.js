@@ -286,9 +286,57 @@ function sellCompounds() {
     }
 }
 
+// Trade goods (system.mineralBudget.tradeGood: silicon, metal, biomass, mist and their commodity
+// chain) and ops are used by nothing here: sold first chance, every market run. Each room sells
+// what its terminal holds into the best buy order still paying at least TRADE_FLOOR of the recent
+// average; with no such bid it lists its stock once (one order per resource per room), priced to
+// move. They used to be sold only every 1000 ticks, only into bids at or above the last price
+// paid, which barely ever fell: 223k silicon and 18k biomass sat in the terminals.
+const TRADE_FLOOR = 0.5;
+const TRADE_MIN = 100;
+const TRADE_ENERGY_RESERVE = 5000;   // terminal energy kept back from transaction costs
+const MAX_TRADE_DEALS = 6;           // deals per run (10/tick game limit shared with others)
+function sellTradeGoods() {
+    const budget = require('system.mineralBudget');
+    const world = require('runtime.world');
+    let deals = 0;
+    for (const name in Game.rooms) {
+        const room = Game.rooms[name];
+        const t = room.controller && room.controller.my && room.terminal;
+        if (!t || t.cooldown) continue;
+        for (const resource in t.store) {
+            const amount = t.store[resource] || 0;
+            if (amount < TRADE_MIN || !(budget.tradeGood(resource) || resource === RESOURCE_OPS)) continue;
+            const ref = referencePrice(resource);
+            const floor = ref ? ref * TRADE_FLOOR : 0;
+            const bids = competitors(resource, ORDER_BUY, 1).filter(o => o.price >= floor && o.price > 0)
+                .sort((a, b) => b.price - a.price);
+            if (bids.length && deals < MAX_TRADE_DEALS) {
+                const bid = bids[0];
+                let qty = Math.min(amount, bid.amount);
+                const energy = (t.store[RESOURCE_ENERGY] || 0) - TRADE_ENERGY_RESERVE;
+                const cost = world.transactionCost(qty, name, bid.roomName);
+                if (cost > energy) qty = Math.floor(qty * Math.max(0, energy) / cost);
+                if (qty >= TRADE_MIN && Game.market.deal(bid.id, qty, name) === OK) {
+                    deals++;
+                    break;   // one deal per terminal per run (cooldown)
+                }
+                continue;
+            }
+            if (myOrders(resource, ORDER_SELL).some(o => o.roomName === name)) continue;
+            const ask = sellPrice(resource, 1, 0.001, 0, amount);
+            if (Game.market.credits - CREDIT_RESERVE >= ask * amount * FEE) {
+                Game.market.createOrder({ type: ORDER_SELL, resourceType: resource, price: ask, totalAmount: amount, roomName: name });
+            }
+        }
+    }
+    return deals;
+}
+
 function handleMarketOperations() {
     if (Game.time % 50 !== 0) return;
     if (!require('runtime.world').market()) return;   // Seasonal World: no trading with other players
+    sellTradeGoods();   // first chance, every run
     cleanupOrders();
     const intershard = managesIntershard();
     if (intershard) buyCpuUnlocks();
@@ -313,4 +361,4 @@ function handleCPUUnlocking() {
     }
 }
 
-module.exports = { MARKET_SHARD, managesIntershard, isIntershard, cleanupOrders, handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice };
+module.exports = { sellTradeGoods, MARKET_SHARD,managesIntershard, isIntershard, cleanupOrders, handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice };

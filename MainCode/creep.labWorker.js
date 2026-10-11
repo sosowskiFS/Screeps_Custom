@@ -116,9 +116,10 @@ var creep_labWorker = {
                 creep.memory.cleaningOverflow = false;
             }
         } else {
-            foundWork = handleTerminalOverflow(creep);
+            // Terminal keeps a working stock, the storage the rest (system.mineralBudget.terminalBalance).
+            foundWork = balanceTerminal(creep);
             if (foundWork) {
-                debugSay(creep, "ovfFlow");
+                debugSay(creep, "balance");
             }
         }
 
@@ -129,12 +130,6 @@ var creep_labWorker = {
             }
         }
 
-        if (!foundWork && storage) {
-            foundWork = moveStorageMineralsToTerminal(creep, storage, terminal, 20000);
-            if (foundWork) {
-                debugSay(creep, "s2tPre");
-            }
-        }
 
         if (!foundWork && currentTarget) {
             debugSay(creep, creep.memory.direction == 'Withdraw' ? "actW" : "actT");
@@ -161,12 +156,6 @@ var creep_labWorker = {
             }
         }
 
-        if (!foundWork && storage) {
-            foundWork = moveStorageMineralsToTerminal(creep, storage, terminal);
-            if (foundWork) {
-                debugSay(creep, "s2tFlow");
-            }
-        }
 
         if (!foundWork && Memory.mineralList[roomName] && Memory.mineralList[roomName].length) {
             foundWork = haulMineralContainer(creep, terminal);
@@ -240,6 +229,48 @@ function NotOverLimit(thisTerminal) {
     } else {
         return true;
     }
+}
+
+// One move between terminal and storage (system.mineralBudget.terminalBalance): withdraw, then
+// deliver to where it belongs. Replaces the overflow/fill pair that kept terminals full.
+function balanceTerminal(creep) {
+    const m = creep.memory;
+    const carried = _.findKey(creep.carry);
+    if (m.balanceTo) {
+        const to = Game.getObjectById(m.balanceTo);
+        if (!carried || !to || to.store.getFreeCapacity(carried) <= 0) {
+            delete m.balanceTo;
+            return false;   // anything still carried: deliverLeftovers puts it away
+        }
+        if (creep.transfer(to, carried) === ERR_NOT_IN_RANGE) creep.travelTo(to, { maxRooms: 1, ignoreRoads: true });
+        else delete m.balanceTo;
+        return true;
+    }
+    if (carried) {
+        // A load for a terminal that cannot take it: into the storage (not retried forever).
+        const t = creep.room.terminal, s = creep.room.storage, held = creep.carry[carried];
+        if (carried !== RESOURCE_ENERGY && t && s && t.store.getFreeCapacity(carried) < held && s.store.getFreeCapacity(carried) >= held) {
+            clearInstructions(creep);
+            if (creep.transfer(s, carried) === ERR_NOT_IN_RANGE) creep.travelTo(s, { maxRooms: 1, ignoreRoads: true });
+            return true;
+        }
+        return false;
+    }
+    const move = mineralBudget.terminalBalance(creep.room);
+    if (!move) return false;
+    const room = creep.store && creep.store.getFreeCapacity ? creep.store.getFreeCapacity() : creep.carryCapacity - _.sum(creep.carry);
+    const amount = Math.min(move.amount, room);
+    const result = creep.withdraw(move.from, move.resource, amount);
+    if (result === ERR_NOT_IN_RANGE) {
+        creep.travelTo(move.from, { maxRooms: 1, ignoreRoads: true });
+        return true;
+    }
+    if (result === OK) {
+        clearInstructions(creep);
+        m.balanceTo = move.to.id;
+        return true;
+    }
+    return false;
 }
 
 function handleTerminalOverflow(creep) {
@@ -1222,4 +1253,5 @@ function debugSay(creep, message) {
     speech.say(creep, message, false);
 }
 
+creep_labWorker.balanceTerminal = balanceTerminal;
 module.exports = creep_labWorker;

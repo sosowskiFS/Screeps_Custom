@@ -556,7 +556,18 @@ Rooms without an operator in them get power into the power spawn in two ways:
   - **Terminal:** at least 30k free, unless the storage can take the overflow.
   - **Factory:** at least 5k free, unless the storage or terminal can take it.
 - **Dumping:** anything above that is dumped on the floor by the lab worker, one load at a time, and the pile decays. It goes cheapest first: base minerals, then factory goods, then compounds by reaction depth, T3 boosts last.
-- **Floors:** no resource goes below 10k (room total, storage + terminal), or 30k for the room's reaction inputs, its boost-lab minerals and ghodium. Energy, power and ops are never dumped.
+- **Floors:** no resource goes below 10k (room total, storage + terminal), or 30k for the room's reaction inputs, its boost-lab minerals and ghodium. Energy and power are never dumped.
+- **Trade goods** (deposit commodities: silicon, metal, biomass, mist and the factory chain made from them): nothing here uses them.
+  - **Selling** (`system.market.sellTradeGoods`): sold first chance, every market run (50 ticks). Each terminal sells into the best buy order paying at least half the recent average price; with no such bid it lists its stock once.
+  - **Dumping:** they're the first excess dumped when space runs out (no keep floor), and are dumped outright where there's no market (Seasonal World).
+  - **Before:** they were sold only every 1,000 ticks, into bids at or above the last price paid, a price that barely ever fell. shard2's terminals held 223k silicon and 18k biomass.
+- **Ops** in storage or terminal are dumped at once. Operators make their own and never take any from there.
+- **Terminal vs storage** (`terminalBalance`, carried out by the lab worker): the terminal is a working buffer, not the stockpile.
+  - **Excess out:** 10k of each resource (two send batches) and up to 75k energy stay in the terminal. Anything above goes to the storage, but only as much as keeps the storage within its own budget (100k free, 300k goods), so moving never triggers dumping.
+  - **Top-ups:** a resource the terminal holds less than 5k of is topped up from the storage to 10k, minerals first. Energy below 20k is topped up to 30k, which stays under the distributor's 31k terminal-to-storage line so the two don't ping-pong.
+  - **Exceptions:** trade goods stay in the terminal while there's a market (they're sold from there), and power stays in the storage (the power spawn is fed from it).
+  - **Full terminal:** a lab worker holding a load the terminal can't take puts it in the storage.
+  - **Before:** the lab worker moved storage minerals into the terminal whenever it had 15–25k free, and pushed only base minerals back below 10k free. Terminals sat at 275–300k of 300k, holding the whole stockpile (GO 630k, UH2O 377k, ZH 341k across shard2), and a full terminal can't receive sends.
 - **Dumped piles:** dumped types are remembered for 3,000 ticks. Salvagers and scrapers leave those piles alone, and they don't trigger salvager spawns.
 - **No more shuffling:**
   - Terminal-overflow cleanup no longer puts a load back into the terminal it is clearing; with the storage full, the load is dumped.
