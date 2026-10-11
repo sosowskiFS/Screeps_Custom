@@ -59,16 +59,33 @@ function armedThreats(room) {
     return room ? intel.roomIntel(room).threats.filter(t => intel.assess(t).dps > 0) : [];
 }
 
-// Mark every tile an armed hostile in a visible room could hit next tick (its reach plus the step
-// it can take) on `matrix`, with `cost`. Rooms out of sight are left as they are.
+// Armed hostiles that matter to a creep in `roomName`: those in it, and those in the visible rooms
+// across its borders, placed in this room's coordinates as if the border were not there (a hostile
+// on the next room's edge tile counts as on ours: one step brings it in). A worker that fled over a
+// border used to stop right behind it, and was shot again as soon as its attacker followed.
+// Returns { t, x, y } (x, y may lie outside 0..49).
+const ACROSS = { 1: [0, -49], 3: [49, 0], 5: [0, 49], 7: [-49, 0] };
+function threatsAround(roomName) {
+    const list = armedThreats(Game.rooms[roomName]).map(t => ({ t, x: t.pos.x, y: t.pos.y }));
+    const exits = (Game.map.describeExits && Game.map.describeExits(roomName)) || {};
+    for (const dir in exits) {
+        const next = Game.rooms[exits[dir]], shift = ACROSS[dir];
+        if (!next || !shift) continue;
+        for (const t of armedThreats(next)) list.push({ t, x: t.pos.x + shift[0], y: t.pos.y + shift[1] });
+    }
+    return list;
+}
+
+// Mark every tile an armed hostile (in this room or seen just across its borders) could hit next
+// tick (its reach plus the step it can take) on `matrix`, with `cost`. Rooms out of sight are left
+// as they are.
 function markDanger(roomName, matrix, cost = 255) {
-    const room = Game.rooms[roomName];
-    if (!room || !matrix) return matrix;
-    for (const t of armedThreats(room)) {
+    if (!Game.rooms[roomName] || !matrix) return matrix;
+    for (const { t, x: tx, y: ty } of threatsAround(roomName)) {
         const reach = (intel.assess(t).ranged > 0 ? 3 : 1) + 1;
         for (let dx = -reach; dx <= reach; dx++) {
             for (let dy = -reach; dy <= reach; dy++) {
-                const x = t.pos.x + dx, y = t.pos.y + dy;
+                const x = tx + dx, y = ty + dy;
                 if (x >= 0 && y >= 0 && x <= 49 && y <= 49 && matrix.get(x, y) < cost) matrix.set(x, y, cost);
             }
         }
@@ -96,8 +113,8 @@ function unsafeToEnter(roomName) {
 // neighbouring rooms too, so it never flees into another one. Returns true when it moved.
 function escape(creep) {
     const room = creep.room;
-    const armed = armedThreats(room);
-    const near = armed.filter(t => creep.pos.inRangeTo(t, fleeRange(intel.assess(t))));
+    const around = threatsAround(room.name);
+    const near = around.filter(v => Math.max(Math.abs(v.x - creep.pos.x), Math.abs(v.y - creep.pos.y)) <= fleeRange(intel.assess(v.t)));
     if (!near.length) return false;
     const matrixFor = cost => name => {
         const r = Game.rooms[name];
@@ -114,7 +131,8 @@ function escape(creep) {
             return true;
         }
     }
-    const goals = armed.map(t => ({ pos: t.pos, range: fleeRange(intel.assess(t)) + 1 }));
+    // PathFinder measures goals in other rooms across the border itself.
+    const goals = around.map(v => ({ pos: v.t.pos, range: fleeRange(intel.assess(v.t)) + 1 }));
     const away = PathFinder.search(creep.pos, goals, { flee: true, maxRooms: 2, plainCost: 2, swampCost: 10, roomCallback: matrixFor(50) });
     if (away.path.length) {
         creep.move(creep.pos.getDirectionTo(away.path[0]));
@@ -362,4 +380,4 @@ function seekRepair(creep) {
     return true;
 }
 
-module.exports = { escape, avoidReach, unsafeToEnter, armedThreats, markDanger, fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };
+module.exports = { threatsAround, escape, avoidReach, unsafeToEnter, armedThreats, markDanger, fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };

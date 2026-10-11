@@ -72,3 +72,24 @@ test('re-entering a room: unsafe while armed hostiles are seen in it, or it was 
     assert.equal(clear.tactics.unsafeToEnter('R'), false);
     assert.equal(clear.tactics.unsafeToEnter('OUT_OF_SIGHT'), false, 'never marked');
 });
+
+test('a hostile just across the border counts: the worker that fled over it keeps going, and its reach is marked', () => {
+    const s = setup({ hostiles: [] });
+    const enemy = { id: 'n', owner: { username: 'Harabi' }, pos: at(20, 47, 'N'), hits: 1000, hitsMax: 1000,
+        body: [{ type: s.g.RANGED_ATTACK, hits: 100 }], getActiveBodyparts: t => (t === s.g.RANGED_ATTACK ? 1 : 0) };
+    s.g.Game.rooms.N = { name: 'N', find: type => (type === s.g.FIND_HOSTILE_CREEPS ? [enemy] : []) };
+    s.g.Game.map.describeExits = r => (r === 'R' ? { 1: 'N' } : { 5: 'R' });
+    // 2 tiles inside R, the hostile 2 tiles from N's border with R: 4 apart in effect.
+    s.creep.pos = at(20, 2);
+    assert.equal(s.tactics.escape(s.creep), true);
+    const flee = s.searches[s.searches.length - 1];
+    assert.equal(flee.flee, true);
+    const m = s.tactics.markDanger('R', new Matrix(), 255);
+    assert.equal(m.get(20, 2), 255, 'within its reach once it steps over');
+    assert.equal(m.get(20, 3), 0);
+    // Far enough in: it stops fleeing and works.
+    const t = setup({ hostiles: [] });
+    t.g.Game.rooms.N = s.g.Game.rooms.N; t.g.Game.map.describeExits = s.g.Game.map.describeExits;
+    t.creep.pos = at(20, 8);
+    assert.equal(t.tactics.escape(t.creep), false);
+});
