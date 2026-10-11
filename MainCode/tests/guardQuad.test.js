@@ -353,3 +353,15 @@ test('an attacker split into groups is fought one group at a time: the tower\'s 
     for(const c of w.squad)w.q.run(c);
     assert.ok(w.actions.some(a=>a[1]==='move'),'moves toward the group');
 });
+test('a quad runs ranged-only attackers down to range 1; with melee among them it stops at range 3',()=>{
+    const go=melee=>{
+        const w=world();
+        for(const c of w.squad)c.body=Array(22).fill({type:w.g.RANGED_ATTACK,hits:100}).concat(Array(8).fill({type:w.g.HEAL,hits:100}),Array(10).fill({type:w.g.MOVE,hits:100}));
+        w.hostiles.push({name:'e',id:'e',owner:{username:'Harabi'},pos:new w.Pos(13,22),hits:500,hitsMax:500,
+            body:[{type:melee?w.g.ATTACK:w.g.RANGED_ATTACK,hits:100},{type:w.g.MOVE,hits:100}]});
+        for(const c of w.squad)w.q.run(c);
+        return w.actions.some(a=>a[1]==='move');
+    };
+    assert.equal(go(false),true,'range 3 from the anchor: keeps closing');
+    assert.equal(go(true),false,'melee: holds at its reach');
+});

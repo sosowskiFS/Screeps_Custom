@@ -167,3 +167,18 @@ test('ranger no longer throws when the nearest enemy stands on a rampart', () =>
     assert.doesNotThrow(() => ranger.run(me));
     assert.ok(me.intents.some(i => i[0] === 'rangedMassAttack'), 'hits the rampart-covered enemy with mass attack instead');
 });
+
+test('against ranged-only attackers a winning ranged fighter closes to range 1 instead of stopping at 3', () => {
+    const { unit, tactics, parts: { A, R, H, M } } = battlefield();
+    const me = unit('me', [[R, 15], [H, 5], [M, 20]], 20, 20, { memory: { priority: 'ranger', homeRoom: 'HOME' } });
+    unit('foe', [[R, 1], [M, 1]], 23, 20);
+    tactics.fight(me);
+    assert.ok(me.intents.some(i => i[0] === 'move'), 'steps in from range 3');
+    // With a melee attacker in the room it keeps its distance at 3.
+    const b = battlefield();
+    const me2 = b.unit('me', [[R, 15], [H, 5], [M, 20]], 20, 20, { memory: { priority: 'ranger', homeRoom: 'HOME' } });
+    b.unit('foe', [[R, 1], [M, 1]], 23, 20);
+    b.unit('foe', [[A, 1], [M, 1]], 40, 40);
+    b.tactics.fight(me2);
+    assert.ok(!me2.intents.some(i => i[0] === 'move' || i[0] === 'travelTo'));
+});

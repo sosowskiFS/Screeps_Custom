@@ -148,7 +148,8 @@ function engagement(members, info, room) {
         const s = intel.assess(t);
         them.dps += s.dps; them.heal += s.heal; them.ehp += s.ehp;
     }
-    return { group, focus, them };
+    // No melee among them: nothing punishes closing in (see defend).
+    return { group, focus, them, melee: fighting.some(t => intel.assess(t).melee > 0) };
 }
 function combat(members) {
     const room = members[0].room, info = intel.roomIntel(room);
@@ -186,7 +187,7 @@ function combat(members) {
     const them = protectedMode ? Object.assign({}, local, { dps: 0, heal: 0 }) : local;
     const retreat = !protectedMode && (intel.verdictFor(info.us, them) === 'lose' || same.some(c =>
         c.hits < c.hitsMax * 0.35 || tactics.incomingDamage(c, info.threats) >= intel.assess(c).ehp));
-    return { info, focus, retreat };
+    return { info, focus, retreat, rush: !!fight && !fight.melee };
 }
 // The single-file order. Slot order made one fixed member lead, and when it stood at the back it
 // had to work its way through the others first, wasting ticks. Once the members have come together
@@ -425,7 +426,7 @@ function defend(members) {
         c.memory.guardPhase = 'arrived'; c.memory.guardCommitted = 1; delete c.memory.xShard;
         if (c.memory.guardArrival === undefined) c.memory.guardArrival = Game.time;
     }
-    const { info, focus, retreat } = combat(members);
+    const { info, focus, retreat, rush } = combat(members);
     // Border hopping: an enemy that steps out over the border, leaving nobody else here, is waited for
     // where the quad stands for BORDER_HOLD ticks (never chased through), not answered by the idle
     // routines walking it away.
@@ -444,7 +445,9 @@ function defend(members) {
         return;
     }
     if (focus) {
-        advance(members, focus.pos, 3, true);
+        // Ranged-only attackers: run them down to range 1. Stopping at range 3 left them out of
+        // reach again after every step they took away, so they always got clear.
+        advance(members, focus.pos, rush ? 1 : 3, true);
         return;
     }
     // No hostiles: heal our damaged workers in the room (helpers, builders...), closest first. The

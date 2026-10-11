@@ -115,12 +115,27 @@ function parkAway(creep) {
 }
 let usedTick, usedLabs = new Set();
 // Boost a quad member at its home's leased labs. The other boosts get a bounded window (100 ticks,
-// or the safe-mode departure) and are skipped when absent; MOVE is waited for however long it takes
-// (squads.spawnOrder only spawns a member when its home has an XZHO2 lab and the stock for it).
+// or the departure to relieve the posted squad) for compounds still on their way; MOVE is waited for
+// however long it takes (squads.spawnOrder only spawns a member when its home has an XZHO2 lab and
+// the stock for it). Past the window it no longer waits, but still takes every boost whose lab holds
+// it now (a few ticks of lab visits). The departure used to end boosting outright: a replacement
+// squad spawns member by member (~150 ticks each) and its departure had always passed before the
+// first boost, so every replacement left with only MOVE boosted (E1N16, E26N32 against boosted
+// Harabi quads, with all four compounds loaded in their labs).
 // opts.forming: the rest of the squad is still spawning. The window doesn't start until it has
 // (boosting goes on meanwhile as compounds become ready).
 function boost(creep, opts = {}) {
     const m = creep.memory;
+    // Finished with parts unboosted (the old departure cut, see above) but still assembling at home
+    // with their compound in its lab: boosting reopens, once.
+    if (m.guardBoostDone && !m.guardTopUp && m.guardPhase === 'assembling' && creep.room && creep.room.name === m.homeRoom) {
+        const r = roomState(m.homeRoom), needed = requirements(creep.body || []);
+        const ready = r && Object.keys(needed).some(resource => Object.keys(r.assignments).some(id => {
+            const lab = r.assignments[id] === resource && Game.getObjectById(id);
+            return lab && (lab.store[resource] || 0) >= 30 && (lab.store[RESOURCE_ENERGY] || 0) >= 20;
+        }));
+        if (ready) { m.guardTopUp = 1; delete m.guardBoostDone; m.guardSkipped = []; }
+    }
     if (m.guardBoostDone) return false;
     if (creep.spawning) return true;
     if (m.guardBoostStart === undefined || opts.forming) m.guardBoostStart = Game.time;
@@ -128,7 +143,6 @@ function boost(creep, opts = {}) {
     const finish = () => { m.guardBoostDone = true; m.guardPhase = 'assembling'; delete m.guardBlocked; return false; };
     if (creep.room.name !== m.homeRoom) return finish();
     const late = Game.time >= deadline;
-    if (late && moveBoosted(creep)) return finish();
     // Not done until MOVE is boosted: wait at home, saying why.
     const waitForMove = reason => { m.guardPhase = 'boosting'; m.guardBlocked = reason; parkAway(creep); return true; };
     if (usedTick !== Game.time) { usedTick = Game.time; usedLabs = new Set(); }
@@ -136,14 +150,22 @@ function boost(creep, opts = {}) {
     const room = creep.room, r = roomState(room.name);
     if (!r) return moveBoosted(creep) ? finish() : waitForMove('no boost labs leased for XZHO2');
     m.guardSkipped = m.guardSkipped || [];
-    // MOVE first; after the deadline, MOVE only.
+    // MOVE first; after the deadline, only what its lab can apply right now.
+    const labOf = resource => {
+        const labId = Object.keys(r.assignments).find(id => r.assignments[id] === resource);
+        return labId && Game.getObjectById(labId);
+    };
+    const applicable = resource => {
+        const lab = labOf(resource);
+        return !!lab && (lab.store[resource] || 0) >= 30 && (lab.store[RESOURCE_ENERGY] || 0) >= 20;
+    };
     const order = Object.keys(needed).sort((a, b) => (b === MOVE_BOOST()) - (a === MOVE_BOOST()))
-        .filter(resource => !late || resource === MOVE_BOOST());
+        .filter(resource => !late || resource === MOVE_BOOST() || (!m.guardSkipped.includes(resource) && applicable(resource)));
+    if (late && moveBoosted(creep) && !order.length) return finish();
     for (const resource of order) {
         const isMove = resource === MOVE_BOOST();
         if (!isMove && m.guardSkipped.includes(resource)) continue;
-        const labId = Object.keys(r.assignments).find(id => r.assignments[id] === resource);
-        const lab = labId && Game.getObjectById(labId);
+        const lab = labOf(resource);
         if (!lab || stock(room, resource) < 30) {
             if (isMove) return waitForMove(lab ? 'waiting for XZHO2 stock' : 'waiting for an XZHO2 lab');
             // Not in stock yet: it may still arrive (terminal sends) until the window is over.
@@ -229,6 +251,24 @@ function energyHaulers(room) {
         ['distributor', 'distributorNearDeath', 'mule', 'muleNearDeath'].includes(c.memory.priority)).length > 0;
 }
 
+// Leased labs in the order the lab worker fills them: first those short of what members waiting at
+// home right now still need (MOVE first: they can't leave without it), then the top-ups for squads
+// still to come. Filling in lease order kept E26N32's lab worker topping up XGHO2 and XKHO2 for
+// future squads while a member waited at home on an empty XZHO2 lab.
+function leaseOrder(room, r, leaseIds) {
+    const waiting = {};
+    for (const c of Object.values(Game.creeps)) {
+        if (c.memory && c.memory.guardSquad && !c.memory.guardBoostDone && c.memory.homeRoom === room.name) add(waiting, requirements(c.body || []));
+    }
+    const rank = id => {
+        const lab = Game.getObjectById(id), mineral = r.assignments[id];
+        if (!lab) return 3;
+        if ((lab.store[mineral] || 0) >= (waiting[mineral] || 0)) return 2;
+        return mineral === MOVE_BOOST() ? 0 : 1;
+    };
+    return leaseIds.slice().sort((a, b) => rank(a) - rank(b));
+}
+
 function workLabs(creep) {
     const room = creep.room, r = roomState(room.name);
     const leaseIds = r ? Object.keys(r.assignments) : [];
@@ -257,7 +297,7 @@ function workLabs(creep) {
     }
     if (cargo) return false;
     const capacity = creep.store && creep.store.getFreeCapacity ? creep.store.getFreeCapacity() : creep.carryCapacity;
-    for (const id of leaseIds) {
+    for (const id of leaseOrder(room, r, leaseIds)) {
         const lab = Game.getObjectById(id), mineral = r.assignments[id];
         if (!lab) continue;
         if (lab.mineralType && lab.mineralType !== mineral && lab.mineralAmount > 0) {
@@ -295,3 +335,4 @@ function workLabs(creep) {
     return false;
 }
 module.exports.workLabs = workLabs;
+module.exports.leaseOrder = leaseOrder;

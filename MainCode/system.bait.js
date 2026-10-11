@@ -72,8 +72,9 @@ function trip(t, name) {
     return (t.t || 300) + expansion.linear(t.r, name) * TICKS_PER_ROOM;
 }
 
-// shardX: the bait rooms around the targets, with what the sponsors need to order creeps.
-function report(targets) {
+// shardX: the bait rooms around the targets and the bait centres (rooms dropped from the targets by
+// shardX('focus'): the centre itself counts too), with what the sponsors need to order creeps.
+function report(targets, centers = []) {
     const s = state(), user = me();
     const taken = new Set(targets.map(t => t.r));
     const creeps = baitCreeps();
@@ -84,7 +85,7 @@ function report(targets) {
         // Owned rooms are always visible: gone from sight means lost.
         if (!(room && room.controller && room.controller.my) && !creeps.some(c => c.memory.destination === name)) delete s.rooms[name];
     }
-    for (const t of targets) {
+    for (const t of targets.concat(centers)) {
         const p = expansion.parse(t.r);
         if (!p) continue;
         const list = [];

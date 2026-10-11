@@ -289,8 +289,11 @@ function fight(creep, opts = {}) {
         flee(creep, meleeNear);
     } else if (focus && mode === 'engage') {
         const focusStats = intel.assess(focus);
-        // Close all the way on harmless targets, otherwise stay at the edge of our reach.
-        const range = kiter ? (focusStats.dps > 0 ? 3 : 1) : 1;
+        // Close all the way on harmless targets, and on any target while no hostile here has melee
+        // parts (nothing punishes being close; holding at 3 let a retreating target step out of
+        // reach every tick). Otherwise stay at the edge of our reach.
+        const meleeHere = threats.some(t => intel.assess(t).melee > 0);
+        const range = kiter && focusStats.dps > 0 && meleeHere ? 3 : 1;
         closeIn(creep, focus, range);
     } else if (focus && mode === 'hold' && kiter && creep.pos.getRangeTo(focus) > 3) {
         // Even fight: keep pressure at max range but never commit to melee range.

@@ -362,6 +362,35 @@ function updateTarget(t) {
     }
     t.squads = t.squads.filter(q => !q.retired || q.slots.some(s => s.name));
 }
+// Squads for shardX rooms dropped from the targets (shardX('focus')) that are still entirely on this
+// shard (spawning, boosting, on their way to the portal) go to `to` instead: their boosts are not
+// wasted on a recall. Squads with members already over the portal stay with their room. Returns
+// the number of creeps moved.
+const RETARGET_CLEAR = ['guardStaging', 'guardLine', 'guardSnake', 'guardGo', 'guardStageAnchor', 'guardBreach', 'guardHold',
+    'guardFocus', 'guardCommitted', 'guardArrival', 'guardRegroupAt', '_trav'];
+function retarget(shard, from, to, home, corner, distance) {
+    const s = state();
+    const dest = register(shard, to, home, corner, distance, true);
+    let moved = 0;
+    for (const room of from) {
+        const t = s.targets[key(shard, room)];
+        if (!t) continue;
+        for (const q of t.squads.slice()) {
+            const names = q.slots.map(x => x.name).filter(Boolean);
+            if (names.some(n => !Game.creeps[n])) continue;          // part of it is over the portal
+            t.squads.splice(t.squads.indexOf(q), 1);
+            dest.squads.push(q);
+            for (const n of names) {
+                const m = Game.creeps[n].memory;
+                m.destination = to;
+                if (m.xShard) m.xShard = { c: corner };
+                for (const k of RETARGET_CLEAR) delete m[k];
+                moved++;
+            }
+        }
+    }
+    return moved;
+}
 function claimTarget(room) {
     const xs = Game.shard.name === 'shard2' ? Memory.xs : ism.get('shard2', 'xs');
     return !!(require('system.shardX').enabled() && xs && (xs.mode === 'claim' || xs.mode === 'done') &&
@@ -491,6 +520,6 @@ function report() {
     }
     return rows;
 }
-module.exports = { REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
+module.exports = { retarget, REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
     report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart, rampartCap, shellRampartDue,
     DESIRED_SQUADS, SIEGE_RAMPART_HITS, SHELL_RAMPART_HITS, BOOSTS_BY_PART };

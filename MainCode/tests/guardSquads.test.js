@@ -416,3 +416,42 @@ test('the boost window starts once the whole squad has spawned; until then nothi
     s.advance(101);
     assert.equal(b.boost(c,{forming:false}),false,'window over: leaves with what it has');
 });
+test('a departure already passed no longer cuts boosting to MOVE: every compound in its lab is still applied (E1N16, E26N32)',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const XZ=g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,XK=g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE,XG=g.RESOURCE_CATALYZED_GHODIUM_ALKALIDE;
+    const lab=(id,r)=>({id,store:s.store({[r]:3000,[g.RESOURCE_ENERGY]:2000}),boostCreep:(c,n)=>{c.body.filter(p=>b.requirements([p])[r]).forEach(p=>p.boost=r);return g.OK;}});
+    const labs={zlab:lab('zlab',XZ),klab:lab('klab',XK)};   // no XGHO2 loaded
+    g.Game.getObjectById=id=>labs[id]||null;g.Memory.labList.HOME=Object.keys(labs);
+    s.home.storage.store[XZ]=3000;s.home.storage.store[XK]=3000;s.home.storage.store[XG]=3000;
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[XZ]:30,[XK]:30,[XG]:30},assignments:{zlab:XZ,klab:XK,glab:XG}}}};
+    // Its departure (to relieve the posted squad) passed before it even started boosting.
+    const c={memory:{homeRoom:'HOME',guardDeparture:g.Game.time-60},room:s.home,pos:{isNearTo:()=>true},
+        body:[{type:g.MOVE,hits:100},{type:g.RANGED_ATTACK,hits:100},{type:g.TOUGH,hits:100}]};
+    for(let i=0;i<5&&b.boost(c);i++)s.advance(1);
+    assert.equal(c.memory.guardBoostDone,true);
+    assert.equal(c.body.map(p=>p.boost||'-').join(),[XZ,XK,'-'].join(),'MOVE and ranged boosted; TOUGH (not loaded) not waited for');
+});
+test('the lab worker fills first what members waiting at home need, MOVE first, then top-ups for later squads',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const XZ=g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,XG=g.RESOURCE_CATALYZED_GHODIUM_ALKALIDE,XL=g.RESOURCE_CATALYZED_LEMERGIUM_ALKALIDE;
+    const labs={glab:{id:'glab',store:{[XG]:1000}},zlab:{id:'zlab',store:{}},llab:{id:'llab',store:{}}};
+    g.Game.getObjectById=id=>labs[id]||null;
+    const r={need:{[XG]:1200,[XZ]:1200,[XL]:960},assignments:{glab:XG,zlab:XZ,llab:XL}};
+    g.Game.creeps.m={memory:{guardSquad:'q',homeRoom:'HOME'},body:[{type:g.TOUGH,hits:100},{type:g.MOVE,hits:100},{type:g.HEAL,hits:100}]};
+    assert.equal(b.leaseOrder(s.home,r,Object.keys(r.assignments)).join(),'zlab,llab,glab');
+});
+test('a member that finished with MOVE only, still assembling at home, reopens boosting once for compounds now in their labs',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const XZ=g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,XK=g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    const klab={id:'klab',store:s.store({[XK]:3000,[g.RESOURCE_ENERGY]:2000}),boostCreep:c=>{c.body[1].boost=XK;return g.OK;}};
+    g.Game.getObjectById=id=>id==='klab'?klab:null;g.Memory.labList.HOME=['klab'];s.home.storage.store[XK]=3000;
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[XK]:30},assignments:{klab:XK}}}};
+    const c={memory:{homeRoom:'HOME',guardBoostDone:true,guardPhase:'assembling',guardBoostStart:1,guardDeparture:1},room:s.home,pos:{isNearTo:()=>true},
+        body:[{type:g.MOVE,hits:100,boost:XZ},{type:g.RANGED_ATTACK,hits:100}]};
+    assert.equal(b.boost(c),true,'boosting again');
+    s.advance(1);
+    assert.equal(b.boost(c),false,'done');
+    assert.equal(c.body[1].boost,XK);
+    c.body[1].boost=undefined;delete c.memory.guardBoostDone;c.memory.guardBoostDone=true;
+    assert.equal(b.boost(c),false,'only once');
+});

@@ -113,6 +113,7 @@ function creep(g, r, carry, extra = {}) {
         getActiveBodyparts: t => (t === g.CLAIM && extra.claim ? 1 : 0),
         upgradeController: () => { calls.push('upgrade'); return g.OK; },
         build: () => { calls.push('build'); return g.OK; },
+        repair: w => { calls.push('repair:' + w.id); return g.OK; },
         transfer: () => { calls.push('transfer'); return g.OK; },
         harvest: () => { calls.push('harvest'); return g.OK; },
         claimController: () => { calls.push('claim'); return extra.claimResult === undefined ? g.OK : extra.claimResult; },
@@ -120,7 +121,7 @@ function creep(g, r, carry, extra = {}) {
 }
 function creepSetup() {
     const s = setup();
-    s.g.CONTROLLER_STRUCTURES = { [s.g.STRUCTURE_TOWER]: { 1: 0, 2: 0, 3: 1 } };
+    s.g.CONTROLLER_STRUCTURES = { [s.g.STRUCTURE_TOWER]: { 1: 0, 2: 0, 3: 1 }, [s.g.STRUCTURE_WALL]: { 1: 0, 2: 0, 3: 0 } };
     s.h.load('combat.tactics').escape = () => false;
     return Object.assign(s, { role: s.h.load('creep.xBait') });
 }
@@ -168,4 +169,77 @@ test('the bait creep claims; a blocked or taken controller is noted and the cree
     const gcl = creep(g, room(g, 0), 0, { claim: true, claimResult: g.ERR_GCL_NOT_ENOUGH });
     role.run(gcl);
     assert.ok(g.Memory.bait.gcl > g.Game.time);
+});
+
+test('from RCL2 the bait creep walls the controller (not the harvesting tiles) and keeps the walls at 2,000 hits', () => {
+    const { g, role } = creepSetup();
+    g.CONTROLLER_STRUCTURES[g.STRUCTURE_WALL] = { 1: 0, 2: 2500, 3: 2500 };
+    // A source right by the controller (26,26 next to 25,25): its neighbours stay open.
+    const r = room(g, 2);
+    const find = r.find;
+    r.find = t => (t === g.FIND_SOURCES || t === g.FIND_SOURCES_ACTIVE ? [{ pos: pos(g, 27, 27) }] : find(t));
+    g.Game.rooms.W2N22 = r;
+    const c = creep(g, r, 100);
+    role.run(c);
+    const spots = r.sites.filter(s => s.structureType === g.STRUCTURE_WALL).map(s => s.pos.x + ',' + s.pos.y);
+    assert.equal(spots.length, 7, 'the 8 controller neighbours minus 26,26 (next to the source)');
+    assert.ok(!spots.includes('26,26'));
+    assert.equal(c.calls[c.calls.length - 1], 'build');
+    // Built: repaired up to 2,000 hits, then back to upgrading.
+    const wall = (id, x, y, hits) => ({ id, structureType: g.STRUCTURE_WALL, pos: pos(g, x, y), hits });
+    const built = room(g, 2, { structures: [wall('w1', 24, 24, 1500), wall('w2', 25, 24, 400)] });
+    built.find = t => (t === g.FIND_SOURCES || t === g.FIND_SOURCES_ACTIVE ? [{ pos: pos(g, 27, 27) }] :
+        t === g.FIND_MY_CONSTRUCTION_SITES || t === g.FIND_CONSTRUCTION_SITES ? [] : t === g.FIND_STRUCTURES ? built.walls : []);
+    built.walls = [wall('w1', 24, 24, 1500), wall('w2', 25, 24, 400)];
+    g.Game.time += 1;
+    const c2 = creep(g, built, 100, { creep: { memory: { priority: 'xBait', destination: 'W2N22', full: true, wallCheck: g.Game.time + 50 } } });
+    role.run(c2);
+    assert.equal(c2.calls[c2.calls.length - 1], 'repair:w2', 'the weakest first');
+    built.walls = [wall('w1', 24, 24, 2000), wall('w2', 25, 24, 2100)];
+    g.Game.time += 1;
+    const c3 = creep(g, built, 100, { creep: { memory: { priority: 'xBait', destination: 'W2N22', full: true, wallCheck: g.Game.time + 50 } } });
+    role.run(c3);
+    assert.equal(c3.calls[c3.calls.length - 1], 'upgrade');
+});
+
+test('no controller walls where the ring would cut a source off from the upgrading tiles', () => {
+    const { g, h } = creepSetup();
+    // The controller in a 3-wide corridor (x 24-26), a source above it, the room below.
+    const r = room(g, 2);
+    r.getTerrain = () => ({ get: (x, y) => (x < 24 || x > 26 ? 1 : 0) });
+    r.find = t => (t === g.FIND_SOURCES ? [{ pos: pos(g, 25, 10) }] : []);
+    assert.equal(h.load('creep.xBait').wallSpots(r).length, 0);
+});
+
+test('a bait claimer finding the controller walled in (our walls from before the room was lost) breaks through the weakest', () => {
+    const { g, role } = creepSetup();
+    const r = room(g, 0);
+    const walls = [];
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+        if (dx || dy) walls.push({ id: 'w' + dx + dy, structureType: g.STRUCTURE_WALL, pos: pos(g, 25 + dx, 25 + dy), hits: dx === 1 && dy === 1 ? 300 : 2000 });
+    }
+    r.find = t => (t === g.FIND_STRUCTURES ? walls : t === g.FIND_SOURCES ? [{ pos: pos(g, 30, 25) }] : []);
+    g.Game.rooms.W2N22 = r;
+    const c = creep(g, r, 0, { claim: true, claimResult: g.ERR_NOT_IN_RANGE });
+    c.dismantle = w => { c.calls.push('dismantle:' + w.id); return g.OK; };
+    role.run(c);
+    assert.equal(c.calls[c.calls.length - 1], 'dismantle:w11');
+});
+
+test('a bait centre (dropped target): the room itself and the rooms within 3 of it, ordered by its old sponsor', () => {
+    const { g, bait } = setup();
+    const focus = { r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', t: 481 };
+    const centre = { r: 'W1N22', h: 'shard2:E1N16', e: 'W0N20', t: 353 };
+    g.Game.rooms.W1N22 = { name: 'W1N22', controller: { my: true } };
+    bait.claimed('W1N22', 'W1N22');     // shardX marks an owned centre as a bait room
+    g.Memory.expandIntel.W2N23 = { n: 2, t: 1 };
+    const list = bait.report([focus], [centre]);
+    const own = list.find(b => b.r === 'W1N22');
+    assert.ok(own, 'the centre itself');
+    assert.equal(own.cl, 1);
+    assert.equal(own.h, 'shard2:E1N16');
+    assert.equal(list.find(b => b.r === 'W2N23').h, 'shard2:E1N16');
+    // The focused target is never a bait room.
+    g.Game.rooms.W1N9 = { name: 'W1N9', controller: { my: true } };
+    assert.equal(bait.report([focus], [centre]).some(b => b.r === 'W1N9'), false);
 });

@@ -7,6 +7,8 @@
 //                    shardX('candidates')  list shardX's reported candidates
 //                    shardX('cancel') stop everything;  shardX() status (on any shard)
 //                    shardX('reset')  forget the attempt (works while switched off)
+//                    shardX('focus', ['W1N9'])  all in: only these targets stay; the others become
+//                                     bait centres (system.bait) supplied by their old sponsors
 //
 // Scouting
 //   Home shards (HOME_SHARDS): every SCOUT_EVERY ticks each shard sends one 1-MOVE scout,
@@ -63,6 +65,8 @@ const TICKS_PER_ROOM = 50;
 const SCOUT_LIFE = 1500;
 const RESEEN = 20000;
 const HELPERS = 4;
+const FOCUS_HELPERS = 6;           // the sponsor's helpers while focused (shardX('focus'))
+const FOCUS_FORTIFY_HELPERS = 4;   // the second home's, while focused and fortified
 const CLAIMER_GAP = 300;          // at least this between claimer orders (more: the trip, see scheduleSupport)
 const MAX_TARGETS = 3;
 const SKIP_FOR = 50000;           // a target someone else claimed first is not picked again for this long
@@ -119,6 +123,16 @@ function mode() {
     if (Game.shard.name === COORD_SHARD) return state().mode;
     const c = coord();
     return c ? c.mode : undefined;
+}
+
+// shardX('focus'): the rooms dropped from the targets, now bait centres ([{r,h,e,t}]).
+function baitCenters() {
+    if (Game.shard.name === COORD_SHARD) return state().baitCenters || [];
+    const c = coord();
+    return (c && c.baitCenters) || [];
+}
+function focused() {
+    return baitCenters().length > 0;
 }
 
 function targets() {
@@ -182,6 +196,12 @@ function portalStep(creep) {
     if (!x || Game.shard.name === X_SHARD) return false;
     if (!enabled()) {
         require('creep.recall').recall(creep);   // switched off: home, unboost, recycle
+        return true;
+    }
+    // Bound for a room that is no longer a target (shardX('focus') made it a bait centre): home.
+    const m = mode();
+    if (creep.memory.xTarget && (m === 'claim' || m === 'done') && !targets().some(t => t.r === creep.memory.destination)) {
+        require('creep.recall').recall(creep);
         return true;
     }
     if (creep.memory.priority === 'helper' && require('creep.logistics').loadForTrip(creep)) return true;
@@ -433,7 +453,12 @@ function runX() {
     const coordEntry = readISM(COORD_SHARD) || {};
     const list = coordEntry.mode === 'claim' || coordEntry.mode === 'done' ? coordEntry.targets || [] : [];
     const bait = require('system.bait');
-    const bt = bait.report(list);
+    const centers = list.length ? coordEntry.baitCenters || [] : [];
+    for (const c of centers) {
+        const r = Game.rooms[c.r];
+        if (r && r.controller && r.controller.my && !bait.isBait(c.r)) bait.claimed(c.r, c.r);
+    }
+    const bt = bait.report(list, centers);
     const bf = bait.freeSlots(HOME_SHARDS.map(sh => (readISM(sh) || {}).rc), list, progress);
     writeISM({ t: Date.now(), cands: candidates(), progress, seen: Object.keys(xState().seen).length, sc: scouts, bt, bf });
 }
@@ -505,7 +530,7 @@ function scheduleFortifyHelpers(list, progress) {
         if (!home || !homes().includes(home)) continue;
         const inFlight = Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' && c.memory.destination === t.r &&
             c.memory.homeRoom === home && c.memory.xShard).length;
-        if (((p.hh || {})[home] || 0) + inFlight >= FORTIFY_HELPERS) continue;
+        if (((p.hh || {})[home] || 0) + inFlight >= (focused() ? FOCUS_FORTIFY_HELPERS : FORTIFY_HELPERS)) continue;
         if (Game.time - (s.last[t.r + ':fh'] || 0) <= HELPER_GAP) continue;
         s.last[t.r + ':fh'] = Game.time;
         queue(home, { kind: 'helper', memory: { priority: 'helper', previousPriority: 'helper', destination: t.r, homeRoom: home,
@@ -563,7 +588,7 @@ function scheduleSupport(list, progress) {
         // The sponsor's own helpers only (a fortified room's second home adds its own on top).
         const own = (p.hh ? (p.hh[home] || 0) : (p.hp || 0)) + Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' &&
             c.memory.destination === t.r && c.memory.xShard && (!c.memory.homeRoom || c.memory.homeRoom === home)).length;
-        if (!reclaimWait && own < HELPERS && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
+        if (!reclaimWait && own < (focused() ? FOCUS_HELPERS : HELPERS) && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
             s.last[t.r + ':h'] = Game.time;
             queue(home, { kind: 'helper', memory: Object.assign({ priority: 'helper', previousPriority: 'helper' }, base) });
         }
@@ -658,6 +683,7 @@ function runHome() {
         if (here === COORD_SHARD) {
             entry.mode = s.mode;
             entry.targets = s.targets || [];
+            if (s.baitCenters && s.baitCenters.length) entry.baitCenters = s.baitCenters;
         }
         writeISM(here === COORD_SHARD && !s.mode && !Object.keys(entry.travellers).length ? null : entry);
         delete s.dirty;
@@ -708,7 +734,7 @@ function run() {
 // orders and attacked-room latches. Map knowledge (portals, rooms seen by scouts) is kept.
 function reset() {
     const s = state();
-    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty', 'skip', 'block', 'manual', 'held', 'lostSeen']) delete s[k];
+    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty', 'skip', 'block', 'manual', 'held', 'lostSeen', 'baitCenters']) delete s[k];
     s.queue = {};
     const recalled = require('system.guardSquads').forget(X_SHARD);
     writeISM(null);
@@ -791,6 +817,30 @@ function command(cmd, picks) {
         console.log(lines.join('\n'));
         return cands.length + ' candidates';
     }
+    if (cmd === 'focus') {
+        // All in on these targets: the others become bait centres (their own room and the rooms
+        // within 3 of it keep a bait creep each, from their old sponsor). Their quads still on this
+        // shard go to the first focused room; their claimers and helpers not yet over the portal
+        // go home (portalStep).
+        if (Game.shard.name !== COORD_SHARD) return 'run this on ' + COORD_SHARD + ' (the other shards follow it)';
+        const keep = Array.isArray(picks) ? picks : picks ? [picks] : [];
+        const now = s.targets || [];
+        const kept = now.filter(t => keep.includes(t.r));
+        if (!kept.length) return 'name at least one of the current targets: ' + (now.map(t => t.r).join(', ') || 'none');
+        const dropped = now.filter(t => !keep.includes(t.r));
+        const centers = (s.baitCenters || []).filter(c => !keep.includes(c.r));
+        for (const t of dropped) if (!centers.some(c => c.r === t.r)) centers.push(t);
+        s.targets = kept;
+        s.baitCenters = centers;
+        s.manual = 1;
+        if (s.mode !== 'claim' && s.mode !== 'done') s.mode = 'claim';
+        s.queue = {};
+        s.dirty = 1;
+        const main = kept[0];
+        const moved = require('system.guardSquads').retarget(X_SHARD, dropped.map(t => t.r), main.r, main.h.split(':')[1], main.e, main.t);
+        return 'focused on ' + kept.map(t => t.r).join(', ') + '; bait centres: ' + (centers.map(c => c.r + ' (from ' + c.h + ')').join(', ') || 'none') +
+            '; ' + moved + ' quad member(s) on this shard sent to ' + main.r + ' instead';
+    }
     if (cmd === 'claim' && picks !== undefined) {
         if (Game.shard.name !== COORD_SHARD) return 'run this on ' + COORD_SHARD + ' (the other shards follow it)';
         const list = Array.isArray(picks) ? picks : [picks];
@@ -824,6 +874,7 @@ function command(cmd, picks) {
         lines.push('mode: ' + (mode() || 'off') + '; ' + X_SHARD + ' reports ' + (x.seen || 0) + ' rooms seen, ' + (x.cands || []).length +
             ' candidates, ' + (x.sc || 0) + ' scouts');
         lines.push('corners here: ' + nearCorners().map(c => c.corner + (s.noPortal && s.noPortal[c.corner] ? ' (no portal)' : '') + ' from ' + c.home).join(', '));
+        if (focused()) lines.push('focused; bait centres: ' + baitCenters().map(c => c.r + ' (from ' + c.h + ')').join(', '));
         for (const t of targets()) {
             const p = (x.progress || {})[t.r] || {};
             const block = p.lost && !p.cl ? ' (lost: reclaiming' + (p.hz ? ', ' + p.hz + ' armed hostiles' : '') + (p.ub ? ', controller blocked ' + p.ub : '') + ')' :
@@ -837,6 +888,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, fortified, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

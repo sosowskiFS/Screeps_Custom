@@ -220,3 +220,53 @@ test('shardX publishes the bait rooms and free GCL slots with its progress', () 
     assert.equal(out.bt.map(b => b.r).join(), 'E37N36');
     assert.equal(out.bf, 2, '9 levels - 6 rooms - the target not held yet');
 });
+
+test('shardX("focus"): one target stays, the others become bait centres; their quads still here go to it, their travellers go home', () => {
+    const { g, x, h, local } = setup('shard2');
+    const targets = [{ r: 'E22N32', h: 'shard2:E18N26', e: 'E20N30', t: 412 }, { r: 'W1N22', h: 'shard2:E1N16', e: 'W0N20', t: 353 },
+        { r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', t: 481 }];
+    g.Memory.xs = { mode: 'claim', targets: targets.slice(), manual: 1 };
+    g.Game.rooms = { E3N12: owned(g, 'E3N12'), E1N16: owned(g, 'E1N16') };
+    // A W1N22 quad still boosting at E1N16, and one with a member already over the portal.
+    const squads = h.load('system.guardSquads');
+    const st = squads.state();
+    const member = (name, extra = {}) => ({ name, memory: Object.assign({ priority: 'roomGuard', homeRoom: 'E1N16', destination: 'W1N22',
+        guardTargetShard: 'shardX', guardSquad: 'q1', xTarget: 1, xShard: { c: 'W0N20' }, guardStaging: { room: 'W0N22' } }, extra) });
+    g.Game.creeps = { a: member('a'), b: member('b'), c: member('c', { guardSquad: 'q2' }) };
+    st.targets['shardX:W1N22'] = { shard: 'shardX', room: 'W1N22', home: 'E1N16', corner: 'W0N20', squads: [
+        { id: 'q1', home: 'E1N16', created: 1, slots: [{ slot: 0, name: 'a' }, { slot: 1, name: 'b' }, { slot: 2 }, { slot: 3 }] },
+        { id: 'q2', home: 'E1N16', created: 1, slots: [{ slot: 0, name: 'c' }, { slot: 1, name: 'gone' }, { slot: 2 }, { slot: 3 }] }], samples: {} };
+    const text = x.command('focus', ['W1N9']);
+    assert.match(text, /2 quad member/);
+    assert.equal(g.Memory.xs.targets.map(t => t.r).join(), 'W1N9');
+    assert.equal(g.Memory.xs.baitCenters.map(c => c.r + '@' + c.h).join(), 'E22N32@shard2:E18N26,W1N22@shard2:E1N16');
+    assert.equal(g.Game.creeps.a.memory.destination, 'W1N9');
+    assert.equal(g.Game.creeps.a.memory.xShard.c, 'E0N10');
+    assert.equal(g.Game.creeps.a.memory.guardStaging, undefined);
+    assert.equal(st.targets['shardX:W1N9'].squads.map(q => q.id).join(), 'q1');
+    assert.equal(g.Game.creeps.c.memory.destination, 'W1N22', 'half over the portal: stays with its room');
+    assert.equal(x.focused(), true);
+    // Published for shardX and the other home shards.
+    x.run();
+    assert.equal(JSON.parse(local.value).xs.baitCenters.length, 2);
+});
+
+
+test('while focused, a claimer or helper still on its way to a bait centre goes home; bait creeps still head for the corner', () => {
+    const { g, x } = setup('shard1', { shard2: { mode: 'claim', targets: [{ r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10' }],
+        baitCenters: [{ r: 'W1N22', h: 'shard2:E1N16', e: 'W0N20' }] } });
+    g.Memory.xs = {};
+    g.RoomPosition = function (x, y, roomName) { Object.assign(this, { x, y, roomName }); };
+    const calls = [];
+    const traveller = memory => ({ name: memory.priority, memory, room: { name: 'E1N16' },
+        travelTo: target => calls.push([memory.priority, 'travel', target.roomName]), suicide: () => calls.push([memory.priority, 'suicide']) });
+    // Its home is not a room here any more (this fixture): recall retires it on the spot.
+    assert.equal(x.portalStep(traveller({ priority: 'helper', destination: 'W1N22', xTarget: 1, xShard: { c: 'W0N20' }, homeRoom: 'E1N16' })), true);
+    assert.equal(JSON.stringify(calls), JSON.stringify([['helper', 'suicide']]), 'recalled, not sent to the corner');
+    calls.length = 0;
+    x.portalStep(traveller({ priority: 'xBait', destination: 'W1N22', xShard: { c: 'W0N20' }, homeRoom: 'E1N16' }));
+    assert.equal(JSON.stringify(calls), JSON.stringify([['xBait', 'travel', 'W0N20']]));
+    calls.length = 0;
+    x.portalStep(traveller({ priority: 'helper', destination: 'W1N9', xTarget: 1, xShard: { c: 'E0N10' }, homeRoom: 'E3N12', loaded: 1 }));
+    assert.equal(calls[0] && calls[0][2], 'E0N10', 'a W1N9 helper goes on');
+});
