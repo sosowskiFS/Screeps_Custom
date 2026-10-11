@@ -30,6 +30,7 @@ function clock() {
 }
 function latch(room, reason) {
     if (!room || !room.controller || !room.controller.my || stage.established(room)) return;
+    if (require('system.bait').isBait(room.name)) return;     // decoys are never defended
     const rooms = state().rooms;
     if (!rooms[room.name]) rooms[room.name] = { since: Game.time, reason };
 }

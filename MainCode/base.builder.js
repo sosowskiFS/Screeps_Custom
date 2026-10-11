@@ -650,6 +650,8 @@ function run() {
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
         if (!room.controller || !room.controller.my) continue;
+        // shardX decoy rooms (system.bait): only their creep's tower, nothing planned or built.
+        if (require('system.bait').isBait(name)) continue;
         // Every 100 ticks per room (staggered, opted-out rooms too): remove construction sites
         // that seal a path, without waiting for the next build pass.
         if ((Game.time + index++ * 7) % PATH_CHECK_EVERY === 0) {

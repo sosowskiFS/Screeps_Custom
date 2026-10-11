@@ -38,6 +38,7 @@ function register(names, run) {
 }
 register(['retireHauler'], creep => creep_retireHauler.run(creep));
 register(['xScout'], creep => require('system.shardX').runScout(creep));
+register(['xBait'], creep => require('creep.xBait').run(creep));
 register(['supportHauler'], creep => require('creep.supportHauler').run(creep));
 register(['claimHunter'], creep => require('creep.claimHunter').run(creep));
 register(['roomGuard'], creep => require('creep.roomGuard').run(creep));

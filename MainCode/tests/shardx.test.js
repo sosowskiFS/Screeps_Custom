@@ -182,3 +182,41 @@ test('closed / out-of-borders rooms are never scout targets, routes or candidate
     const expansion = h.load('system.expansion');
     assert.match(expansion.invalidReason('E41N41', { t: g.Game.time, c: [1, 1], n: 2 }, { mine: [], bad: {} }), /closed/);
 });
+
+test('bait rooms: shardX reports them with its free GCL slots; once done, the target\'s sponsor still orders their creeps', () => {
+    const { g, x, local } = setup('shard1', {
+        shard2: { mode: 'done', targets: [{ r: 'E36N36', h: 'shard1:E28N48', e: 'E40N40', t: 300 }] },
+        shardX: { progress: {}, bt: [{ r: 'E37N36', t: 'E36N36', h: 'shard1:E28N48', e: 'E40N40', cl: 0, k: 350, n: 0 }], bf: 1 },
+    });
+    g.Game.rooms = { E28N48: owned(g, 'E28N48') };
+    g.Game.creeps = {};
+    g.Game.time = 5025;
+    x.run();
+    const order = g.Memory.xs.queue.E28N48;
+    assert.equal(order.kind, 'xBait');
+    assert.equal(order.memory.destination, 'E37N36');
+    assert.equal(order.memory.claim, 1);
+    assert.equal(x.spawnOrder('E28N48').body[0], g.CLAIM);
+    // Home shards publish their room count for shardX's GCL sum.
+    g.Memory.xs.dirty = 1;
+    x.run();
+    assert.equal(JSON.parse(local.value).xs.rc, 1);
+});
+
+test('shardX publishes the bait rooms and free GCL slots with its progress', () => {
+    const { g, x, local } = setup('shardX', {
+        shard2: { mode: 'claim', targets: [{ r: 'E36N36', h: 'shard1:E28N48', e: 'E40N40', t: 300 }], rc: 4 },
+        shard1: { rc: 2 }, shard3: { rc: 0 },
+    });
+    g.Game.gcl = { level: 9 };
+    g.CREEP_CLAIM_LIFE_TIME = 600;
+    g.Game.map.getRoomStatus = () => ({ status: 'normal' });
+    g.Game.rooms = {};
+    g.Game.creeps = {};
+    g.Memory.expandIntel = { E37N36: { n: 1, t: 1 } };
+    g.Game.time = 5100;
+    x.run();
+    const out = JSON.parse(local.value).xs;
+    assert.equal(out.bt.map(b => b.r).join(), 'E37N36');
+    assert.equal(out.bf, 2, '9 levels - 6 rooms - the target not held yet');
+});

@@ -25,7 +25,7 @@ function state() {
 }
 
 function young(room) {
-    return !!(room.controller && room.controller.my && !stage.established(room));
+    return !!(room.controller && room.controller.my && !stage.established(room) && !require('system.bait').isBait(room.name));
 }
 
 // One tick of measuring: creeps held by fatigue on a swamp tile without a road.

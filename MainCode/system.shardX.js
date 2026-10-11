@@ -32,8 +32,9 @@
 //   shardX reports a terminal. From then on shardX's own auto-expansion takes over.
 //
 // InterShardMemory key 'xs':
-//   home shards { t, travellers: {name: {m}} } plus, on shard2, mode and targets [{r,h,e,t}]
-//   shardX      { t, cands: [{r,h,e,t,s}], progress: {room: {cl,tm,hp}}, seen, sc }
+//   home shards { t, travellers: {name: {m}}, rc: rooms owned } plus, on shard2, mode and targets [{r,h,e,t}]
+//   shardX      { t, cands: [{r,h,e,t,s}], progress: {room: {cl,tm,hp}}, seen, sc, bt: bait rooms, bf: free GCL slots }
+// Bait rooms (system.bait, creep.xBait): decoys claimed around the targets while claiming or done.
 const expansion = require('system.expansion');
 const badRooms = require('system.badRooms');
 const remoteMining = require('system.remoteMining');
@@ -429,7 +430,12 @@ function runX() {
         }
     }
     const scouts = Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'xScout').length;
-    writeISM({ t: Date.now(), cands: candidates(), progress, seen: Object.keys(xState().seen).length, sc: scouts });
+    const coordEntry = readISM(COORD_SHARD) || {};
+    const list = coordEntry.mode === 'claim' || coordEntry.mode === 'done' ? coordEntry.targets || [] : [];
+    const bait = require('system.bait');
+    const bt = bait.report(list);
+    const bf = bait.freeSlots(HOME_SHARDS.map(sh => (readISM(sh) || {}).rc), list, progress);
+    writeISM({ t: Date.now(), cands: candidates(), progress, seen: Object.keys(xState().seen).length, sc: scouts, bt, bf });
 }
 
 // ---------------------------------------------------------------- home shards: scouts, picks, support
@@ -564,6 +570,17 @@ function scheduleSupport(list, progress) {
     }
 }
 
+// Bait rooms (system.bait): a creep for each that has none, after the targets' own orders.
+function scheduleBait(x) {
+    const s = state();
+    if (!s.last) s.last = {};
+    const inFlight = Object.values(Game.creeps).filter(c => c.memory.priority === 'xBait' && c.memory.xShard);
+    const queued = Object.values(s.queue || {}).filter(o => o.kind === 'xBait').map(o => ({ r: o.memory.destination, claim: o.memory.claim }));
+    for (const o of require('system.bait').due(x.bt, x.bf, Game.shard.name, homes(), inFlight, queued, s.last)) {
+        queue(o.home, { kind: 'xBait', memory: o.memory });
+    }
+}
+
 function runHome() {
     const s = state();
     const here = Game.shard.name;
@@ -627,15 +644,17 @@ function runHome() {
         }
         scheduleSupport(list, x.progress || {});
         scheduleFortifyHelpers(list, x.progress || {});
+        scheduleBait(x);
         if (here === COORD_SHARD && list.length && list.every(t => (x.progress || {})[t.r] && x.progress[t.r].tm)) {
             s.mode = 'done';
             s.dirty = 1;
             console.log('[shardX] all ' + list.length + ' rooms have a terminal; shardX develops itself from here');
         }
     }
+    if (m === 'done' && Game.time % 25 === 0) scheduleBait(readISM(X_SHARD) || {});
     if (m === undefined && s.queue && Object.keys(s.queue).length) s.queue = {};
     if (s.dirty || Game.time % 50 === 0) {
-        const entry = { t: Date.now(), travellers: mapTravellers(s.travellers) };
+        const entry = { t: Date.now(), travellers: mapTravellers(s.travellers), rc: myRooms().length };
         if (here === COORD_SHARD) {
             entry.mode = s.mode;
             entry.targets = s.targets || [];
@@ -663,7 +682,8 @@ function spawnOrder(roomName) {
     }
     const capacity = Game.rooms[roomName].energyCapacityAvailable;
     const body = order.kind === 'roomGuard' ? require('creep.roomGuard').body(capacity)
-        : order.kind === 'claimer' && order.memory.breaker ? breakerBody(capacity) : BODIES[order.kind];
+        : order.kind === 'claimer' && order.memory.breaker ? breakerBody(capacity)
+        : order.kind === 'xBait' ? require('system.bait').body(order.memory.claim) : BODIES[order.kind];
     return { body, memory: order.memory };
 }
 
@@ -817,6 +837,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, fortified, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

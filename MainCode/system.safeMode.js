@@ -85,6 +85,8 @@ function run() {
         const room = Game.rooms[name];
         const c = room.controller;
         if (!c || !c.my || c.safeMode) continue;
+        // Decoy rooms (system.bait) never take the shard's one safe mode from the real rooms.
+        if (require('system.bait').isBait(name)) continue;
         const reason = threat(room);
         if (!reason) continue;
         // An attacked controller (upgradeBlocked) cannot enter safe mode until the block ends.
