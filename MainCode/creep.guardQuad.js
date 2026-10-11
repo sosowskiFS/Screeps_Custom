@@ -110,10 +110,52 @@ function formationMove(members, goal, goalRange, flee = false) {
     for (const c of members) c.move(dir);
     return 'moving';
 }
+// Enemy groups: armed hostiles within GROUP_LINK tiles of each other (chained). An attacker split
+// into groups was judged as one: two quads at opposite ends of shardX W1N22 read as "lose" against
+// our one quad, which held still by the tower instead of beating either of them.
+const GROUP_LINK = 6;
+const JOINING = 7;            // other threats this close to us count in the fight too
+function groups(threats) {
+    const out = [], seen = new Set();
+    for (const t of threats) {
+        if (seen.has(t)) continue;
+        const group = [t];
+        seen.add(t);
+        for (let i = 0; i < group.length; i++) {
+            for (const o of threats) if (!seen.has(o) && range(group[i], o) <= GROUP_LINK) { seen.add(o); group.push(o); }
+        }
+        out.push(group);
+    }
+    return out;
+}
+// The group to fight, and its focus: the tower's target (the hostile it does the most net damage
+// to) and its group first, then the group already being chased (no switching back and forth), then
+// the group nearest the squad. Returns null without armed hostiles.
+function engagement(members, info, room) {
+    const list = groups(info.threats);
+    if (!list.length) return null;
+    const ids = (Memory.towerPickedTarget || {});
+    const tower = ids[room.name] && Game.getObjectById(ids[room.name]);
+    const chased = members[0].memory.guardFocus && Game.getObjectById(members[0].memory.guardFocus);
+    const near = g => Math.min(...g.map(t => Math.min(...members.map(c => range(c, t)))));
+    const group = (tower && list.find(g => g.includes(tower))) || (chased && list.find(g => g.includes(chased))) ||
+        list.slice().sort((a, b) => near(a) - near(b))[0];
+    const focus = tower && group.includes(tower) ? tower : chased && group.includes(chased) ? chased : intel.bestOf(group, info) || group[0];
+    for (const c of members) c.memory.guardFocus = focus.id;
+    const fighting = info.threats.filter(t => group.includes(t) || members.some(c => range(c, t) <= JOINING));
+    const them = { dps: 0, heal: 0, ehp: 0 };
+    for (const t of fighting) {
+        const s = intel.assess(t);
+        them.dps += s.dps; them.heal += s.heal; them.ehp += s.ehp;
+    }
+    return { group, focus, them };
+}
 function combat(members) {
     const room = members[0].room, info = intel.roomIntel(room);
     const same = members.filter(c => c.room.name === room.name);
-    const focus = intel.focusTarget(room) || info.hostiles[0];
+    const fight = engagement(same.length ? same : members, info, room);
+    if (!fight) for (const c of members) delete c.memory.guardFocus;
+    const focus = fight ? fight.focus : intel.focusTarget(room) || info.hostiles[0];
     for (const c of same) {
         if (!c.getActiveBodyparts(RANGED_ATTACK)) continue;
         const inRange = info.hostiles.filter(h => range(c, h) <= 3);
@@ -139,7 +181,9 @@ function combat(members) {
     // The decision is room-wide: the second defensive quad and our tower are real support. During
     // safe mode hostile combat and healing actions are disabled, so use their HP only as a target.
     const protectedMode = !!(room.controller && room.controller.safeMode);
-    const them = protectedMode ? Object.assign({}, info.them, { dps: 0, heal: 0 }) : info.them;
+    // Against the group being fought (plus anyone close enough to join), not every hostile in the room.
+    const local = fight ? fight.them : info.them;
+    const them = protectedMode ? Object.assign({}, local, { dps: 0, heal: 0 }) : local;
     const retreat = !protectedMode && (intel.verdictFor(info.us, them) === 'lose' || same.some(c =>
         c.hits < c.hitsMax * 0.35 || tactics.incomingDamage(c, info.threats) >= intel.assess(c).ehp));
     return { info, focus, retreat };
@@ -502,4 +546,4 @@ function run(creep) {
     fight(members);
     travel(members);
 }
-module.exports = { run, grid, assembled, formationMove, nearestAnchor, snake, combat, range, OFFSETS, STEPS };
+module.exports = { groups, engagement, run, grid, assembled, formationMove, nearestAnchor, snake, combat, range, OFFSETS, STEPS };

@@ -329,3 +329,27 @@ test('single file: once together, the member with the shortest path leads and th
     assert.equal(x.squad[0].memory.guardLine.fixed,undefined);
     assert.equal(x.squad[0].memory.guardLine.order[0],'c0');
 });
+test('an attacker split into groups is fought one group at a time: the tower\'s target first, else the nearest, and the quad does not hold back',()=>{
+    const w=world();
+    const enemy=(name,x,y)=>({name,id:name,owner:{username:'Harabi'},pos:new w.Pos(x,y),hits:5000,hitsMax:5000,
+        body:Array(25).fill({type:w.g.RANGED_ATTACK,hits:100}).concat(Array(25).fill({type:w.g.MOVE,hits:100}))});
+    // Each group: 2 x 25 ranged (500 damage). Our quad: 3 x 1 ranged and a healer, far weaker,
+    // so give our members real bodies: 22 ranged + 8 heal each.
+    for(const c of w.squad)c.body=Array(22).fill({type:w.g.RANGED_ATTACK,hits:100}).concat(Array(8).fill({type:w.g.HEAL,hits:100}),Array(10).fill({type:w.g.MOVE,hits:100}));
+    w.hostiles.push(enemy('s1',30,40),enemy('s2',31,40),enemy('n1',14,5),enemy('n2',15,5));
+    const all=w.q.combat(w.squad);
+    assert.equal(all.retreat,false,'4 attackers in two far groups: each group is beaten, so no retreat');
+    assert.equal(all.focus.name[0],'n','the nearest group (north, the quad is at 10,20)');
+    assert.equal(JSON.stringify(w.q.groups(w.hostiles).map(g=>g.map(t=>t.name).join())),JSON.stringify(['s1,s2','n1,n2']));
+    // The tower's target decides when it has one.
+    w.next();w.g.Memory.towerPickedTarget={POST:'s2'};
+    w.g.Game.getObjectById=id=>w.hostiles.find(h=>h.id===id)||null;
+    assert.equal(w.q.combat(w.squad).focus.name,'s2');
+    // Without it, the group already chased is kept.
+    w.next();w.g.Memory.towerPickedTarget={};
+    assert.equal(w.q.combat(w.squad).focus.name[0],'s','keeps chasing the south group');
+    // The squad advances on it.
+    w.next();
+    for(const c of w.squad)w.q.run(c);
+    assert.ok(w.actions.some(a=>a[1]==='move'),'moves toward the group');
+});
