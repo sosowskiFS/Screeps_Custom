@@ -455,3 +455,32 @@ test('a member that finished with MOVE only, still assembling at home, reopens b
     c.body[1].boost=undefined;delete c.memory.guardBoostDone;c.memory.guardBoostDone=true;
     assert.equal(b.boost(c),false,'only once');
 });
+test('moved squads: their manifests name the new target, and members already over the portal follow them (W1N9)',()=>{
+    const s=setup(),g=s.g,sys=s.sys;
+    const st=sys.state();
+    const mem=(name)=>({priority:'roomGuard',homeRoom:'HOME',destination:'W1N22',guardTargetShard:'shardX',guardSquad:'q',xShard:{c:'W0N20'},guardStaging:{room:'W0N22'}});
+    g.Game.creeps={a:{name:'a',memory:mem('a')}};
+    st.targets['shardX:W1N22']={shard:'shardX',room:'W1N22',home:'HOME',corner:'W0N20',samples:{},squads:[
+        {id:'q',home:'HOME',created:1,slots:[{slot:0,name:'a',memory:mem('a')},{slot:1,name:'b',memory:mem('b')},{slot:2},{slot:3}]}]};
+    // Member b is not here (not crossed yet in this fixture: the whole squad must be here to move).
+    sys.retarget('shardX',['W1N22'],'W1N9','HOME','E0N10',481);
+    assert.equal(st.targets['shardX:W1N22'].squads.length,1,'b is elsewhere: the squad stays');
+    g.Game.creeps.b={name:'b',memory:mem('b')};
+    sys.retarget('shardX',['W1N22'],'W1N9','HOME','E0N10',481);
+    const q=st.targets['shardX:W1N9'].squads[0];
+    assert.equal(q.slots[0].memory.destination,'W1N9');
+    assert.equal(q.slots[1].memory.xShard.c,'E0N10');
+    assert.equal(q.slots[0].memory.guardStaging,undefined);
+    // A squad moved before manifests were rewritten is repaired on the next run.
+    q.slots[1].memory.destination='W1N22';
+    sys.alignManifests(st.targets['shardX:W1N9']);
+    assert.equal(q.slots[1].memory.destination,'W1N9');
+    // On shardX: a member adopted with the old destination follows the published manifest.
+    g.Game.shard.name='shardX';
+    s.messages.shard2=JSON.stringify({guards:{tick:1,at:1,ms:3000,rooms:{},members:{},manifests:{a:q.slots[0].memory}}});
+    g.Game.creeps={a:{name:'a',memory:{priority:'roomGuard',guardSquad:'q',hs:'shard2',destination:'W1N22',guardPhase:'traveling',guardStaging:{room:'W0N22'},_trav:{}}}};
+    sys.followManifests();
+    assert.equal(g.Game.creeps.a.memory.destination,'W1N9');
+    assert.equal(g.Game.creeps.a.memory.guardStaging,undefined);
+    assert.equal(g.Game.creeps.a.memory._trav,undefined);
+});

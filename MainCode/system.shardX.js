@@ -601,7 +601,8 @@ function scheduleBait(x) {
     if (!s.last) s.last = {};
     const inFlight = Object.values(Game.creeps).filter(c => c.memory.priority === 'xBait' && c.memory.xShard);
     const queued = Object.values(s.queue || {}).filter(o => o.kind === 'xBait').map(o => ({ r: o.memory.destination, claim: o.memory.claim }));
-    for (const o of require('system.bait').due(x.bt, x.bf, Game.shard.name, homes(), inFlight, queued, s.last)) {
+    const busy = Object.keys(s.queue || {});
+    for (const o of require('system.bait').due(x.bt, x.bf, Game.shard.name, homes(), inFlight, queued, s.last, busy)) {
         queue(o.home, { kind: 'xBait', memory: o.memory });
     }
 }

@@ -75,11 +75,14 @@ test('orders: one creep per room, claims only within free slots, none while bloc
         { r: 'F', h: 'shard1:E9N9', e: 'W0N20', cl: 1, k: 350 },
     ];
     const last = {};
-    const out = bait.due(bt, 1, 'shard2', ['E1N16'], [], [], last);
-    assert.equal(JSON.stringify(out.map(o => o.memory.destination)), JSON.stringify(['A', 'B']));
-    assert.equal(out[0].memory.claim, 0, 'held: a keeper body');
-    assert.equal(out[1].memory.claim, 1);
-    assert.equal(out[1].memory.xShard.c, 'W0N20');
+    const first = bait.due(bt, 1, 'shard2', ['E1N16'], [], [], last);
+    assert.equal(JSON.stringify(first.map(o => o.memory.destination)), JSON.stringify(['A']), 'one order per home (the spawn queue holds one)');
+    assert.equal(first[0].memory.claim, 0, 'held: a keeper body');
+    assert.equal(bait.due(bt, 1, 'shard2', ['E1N16'], [], [{ r: 'A' }], last, ['E1N16']).length, 0, 'home busy: nothing more');
+    const out = bait.due(bt, 1, 'shard2', ['E1N16'], [], [{ r: 'A' }], last);
+    assert.equal(JSON.stringify(out.map(o => o.memory.destination)), JSON.stringify(['B']));
+    assert.equal(out[0].memory.claim, 1);
+    assert.equal(out[0].memory.xShard.c, 'W0N20');
     // Already ordered (gap), on the way, or queued: nothing more.
     const queued = [{ r: 'A' }, { r: 'B', claim: 1 }];
     assert.equal(bait.due(bt, 1, 'shard2', ['E1N16'], [], queued, {}).length, 0, 'queued: the slot is used');
@@ -242,4 +245,65 @@ test('a bait centre (dropped target): the room itself and the rooms within 3 of 
     // The focused target is never a bait room.
     g.Game.rooms.W1N9 = { name: 'W1N9', controller: { my: true } };
     assert.equal(bait.report([focus], [centre]).some(b => b.r === 'W1N9'), false);
+});
+
+test('everywhere else scouted: every room a claimer reaches in time is a bait room, sponsored by the home that scouted it fastest, after the rooms around the targets', () => {
+    const { g, bait } = setup();
+    const intel = g.Memory.expandIntel;
+    intel.W2N22 = { n: 2, t: 1 };                                 // next to the target
+    intel.E21N33 = { n: 1, t: 1 }; intel.E22N33 = { n: 2, t: 1 }; intel.E23N33 = { n: 2, t: 1, o: 'Harabi' };
+    intel.E27N33 = { n: 2, t: 1 };
+    g.Memory.xs = { tag: {
+        E21N33: { h: 'shard3:E29N43', e: 'E30N40', t: 420 },
+        E22N33: { h: 'shard1:E28N48', e: 'E30N40', t: 200 },
+        E23N33: { h: 'shard1:E28N48', e: 'E30N40', t: 210 },     // someone else's room
+        E27N33: { h: 'shard1:E28N48', e: 'E30N40', t: 560 },     // too far for a claimer
+        W2N22: { h: 'shard2:E3N12', e: 'E0N10', t: 400 },        // already listed by the target
+    } };
+    const list = bait.report([target]);
+    assert.equal(list.map(b => b.r).join(), 'W2N22,E22N33,E21N33', 'the target\'s ring first, then the rest by trip');
+    const wide = list.find(b => b.r === 'E21N33');
+    assert.equal(wide.h, 'shard3:E29N43');
+    assert.equal(wide.e, 'E30N40');
+    assert.equal(wide.k, 420);
+    assert.equal(list.find(b => b.r === 'W2N22').h, 'shard2:E1N16', 'around a target: still its sponsor');
+    // Without targets (shardX off or scouting) nothing is reported.
+    assert.equal(bait.report([]).length, 0);
+});
+
+test('no new bait claims while shardX is short of CPU', () => {
+    const { g, h, bait } = setup();
+    g.Game.cpu.bucket = 9000;
+    assert.equal(bait.freeSlots([0], [], {}), 10);
+    g.Game.cpu.bucket = 3000;
+    assert.equal(bait.freeSlots([0], [], {}), 0, 'low bucket');
+    g.Game.cpu.bucket = 9000;
+    h.load('runtime.cpuGovernor');
+    g.Memory.cpuGov = { ema: 0, shed: 1, adjusted: 0, pixel: 0 };
+    assert.equal(bait.freeSlots([0], [], {}), 0, 'the governor is shedding');
+});
+
+test('a bait room gets a spawn site built to about 200 energy and no further; a destroyed one is replaced only after a while', () => {
+    const { g, role, bait } = creepSetup();
+    const r = room(g, 1);
+    g.Game.rooms.W2N22 = r;
+    bait.claimed('W2N22', 'W1N22');
+    const c = creep(g, r, 100);
+    role.run(c);
+    const site = r.sites.find(s => s.structureType === g.STRUCTURE_SPAWN);
+    assert.ok(site, 'spawn site placed');
+    assert.equal(c.calls[c.calls.length - 1], 'upgrade', 'placed this tick, built from the next');
+    site.progress = 50;
+    role.run(c);
+    assert.equal(c.calls[c.calls.length - 1], 'build');
+    site.progress = 200;
+    role.run(c);
+    assert.equal(c.calls[c.calls.length - 1], 'upgrade', '200 in: left as it is');
+    // Stomped: not placed again right away.
+    r.sites.length = 0;
+    role.run(c);
+    assert.equal(r.sites.length, 0);
+    g.Game.time += 1500;
+    role.run(c);
+    assert.equal(r.sites.filter(s => s.structureType === g.STRUCTURE_SPAWN).length, 1);
 });

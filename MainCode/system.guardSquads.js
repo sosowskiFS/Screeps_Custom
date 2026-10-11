@@ -387,9 +387,36 @@ function retarget(shard, from, to, home, corner, distance) {
                 for (const k of RETARGET_CLEAR) delete m[k];
                 moved++;
             }
+            alignManifests(dest);
         }
     }
     return moved;
+}
+// A squad's manifests (the memory its members get on the far side of the portal) name the target
+// the squad belongs to now. Squads moved by retarget kept their old destination there, so quads that
+// crossed after the move walked to the old room (shardX: two boosted quads moved to W1N9 headed
+// north for W1N22).
+function alignManifests(t) {
+    for (const q of t.squads) for (const slot of q.slots) {
+        const m = slot.memory;
+        if (!m || m.destination === t.room) continue;
+        m.destination = t.room;
+        if (m.xShard && t.corner) m.xShard = { c: t.corner };
+        for (const k of RETARGET_CLEAR) delete m[k];
+    }
+}
+// On the far side of a portal: a member whose source shard now publishes another destination for
+// it (its squad was moved, see retarget) takes the new one and drops its travel state.
+function followManifests() {
+    for (const c of localMembers()) {
+        const shard = c.memory.hs;
+        if (!shard || shard === Game.shard.name) continue;
+        const r = remote(shard), m = r && r.manifests && r.manifests[c.name];
+        if (!m || !m.destination || m.destination === c.memory.destination) continue;
+        c.memory.destination = m.destination;
+        for (const k of RETARGET_CLEAR) delete c.memory[k];
+        if (c.memory.guardPhase === 'arrived') c.memory.guardPhase = 'traveling';
+    }
 }
 function claimTarget(room) {
     const xs = Game.shard.name === 'shard2' ? Memory.xs : ism.get('shard2', 'xs');
@@ -417,6 +444,8 @@ function forget(shard) {
 }
 function run() {
     const s = state(); clock();
+    followManifests();
+    for (const t of Object.values(s.targets)) alignManifests(t);
     // An attacked-room latch outlives the room: drop it once the room is no longer ours (owned
     // rooms are always visible). Otherwise a lost room stays "escalated" and re-arms quads later.
     for (const name of Object.keys(s.rooms)) {
@@ -520,6 +549,6 @@ function report() {
     }
     return rows;
 }
-module.exports = { retarget, REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
+module.exports = { alignManifests, followManifests, retarget, REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
     report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart, rampartCap, shellRampartDue,
     DESIRED_SQUADS, SIEGE_RAMPART_HITS, SHELL_RAMPART_HITS, BOOSTS_BY_PART };

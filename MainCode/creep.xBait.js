@@ -4,7 +4,8 @@
 // In the room: claims the controller (a CLAIM body), then harvests and upgrades. From RCL2 it walls
 // the free tiles next to the controller and keeps those walls at WALL_HITS (light: a lone declaimer
 // can't reach the controller, the attacker has to bring something to break a wall). At RCL3 it
-// places one tower, builds it, and keeps it filled to TOWER_FILL before upgrading again.
+// places one tower, builds it, and keeps it filled to TOWER_FILL before upgrading again. From the
+// claim on it also keeps a spawn site in the room, built to SPAWN_BAIT only (spawnBait).
 // A controller it can do nothing with (owned or reserved by someone else, upgrade-blocked) is noted
 // for system.bait (not sent to again until the block ends) and the creep is recycled.
 const combat = require('combat.tactics');
@@ -13,6 +14,8 @@ const bait = require('system.bait');
 const TOWER_FILL = 0.5;
 const WALL_HITS = 2000;
 const WALL_CHECK = 100;          // ticks between checks for missing wall sites
+const SPAWN_BAIT = 200;          // energy put into the spawn site, no more
+const SPAWN_RETRY = 1500;        // a spawn site destroyed (stomped) is placed again after this long
 const BLOCK_RETRY = 1500;        // owned/reserved by someone else: look again after this long
 
 function give(creep, until) {
@@ -135,12 +138,31 @@ function tower(creep) {
     return true;
 }
 
+// A spawn construction site, built to SPAWN_BAIT and left there: the attacker ignores rooms without
+// a spawn, tower or worker, and a spawn going up draws him in for 200 energy. In bait rooms only
+// (marked on claim); one placed again at most every SPAWN_RETRY ticks. Returns true when it used the tick.
+function spawnBait(creep) {
+    const room = creep.room, mark = bait.state().rooms[room.name];
+    if (!mark) return false;
+    const site = room.find(FIND_MY_CONSTRUCTION_SITES, { filter: { structureType: STRUCTURE_SPAWN } })[0];
+    if (site) {
+        if (site.progress >= SPAWN_BAIT) return false;
+        if (creep.build(site) === ERR_NOT_IN_RANGE) creep.travelTo(site, { range: 3 });
+        return true;
+    }
+    if (room.find(FIND_MY_SPAWNS).length || (mark.spawnAt !== undefined && Game.time < mark.spawnAt + SPAWN_RETRY)) return false;
+    const spot = towerSpot(room);
+    if (spot && room.createConstructionSite(spot.x, spot.y, STRUCTURE_SPAWN) === OK) mark.spawnAt = Game.time;
+    return false;
+}
+
 function work(creep) {
     const c = creep.room.controller;
     if (creep.memory.full && !creep.store[RESOURCE_ENERGY]) creep.memory.full = false;
     if (!creep.memory.full && !creep.store.getFreeCapacity(RESOURCE_ENERGY)) creep.memory.full = true;
     if (!creep.memory.full) return harvest(creep);
     if (walls(creep)) return;
+    if (spawnBait(creep)) return;
     if (tower(creep)) return;
     if (creep.upgradeController(c) === ERR_NOT_IN_RANGE) creep.travelTo(c, { range: 3 });
 }
@@ -198,4 +220,4 @@ function run(creep) {
     } else if (result !== ERR_TIRED) give(creep, Game.time + BLOCK_RETRY);
 }
 
-module.exports = { run, towerSpot, wallSpots, WALL_HITS };
+module.exports = { run, towerSpot, wallSpots, WALL_HITS, SPAWN_BAIT };

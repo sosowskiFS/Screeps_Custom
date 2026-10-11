@@ -248,6 +248,8 @@ tier(['scraper', 'scraperNearDeath', 'salvager', 'salvagerNearDeath', 'highwayPa
 // Raiders are optional while travelling or waiting, but never thinned mid-fight.
 tier(['harasser', 'harasserNearDeath'], creep => creep.room.find(FIND_HOSTILE_CREEPS).length ? ESSENTIAL : OPTIONAL);
 tier(['mineralMiner', 'mineralMinerNearDeath'], ECONOMY);
+// Decoys (system.bait) are many on shardX's small CPU: thinned first among the economy creeps.
+tier(['xBait'], ECONOMY);
 // Everything else (miners, upgraders, mules, distributors, suppliers, defenders, guards, claimers,
 // assault/power/ranger roles, young-room workers) is essential.
 
