@@ -103,7 +103,8 @@ function entryFor(name, t, k, ctx) {
     const entry = { r: name, t: t.r, h: t.h, e: t.e, cl, k, n: ctx.creeps.filter(cr => cr.memory.destination === name).length };
     if (c && c.upgradeBlocked > 0) entry.ub = c.upgradeBlocked;
     // How far along a held one is (a focus shift picks the furthest, system.shardX shiftFocus).
-    if (cl) { entry.lv = c.level; entry.pg = c.progress || 0; }
+    // and its sources: only a 2-source room can become the focus.
+    if (cl) { entry.lv = c.level; entry.pg = c.progress || 0; entry.ns = room.find(FIND_SOURCES).length; }
     return entry;
 }
 

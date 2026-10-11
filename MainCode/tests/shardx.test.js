@@ -283,15 +283,16 @@ test('focus shift: the focus room under an upgrade block hands over to the held 
             memory: { priority: 'roomGuard', destination: 'W1N9', guardSquad: 'q', guardTargetShard: 'shardX' } })) }] };
     g.Game.creeps = {};      // all four are posted on shardX
     const bt = [
-        { r: 'W2N9', h: 'shard2:E3N12', e: 'E0N10', cl: 1, lv: 2, pg: 9000, k: 450 },
-        { r: 'E5N15', h: 'shard2:E1N16', e: 'E0N10', cl: 1, lv: 3, pg: 100, k: 300 },
-        { r: 'E6N15', h: 'shard2:E1N16', e: 'E0N10', cl: 1, lv: 4, pg: 0, k: 300, ub: 300 },   // attacked too
+        { r: 'W2N9', h: 'shard2:E3N12', e: 'E0N10', cl: 1, lv: 2, pg: 9000, k: 450, ns: 2 },
+        { r: 'E4N15', h: 'shard2:E1N16', e: 'E0N10', cl: 1, lv: 5, pg: 0, k: 300, ns: 1 },     // 1 source: never the focus
+        { r: 'E5N15', h: 'shard2:E1N16', e: 'E0N10', cl: 1, lv: 3, pg: 100, k: 300, ns: 2 },
+        { r: 'E6N15', h: 'shard2:E1N16', e: 'E0N10', cl: 1, lv: 4, pg: 0, k: 300, ub: 300, ns: 2 },   // attacked too
         { r: 'E7N15', h: 'shard2:E1N16', e: 'E0N10', cl: 0, k: 300 },
     ];
     // Not attacked: nothing happens.
     assert.equal(x.shiftFocus({ progress: { W1N9: { cl: 1 } }, bt }), null);
     const shift = x.shiftFocus({ progress: { W1N9: { cl: 1, ub: 900 } }, bt });
-    assert.equal(shift.to, 'E5N15', 'RCL3 beats RCL2; a blocked room is skipped');
+    assert.equal(shift.to, 'E5N15', 'RCL3 beats RCL2; a blocked room and a 1-source room are skipped');
     assert.equal(JSON.stringify(g.Memory.xs.targets.map(t => [t.r, t.h, t.e])), JSON.stringify([['E5N15', 'shard2:E1N16', 'E0N10']]));
     assert.equal(g.Memory.xs.baitCenters.map(c => c.r).join(), 'W1N22,W1N9', 'the old focus is a decoy now');
     assert.equal(st.targets['shardX:E5N15'].squads.map(q => q.id).join(), 'q', 'its quads move along');
@@ -301,7 +302,7 @@ test('focus shift: the focus room under an upgrade block hands over to the held 
     x.run();
     assert.notEqual((g.Memory.xs.queue.E1N16 || {}).kind, 'claimer');
     // The next attack shifts again.
-    assert.equal(x.shiftFocus({ progress: { E5N15: { cl: 1, ub: 50 } }, bt: [{ r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', cl: 1, lv: 4, pg: 0, k: 481 }] }).to, 'W1N9');
+    assert.equal(x.shiftFocus({ progress: { E5N15: { cl: 1, ub: 50 } }, bt: [{ r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', cl: 1, lv: 4, pg: 0, k: 481, ns: 2 }] }).to, 'W1N9');
     assert.equal(g.Memory.xs.shifts.length, 2);
 });
 

@@ -39,12 +39,13 @@ test('bait rooms: within 3 of a target, unclaimed and unreserved by others, clai
 test('a bait room we hold stays listed first (a keeper creep), with its upgrade block', () => {
     const { g, bait } = setup();
     g.Memory.bait = { rooms: { W2N22: { t: 'W1N22' } } };
-    g.Game.rooms.W2N22 = { name: 'W2N22', controller: { my: true, upgradeBlocked: 400 } };
+    g.Game.rooms.W2N22 = { name: 'W2N22', controller: { my: true, upgradeBlocked: 400 }, find: () => [{}, {}] };
     g.Memory.expandIntel.W1N21 = { n: 2, t: 1 };
     const list = bait.report([target]);
     assert.equal(list[0].r, 'W2N22');
     assert.equal(list[0].cl, 1);
     assert.equal(list[0].ub, 400);
+    assert.equal(list[0].ns, 2, 'its sources, for a focus shift');
     assert.equal(bait.isBait('W2N22'), true);
     // One of our real rooms is never a bait room.
     g.Game.rooms.W1N21 = { name: 'W1N21', controller: { my: true } };
@@ -233,7 +234,7 @@ test('a bait centre (dropped target): the room itself and the rooms within 3 of 
     const { g, bait } = setup();
     const focus = { r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', t: 481 };
     const centre = { r: 'W1N22', h: 'shard2:E1N16', e: 'W0N20', t: 353 };
-    g.Game.rooms.W1N22 = { name: 'W1N22', controller: { my: true } };
+    g.Game.rooms.W1N22 = { name: 'W1N22', controller: { my: true }, find: () => [{}, {}] };
     bait.claimed('W1N22', 'W1N22');     // shardX marks an owned centre as a bait room
     g.Memory.expandIntel.W2N23 = { n: 2, t: 1 };
     const list = bait.report([focus], [centre]);

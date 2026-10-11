@@ -620,8 +620,8 @@ function scheduleBait(x) {
     }
 }
 
-// Coordinator: the one target attacked at its controller (upgrade block) or lost: the held bait room
-// furthest along (level, then progress) that is not blocked itself becomes the target, sponsored
+// Coordinator: the one target attacked at its controller (upgrade block) or lost: the held 2-source
+// bait room furthest along (level, then progress) that is not blocked itself becomes the target, sponsored
 // by the home that runs it; the old target becomes a bait centre. Its quads move along (followed
 // over the portal by their manifests) when the new sponsor is on this shard. Returns the shift.
 function shiftFocus(x) {
@@ -630,7 +630,8 @@ function shiftFocus(x) {
     if (list.length !== 1) return null;
     const t = list[0], p = (x.progress || {})[t.r];
     if (!p || !(p.ub > 0 || p.lost)) return null;
-    const cands = (x.bt || []).filter(b => b.cl && !(b.ub > 0) && b.r !== t.r)
+    // Only 2-source rooms: a 1-source room can't carry a fortified build-up (bait rooms include them).
+    const cands = (x.bt || []).filter(b => b.cl && b.ns >= 2 && !(b.ub > 0) && b.r !== t.r)
         .sort((a, b) => (b.lv || 0) - (a.lv || 0) || (b.pg || 0) - (a.pg || 0) || a.k - b.k);
     if (!cands.length) {
         if (Game.time - (s.noShift || 0) >= 1000) {
