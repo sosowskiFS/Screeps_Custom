@@ -1,1 +1,14 @@
-{"name":"screeps-custom-framework","private":true,"scripts":{"test":"node --test tests/*.test.js","check":"node tools/check.js"},"engines":{"node":">=18"}}
+{
+  "name": "screeps-custom-framework",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "check": "node tools/check.js",
+    "deploy:season": "node tools/deploy.js --world season",
+    "deploy:live": "node tools/deploy.js --world mmo",
+    "deploy:all": "npm test && node tools/deploy.js --world season && node tools/deploy.js --world mmo"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

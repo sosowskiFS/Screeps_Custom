@@ -11,28 +11,21 @@
 //   node tools/screeps.js room E27N43            room objects summary
 //   node tools/screeps.js room E27N43 --json     full room objects
 //   node tools/screeps.js rooms                  owned rooms overview
-// Options: --shard shard2 (default)
+// Options: --shard shard2 (default); --season reads the Seasonal World (shard shardSeason)
 const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
 const HOST = 'https://screeps.com';
+const SEASON = process.argv.includes('--season');
+const API = SEASON ? '/season/api/' : '/api/';
 
-function token() {
-    if (process.env.SCREEPS_TOKEN) return process.env.SCREEPS_TOKEN.trim();
-    const file = path.join(__dirname, '..', '..', 'viewtoken.env');
-    if (!fs.existsSync(file)) throw new Error('No token: set SCREEPS_TOKEN or create viewtoken.env at the repo root');
-    const text = fs.readFileSync(file, 'utf8').trim();
-    // Bare token, or KEY=value
-    const match = /^(?:[A-Z_]+\s*=\s*)?["']?([^"'\s]+)["']?$/m.exec(text);
-    if (!match) throw new Error('viewtoken.env: could not read a token');
-    return match[1];
-}
+const { token } = require('./token');
 
 async function get(endpoint, params = {}) {
-    const url = new URL('/api/' + endpoint, HOST);
+    const url = new URL(API + endpoint, HOST);
     for (const [k, v] of Object.entries(params)) if (v !== undefined && v !== '') url.searchParams.set(k, v);
-    const res = await fetch(url, { headers: { 'X-Token': token(), 'X-Username': 'x' } });
+    const res = await fetch(url, { headers: { 'X-Token': token(SEASON ? 'season' : 'mmo'), 'X-Username': 'x' } });
     const remaining = res.headers.get('x-ratelimit-remaining');
     const body = await res.text();
     if (!res.ok) throw new Error(`${endpoint}: HTTP ${res.status} ${body.slice(0, 200)}`);
@@ -83,9 +76,9 @@ function summarizeRoom(objects) {
 }
 
 async function main() {
-    const args = process.argv.slice(2);
+    const args = process.argv.slice(2).filter(a => a !== '--season');
     const shardIdx = args.indexOf('--shard');
-    const shard = shardIdx >= 0 ? args.splice(shardIdx, 2)[1] : 'shard2';
+    const shard = shardIdx >= 0 ? args.splice(shardIdx, 2)[1] : SEASON ? 'shardSeason' : 'shard2';
     const json = args.includes('--json');
     const [cmd, arg] = args.filter(a => a !== '--json');
 

@@ -93,6 +93,20 @@ Damage disables body parts front to back, and creeps never regenerate. A unit wh
 - **One shard:** InterShardMemory reads and writes are no-ops, and shardX scouting, claiming and guard quads are off. Power creeps are created and assigned on this shard: on the MMO only shard2 creates them and shardX comes first.
 - Everything else (rooms, expansion, remote mining, labs, defence) runs as on the MMO.
 
+**Deploying to the Seasonal World.** The GitHub sync doesn't reach it, so `tools/deploy.js` pushes the code through the commit API (`POST /season/api/user/code`, docs.screeps.com/commit.html):
+
+```
+node tools/deploy.js --world season --dry-run
+npm run deploy:season
+node tools/deploy.js --world season --branch mybranch
+```
+
+- The first command shows what would be sent, without sending anything. The second pushes to the season's `default` branch. The third pushes to another branch, which must already exist there.
+- **What's sent:** every top-level `.js` file in MainCode (the same set `tools/check.js` validates); `tests/` and `tools/` stay behind. The module check runs first, and nothing is sent if it fails. The code must stay under 5 MB (currently about 1.25 MB).
+- **Branches:** the tool refuses a branch the world doesn't have, and says which branch the world is running. Pushing to the running branch takes effect on the next tick.
+- **Token:** `SCREEPS_SEASON_TOKEN` or `seasontoken.env` at the repo root (git-ignored), otherwise the persistent-world token (`viewtoken.env`). The season server currently accepts the persistent-world token.
+- `--world ptr` and `--world mmo` work the same way.
+
 ## Automatic remote mining
 
 `system.remoteMining.js` (phase `remoteMining`) runs remote mining for every home room from the moment it has a storage: scouting, choosing sources, and staffing them as mining **nodes** kept in memory. No flags are needed.
@@ -235,6 +249,12 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
 - **Young room spawning** (`spawn.BuildCreeps.js`, rooms below RCL5): bodies are sized to the energy on hand, not the full capacity, so a room spawns as soon as it can afford a useful body.
   - **Controller-wall repairs:** built walls adjacent to the controller keep one local repairer staffed, even with upgrade focus. After energy logistics and one upgrader, it takes priority over extra upgraders and builders. It continuously strengthens the weakest controller wall beyond the helpers' initial hit target, and is exempt from optional CPU throttling.
   - **Fitting:** a chosen body that would still cost more is trimmed to fit.
+  - **Bootstrap** (no storage and no container at any source yet, e.g. a fresh RCL1 room without a sponsor):
+    - **Harvesters are carrying generalists:** the 300-energy `[WORK, CARRY, CARRY, MOVE, MOVE]` unit, or 2–3 of those blocks with more energy, at most 3 per source (fewer if the source has fewer free tiles).
+    - **What they do:** pick up energy lying within 5, harvest, then fill the spawn and extensions, then build (the container at their source first), then upgrade. Next to the source they place its container site.
+    - **Never cut down:** the spawn waits for 300 energy rather than making a creep that can't carry. No distributor, upgrader or builder is made yet, since those only take energy from containers and storage.
+    - Once a source container stands, the miners' economy below takes over.
+    - **Before:** harvester bodies were cut down to the energy in the spawn: at 150 a `[MOVE, WORK]` with no CARRY, which drops everything it harvests. The 5-WORK rule then kept ordering more (shardSeason W1N7: six of them and over 5,000 energy on the ground, with the distributor and upgraders idle).
   - **Harvesters:** each source is mined to 5 WORK (its full 10 energy/tick). Early bodies (RCL1–2: 2–4 WORK) can't reach that alone, so a source gets more harvesters until it has 5 WORK or no free tile. One harvester per source used to leave a third or more of the energy unmined.
   - **Supplier:** only with a storage and towers. It only takes energy from the storage; before RCL4 the distributor fills the towers. It used to be spawned for any `Supply` flag, which auto-build places early, and then had nothing to pick up.
   - **Repairer** (besides the controller walls): only for something it would repair: a damaged non-road structure, or a container below half. Roads are patched by passing creeps, and source containers by their harvesters; other walls and ramparts aren't raised here. Decaying roads used to keep a repairer alive permanently, and it spent its energy on walls.

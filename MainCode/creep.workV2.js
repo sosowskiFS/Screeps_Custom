@@ -22,6 +22,10 @@ var creep_workV2 = {
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'harvesterNearDeath') {
                     creep.memory.priority = 'harvesterNearDeath';
                 }
+                if (bootstrapping(creep)) {
+                    bootstrapHarvester(creep);
+                    break;
+                }
                 let mineTarget = undefined;
                 let thisUnit = undefined;
 
@@ -435,7 +439,57 @@ var creep_workV2 = {
     }
 };
 
-// Young-room distributor emptied by this transfer: walk back to its container (or the next one
+// Bootstrap (spawn.BuildCreeps.isBootstrap): no storage and no container at this harvester's
+// source yet, and it can carry. Then it does everything itself: picks up energy lying nearby (what
+// carry-less harvesters dropped), harvests, and when full fills the spawn and extensions, else
+// builds (the container at its source first), else upgrades the controller. Next to its source it
+// places the container site if there is none, as before.
+function bootstrapping(creep) {
+    if (creep.memory.storageUnit || creep.room.storage || !creep.getActiveBodyparts(CARRY)) return false;
+    const source = creep.memory.sourceLocation && Game.getObjectById(creep.memory.sourceLocation);
+    if (!source || source.room !== creep.room) return false;
+    return !require('spawn.BuildCreeps').sourceContainer(creep.room, source);
+}
+
+function bootstrapHarvester(creep) {
+    const m = creep.memory;
+    if (m.delivering && creep.store[RESOURCE_ENERGY] === 0) m.delivering = false;
+    if (!m.delivering && creep.store.getFreeCapacity() === 0) m.delivering = true;
+    const source = Game.getObjectById(m.sourceLocation);
+    if (!m.delivering) {
+        const drop = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
+            filter: r => r.resourceType === RESOURCE_ENERGY && r.amount >= 20 });
+        if (drop && creep.pos.inRangeTo(drop, 5)) {
+            if (creep.pickup(drop) === ERR_NOT_IN_RANGE) creep.travelTo(drop, { range: 1, maxRooms: 1 });
+            return;
+        }
+        if (creep.harvest(source) === ERR_NOT_IN_RANGE) {
+            creep.travelTo(source, { range: 1, maxRooms: 1 });
+            return;
+        }
+        // At the source: the container site for the miners that come later.
+        if (!source.pos.findInRange(FIND_CONSTRUCTION_SITES, 2, { filter: { structureType: STRUCTURE_CONTAINER } }).length) {
+            creep.room.createConstructionSite(creep.pos.x, creep.pos.y, STRUCTURE_CONTAINER);
+        }
+        return;
+    }
+    const sink = creep.pos.findClosestByRange(FIND_MY_STRUCTURES, { filter: s =>
+        (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_EXTENSION) && s.store.getFreeCapacity(RESOURCE_ENERGY) > 0 });
+    if (sink) {
+        if (creep.transfer(sink, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(sink, { range: 1, maxRooms: 1 });
+        return;
+    }
+    const sites = creep.room.find(FIND_MY_CONSTRUCTION_SITES);
+    const site = sites.find(s => s.structureType === STRUCTURE_CONTAINER && source && s.pos.inRangeTo(source.pos, 2)) ||
+        creep.pos.findClosestByRange(sites);
+    if (site) {
+        if (creep.build(site) === ERR_NOT_IN_RANGE) creep.travelTo(site, { range: 3, maxRooms: 1 });
+        return;
+    }
+    if (creep.upgradeController(creep.room.controller) === ERR_NOT_IN_RANGE) creep.travelTo(creep.room.controller, { range: 3, maxRooms: 1 });
+}
+
+// Young-room distributor emptied by this transfer:walk back to its container (or the next one
 // with energy) on the same tick.
 function returnDistributor(creep, target) {
     let source = creep.memory.storageTarget ? Game.getObjectById(creep.memory.storageTarget) : null;
@@ -592,4 +646,6 @@ function findContainerWithEnergy(thisCreep, energyMin) {
     return undefined;
 }
 
+creep_workV2.bootstrapping = bootstrapping;
+creep_workV2.bootstrapHarvester = bootstrapHarvester;
 module.exports = creep_workV2;

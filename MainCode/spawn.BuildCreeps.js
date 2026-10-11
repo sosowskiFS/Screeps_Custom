@@ -57,7 +57,11 @@ var spawn_BuildCreeps = {
         // Harvesters: every source mined to 5 WORK (its full 10 energy/tick). Early bodies (RCL1-2)
         // are too small for 5 WORK, so a source gets more harvesters until it has 5 WORK or no
         // free tile left; one harvester per source used to leave a third or more unmined.
-        const harvestSource = sourceShortOfWork(thisRoom, strSources, RoomCreeps);
+        // Bootstrap (no storage, no container at any source yet): nothing can be picked up but what
+        // a harvester carries, so harvesters are carrying generalists (harvest, fill the spawn, build,
+        // upgrade) and no distributor or upgrader is made yet; see bootstrap() below.
+        const bootstrap = isBootstrap(thisRoom, strSources);
+        const harvestSource = bootstrap ? bootstrapSource(thisRoom, strSources, RoomCreeps) : sourceShortOfWork(thisRoom, strSources, RoomCreeps);
         let builderMax = runtimeCache.find(thisRoom, FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0;
         let upgraderMax = getUpgraderMax(thisRoom);
         // Walls around the controller: one local repairer keeps strengthening them (claim defense).
@@ -117,6 +121,13 @@ var spawn_BuildCreeps = {
             upgraderMax = Math.max(1, upgraderMax - helpers);
         }
 
+        if (bootstrap) {
+            // Distributors and upgraders take energy only from containers and storage: none yet.
+            distributorMax = 0;
+            upgraderMax = 0;
+            builderMax = 0;
+        }
+
         if (Game.flags[thisRoom.name + "upFocus"]) {
             //Laser focus on upgrading
             upgraderMax = upgraderMax + (controllerWalls.length ? 0 : repairMax);
@@ -169,7 +180,7 @@ var spawn_BuildCreeps = {
             if (harvestSource) {
                 prioritizedRole = 'harvester';
                 creepSourceID = harvestSource;
-                bestWorker = getMinerConfig(budget, ownCreeps, harvesterCount);
+                bestWorker = bootstrap ? getBootstrapConfig(budget) : getMinerConfig(budget, ownCreeps, harvesterCount);
             } else if (distributorCount < distributorMax && thisRoom.energyCapacityAvailable >= 150) {
                 prioritizedRole = 'distributor';
                 bestWorker = getDistributorConfig(budget, ownCreeps, harvesterCount);
@@ -274,6 +285,54 @@ function getRepairMax(room) {
 }
 
 const UPGRADER_CAP = 6;
+
+// ---------------------------------------------------------------- bootstrap
+// A room with no storage and no container at any of its sources (a fresh RCL1 room without a
+// sponsor). The first harvesters used to be cut down to whatever energy the spawn held: at 150 a
+// [MOVE, WORK] with no CARRY, which drops everything it harvests, and the 5-WORK-per-source rule kept
+// ordering more of them (shardSeason W1N7: six of them and 5,000 energy on the ground, with the
+// distributor and upgraders idle because they only take from containers).
+const BOOTSTRAP_PER_SOURCE = 3;   // carrying harvesters per source (fewer if fewer free tiles)
+const BOOTSTRAP_BLOCK = () => [WORK, CARRY, CARRY, MOVE, MOVE];   // the 300-energy "default unit"
+
+function sourceContainer(room, source) {
+    return runtimeCache.find(room, FIND_STRUCTURES, { filter: { structureType: STRUCTURE_CONTAINER } })
+        .some(c => source.pos.inRangeTo(c.pos, 2));
+}
+
+function isBootstrap(room, sourceIds) {
+    if (room.storage) return false;
+    const sources = sourceIds.map(id => Game.getObjectById(id)).filter(Boolean);
+    return sources.length > 0 && !sources.some(s => sourceContainer(room, s));
+}
+
+// The source that needs another carrying harvester, or undefined. Harvesters without CARRY (the
+// old cut-down ones) don't count: they cannot bring anything back.
+function bootstrapSource(room, sourceIds, roomCreeps) {
+    let best, fewest = Infinity;
+    for (const id of sourceIds) {
+        const source = Game.getObjectById(id);
+        if (!source) continue;
+        const carriers = roomCreeps.filter(c => c && c.memory && c.memory.priority === 'harvester' && c.memory.sourceLocation === id &&
+            (c.pending || typeof c.getActiveBodyparts !== 'function' || c.getActiveBodyparts(CARRY) > 0)).length;
+        if (carriers >= Math.min(BOOTSTRAP_PER_SOURCE, harvestSlots(source))) continue;
+        if (carriers < fewest) { best = id; fewest = carriers; }
+    }
+    return best;
+}
+
+// Whole [WORK, CARRY, CARRY, MOVE, MOVE] blocks (full speed loaded off-road), up to 3; nothing below
+// one block: the spawn waits for 300 instead of making a creep that cannot carry.
+function getBootstrapConfig(energy) {
+    const blocks = Math.min(3, Math.floor(energy / calculateConfigCost(BOOTSTRAP_BLOCK())));
+    if (blocks < 1) return [];
+    const body = [];
+    for (const type of [WORK, CARRY, MOVE]) {
+        const n = BOOTSTRAP_BLOCK().filter(p => p === type).length * blocks;
+        for (let i = 0; i < n; i++) body.push(type);
+    }
+    return body;
+}
 const SOURCE_WORK = 5;            // WORK parts that harvest a source's full output
 
 // Free tiles around a source (harvest positions), cached per source.
@@ -428,6 +487,9 @@ function getDistributorConfig(energyCap, numRoomCreeps, numHarvesters) {
 }
 
 spawn_BuildCreeps.getMinerConfig = getMinerConfig;
+spawn_BuildCreeps.getBootstrapConfig = getBootstrapConfig;
+spawn_BuildCreeps.isBootstrap = isBootstrap;
+spawn_BuildCreeps.sourceContainer = sourceContainer;
 spawn_BuildCreeps.getWorkerConfig = getWorkerConfig;
 spawn_BuildCreeps.getDistributorConfig = getDistributorConfig;
 spawn_BuildCreeps.needsRepair = needsRepair;

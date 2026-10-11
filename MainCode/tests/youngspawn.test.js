@@ -96,8 +96,10 @@ test('young repairers keep strengthening the weakest controller wall beyond help
 });
 
 // A young room for the staffing pass: structures, sources and residents as given.
-function staffRoom({ residents = [], structures = [], sources = [], storage, energy = 800, level = 3, sites = 0, flags = {} } = {}) {
+function staffRoom({ residents = [], structures = [], sources = [], storage, energy = 800, level = 3, sites = 0, flags = {}, containers = true } = {}) {
     const { h, g, build } = load(), spawned = [];
+    // A container beside each source (the miners' economy), unless the room is still bootstrapping.
+    if (containers) structures = structures.concat(sources.map(src => ({ structureType: 'container', hits: 250000, hitsMax: 250000, store: { energy: 0 }, pos: near(src.pos.x + 1, src.pos.y) })));
     g.Memory.sourceList = { NEW: sources.map(s => s.id) };
     g.Memory.CurrentRoomEnergy = ['NEW', energy];
     g.Memory.autoBuildRooms = ['NEW'];
@@ -187,4 +189,30 @@ test('the rampart shell over the spawn is repaired up to its cap; ramparts off t
     assert.ok(!r.spawned.some(c => c.role === 'repair'), 'at the 50k cap: none');
     r = staffRoom({ sources: [s1], residents, structures: [spawn(), Object.assign(rampart(1000), { pos: near(30, 30) })] });
     assert.ok(!r.spawned.some(c => c.role === 'repair'), 'a rampart off the shell: none');
+});
+
+test('bootstrap (no storage, no source container): carrying 5-part harvesters, at most 3 per source, nothing cut down, no distributor or upgrader', () => {
+    const s1 = source('s1', 10, 10), s2 = source('s2', 30, 30);
+    const r = n => staffRoom({ sources: [s1, s2], energy: n, level: 1, containers: false, residents: [] .concat(
+        [carryless('s1'), carryless('s1')]) });
+const carryless = id => Object.assign(worker('harvester', 1, { sourceLocation: id }), { getActiveBodyparts: t => (t === 'work' ? 1 : 0) });
+    // Two carry-less [MOVE, WORK] harvesters at s1 don't count: s1 (or s2) gets a carrying one.
+    let out = r(300);
+    assert.equal(out.spawned[0].role, 'harvester');
+    assert.deepEqual(out.spawned[0].body.map(p => p[0]).join(''), 'wccmm', 'the 300-energy default unit');
+    assert.equal(out.spawned[0].source, 's1', 'its two [MOVE, WORK] harvesters cannot carry, so s1 still gets a carrier');
+    out = r(150);
+    assert.equal(out.spawned.length, 0, 'at 150 it waits instead of making a creep that cannot carry');
+    // Three carriers on each source: no more harvesters, and no distributor/upgrader either.
+    const carriers = [];
+    for (const id of ['s1', 's2']) for (let i = 0; i < 3; i++) carriers.push(Object.assign(worker('harvester', 1, { sourceLocation: id }), { getActiveBodyparts: () => 1 }));
+    out = staffRoom({ sources: [s1, s2], energy: 800, level: 2, containers: false, residents: carriers });
+    assert.equal(out.spawned.length, 0, JSON.stringify(out.spawned));
+});
+
+test('bootstrap bodies scale by whole blocks, up to 3', () => {
+    const { build } = load();
+    assert.equal(build.getBootstrapConfig(299).length, 0);
+    assert.equal(build.getBootstrapConfig(550).length, 5);
+    assert.equal(build.getBootstrapConfig(1300).length, 15);
 });
