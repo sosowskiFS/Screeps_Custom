@@ -637,6 +637,11 @@ Tower fixes:
 - **Haulers turn back on their last delivery:** mules, distributors (including young-room ones) and the operator filling spawns work out what is left after a transfer (the store only updates next tick). When the load is spent, they start walking back to their link, storage or container on the same tick instead of stepping on toward the next sink. Shared helper: `returnIfEmptied` in `creep.logistics.js`.
 - **Parked creeps are obstacles:** creeps on their work tile (`atSpot`/`onPoint`: miners, the tower supplier) are impassable in path planning, because they never move aside. Paths planned through the storage miner deadlocked a queue of haulers at the storage in E29N43.
 - **Spawn exits:** in the tick before a spawn finishes a creep, if every exit tile is taken, one of our non-parked creeps on an exit steps one tile outward (`spawn.exit.js`).
+- **Portals only on purpose:** a portal tile is never walked onto unless it is the trip's destination. Every creep using `travelTo` (inter-shard units, highway patrols, power and deposit crews, quads) gets this.
+  - **In sight:** portal tiles are impassable in the structure matrix, as before, and also in the quads' own path grids.
+  - **Out of sight:** a room planned without vision had no structures in its path at all. Portal tiles seen there are now remembered in `Memory.portalTiles` and blocked in such plans.
+  - **Cached paths:** a path planned before its portal was known is replanned the moment its next step is a portal tile.
+  - **Why:** a quad's lead member in shardX W0N10 followed a path planned before the room was in sight onto a portal to an unrelated shard.
 - **Stuck repaths:** after `stuckValue` ticks the creep looks for a way around the other creeps. If none reaches the goal, it keeps its real path and waits/swaps instead of walking off and straight back. (Previously this repath happened at random, and the partial path that came back produced the "move, wait, move back" loop.)
 
 ### Bad rooms

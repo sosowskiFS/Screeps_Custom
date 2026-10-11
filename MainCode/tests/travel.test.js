@@ -149,3 +149,50 @@ test('a creep swapped out of the way while waiting near a spot stays put instead
     g.Game.time += 5;
     assert.equal(Traveler.wasPushed(mule), false, 'the hold expires');
 });
+
+test('a cached path whose next step is a portal is replanned; the destination portal itself is fine', () => {
+    const { g, Traveler } = setup();
+    g.Memory.portalTiles = { W1N1: [11 * 50 + 10] };   // seen earlier, out of sight now
+    const searches = [];
+    g.PathFinder.search = (origin, goal, opts) => {
+        searches.push(opts.roomCallback);
+        return { path: [new g.RoomPosition(11, 11, 'W1N1')], incomplete: false };
+    };
+    const moves = [];
+    const creep = state => ({ name: 'q', fatigue: 0, pos: new g.RoomPosition(10, 10, 'W1N1'), memory: { _trav: { path: '33', state } },
+        move: d => { moves.push(d); return g.OK; }, say: () => {} });
+    // Planned toward 30,10 before the portal at 11,10 was known: the next step would enter it.
+    Traveler.travelTo(creep([9, 10, 0, 0, 30, 10, 'W1N1']), new g.RoomPosition(30, 10, 'W1N1'));
+    assert.equal(searches.length, 1, 'replanned');
+    assert.deepEqual(moves, [g.BOTTOM_RIGHT]);
+    // Heading for that portal on purpose: the cached step into it is kept.
+    moves.length = 0;
+    Traveler.travelTo(creep([9, 10, 0, 0, 12, 10, 'W1N1']), new g.RoomPosition(11, 10, 'W1N1'), { range: 0 });
+    assert.equal(searches.length, 1);
+    assert.deepEqual(moves, [g.RIGHT]);
+});
+
+test('rooms planned without vision block their remembered portal tiles, except the destination', () => {
+    const { g, Traveler } = setup();
+    const set = [];
+    g.PathFinder.CostMatrix = class { set(x, y, v) { set.push([x, y, v]); } get() { return 0; } clone() { return this; } };
+    g.Memory.portalTiles = { W2N1: [20 * 50 + 20, 21 * 50 + 20] };
+    let callback;
+    g.PathFinder.search = (origin, goal, opts) => { callback = opts.roomCallback; return { path: [], incomplete: false }; };
+    Traveler.findTravelPath(new g.RoomPosition(1, 25, 'W1N1'), new g.RoomPosition(21, 20, 'W2N1'), {});
+    assert.ok(callback('W2N1'));
+    assert.equal(JSON.stringify(set), JSON.stringify([[20, 20, 255]]), 'the other portal tile blocked, the destination one not');
+});
+
+test('portal tiles are remembered from rooms in sight and forgotten once gone', () => {
+    const { g, h, Traveler } = setup();
+    const structures = [{ structureType: g.STRUCTURE_PORTAL, pos: { x: 5, y: 6 } }];
+    g.Game.rooms.W0N10 = { name: 'W0N10', find: () => structures };
+    assert.equal(Traveler.portalTiles('W0N10').has(5 * 50 + 6), true);
+    assert.equal(JSON.stringify(g.Memory.portalTiles.W0N10), JSON.stringify([256]));
+    structures.length = 0;
+    g.Game.time++;
+    h.load('runtime.cache').reset && h.load('runtime.cache').reset();
+    assert.equal(Traveler.portalTiles('W0N10').size, 0);
+    assert.equal(g.Memory.portalTiles.W0N10, undefined);
+});

@@ -28,7 +28,7 @@ function grid(room, members, footprint, dynamic = true) {
     }
     for (const s of room.find(FIND_STRUCTURES)) {
         if (s.structureType === STRUCTURE_ROAD) { if (tiles.get(s.pos.x, s.pos.y) !== 255) tiles.set(s.pos.x, s.pos.y, 1); }
-        else if (s.structureType !== STRUCTURE_CONTAINER && s.structureType !== STRUCTURE_PORTAL &&
+        else if (s.structureType !== STRUCTURE_CONTAINER &&
             !(s.structureType === STRUCTURE_RAMPART && (s.my || s.isPublic))) tiles.set(s.pos.x, s.pos.y, 255);
     }
     // Our construction sites for structures that block movement: Traveler routes around them (a
@@ -50,7 +50,6 @@ function grid(room, members, footprint, dynamic = true) {
         }
     }
     if (!footprint) return (matrices[id] = tiles);
-    for (const s of room.find(FIND_STRUCTURES)) if (s.structureType === STRUCTURE_PORTAL) tiles.set(s.pos.x, s.pos.y, 255);
     const result = new PathFinder.CostMatrix();
     for (let x = 0; x < 50; x++) for (let y = 0; y < 50; y++) {
         // Formation anchors never straddle an exit. Exit traversal is explicit single file.

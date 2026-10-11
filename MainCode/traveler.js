@@ -15,6 +15,10 @@
 //    places with it (head-on deadlocks in 1-wide corridors)
 //  - a repath around creeps that cannot reach the target is discarded: the creep waits and
 //    pushes instead of walking away from its goal and back again
+//  - portals are never walked onto unless they are the destination: their tiles are remembered
+//    (Memory.portalTiles) and blocked in rooms planned without vision, and a cached path is
+//    replanned when its next step turns out to be a portal (shardX W0N10: a quad's lead member
+//    followed a path planned before the room was seen into a portal to an unrelated shard)
 const runtimeCache = require('runtime.cache');
 const badRooms = require('system.badRooms');
 const roomStatus = require('room.status');
@@ -120,6 +124,10 @@ class Traveler {
             }
             if (options.repath && Math.random() < options.repath) {
                 // add some chance that you will find a new path randomly
+                delete travelData.path;
+            }
+            // A cached path planned without vision can lead onto a portal: replan (portalAhead).
+            if (travelData.path && Traveler.portalAhead(creep, travelData.path, state.stuckCount === 0 ? 1 : 0, destination)) {
                 delete travelData.path;
             }
             // pathfinding
@@ -370,6 +378,16 @@ class Traveler {
                         }
                     }
                 }
+                if (!room) {
+                    const portals = Traveler.portalTiles(roomName);
+                    if (portals.size) {
+                        matrix = new PathFinder.CostMatrix();
+                        for (const tile of portals) {
+                            const x = Math.floor(tile / 50), y = tile % 50;
+                            if (roomName !== destRoomName || x !== destination.x || y !== destination.y) matrix.set(x, y, 0xff);
+                        }
+                    }
+                }
                 if (options.roomCallback) {
                     if (!matrix) {
                         matrix = new PathFinder.CostMatrix();
@@ -603,6 +621,37 @@ class Traveler {
             }
             Traveler._structureMatrixCache[key] = matrix;
             return matrix;
+        }
+    /**
+         * the portal tiles of a room (x * 50 + y): read in sight and remembered in
+         * Memory.portalTiles, so rooms planned without vision avoid them too
+         */
+    static portalTiles(roomName) {
+            if (Traveler._portalTick !== Game.time) {
+                Traveler._portalTick = Game.time;
+                Traveler._portalCache = Object.create(null);
+            }
+            if (Traveler._portalCache[roomName]) return Traveler._portalCache[roomName];
+            const room = Game.rooms[roomName];
+            const memory = Memory.portalTiles || (Memory.portalTiles = {});
+            let tiles;
+            if (room) {
+                tiles = runtimeCache.find(room, FIND_STRUCTURES).filter(s => s.structureType === STRUCTURE_PORTAL).map(s => s.pos.x * 50 + s.pos.y);
+                if (tiles.length) {
+                    if ((memory[roomName] || []).join() !== tiles.join()) memory[roomName] = tiles;
+                } else if (memory[roomName]) delete memory[roomName];
+            } else tiles = memory[roomName] || [];
+            return (Traveler._portalCache[roomName] = new Set(tiles));
+        }
+    /**
+         * true when the path's step at index leads onto a portal that is not the destination
+         */
+    static portalAhead(creep, path, index, destination) {
+            const direction = parseInt(path[index], 10);
+            if (!direction) return false;
+            const next = Traveler.positionAtDirection(creep.pos, direction);
+            if (!next || (destination && Traveler.samePos(next, destination))) return false;
+            return Traveler.portalTiles(next.roomName).has(next.x * 50 + next.y);
         }
     static parkedCreeps(room) {
             return runtimeCache.find(room, FIND_MY_CREEPS).filter(creep => creep.memory && (creep.memory.atSpot || creep.memory.onPoint));
