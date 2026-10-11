@@ -39,6 +39,7 @@ function register(names, run) {
 register(['retireHauler'], creep => creep_retireHauler.run(creep));
 register(['xScout'], creep => require('system.shardX').runScout(creep));
 register(['xBait'], creep => require('creep.xBait').run(creep));
+register(['xNuisance'], creep => require('creep.xNuisance').run(creep));
 register(['supportHauler'], creep => require('creep.supportHauler').run(creep));
 register(['claimHunter'], creep => require('creep.claimHunter').run(creep));
 register(['roomGuard'], creep => require('creep.roomGuard').run(creep));
@@ -250,6 +251,7 @@ tier(['harasser', 'harasserNearDeath'], creep => creep.room.find(FIND_HOSTILE_CR
 tier(['mineralMiner', 'mineralMinerNearDeath'], ECONOMY);
 // Decoys (system.bait) are many on shardX's small CPU: thinned first among the economy creeps.
 tier(['xBait'], ECONOMY);
+tier(['xNuisance'], OPTIONAL);
 // Everything else (miners, upgraders, mules, distributors, suppliers, defenders, guards, claimers,
 // assault/power/ranger roles, young-room workers) is essential.
 

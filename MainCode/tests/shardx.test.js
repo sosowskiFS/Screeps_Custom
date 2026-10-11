@@ -319,3 +319,18 @@ test('on shardX the promoted room leaves the bait rooms and is built fortified',
     assert.ok(g.Memory.xs.fortify.E5N15);
     assert.ok(JSON.parse(local.value).xs.progress.E5N15);
 });
+
+test('a home orders a CARRY+MOVE pest for a Harabi-reserved room it scouted', () => {
+    const { g, x } = setup('shard1', {
+        shard2: { mode: 'done', targets: [{ r: 'E36N36', h: 'shard1:E28N48', e: 'E40N40', t: 300 }] },
+        shardX: { progress: {}, bt: [], bf: 0, nz: [{ r: 'E35N38', h: 'shard1:E28N48', e: 'E40N40', k: 200, n: 0 }] },
+    });
+    g.Game.rooms = { E28N48: owned(g, 'E28N48') };
+    g.Game.creeps = {};
+    g.Game.time = 5025;
+    x.run();
+    const order = g.Memory.xs.queue.E28N48;
+    assert.equal(order.kind, 'xNuisance');
+    assert.equal(order.memory.destination, 'E35N38');
+    assert.equal(x.spawnOrder('E28N48').body.join(), [g.CARRY, g.MOVE].join());
+});

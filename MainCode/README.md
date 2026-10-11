@@ -392,6 +392,10 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
     - **Quads:** they move to the new focus, including ones posted on shardX (their manifests are rewritten and they follow), when the new sponsor is on the same shard. A sponsor on another shard builds its own; in focus mode the focus room always gets quads.
     - Logged, notified and listed by `shardX()` (the last 3 shifts).
   - `shardX()` shows the centres; `shardX('reset')` clears them.
+- **Pests** (`system.nuisance`, `creep.xNuisance`): every shardX room seen reserved by Harabi (and nobody else) in the last 10,000 ticks gets one CARRY+MOVE creep (100 energy), while shardX is claiming or done.
+  - **Why:** HarabiBot (public v2 source) treats any foreign creep with a CARRY part on its remote rooms or paths as a threat: those remotes turn unsafe and a remote-defense mission opens.
+  - **Sponsor:** the home that scouted the room (fastest trip) sends it through its corner. One per room at a time, one order per home at a time, at most 15 rooms. None while shardX is short of CPU.
+  - **Behaviour:** it flees anything with damaging parts, and waits outside the room while armed hostiles are in it. In the room it takes energy from the fullest container and drops it on a tile next to that container, preferring one 2+ tiles from the source: HarabiBot's haulers only pick up dropped energy within 1 of a source, so elsewhere it just decays. It retires once the room is no longer Harabi's reservation.
 - **`shardX('candidates')`** (shard2) lists the candidates shardX reports (up to 30): room, score, trip ticks, sponsor and corner.
 - **`shardX('claim', ['E19N28', 'E22N31@E32N33', 'W1N22'])`** claims the named candidates instead of automatic picks.
   - Each room must be one of shardX's reported candidates.
