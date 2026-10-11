@@ -57,6 +57,7 @@ function world() {
             rangedMassAttack(){actions.push([this.name,'mass']);}};
         squad.push(c);g.Game.creeps[c.name]=c;
     }
+    h.load('traveler').Traveler.findTravelPath=(origin,destination,opts={})=>search(origin.pos||origin,{pos:destination.pos||destination,range:opts.range||0},opts);
     const q=h.load('creep.guardQuad');
     const next=()=>{g.Game.time++;actions.length=0;};
     const apply=()=>{
@@ -272,4 +273,59 @@ test('our construction sites for blocking structures are off the formation map (
     const anchor=w.q.nearestAnchor(w.room,w.squad,new w.Pos(10,20),1);
     const cells=w.q.OFFSETS.map(([dx,dy])=>(anchor.x+dx)+','+(anchor.y+dy));
     assert.ok(!cells.includes('11,20'),'formed up beside it: '+cells.join(' '));
+});
+test('with no hostiles in the room, the quad heals our damaged workers, walking up to them first',()=>{
+    const w=world();w.room.controller={pos:new w.Pos(15,20),my:true};
+    const worker={name:'helper',pos:new w.Pos(30,20),hits:200,hitsMax:1000,memory:{priority:'helper'}};
+    w.g.Game.creeps.helper=worker;
+    for(let tick=0;tick<25&&!w.actions.some(a=>a[2]==='helper');tick++){for(const c of w.squad)w.q.run(c);if(!w.actions.some(a=>a[2]==='helper'))w.apply();}
+    assert.ok(w.actions.some(a=>a[0]==='c3'&&(a[1]==='heal'||a[1]==='rangedHeal')&&a[2]==='helper'),'the healer treats the worker');
+    assert.ok(w.squad.every(c=>c.pos.getRangeTo(worker)<=4));
+    // A hostile in the room: back to fighting, the worker waits.
+    const x=world();x.g.Game.creeps.helper=Object.assign({},worker,{pos:new x.Pos(12,22)});
+    x.hostiles.push({name:'enemy',id:'enemy',owner:{username:'Harabi'},pos:new x.Pos(14,20),body:[{type:x.g.RANGED_ATTACK,hits:100}],hits:100,hitsMax:100});
+    x.q.combat(x.squad);
+    assert.ok(!x.actions.some(a=>a[2]==='helper'));
+});
+test('an enemy that hops out over the border is waited for 5 ticks where the quad stands, not chased',()=>{
+    const go=(x,y)=>{
+        const w=world();w.room.controller={pos:new w.Pos(30,20),my:true};
+        w.hostiles.push({name:'enemy',id:'enemy',owner:{username:'Harabi'},pos:new w.Pos(x,y),body:[{type:w.g.RANGED_ATTACK,hits:100}],hits:100,hitsMax:100});
+        for(const c of w.squad)w.q.run(c);w.apply();
+        w.hostiles.length=0;
+        const moved=[];
+        for(let tick=0;tick<8;tick++){for(const c of w.squad)w.q.run(c);moved.push(w.actions.some(a=>a[1]==='move'||a[1]==='travel'));w.apply();}
+        return {w,moved};
+    };
+    const {w,moved}=go(48,20);
+    assert.equal(JSON.stringify(moved.slice(0,5)),JSON.stringify([false,false,false,false,false]),'holds 5 ticks');
+    assert.ok(moved.slice(5).some(Boolean),'then back to its idle routine');
+    assert.ok(w.squad.every(c=>c.memory.guardHold===undefined));
+    // An enemy gone from mid-room (killed): no hold.
+    assert.equal(go(25,25).moved[0],true);
+});
+test('single file: once together, the member with the shortest path leads and the rest follow nearest first',()=>{
+    const w=world();
+    // A line with slot 0 at the back: it used to lead and worked its way through the other three.
+    w.squad.forEach((c,i)=>{c.pos=new w.Pos(10+i,20);});
+    const goal=new w.Pos(30,20);
+    w.q.snake(w.squad,goal,false);
+    const travel=w.actions.filter(a=>a[1]==='travel'&&a[2]===goal);
+    assert.equal(JSON.stringify(travel.map(a=>a[0])),JSON.stringify(['c3']),'the front member leads');
+    assert.equal(JSON.stringify(w.squad[0].memory.guardLine.order),JSON.stringify(['c3','c2','c1','c0']));
+    w.apply();
+    // Kept while the goal stays the same, even as positions shift.
+    w.squad[0].pos=new w.Pos(20,20);
+    w.q.snake(w.squad,goal,false);
+    assert.equal(w.squad[0].memory.guardLine.order[0],'c3');
+    w.apply();
+    // A new goal behind them: picked again.
+    w.squad.forEach((c,i)=>{c.pos=new w.Pos(10+i,20);});
+    w.q.snake(w.squad,new w.Pos(2,20),false);
+    assert.equal(JSON.stringify(w.squad[0].memory.guardLine.order),JSON.stringify(['c0','c1','c2','c3']));
+    // Spread out (not yet together): slot order until they meet.
+    const x=world();x.squad[3].pos=new x.Pos(40,40);
+    x.q.snake(x.squad,goal,false);
+    assert.equal(x.squad[0].memory.guardLine.fixed,undefined);
+    assert.equal(x.squad[0].memory.guardLine.order[0],'c0');
 });

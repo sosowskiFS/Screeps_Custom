@@ -381,6 +381,10 @@ function runX() {
             cl: room && room.controller && room.controller.my ? 1 : 0,
             tm: room && room.terminal && room.terminal.my ? 1 : 0,
             hp: Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'helper' && Game.creeps[n].memory.destination === t.r).length,
+            // Helpers here by home room (fortified rooms get extra ones from a second home).
+            hh: Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' && c.memory.destination === t.r)
+                .reduce((o, c) => { const h = c.memory.homeRoom; if (h) o[h] = (o[h] || 0) + 1; return o; }, {}),
+            ft: room && fortified(room) ? 1 : 0,
             cx: Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'claimer' && Game.creeps[n].memory.destination === t.r).length,
         };
         // What stands in the claim's way: another owner (shard2 picks another room) or another
@@ -471,6 +475,38 @@ function pick(cands, existing = [], skip = {}) {
 }
 
 // Claimer, then helpers, for the targets whose home is on this shard.
+// Fortified rooms (fortified()): the target's second supporting room (the helper home that also
+// builds its second guard quad, system.guardSquads.helperHome) keeps FORTIFY_HELPERS more helpers
+// there until the second tower stands, on top of the sponsor's HELPERS: the room cannot spawn its
+// own creeps meanwhile and its climb to RCL5 is all helper work.
+const FORTIFY_HELPERS = 2;
+function secondHome(t) {
+    const squads = require('system.guardSquads');
+    const quad = squads.state().targets['shardX:' + t.r];
+    if (quad && quad.helperAt !== undefined) return quad.helper || null;
+    const s = state();
+    const cache = (s.helperFor || (s.helperFor = {}))[t.r] ||
+        (s.helperFor[t.r] = { home: t.h.split(':')[1], corner: t.e, room: t.r });
+    return squads.helperHome(cache);
+}
+function scheduleFortifyHelpers(list, progress) {
+    const s = state(), here = Game.shard.name;
+    if (!s.last) s.last = {};
+    for (const t of list) {
+        const p = progress[t.r] || {};
+        if (!p.ft || !p.cl || t.h.split(':')[0] !== here) continue;
+        const home = secondHome(t);
+        if (!home || !homes().includes(home)) continue;
+        const inFlight = Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' && c.memory.destination === t.r &&
+            c.memory.homeRoom === home && c.memory.xShard).length;
+        if (((p.hh || {})[home] || 0) + inFlight >= FORTIFY_HELPERS) continue;
+        if (Game.time - (s.last[t.r + ':fh'] || 0) <= HELPER_GAP) continue;
+        s.last[t.r + ':fh'] = Game.time;
+        queue(home, { kind: 'helper', memory: { priority: 'helper', previousPriority: 'helper', destination: t.r, homeRoom: home,
+            xTarget: 1, xShard: { c: t.e } } });
+    }
+}
+
 function scheduleSupport(list, progress) {
     const s = state();
     if (!s.last) s.last = {};
@@ -518,7 +554,10 @@ function scheduleSupport(list, progress) {
         // Helpers from the start, alongside the claimer: they arrive loaded and get to work the
         // moment the room is ours, instead of setting out only after the claim. (Not into a room
         // being reclaimed until it is safe, as for the claimer.)
-        if (!reclaimWait && (p.hp || 0) + inFlight('helper') < HELPERS && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
+        // The sponsor's own helpers only (a fortified room's second home adds its own on top).
+        const own = (p.hh ? (p.hh[home] || 0) : (p.hp || 0)) + Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' &&
+            c.memory.destination === t.r && c.memory.xShard && (!c.memory.homeRoom || c.memory.homeRoom === home)).length;
+        if (!reclaimWait && own < HELPERS && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
             s.last[t.r + ':h'] = Game.time;
             queue(home, { kind: 'helper', memory: Object.assign({ priority: 'helper', previousPriority: 'helper' }, base) });
         }
@@ -587,6 +626,7 @@ function runHome() {
             }
         }
         scheduleSupport(list, x.progress || {});
+        scheduleFortifyHelpers(list, x.progress || {});
         if (here === COORD_SHARD && list.length && list.every(t => (x.progress || {})[t.r] && x.progress[t.r].tm)) {
             s.mode = 'done';
             s.dirty = 1;
@@ -777,6 +817,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, fortified, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

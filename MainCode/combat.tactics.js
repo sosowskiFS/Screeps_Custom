@@ -53,6 +53,76 @@ function flee(creep, threats) {
     return false;
 }
 
+// ---------------------------------------------------------------- civilian escape
+// Armed hostiles in a room (they can damage a non-combat creep).
+function armedThreats(room) {
+    return room ? intel.roomIntel(room).threats.filter(t => intel.assess(t).dps > 0) : [];
+}
+
+// Mark every tile an armed hostile in a visible room could hit next tick (its reach plus the step
+// it can take) on `matrix`, with `cost`. Rooms out of sight are left as they are.
+function markDanger(roomName, matrix, cost = 255) {
+    const room = Game.rooms[roomName];
+    if (!room || !matrix) return matrix;
+    for (const t of armedThreats(room)) {
+        const reach = (intel.assess(t).ranged > 0 ? 3 : 1) + 1;
+        for (let dx = -reach; dx <= reach; dx++) {
+            for (let dy = -reach; dy <= reach; dy++) {
+                const x = t.pos.x + dx, y = t.pos.y + dy;
+                if (x >= 0 && y >= 0 && x <= 49 && y <= 49 && matrix.get(x, y) < cost) matrix.set(x, y, cost);
+            }
+        }
+    }
+    return matrix;
+}
+
+// Traveler roomCallback: route around the reach of armed hostiles in every visible room.
+function avoidReach(roomName, matrix) {
+    return markDanger(roomName, matrix, 255);
+}
+
+// Is it safe to (re-)enter `roomName`? Visible: no armed hostiles in it. Out of sight: not marked
+// dangerous recently (combat.intel). A creep that fled a room keeps out while its attackers are
+// still seen there.
+function unsafeToEnter(roomName) {
+    const room = Game.rooms[roomName];
+    if (room) return armedThreats(room).length > 0;
+    return intel.isDangerous(roomName);
+}
+
+// A non-combat creep with an armed hostile close: get away. Preferably to a haven (our tower, a
+// guard quad member or room guard in this room) by a path that never enters any hostile's reach;
+// otherwise flee from all of them (into the next room if need be), counting hostiles seen in the
+// neighbouring rooms too, so it never flees into another one. Returns true when it moved.
+function escape(creep) {
+    const room = creep.room;
+    const armed = armedThreats(room);
+    const near = armed.filter(t => creep.pos.inRangeTo(t, fleeRange(intel.assess(t))));
+    if (!near.length) return false;
+    const matrixFor = cost => name => {
+        const r = Game.rooms[name];
+        if (!r) return undefined;
+        return markDanger(name, Traveler.getCreepMatrix(r).clone(), cost);
+    };
+    const havens = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } })
+        .concat(runtimeCache.find(room, FIND_MY_CREEPS).filter(c => c.memory && (c.memory.guardSquad || c.memory.priority === 'roomGuard')))
+        .map(h => ({ pos: h.pos, range: 2 }));
+    if (havens.length) {
+        const safe = PathFinder.search(creep.pos, havens, { maxRooms: 1, plainCost: 2, swampCost: 10, maxOps: 2000, roomCallback: matrixFor(255) });
+        if (!safe.incomplete && safe.path.length) {
+            creep.move(creep.pos.getDirectionTo(safe.path[0]));
+            return true;
+        }
+    }
+    const goals = armed.map(t => ({ pos: t.pos, range: fleeRange(intel.assess(t)) + 1 }));
+    const away = PathFinder.search(creep.pos, goals, { flee: true, maxRooms: 2, plainCost: 2, swampCost: 10, roomCallback: matrixFor(50) });
+    if (away.path.length) {
+        creep.move(creep.pos.getDirectionTo(away.path[0]));
+        return true;
+    }
+    return false;
+}
+
 // Step toward a target that is a few tiles away without a full pathfinding search.
 function closeIn(creep, target, range) {
     const distance = creep.pos.getRangeTo(target);
@@ -219,11 +289,9 @@ function avoidDanger(creep, workRoom) {
     const roomIntel = intel.roomIntel(creep.room);
     if (roomIntel.threats.length) {
         // Always step out of reach of armed hostiles, even if our guards are winning.
-        const near = roomIntel.threats.filter(t => {
-            const stats = intel.assess(t);
-            return stats.dps > 0 && creep.pos.inRangeTo(t, fleeRange(stats));
-        });
-        if (near.length && flee(creep, near)) return true;
+        // escape(): toward a tower or our guards if that path stays out of every hostile's reach,
+        // otherwise away from all of them (neighbouring rooms' hostiles counted too).
+        if (escape(creep)) return true;
         if (roomIntel.verdict !== 'win' && creep.room.name === workRoom) {
             goHome(creep);
             return true;
@@ -234,7 +302,7 @@ function avoidDanger(creep, workRoom) {
         if (!goHome(creep)) stepOffBorder(creep);
         return true;
     }
-    if (workRoom && workRoom !== creep.room.name && intel.isDangerous(workRoom)) {
+    if (workRoom && workRoom !== creep.room.name && unsafeToEnter(workRoom)) {
         // Wait outside until our guards have dealt with it.
         stepOffBorder(creep);
         return true;
@@ -294,4 +362,4 @@ function seekRepair(creep) {
     return true;
 }
 
-module.exports = { fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };
+module.exports = { escape, avoidReach, unsafeToEnter, armedThreats, markDanger, fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };

@@ -146,7 +146,8 @@ test('boost preparation is bounded, uses available partial T3 and skips absent m
     g.Memory.guardBoosts = { rooms: { HOME:{need:{[res]:60},assignments:{lab:res}} } };
     const c = { memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.RANGED_ATTACK,hits:100},{type:g.RANGED_ATTACK,hits:100}, {type:g.MOVE,hits:100,boost:g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE}],pos:{isNearTo:()=>true} };
     assert.equal(b.boost(c),true); assert.equal(boosted,1);
-    s.advance(); assert.equal(b.boost(c),false); assert.equal(c.memory.guardBoostDone,true);
+    s.advance(); assert.equal(b.boost(c),true,'none left: waits out the window in case more arrives');
+    s.advance(100); assert.equal(b.boost(c),false); assert.equal(c.memory.guardBoostDone,true);
     s.home.storage.store[res]=300;
     const waiting = { memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.RANGED_ATTACK,hits:100}],pos:{isNearTo:()=>true} };
     assert.equal(b.boost(waiting),true); s.advance(100); assert.equal(b.boost(waiting),false);
@@ -396,4 +397,22 @@ test('a member waiting at home steps away from the labs, storage and terminal',(
     assert.equal(b.parkAway(near),true);assert.equal(moved.length,1);
     const far={room:s.home,memory:{homeRoom:'HOME'},pos:at(10,10),move:d=>moved.push(d)};
     assert.equal(b.parkAway(far),false,'already clear: stays');
+});
+test('the boost window starts once the whole squad has spawned; until then nothing is skipped and nobody finishes early',()=>{
+    const s=setup(),g=s.g,b=s.h.load('system.guardBoosts');
+    const XZ=g.RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE,XK=g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    const lab={id:'zlab',store:s.store({[XZ]:300,[g.RESOURCE_ENERGY]:2000}),boostCreep:(c,n)=>{c.body.filter(p=>p.type===g.MOVE).forEach(p=>p.boost=XZ);return g.OK;}};
+    g.Game.getObjectById=id=>id==='zlab'?lab:null;g.Memory.labList.HOME=['zlab'];
+    s.home.storage.store[XZ]=300;   // no XKHO2 anywhere yet
+    g.Memory.guardBoosts={rooms:{HOME:{need:{[XZ]:60,[XK]:60},assignments:{zlab:XZ,klab:XK}}}};
+    const c={memory:{homeRoom:'HOME'},room:s.home,body:[{type:g.MOVE,hits:100},{type:g.RANGED_ATTACK,hits:100}],pos:{isNearTo:()=>true}};
+    b.boost(c,{forming:true});b.boost(c,{forming:true});   // MOVE boosted
+    s.advance(500);
+    assert.equal(b.boost(c,{forming:true}),true,'squad still spawning: waits, the ranged part may still get its XKHO2');
+    assert.ok(!(c.memory.guardSkipped||[]).includes(XK),'not written off');
+    assert.equal(c.memory.guardBoostDone,undefined);
+    // Squad spawned: the window starts now, so no immediate give-up either.
+    assert.equal(b.boost(c,{forming:false}),true);
+    s.advance(101);
+    assert.equal(b.boost(c,{forming:false}),false,'window over: leaves with what it has');
 });

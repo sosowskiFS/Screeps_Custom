@@ -279,3 +279,24 @@ test('spawns and extensions with room are filled first, so the room can make its
     assert.deepEqual(transfers, ['ext1']);
     assert.deepEqual(plain(s.creep.memory.job), { k: 'fill', id: 'ext1' });
 });
+
+test('a helper waits outside, off the border, while its room holds an armed hostile; then goes in', () => {
+    const s = setup({ carry: { energy: 400 } });
+    const target = s.creep.room, find = target.find;
+    const enemy = { id: 'e', owner: { username: 'Harabi' }, pos: { x: 20, y: 20, roomName: 'NEW' }, hits: 1000, hitsMax: 1000,
+        body: [{ type: s.g.RANGED_ATTACK, hits: 100 }], getActiveBodyparts: t => (t === s.g.RANGED_ATTACK ? 1 : 0) };
+    const hostiles = [enemy];
+    target.find = type => (type === s.g.FIND_HOSTILE_CREEPS ? hostiles : find(type));
+    s.g.RoomPosition = function (x, y, roomName) { Object.assign(this, { x, y, roomName }); };
+    s.g.Game.rooms = { NEW: target, HALL: { name: 'HALL', find: () => [] } };
+    s.creep.room = s.g.Game.rooms.HALL;
+    s.creep.pos = Object.assign({}, s.creep.pos, { x: 49, y: 20, roomName: 'HALL' });
+    s.run();
+    const travel = s.calls.filter(c => c[0] === 'travelTo');
+    assert.equal(JSON.stringify(travel), JSON.stringify([['travelTo', 'pos', 20]]), 'only steps off the border inside HALL');
+    hostiles.length = 0;
+    s.calls.length = 0;
+    s.g.Game.time++;
+    s.run();
+    assert.ok(s.calls.some(c => c[0] === 'travelTo' && c[2] !== 20), 'clear again: heads in');
+});

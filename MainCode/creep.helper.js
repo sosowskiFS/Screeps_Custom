@@ -317,8 +317,28 @@ var creep_Helper = {
     run: function(creep) {
         creep._working = false;           // set by a successful harvest/build/repair/upgrade this tick
         if (loadForTrip(creep)) return;   // a full load from home first
+        const combat = require('combat.tactics');
+        // An armed hostile close: get away first (toward a tower or our guards when that stays out of
+        // its reach, else away from it). Helpers used to walk straight into attackers.
+        if (combat.escape(creep)) {
+            delete creep.memory.onPoint;
+            return;
+        }
+        // While armed hostiles are in this room, every move keeps out of their reach.
+        if (combat.armedThreats(creep.room).length) {
+            const travelTo = creep.travelTo;
+            creep.travelTo = (target, options = {}) => travelTo.call(creep, target, Object.assign({}, options, {
+                roomCallback: (name, matrix) => combat.avoidReach(name, options.roomCallback ? options.roomCallback(name, matrix) || matrix : matrix),
+            }));
+        }
         if (creep.room.name !== creep.memory.destination) {
             delete creep.memory.onPoint;
+            // Its room holds armed hostiles (seen, or recently marked): wait outside, off the border.
+            if (combat.unsafeToEnter(creep.memory.destination)) {
+                const { x, y } = creep.pos;
+                if (x <= 1 || y <= 1 || x >= 48 || y >= 48) creep.travelTo(new RoomPosition(25, 25, creep.room.name), { range: 20, maxRooms: 1 });
+                return;
+            }
             travel(creep);
             return;
         }

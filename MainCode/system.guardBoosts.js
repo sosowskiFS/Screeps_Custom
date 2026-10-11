@@ -117,11 +117,13 @@ let usedTick, usedLabs = new Set();
 // Boost a quad member at its home's leased labs. The other boosts get a bounded window (100 ticks,
 // or the safe-mode departure) and are skipped when absent; MOVE is waited for however long it takes
 // (squads.spawnOrder only spawns a member when its home has an XZHO2 lab and the stock for it).
-function boost(creep) {
+// opts.forming: the rest of the squad is still spawning. The window doesn't start until it has
+// (boosting goes on meanwhile as compounds become ready).
+function boost(creep, opts = {}) {
     const m = creep.memory;
     if (m.guardBoostDone) return false;
     if (creep.spawning) return true;
-    if (m.guardBoostStart === undefined) m.guardBoostStart = Game.time;
+    if (m.guardBoostStart === undefined || opts.forming) m.guardBoostStart = Game.time;
     const deadline = Math.min(m.guardBoostStart + 100, m.guardDeparture === undefined ? Infinity : m.guardDeparture);
     const finish = () => { m.guardBoostDone = true; m.guardPhase = 'assembling'; delete m.guardBlocked; return false; };
     if (creep.room.name !== m.homeRoom) return finish();
@@ -144,7 +146,7 @@ function boost(creep) {
         const lab = labId && Game.getObjectById(labId);
         if (!lab || stock(room, resource) < 30) {
             if (isMove) return waitForMove(lab ? 'waiting for XZHO2 stock' : 'waiting for an XZHO2 lab');
-            m.guardSkipped.push(resource);
+            // Not in stock yet: it may still arrive (terminal sends) until the window is over.
             continue;
         }
         m.guardPhase = 'boosting';
@@ -164,6 +166,8 @@ function boost(creep) {
         else if (result !== ERR_NOT_ENOUGH_RESOURCES && result !== ERR_TIRED) m.guardSkipped.push(resource);
         return true;
     }
+    // Parts left unboosted while the squad is still spawning or the window is open: keep waiting.
+    if ((opts.forming || !late) && Object.keys(needed).length) { m.guardPhase = 'boosting'; parkAway(creep); return true; }
     return moveBoosted(creep) ? finish() : waitForMove('XZHO2 not applied yet');
 }
 // Can this home boost every MOVE part of a member with this body? An XZHO2 lab leased here, and

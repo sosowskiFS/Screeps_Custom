@@ -3,6 +3,7 @@ const squads = require('system.guardSquads');
 const boosts = require('system.guardBoosts');
 const intel = require('combat.intel');
 const tactics = require('combat.tactics');
+const { Traveler } = require('traveler');
 const OFFSETS = [[0, 0], [1, 0], [0, 1], [1, 1]];
 const STEPS = [[0, 0], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
 let tick = -1, handled = new Set(), matrices = {};
@@ -144,15 +145,47 @@ function combat(members) {
         c.hits < c.hitsMax * 0.35 || tactics.incomingDamage(c, info.threats) >= intel.assess(c).ehp));
     return { info, focus, retreat };
 }
+// The single-file order. Slot order made one fixed member lead, and when it stood at the back it
+// had to work its way through the others first, wasting ticks. Once the members have come together
+// (one room, all within 3 of each other), the one with the shortest path to the goal leads and
+// each next is the nearest remaining member to the one before. The order is kept (guardLine) while
+// the goal and members stay the same and the line keeps moving; it is picked again otherwise.
+function lineOrder(members, goal, options) {
+    const names = members.map(c => c.name).sort().join(',');
+    const pos = goal.pos || goal, key = pos.roomName + ':' + pos.x + ':' + pos.y;
+    const saved = members.map(c => c.memory.guardLine).find(l => l && l.names === names && l.goal === key && Game.time - l.t <= 1);
+    const byName = list => list.map(n => members.find(c => c.name === n));
+    const together = members.every(c => c.room.name === members[0].room.name && members.every(o => range(c, o) <= 3));
+    let line;
+    if (saved && (saved.fixed || !together)) line = Object.assign({}, saved, { t: Game.time });
+    else if (together) {
+        // Steps left for each member (a path each: equal-cost routes make "nearest tile on one path"
+        // ambiguous). Only searched when the line is picked, not every tick.
+        const steps = new Map(members.map(c => {
+            const r = Traveler.findTravelPath(c, pos, Object.assign({}, options)) || {};
+            return [c.name, r.incomplete || !r.path ? 1e6 : r.path.length];
+        }));
+        const rest = members.slice().sort((a, b) => steps.get(a.name) - steps.get(b.name) || a.memory.guardSlot - b.memory.guardSlot);
+        const order = [rest.shift()];
+        while (rest.length) {
+            rest.sort((a, b) => range(a, order[order.length - 1]) - range(b, order[order.length - 1]) || a.memory.guardSlot - b.memory.guardSlot);
+            order.push(rest.shift());
+        }
+        line = { names, goal: key, t: Game.time, fixed: 1, order: order.map(c => c.name) };
+    } else line = { names, goal: key, t: Game.time, order: ordered(members).map(c => c.name) };
+    for (const c of members) c.memory.guardLine = line;
+    return byName(line.order);
+}
 function snake(members, goal, post) {
-    const list = ordered(members);
     const options = { range: post ? 1 : 0, maxRooms: post ? 1 : 16 };
+    const first = ordered(members)[0];
     if (post) options.roomCallback = name => {
-        if (name !== list[0].room.name) return false;
-        const matrix = grid(list[0].room, members, false).clone();
+        if (name !== first.room.name) return false;
+        const matrix = grid(first.room, members, false).clone();
         for (let i = 0; i < 50; i++) { matrix.set(0, i, 255); matrix.set(49, i, 255); matrix.set(i, 0, 255); matrix.set(i, 49, 255); }
         return matrix;
     };
+    const list = lineOrder(members, goal, options);
     for (const c of list) c.memory.guardAssembled = false;
     // Follow the previous member's actual tile, never a predicted position after a failed move.
     for (let i = list.length - 1; i >= 1; i--) {
@@ -177,6 +210,7 @@ function onBorder(x, y) { return x === 0 || y === 0 || x === 49 || y === 49; }
 // Going in by pairs. dir is the direction into the target (a FIND_EXIT_* constant has the value of
 // the direction toward that exit). The front pair stands one step from the exit tiles.
 const BREACH_WAIT = 20;    // ticks the back pair waits for the front pair to clear the edge, then goes anyway
+const BORDER_HOLD = 5;     // ticks a quad holds still after its last enemy left over the border (defend)
 const BREACH_ABORT = 60;   // ticks after which an unfinished entry falls back to single file
 function lined(c, dir) { return onBorder(c.pos.x + STEPS[dir][0], c.pos.y + STEPS[dir][1]); }
 // How far inside the target a creep is, counted from the border it came in over.
@@ -349,6 +383,19 @@ function defend(members) {
         if (c.memory.guardArrival === undefined) c.memory.guardArrival = Game.time;
     }
     const { info, focus, retreat } = combat(members);
+    // Border hopping: an enemy that steps out over the border, leaving nobody else here, is waited for
+    // where the quad stands for BORDER_HOLD ticks (never chased through), not answered by the idle
+    // routines walking it away.
+    const hold = members.map(c => c.memory.guardHold).find(Boolean);
+    if (info.hostiles.length) {
+        const edge = info.hostiles.some(h => h.pos.x <= 1 || h.pos.y <= 1 || h.pos.x >= 48 || h.pos.y >= 48);
+        for (const c of members) c.memory.guardHold = { seen: Game.time, edge };
+    } else if (hold) {
+        if (hold.until === undefined && hold.edge && hold.seen === Game.time - 1) hold.until = Game.time + BORDER_HOLD;
+        for (const c of members) c.memory.guardHold = hold;
+        if (hold.until !== undefined && Game.time < hold.until) return;
+        for (const c of members) delete c.memory.guardHold;
+    }
     if (retreat && info.threats.length) {
         formationMove(members, info.threats.map(h => ({ pos: h.pos, range: 5 })), 5, true);
         return;
@@ -356,6 +403,24 @@ function defend(members) {
     if (focus) {
         advance(members, focus.pos, 3, true);
         return;
+    }
+    // No hostiles: heal our damaged workers in the room (helpers, builders...), closest first. The
+    // members heal each other first (combat above) when any of them is hurt.
+    if (!info.hostiles.length) {
+        const names = new Set(members.map(c => c.name));
+        const hurt = room.find(FIND_MY_CREEPS).filter(c => c.hits < c.hitsMax && !names.has(c.name) && c.pos);
+        if (hurt.length) {
+            const patient = leader.pos.findClosestByRange(hurt);
+            if (!members.some(c => c.hits < c.hitsMax)) {
+                for (const c of members) {
+                    if (!c.getActiveBodyparts(HEAL)) continue;
+                    if (range(c, patient) <= 1) c.heal(patient);
+                    else if (range(c, patient) <= 3) c.rangedHeal(patient);
+                }
+            }
+            if (members.some(c => range(c, patient) > 3)) advance(members, patient.pos, 2, true);
+            return;
+        }
     }
     const goal = room.controller ? room.controller.pos : leader.pos;
     // An idle, formed squad needs no path search or footprint rebuild.
@@ -376,7 +441,14 @@ function run(creep) {
     let members = ordered(Object.values(Game.creeps).filter(c => c.memory.guardSquad === id && !c.spawning));
     if (!members.length) return;
     let preparing = false;
-    for (const c of members) if (boosts.boost(c)) preparing = true;
+    // The boost window (boosts.boost) only starts once the whole squad has spawned: members spawn one
+    // after another (~150 ticks each), and the first ones' windows used to run out while the rest
+    // were still spawning, so they left with only MOVE boosted.
+    const source = Object.values(squads.state().targets).map(t => t.squads.find(q => q.id === id)).find(Boolean);
+    const forming = source ? source.slots.some(s => !s.name || s.phase === 'queued' || s.phase === 'spawning' ||
+        (Game.creeps[s.name] && Game.creeps[s.name].spawning)) :
+        Object.values(Game.creeps).some(c => c.memory.guardSquad === id && c.spawning);
+    for (const c of members) if (boosts.boost(c, { forming })) preparing = true;
     // Members done boosting while the rest still are: wait away from the labs (boosts.parkAway).
     if (preparing) for (const c of members) if (c.memory.guardBoostDone && !c.spawning) boosts.parkAway(c);
     const fight = list => { for (const name of new Set(list.map(c => c.room.name))) combat(list.filter(c => c.room.name === name)); };

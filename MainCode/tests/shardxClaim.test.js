@@ -198,3 +198,31 @@ test('shardX reports a room it held and no longer owns as lost, with armed hosti
     assert.match(x.command('fortify', ['W1N22']), /fortify: W1N22/);
     assert.ok(g.Memory.xs.fortify.W1N22, 'marked by hand');
 });
+
+test('a fortified room gets 2 more helpers from its second supporting room; the sponsor keeps its own 4', () => {
+    const s = setup({ E36N36: { cl: 1, ft: 1, hp: 4, hh: { E28N48: 4 } } });
+    s.g.Game.rooms.E29N48 = { name: 'E29N48', energyCapacityAvailable: 12900, controller: { my: true }, storage: {},
+        find: t => (t === s.g.FIND_MY_SPAWNS ? [{}] : []) };
+    s.h.load('system.guardSquads').state().targets['shardX:E36N36'] = { helper: 'E29N48', helperAt: s.g.Game.time, squads: [] };
+    s.x.run();
+    const order = s.g.Memory.xs.queue.E29N48;
+    assert.ok(order && order.kind === 'helper', JSON.stringify(s.g.Memory.xs.queue));
+    assert.equal(order.memory.homeRoom, 'E29N48');
+    assert.equal(order.memory.destination, 'E36N36');
+    // Two of them there already: no more.
+    s.g.Memory.xs.queue = {}; s.g.Game.time += 1000;
+    s.remote.shardX.progress = { E36N36: { cl: 1, ft: 1, hp: 6, hh: { E28N48: 4, E29N48: 2 } } };
+    s.x.run();
+    assert.equal(s.g.Memory.xs.queue.E29N48, undefined);
+    // Not fortified (second tower built): none.
+    s.g.Game.time += 1000;
+    s.remote.shardX.progress = { E36N36: { cl: 1, ft: 0, hp: 4, hh: { E28N48: 4 } } };
+    s.x.run();
+    assert.equal(s.g.Memory.xs.queue.E29N48, undefined);
+    // The sponsor counts only its own helpers: with 2 from the second home it still keeps its 4.
+    s.g.Game.time += 1000;
+    s.g.Memory.xs.queue = {};
+    s.remote.shardX.progress = { E36N36: { cl: 1, ft: 1, hp: 5, gd: 1500, hh: { E28N48: 3, E29N48: 2 } } };
+    s.x.run();
+    assert.equal(s.g.Memory.xs.queue.E28N48 && s.g.Memory.xs.queue.E28N48.kind, 'helper');
+});
