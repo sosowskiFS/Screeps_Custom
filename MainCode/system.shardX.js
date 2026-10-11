@@ -9,6 +9,10 @@
 //                    shardX('reset')  forget the attempt (works while switched off)
 //                    shardX('focus', ['W1N9'])  all in: only these targets stay; the others become
 //                                     bait centres (system.bait) supplied by their old sponsors
+// Focus shifts (shiftFocus): when the one target's controller is attacked (upgrade block) or lost,
+// the held bait room furthest along (level, then progress) becomes the target, built fortified by
+// the home that runs it; the old target becomes a bait centre. It shifts again on every attack:
+// rooms keep being tested, and the attacker can't tell which one is the real one.
 //
 // Scouting
 //   Home shards (HOME_SHARDS): every SCOUT_EVERY ticks each shard sends one 1-MOVE scout,
@@ -396,8 +400,14 @@ function runX() {
     adopt();
     if (Game.time % 100 !== 0) return;
     const progress = {};
+    const bait = require('system.bait');
     for (const t of (readISM(COORD_SHARD) || {}).targets || []) {
         const room = Game.rooms[t.r];
+        // A bait room made the target (a focus shift): no longer a decoy, built fortified.
+        if (bait.isBait(t.r)) {
+            delete bait.state().rooms[t.r];
+            (xState().fortify || (xState().fortify = {}))[t.r] = Game.time;
+        }
         progress[t.r] = {
             cl: room && room.controller && room.controller.my ? 1 : 0,
             tm: room && room.terminal && room.terminal.my ? 1 : 0,
@@ -452,7 +462,6 @@ function runX() {
     const scouts = Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'xScout').length;
     const coordEntry = readISM(COORD_SHARD) || {};
     const list = coordEntry.mode === 'claim' || coordEntry.mode === 'done' ? coordEntry.targets || [] : [];
-    const bait = require('system.bait');
     const centers = list.length ? coordEntry.baitCenters || [] : [];
     for (const c of centers) {
         const r = Game.rooms[c.r];
@@ -524,7 +533,8 @@ function scheduleFortifyHelpers(list, progress) {
     const s = state(), here = Game.shard.name;
     if (!s.last) s.last = {};
     for (const t of list) {
-        const p = progress[t.r] || {};
+        // A target taken over from the bait rooms (shiftFocus) is ours before shardX reports it.
+        const p = progress[t.r] || (t.held ? { cl: 1, ft: 1 } : {});
         if (!p.ft || !p.cl || t.h.split(':')[0] !== here) continue;
         const home = secondHome(t);
         if (!home || !homes().includes(home)) continue;
@@ -544,7 +554,8 @@ function scheduleSupport(list, progress) {
     const here = Game.shard.name;
     for (const t of list) {
         const [shard, home] = t.h.split(':');
-        const p = progress[t.r] || {};
+        // A target taken over from the bait rooms (shiftFocus) is ours before shardX reports it.
+        const p = progress[t.r] || (t.held ? { cl: 1, ft: 1 } : {});
         if (shard !== here || p.tm || !homes().includes(home)) continue;
         const inFlight = role => Object.keys(Game.creeps).filter(n => {
             const m = Game.creeps[n].memory;
@@ -607,6 +618,45 @@ function scheduleBait(x) {
     }
 }
 
+// Coordinator: the one target attacked at its controller (upgrade block) or lost: the held bait room
+// furthest along (level, then progress) that is not blocked itself becomes the target, sponsored
+// by the home that runs it; the old target becomes a bait centre. Its quads move along (followed
+// over the portal by their manifests) when the new sponsor is on this shard. Returns the shift.
+function shiftFocus(x) {
+    const s = state();
+    const list = s.targets || [];
+    if (list.length !== 1) return null;
+    const t = list[0], p = (x.progress || {})[t.r];
+    if (!p || !(p.ub > 0 || p.lost)) return null;
+    const cands = (x.bt || []).filter(b => b.cl && !(b.ub > 0) && b.r !== t.r)
+        .sort((a, b) => (b.lv || 0) - (a.lv || 0) || (b.pg || 0) - (a.pg || 0) || a.k - b.k);
+    if (!cands.length) {
+        if (Game.time - (s.noShift || 0) >= 1000) {
+            s.noShift = Game.time;
+            console.log('[shardX] ' + t.r + ' is under attack, but no held bait room to shift the focus to');
+        }
+        return null;
+    }
+    const n = cands[0];
+    const next = { r: n.r, h: n.h, e: n.e, t: n.k, held: 1 };
+    s.targets = [next];
+    s.baitCenters = (s.baitCenters || []).filter(c => c.r !== n.r && c.r !== t.r).concat([t]);
+    s.manual = 1;
+    s.mode = 'claim';
+    s.queue = {};
+    s.dirty = 1;
+    const shift = { t: Game.time, from: t.r, to: n.r, h: n.h, lv: n.lv };
+    s.shifts = (s.shifts || []).concat([shift]).slice(-10);
+    const [shard, home] = n.h.split(':');
+    let moved = 0;
+    if (shard === Game.shard.name) moved = require('system.guardSquads').retarget(X_SHARD, [t.r], n.r, home, n.e, n.k, true);
+    const text = '[shardX] ' + t.r + ' attacked (' + (p.lost ? 'lost' : 'upgrade blocked ' + p.ub) + '): focus shifts to ' + n.r +
+        ' (RCL' + (n.lv || '?') + ', from ' + n.h + '); ' + t.r + ' is a decoy now' + (moved ? '; ' + moved + ' quad member(s) moved here' : '');
+    console.log(text);
+    Game.notify(text);
+    return shift;
+}
+
 function runHome() {
     const s = state();
     const here = Game.shard.name;
@@ -628,7 +678,8 @@ function runHome() {
             Game.notify(text);
         }
     }
-    if (m === 'claim' && Game.time % 25 === 0) {
+    if ((m === 'claim' || m === 'done') && here === COORD_SHARD && Game.time % 25 === 0) shiftFocus(readISM(X_SHARD) || {});
+    if (mode() === 'claim' && Game.time % 25 === 0) {
         const x = readISM(X_SHARD) || {};
         if (here === COORD_SHARD) {
             // A target someone else claimed first is dropped (and not picked again for a while);
@@ -735,7 +786,7 @@ function run() {
 // orders and attacked-room latches. Map knowledge (portals, rooms seen by scouts) is kept.
 function reset() {
     const s = state();
-    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty', 'skip', 'block', 'manual', 'held', 'lostSeen', 'baitCenters']) delete s[k];
+    for (const k of ['mode', 'targets', 'travellers', 'sent', 'last', 'ri', 'dirty', 'skip', 'block', 'manual', 'held', 'lostSeen', 'baitCenters', 'shifts', 'noShift']) delete s[k];
     s.queue = {};
     const recalled = require('system.guardSquads').forget(X_SHARD);
     writeISM(null);
@@ -876,6 +927,7 @@ function command(cmd, picks) {
             ' candidates, ' + (x.sc || 0) + ' scouts');
         lines.push('corners here: ' + nearCorners().map(c => c.corner + (s.noPortal && s.noPortal[c.corner] ? ' (no portal)' : '') + ' from ' + c.home).join(', '));
         if (focused()) lines.push('focused; bait centres: ' + baitCenters().map(c => c.r + ' (from ' + c.h + ')').join(', '));
+        for (const sh of (state().shifts || []).slice(-3)) lines.push('  focus shift at ' + sh.t + ': ' + sh.from + ' -> ' + sh.to + ' (from ' + sh.h + ')');
         for (const t of targets()) {
             const p = (x.progress || {})[t.r] || {};
             const block = p.lost && !p.cl ? ' (lost: reclaiming' + (p.hz ? ', ' + p.hz + ' armed hostiles' : '') + (p.ub ? ', controller blocked ' + p.ub : '') + ')' :
@@ -889,6 +941,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, fortified, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, shiftFocus, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

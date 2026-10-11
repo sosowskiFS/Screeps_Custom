@@ -270,3 +270,52 @@ test('while focused, a claimer or helper still on its way to a bait centre goes 
     x.portalStep(traveller({ priority: 'helper', destination: 'W1N9', xTarget: 1, xShard: { c: 'E0N10' }, homeRoom: 'E3N12', loaded: 1 }));
     assert.equal(calls[0] && calls[0][2], 'E0N10', 'a W1N9 helper goes on');
 });
+
+test('focus shift: the focus room under an upgrade block hands over to the held bait room furthest along; quads (even those over the portal) follow', () => {
+    const { g, x, h } = setup('shard2');
+    g.Game.notify = () => {};
+    const w1n9 = { r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', t: 481 };
+    g.Memory.xs = { mode: 'claim', manual: 1, targets: [w1n9], baitCenters: [{ r: 'W1N22', h: 'shard2:E1N16', e: 'W0N20', t: 353 }] };
+    g.Game.rooms = { E3N12: owned(g, 'E3N12'), E1N16: owned(g, 'E1N16') };
+    const st = h.load('system.guardSquads').state();
+    st.targets['shardX:W1N9'] = { shard: 'shardX', room: 'W1N9', home: 'E3N12', corner: 'E0N10', samples: {}, squads: [
+        { id: 'q', home: 'E3N12', created: 1, slots: [0, 1, 2, 3].map(i => ({ slot: i, name: 'm' + i,
+            memory: { priority: 'roomGuard', destination: 'W1N9', guardSquad: 'q', guardTargetShard: 'shardX' } })) }] };
+    g.Game.creeps = {};      // all four are posted on shardX
+    const bt = [
+        { r: 'W2N9', h: 'shard2:E3N12', e: 'E0N10', cl: 1, lv: 2, pg: 9000, k: 450 },
+        { r: 'E5N15', h: 'shard2:E1N16', e: 'E0N10', cl: 1, lv: 3, pg: 100, k: 300 },
+        { r: 'E6N15', h: 'shard2:E1N16', e: 'E0N10', cl: 1, lv: 4, pg: 0, k: 300, ub: 300 },   // attacked too
+        { r: 'E7N15', h: 'shard2:E1N16', e: 'E0N10', cl: 0, k: 300 },
+    ];
+    // Not attacked: nothing happens.
+    assert.equal(x.shiftFocus({ progress: { W1N9: { cl: 1 } }, bt }), null);
+    const shift = x.shiftFocus({ progress: { W1N9: { cl: 1, ub: 900 } }, bt });
+    assert.equal(shift.to, 'E5N15', 'RCL3 beats RCL2; a blocked room is skipped');
+    assert.equal(JSON.stringify(g.Memory.xs.targets.map(t => [t.r, t.h, t.e])), JSON.stringify([['E5N15', 'shard2:E1N16', 'E0N10']]));
+    assert.equal(g.Memory.xs.baitCenters.map(c => c.r).join(), 'W1N22,W1N9', 'the old focus is a decoy now');
+    assert.equal(st.targets['shardX:E5N15'].squads.map(q => q.id).join(), 'q', 'its quads move along');
+    assert.equal(st.targets['shardX:E5N15'].squads[0].slots[0].memory.destination, 'E5N15', 'manifests rewritten for the members over the portal');
+    // Until shardX reports it, the new focus counts as held: no claimer for a room that is ours.
+    g.Game.time = 5025;
+    x.run();
+    assert.notEqual((g.Memory.xs.queue.E1N16 || {}).kind, 'claimer');
+    // The next attack shifts again.
+    assert.equal(x.shiftFocus({ progress: { E5N15: { cl: 1, ub: 50 } }, bt: [{ r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', cl: 1, lv: 4, pg: 0, k: 481 }] }).to, 'W1N9');
+    assert.equal(g.Memory.xs.shifts.length, 2);
+});
+
+test('on shardX the promoted room leaves the bait rooms and is built fortified', () => {
+    const { g, x, local } = setup('shardX', { shard2: { mode: 'claim', targets: [{ r: 'E5N15', h: 'shard2:E1N16', e: 'E0N10', t: 300 }] } });
+    g.Game.gcl = { level: 9 };
+    g.CREEP_CLAIM_LIFE_TIME = 600;
+    g.Game.map.getRoomStatus = () => ({ status: 'normal' });
+    g.Game.creeps = {};
+    g.Game.rooms = { E5N15: { name: 'E5N15', controller: { my: true, level: 3 }, find: () => [] } };
+    g.Memory.bait = { rooms: { E5N15: { t: 'W1N9' } }, block: {} };
+    g.Game.time = 5100;
+    x.run();
+    assert.equal(g.Memory.bait.rooms.E5N15, undefined);
+    assert.ok(g.Memory.xs.fortify.E5N15);
+    assert.ok(JSON.parse(local.value).xs.progress.E5N15);
+});

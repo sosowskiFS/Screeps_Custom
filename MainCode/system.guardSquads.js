@@ -364,11 +364,12 @@ function updateTarget(t) {
 }
 // Squads for shardX rooms dropped from the targets (shardX('focus')) that are still entirely on this
 // shard (spawning, boosting, on their way to the portal) go to `to` instead: their boosts are not
-// wasted on a recall. Squads with members already over the portal stay with their room. Returns
-// the number of creeps moved.
+// wasted on a recall. Squads with members already over the portal stay with their room, unless
+// `all` (a focus shift): then they move too, their members following the rewritten manifests
+// (followManifests). Returns the number of creeps moved on this shard.
 const RETARGET_CLEAR = ['guardStaging', 'guardLine', 'guardSnake', 'guardGo', 'guardStageAnchor', 'guardBreach', 'guardHold',
     'guardFocus', 'guardCommitted', 'guardArrival', 'guardRegroupAt', '_trav'];
-function retarget(shard, from, to, home, corner, distance) {
+function retarget(shard, from, to, home, corner, distance, all = false) {
     const s = state();
     const dest = register(shard, to, home, corner, distance, true);
     let moved = 0;
@@ -377,10 +378,10 @@ function retarget(shard, from, to, home, corner, distance) {
         if (!t) continue;
         for (const q of t.squads.slice()) {
             const names = q.slots.map(x => x.name).filter(Boolean);
-            if (names.some(n => !Game.creeps[n])) continue;          // part of it is over the portal
+            if (!all && names.some(n => !Game.creeps[n])) continue;          // part of it is over the portal
             t.squads.splice(t.squads.indexOf(q), 1);
             dest.squads.push(q);
-            for (const n of names) {
+            for (const n of names.filter(n => Game.creeps[n])) {
                 const m = Game.creeps[n].memory;
                 m.destination = to;
                 if (m.xShard) m.xShard = { c: corner };
@@ -468,7 +469,9 @@ function run() {
         const [shard, home] = t.h.split(':');
         // A room that was ours and was declaimed is reclaimed with quads first: always a target.
         const p = (ism.get('shardX', 'xs') || {}).progress || {};
-        if (shard === Game.shard.name) register('shardX', t.r, home, t.e, t.t, !!(p[t.r] && p[t.r].lost));
+        // Focus mode (shardX('focus') and its shifts): the one focus room always gets its quads.
+        const focus = !!(xs.baitCenters && xs.baitCenters.length);
+        if (shard === Game.shard.name) register('shardX', t.r, home, t.e, t.t, focus || !!(p[t.r] && p[t.r].lost));
     }
     for (const t of Object.values(s.targets)) {
         // Refresh graduation/ownership even after expansion has removed its target.
