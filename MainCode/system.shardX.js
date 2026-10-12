@@ -397,9 +397,26 @@ function candidates(checks = PLAN_CHECKS) {
 const NPC = new Set(['Invader', 'Source Keeper']);
 function runtimeCacheFind(room, type) { return require('runtime.cache').find(room, type); }
 
+// Owner and reservation of every room in sight (any creep of ours there), not only those scouts
+// pass through: bait rooms and pest rooms (system.nuisance) go by them. A room with no entry yet
+// gets a full record.
+function refreshSeen() {
+    const table = Memory.expandIntel || (Memory.expandIntel = {});
+    for (const name in Game.rooms) {
+        const room = Game.rooms[name], c = room.controller;
+        if (!c || c.my) continue;
+        const entry = table[name];
+        if (!entry) { expansion.record(room); continue; }
+        entry.t = Game.time;
+        if (c.owner) entry.o = c.owner.username; else delete entry.o;
+        if (c.reservation) entry.r = c.reservation.username; else delete entry.r;
+    }
+}
+
 function runX() {
     adopt();
     if (Game.time % 100 !== 0) return;
+    refreshSeen();
     const progress = {};
     const bait = require('system.bait');
     for (const t of (readISM(COORD_SHARD) || {}).targets || []) {
@@ -961,6 +978,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, fortified, scheduleNuisance, shiftFocus, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, refreshSeen, scheduleNuisance, shiftFocus, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

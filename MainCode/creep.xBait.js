@@ -194,7 +194,11 @@ function run(creep) {
     if (!c) return give(creep, Game.time + 100000);
     if (c.my) return work(creep);
     const user = creep.owner.username;
-    if (c.owner || (c.reservation && c.reservation.username !== user)) return give(creep, Game.time + BLOCK_RETRY);
+    if (c.owner || (c.reservation && c.reservation.username !== user)) {
+        // Recorded first: a room Harabi reserves becomes a pest room (system.nuisance) right away.
+        require('system.expansion').record(creep.room);
+        return give(creep, Game.time + BLOCK_RETRY);
+    }
     if (c.upgradeBlocked > 0) return give(creep, Game.time + c.upgradeBlocked);
     if (!creep.getActiveBodyparts(CLAIM)) return give(creep, Game.time + 1);
     const result = creep.claimController(c);

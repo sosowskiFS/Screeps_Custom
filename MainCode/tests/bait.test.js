@@ -308,3 +308,17 @@ test('a bait room gets a spawn site built to about 200 energy and no further; a 
     role.run(c);
     assert.equal(r.sites.filter(s => s.structureType === g.STRUCTURE_SPAWN).length, 1);
 });
+
+test('a bait creep that finds the room reserved by someone else records it before leaving (it may become a pest room)', () => {
+    const { g, role } = creepSetup();
+    const r = room(g, 0);
+    r.controller.reservation = { username: 'Harabi' };
+    g.Game.rooms.W2N22 = r;
+    g.Memory.expandIntel = {};
+    const c = creep(g, r, 0, { claim: true });
+    role.run(c);
+    const recorded = g.Memory.expandIntel.W2N22;
+    assert.ok(recorded, 'recorded');
+    assert.equal(recorded.r, 'Harabi');
+    assert.equal(c.calls[c.calls.length - 1], 'suicide');
+});

@@ -335,3 +335,23 @@ test('a home orders a CARRY+MOVE pest for a Harabi-reserved room it scouted', ()
     assert.equal(order.memory.destination, 'E35N38');
     assert.equal(x.spawnOrder('E28N48').body.join(), [g.CARRY, g.MOVE].join());
 });
+
+test('shardX refreshes the owner and reservation of every room in sight, so pest and bait rooms follow what any creep sees', () => {
+    const { g, x, h } = setup('shardX');
+    g.Memory.expandIntel = { A: { t: 1, n: 2, r: 'Harabi' }, B: { t: 1, n: 1 } };
+    g.Game.rooms = {
+        A: { name: 'A', controller: { my: false } },                                          // reservation gone
+        B: { name: 'B', controller: { my: false, reservation: { username: 'Harabi' } } },     // now Harabi's
+        M: { name: 'M', controller: { my: true } },                                           // ours: untouched
+    };
+    g.Game.time = 7000;
+    x.refreshSeen();
+    assert.equal(g.Memory.expandIntel.A.r, undefined);
+    assert.equal(g.Memory.expandIntel.B.r, 'Harabi');
+    assert.equal(g.Memory.expandIntel.B.t, 7000);
+    assert.equal(g.Memory.expandIntel.M, undefined);
+    // B is now a pest room.
+    g.Memory.xs = { tag: { B: { h: 'shard2:E3N12', e: 'E0N10', t: 200 } } };
+    g.Game.cpu.bucket = 9000;
+    assert.equal(h.load('system.nuisance').report().map(z => z.r).join(), 'B');
+});
