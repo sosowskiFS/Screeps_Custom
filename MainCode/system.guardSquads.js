@@ -552,6 +552,6 @@ function report() {
     }
     return rows;
 }
-module.exports = { alignManifests, followManifests, retarget, REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
+module.exports = { register, alignManifests, followManifests, retarget, REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
     report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart, rampartCap, shellRampartDue,
     DESIRED_SQUADS, SIEGE_RAMPART_HITS, SHELL_RAMPART_HITS, BOOSTS_BY_PART };

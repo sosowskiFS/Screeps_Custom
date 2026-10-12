@@ -18,6 +18,7 @@
 // Safety: player attacks register strikes per room (Memory.remoteStatus). A struck room
 //         stops spawning for an escalating back-off, and only resumes after it has been
 //         seen clear (observer, passing creep, or scout) once the back-off has passed.
+//         Strikes expire after STRIKE_DECAY quiet ticks once the back-off is over, seen or not.
 const runtimeCache = require('runtime.cache');
 const combatIntel = require('combat.intel');
 const { getRoomAtOffset } = require('util.common');
@@ -115,6 +116,18 @@ function nearbyRooms(homeName) {
 
 function status(roomName) {
     return mem('remoteStatus')[roomName];
+}
+
+// Strikes expire by time alone: a room quiet for STRIKE_DECAY ticks, with its back-off over, is
+// forgotten whether or not anyone sees it. They used to reset only when the room was seen clear,
+// and a room dropped at MAX_STRIKES is no longer mined or looked at, so its strikes never reset
+// (shard2: E28N18 still on 99 strikes 61,000 ticks after its last incident).
+function expireStrikes() {
+    const all = mem('remoteStatus');
+    for (const name of Object.keys(all)) {
+        const st = all[name];
+        if (Game.time - st.last > STRIKE_DECAY && Game.time >= st.until) delete all[name];
+    }
 }
 
 function backoff(strikes) {
@@ -433,6 +446,7 @@ function observeRequest(homeName) {
 
 function run() {
     if (Game.time % 100 === 0) refreshVisibleIntel();
+    if (Game.time % 1000 === 0) expireStrikes();
 
     for (const roomName of interestRooms()) {
         const room = Game.rooms[roomName];
@@ -473,7 +487,7 @@ function run() {
     }
 }
 
-module.exports = {
+module.exports = { expireStrikes,
     run, recordIntel, noteIncident, isDisabled, needsProbe, needsScout, scoutTargets, observeRequest,
     planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE, nodes, target, nodeRef, guardRef, rescoutAge,
     haul, haulFor, netGain, worthMining,

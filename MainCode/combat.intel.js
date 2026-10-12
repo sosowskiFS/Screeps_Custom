@@ -218,11 +218,23 @@ function supportHealing(target, intel) {
 // (damage + 2 x healing) / effective HP. A boosted-TOUGH attacker with a healer behind it
 // scores low, so the healer gets focused; a fragile damage dealer scores high. Anything we
 // can kill this tick comes first; nearer targets win close calls.
+// Ticks for our side to kill a target against the healing it gets (its own and its neighbours'),
+// Infinity when that healing matches our damage.
+function killTime(target, intel) {
+    const net = intel.us.dps - supportHealing(target, intel);
+    return net > 0 ? assess(target).ehp / net : Infinity;
+}
+
+// Focus value: targets we can kill come first, fastest kill first (threat breaks ties); a target
+// whose healing outlasts our damage only after them. Threat alone used to rank a boosted healer
+// (8 T3 TOUGH, 3,552 healing on it) over the ranger next to it that we could actually kill.
 function score(target, intel) {
     const cache = tickCache().scores;
     if (cache[target.id] !== undefined) return cache[target.id];
     const stats = assess(target);
-    let value = (stats.dps + 2 * stats.heal) * 1000 / Math.max(stats.ehp, 1);
+    const threat = (stats.dps + 2 * stats.heal) * 1000 / Math.max(stats.ehp, 1);
+    const ticks = killTime(target, intel);
+    let value = ticks === Infinity ? threat - 100000 : 100000 / Math.max(ticks, 0.01) + threat;
     if (stats.ehp <= intel.us.dps - supportHealing(target, intel)) value += 10000;
     let nearest = 50;
     for (const friend of intel.friends) nearest = Math.min(nearest, friend.pos.getRangeTo(target));
@@ -256,6 +268,6 @@ function focusTarget(room) {
 
 module.exports = {
     COMBAT_ROLES, MASS_FACTOR,
-    assess, roomIntel, verdictFor, focusTarget, bestOf, onRampart,
+    assess, roomIntel, verdictFor, focusTarget, bestOf, onRampart, killTime,
     isDangerous, markOutmatched, isOutmatched, remoteThreat,
 };

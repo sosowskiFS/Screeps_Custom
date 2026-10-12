@@ -224,3 +224,17 @@ test('nodes are staffed without flags: a miner, the mules its trip needs, the re
     assert.equal(guard.node.r, 'E6N5');
     assert.equal(far.nodeJob(room, creeps, false, true) && far.nodeJob(room, creeps, false, true).role, 'farGuard', 'the first two nodes survive a 50mCap');
 });
+
+test('strikes expire by time alone: a room quiet for 30,000 ticks with its back-off over is forgotten, seen or not', () => {
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    const remote = h.load('system.remoteMining');
+    g.Game.time = 100000;
+    g.Memory.remoteStatus = {
+        OLD: { strikes: 99, last: 60000, until: 95000 },        // quiet 40,000, back-off over: forgotten
+        LONG: { strikes: 6, last: 60000, until: 110000 },       // quiet, but its back-off still runs
+        RECENT: { strikes: 3, last: 90000, until: 92000 },      // only 10,000 quiet
+    };
+    remote.expireStrikes();
+    assert.equal(Object.keys(g.Memory.remoteStatus).sort().join(), 'LONG,RECENT');
+});

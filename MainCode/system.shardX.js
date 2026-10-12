@@ -434,6 +434,8 @@ function runX() {
             hh: Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' && c.memory.destination === t.r)
                 .reduce((o, c) => { const h = c.memory.homeRoom; if (h) o[h] = (o[h] || 0) + 1; return o; }, {}),
             ft: room && fortified(room) ? 1 : 0,
+            // All RCL5 structures built: helpers stop (guards and quads go on).
+            r5: room && require('room.stage').rcl5Built(room) ? 1 : 0,
             cx: Object.keys(Game.creeps).filter(n => Game.creeps[n].memory.priority === 'claimer' && Game.creeps[n].memory.destination === t.r).length,
         };
         // What stands in the claim's way: another owner (shard2 picks another room) or another
@@ -554,7 +556,7 @@ function scheduleFortifyHelpers(list, progress) {
     for (const t of list) {
         // A target taken over from the bait rooms (shiftFocus) is ours before shardX reports it.
         const p = progress[t.r] || (t.held ? { cl: 1, ft: 1 } : {});
-        if (!p.ft || !p.cl || t.h.split(':')[0] !== here) continue;
+        if (!p.ft || !p.cl || p.r5 || t.h.split(':')[0] !== here) continue;
         const home = secondHome(t);
         if (!home || !homes().includes(home)) continue;
         const inFlight = Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' && c.memory.destination === t.r &&
@@ -618,7 +620,8 @@ function scheduleSupport(list, progress) {
         // The sponsor's own helpers only (a fortified room's second home adds its own on top).
         const own = (p.hh ? (p.hh[home] || 0) : (p.hp || 0)) + Object.values(Game.creeps).filter(c => c.memory.priority === 'helper' &&
             c.memory.destination === t.r && c.memory.xShard && (!c.memory.homeRoom || c.memory.homeRoom === home)).length;
-        if (!reclaimWait && own < (focused() ? FOCUS_HELPERS : HELPERS) && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
+        // All RCL5 structures built: the room's own miners take full sources; no more helpers.
+        if (!reclaimWait && !p.r5 && own < (focused() ? FOCUS_HELPERS : HELPERS) && Game.time - (s.last[t.r + ':h'] || 0) > HELPER_GAP) {
             s.last[t.r + ':h'] = Game.time;
             queue(home, { kind: 'helper', memory: Object.assign({ priority: 'helper', previousPriority: 'helper' }, base) });
         }

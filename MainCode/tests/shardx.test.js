@@ -355,3 +355,35 @@ test('shardX refreshes the owner and reservation of every room in sight, so pest
     g.Game.cpu.bucket = 9000;
     assert.equal(h.load('system.nuisance').report().map(z => z.r).join(), 'B');
 });
+
+test('helpers stop once the room has every RCL5 structure built; its guard is still sent', () => {
+    const { h, g } = setup('shard2');
+    const stage = h.load('room.stage');
+    let n = 0;
+    const built = (level, counts) => ({ name: 'R' + (n++), controller: { my: true, level },
+        find: () => Object.entries(counts).flatMap(([type, n]) => Array(n).fill({ structureType: type })) });
+    const full = { [g.STRUCTURE_SPAWN]: 1, [g.STRUCTURE_EXTENSION]: 30, [g.STRUCTURE_TOWER]: 2, [g.STRUCTURE_STORAGE]: 1, [g.STRUCTURE_LINK]: 2 };
+    assert.equal(stage.rcl5Built(built(5, full)), true);
+    assert.equal(stage.rcl5Built(built(4, full)), false, 'below RCL5');
+    assert.equal(stage.rcl5Built(built(5, Object.assign({}, full, { [g.STRUCTURE_LINK]: 1 }))), false, 'a link missing');
+    // shardX: a room reported r5 gets no helper order; one not yet r5 does.
+    const s2 = setup('shard1', {
+        shard2: { mode: 'claim', targets: [{ r: 'E36N36', h: 'shard1:E28N48', e: 'E40N40', t: 300 }] },
+        shardX: { progress: { E36N36: { cl: 1, hp: 0, r5: 1 } } },
+    });
+    s2.g.Game.rooms = { E28N48: owned(s2.g, 'E28N48') };
+    s2.g.Game.creeps = {};
+    s2.g.Game.time = 5025;
+    s2.g.Memory.guardSquads = { rooms: {}, targets: {}, serial: 0 };
+    s2.x.run();
+    assert.notEqual((s2.g.Memory.xs.queue || {}).E28N48 && s2.g.Memory.xs.queue.E28N48.kind, 'helper');
+    const s3 = setup('shard1', {
+        shard2: { mode: 'claim', targets: [{ r: 'E36N36', h: 'shard1:E28N48', e: 'E40N40', t: 300 }] },
+        shardX: { progress: { E36N36: { cl: 1, hp: 0, gd: 2000 } } },
+    });
+    s3.g.Game.rooms = { E28N48: owned(s3.g, 'E28N48') };
+    s3.g.Game.creeps = {};
+    s3.g.Game.time = 5025;
+    s3.x.run();
+    assert.equal(s3.g.Memory.xs.queue.E28N48.kind, 'helper');
+});

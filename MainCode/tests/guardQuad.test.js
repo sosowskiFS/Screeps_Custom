@@ -365,3 +365,30 @@ test('a quad runs ranged-only attackers down to range 1; with melee among them i
     assert.equal(go(false),true,'range 3 from the anchor: keeps closing');
     assert.equal(go(true),false,'melee: holds at its reach');
 });
+test('vs Harabi\'s T3 quad (snapshot E25N38): a 9 TOUGH / 26 RANGED / 10 MOVE / 5 HEAL quad out-damages his healing, shoots his rangers not his TOUGH healers, holds its ground, and runs down a ranger pair split from its healers',()=>{
+    const w=world(),g=w.g;
+    g.BOOSTS={ranged_attack:{XKHO2:{rangedAttack:4,rangedMassAttack:4}},heal:{XLHO2:{heal:4,rangedHeal:4}},tough:{XGHO2:{damage:0.3}},move:{XZHO2:{fatigue:4}}};
+    g.CLAIM='claim';g.BODYPART_COST={move:50,work:100,carry:50,attack:80,ranged_attack:150,heal:250,claim:600,tough:10};
+    const boostOf={tough:'XGHO2',ranged_attack:'XKHO2',heal:'XLHO2',move:'XZHO2'};
+    const parts=list=>list.map(type=>({type,hits:100,boost:boostOf[type]}));
+    const hunter=[].concat(Array(9).fill(g.TOUGH),Array(26).fill(g.RANGED_ATTACK),Array(10).fill(g.MOVE),Array(5).fill(g.HEAL));
+    for(const c of w.squad)c.body=parts(hunter);
+    const n=(k,t)=>Array(k).fill(t);
+    const healer=(name,x,y)=>({name,id:name,owner:{username:'Harabi'},pos:new w.Pos(x,y),hits:5000,hitsMax:5000,body:parts([].concat(n(8,g.TOUGH),n(10,g.MOVE),n(32,g.HEAL)))});
+    const ranger=(name,x,y)=>({name,id:name,owner:{username:'Harabi'},pos:new w.Pos(x,y),hits:5000,hitsMax:5000,body:parts([].concat(n(35,g.RANGED_ATTACK),n(10,g.MOVE),n(5,g.HEAL)))});
+    w.hostiles.push(healer('h1',13,20),healer('h2',14,20),ranger('r1',13,21),ranger('r2',14,21));
+    const r=w.q.combat(w.squad);
+    assert.equal(r.focus.name[0],'r','a ranger: his healers\' T3 TOUGH makes them unkillable');
+    assert.equal(r.retreat,false,'he cannot kill one of ours: no retreat');
+    // The old member (22 RANGED) cannot out-damage his healing at all.
+    const x=world();x.g.BOOSTS=g.BOOSTS;
+    for(const c of x.squad)c.body=parts(x.h.load('combat.bodies').quadMember(12900));
+    x.hostiles.push(healer('h1',13,20),healer('h2',14,20),ranger('r1',13,21),ranger('r2',14,21));
+    const intel=x.h.load('combat.intel');
+    assert.equal(intel.killTime(x.hostiles[2],intel.roomIntel(x.room)),Infinity);
+    // Border hop: the ranger pair alone in this room (healers next door) is picked over a full quad further off.
+    const y=world();y.g.BOOSTS=g.BOOSTS;
+    for(const c of y.squad)c.body=parts(hunter);
+    y.hostiles.push(ranger('p1',30,20),ranger('p2',30,21),healer('h1',12,35),healer('h2',13,35),ranger('r1',12,36),ranger('r2',13,36));
+    assert.equal(y.q.combat(y.squad).focus.name[0],'p');
+});

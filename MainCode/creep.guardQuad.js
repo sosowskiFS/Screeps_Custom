@@ -115,6 +115,7 @@ function formationMove(members, goal, goalRange, flee = false) {
 // our one quad, which held still by the tower instead of beating either of them.
 const GROUP_LINK = 6;
 const JOINING = 7;            // other threats this close to us count in the fight too
+const SWITCH_GAIN = 0.7;      // another group must die this much sooner to drop the one chased
 function groups(threats) {
     const out = [], seen = new Set();
     for (const t of threats) {
@@ -138,9 +139,15 @@ function engagement(members, info, room) {
     const tower = ids[room.name] && Game.getObjectById(ids[room.name]);
     const chased = members[0].memory.guardFocus && Game.getObjectById(members[0].memory.guardFocus);
     const near = g => Math.min(...g.map(t => Math.min(...members.map(c => range(c, t)))));
-    const group = (tower && list.find(g => g.includes(tower))) || (chased && list.find(g => g.includes(chased))) ||
-        list.slice().sort((a, b) => near(a) - near(b))[0];
-    const focus = tower && group.includes(tower) ? tower : chased && group.includes(chased) ? chased : intel.bestOf(group, info) || group[0];
+    // How soon a group loses a member to us: its fastest kill (against the healing that reaches it in
+    // this room) plus the walk there. A pair split from its healers across a border dies fast.
+    const cost = g => Math.min(...g.map(t => intel.killTime(t, info))) + near(g);
+    const best = list.slice().sort((a, b) => cost(a) - cost(b) || near(a) - near(b))[0];
+    const held = chased && list.find(g => g.includes(chased));
+    // The group being chased is kept unless another dies clearly sooner (no back and forth).
+    const keep = held && !(cost(best) < cost(held) * SWITCH_GAIN);
+    const group = (tower && list.find(g => g.includes(tower))) || (keep ? held : best);
+    const focus = tower && group.includes(tower) ? tower : intel.bestOf(group, info) || group[0];
     for (const c of members) c.memory.guardFocus = focus.id;
     const fighting = info.threats.filter(t => group.includes(t) || members.some(c => range(c, t) <= JOINING));
     const them = { dps: 0, heal: 0, ehp: 0 };
@@ -151,6 +158,40 @@ function engagement(members, info, room) {
     // No melee among them: nothing punishes closing in (see defend).
     return { group, focus, them, melee: fighting.some(t => intel.assess(t).melee > 0) };
 }
+// Ticks for a hostile force dealing dps (all on this member) to kill it, against the healing our
+// members put on it. Infinity while its boosted TOUGH takes each whole volley (no damage spilling past
+// it) and our healing covers what gets through: Harabi's T3 quads (2,800 damage) can't kill a member
+// with 9 T3 TOUGH (840 through) and 960 healing on it.
+function survival(c, dps, members) {
+    if (dps <= 0) return Infinity;
+    let toughHits = 0, mult = 1;
+    for (const p of c.body || []) {
+        if (p.type !== TOUGH || p.hits <= 0) continue;
+        toughHits += p.hits;
+        const b = p.boost && typeof BOOSTS !== 'undefined' && BOOSTS[TOUGH] && BOOSTS[TOUGH][p.boost];
+        if (b && b.damage) mult = Math.min(mult, b.damage);
+    }
+    let heal = 0;
+    for (const o of members) {
+        const r = range(o, c), st = intel.assess(o);
+        if (r <= 1) heal += st.heal; else if (r <= 3) heal += st.rangedHeal;
+    }
+    if (toughHits && dps * mult <= toughHits && dps * mult <= heal) return Infinity;
+    return intel.assess(c).ehp / Math.max(1, dps - heal);
+}
+// The fight with one enemy group as a duel: our fastest kill on it (against the healing reaching the
+// target) against their fastest kill on one of us (survival). Side totals called a quad's fight
+// with a full Harabi quad lost (his healing summed against our damage, our TOUGH ignored), though he
+// could not kill any of ours and we could kill his rangers.
+function duel(members, fight, info, protectedMode) {
+    const ours = Math.min(...fight.group.map(t => intel.killTime(t, info)));
+    const theirs = protectedMode ? Infinity : Math.min(...members.map(c => survival(c, fight.them.dps, members)));
+    if (ours === Infinity && theirs === Infinity) return 'even';
+    if (ours * DECISIVE <= theirs) return 'win';
+    if (theirs * DECISIVE <= ours) return 'lose';
+    return 'even';
+}
+const DECISIVE = 1.3;
 function combat(members) {
     const room = members[0].room, info = intel.roomIntel(room);
     const same = members.filter(c => c.room.name === room.name);
@@ -185,7 +226,8 @@ function combat(members) {
     // Against the group being fought (plus anyone close enough to join), not every hostile in the room.
     const local = fight ? fight.them : info.them;
     const them = protectedMode ? Object.assign({}, local, { dps: 0, heal: 0 }) : local;
-    const retreat = !protectedMode && (intel.verdictFor(info.us, them) === 'lose' || same.some(c =>
+    const verdict = fight && same.length ? duel(same, fight, info, protectedMode) : intel.verdictFor(info.us, them);
+    const retreat = !protectedMode && (verdict === 'lose' || same.some(c =>
         c.hits < c.hitsMax * 0.35 || tactics.incomingDamage(c, info.threats) >= intel.assess(c).ehp));
     return { info, focus, retreat, rush: !!fight && !fight.melee };
 }
@@ -549,4 +591,4 @@ function run(creep) {
     fight(members);
     travel(members);
 }
-module.exports = { groups, engagement, run, grid, assembled, formationMove, nearestAnchor, snake, combat, range, OFFSETS, STEPS };
+module.exports = { duel, survival, stagingRoom, groups, engagement, run, grid, assembled, formationMove, nearestAnchor, snake, combat, range, OFFSETS, STEPS };

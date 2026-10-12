@@ -584,9 +584,11 @@ function spawnOrder(roomName) {
         // A guard first (ordered early enough that the next arrives before the last dies), then
         // builders; with a full crew and the new room's storage built, energy trucks.
         if (guardWanted(s, roomName)) return { type: 'roomGuard', target: s.t };
-        if (countFor('helper', s.t) < HELPERS) return { type: 'helper', target: s.t, max: HELPERS };
+        // All RCL5 structures built: its own miners take full sources, no more helpers (room.stage).
+        const helpers = !require('room.stage').rcl5Built(s.t);
+        if (helpers && countFor('helper', s.t) < HELPERS) return { type: 'helper', target: s.t, max: HELPERS };
         if (supplyWanted(s.t, roomName) && countFor('supportHauler', s.t) < HAULERS) return { type: 'supportHauler', target: s.t, max: HAULERS };
-        return { type: 'helper', target: s.t, max: HELPERS };
+        return helpers ? { type: 'helper', target: s.t, max: HELPERS } : null;
     }
     return null;
 }
