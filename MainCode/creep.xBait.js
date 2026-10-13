@@ -4,14 +4,14 @@
 // In the room: claims the controller (a CLAIM body), then harvests and upgrades. From RCL2 it walls
 // the free tiles next to the controller and keeps those walls at WALL_HITS (light: a lone declaimer
 // can't reach the controller, the attacker has to bring something to break a wall). At RCL3 it
-// places one tower, builds it, and keeps it filled to TOWER_FILL before upgrading again. From the
+// places one tower, builds it, and keeps it full (TOWER_FILL) before upgrading again. From the
 // claim on it also keeps a spawn site in the room, built to SPAWN_BAIT only (spawnBait).
 // A controller it can do nothing with (owned or reserved by someone else, upgrade-blocked) is noted
 // for system.bait (not sent to again until the block ends) and the creep is recycled.
 const combat = require('combat.tactics');
 const bait = require('system.bait');
 
-const TOWER_FILL = 0.5;
+const TOWER_FILL = 1;            // full: a bait tower still shoots
 const WALL_HITS = 2000;
 const WALL_CHECK = 100;          // ticks between checks for missing wall sites
 const SPAWN_BAIT = 200;          // energy put into the spawn site, no more

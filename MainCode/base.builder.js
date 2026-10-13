@@ -48,6 +48,11 @@ for (const kind in TYPES) KIND_OF[TYPES[kind]] = kind;
 // Build order when sites are scarce.
 const ORDER = ['spawn', 'extension', 'storage', 'tower', 'link', 'terminal', 'lab', 'factory', 'powerSpawn', 'nuker', 'observer'];
 const PASSABLE = new Set([STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART]);
+// Below RCL8 these wait: labs, the factory and the extractor would take energy the controller needs.
+// Ones already built stay; sites not yet started are removed.
+const LATE_RCL = 8;
+const LATE_KINDS = new Set(['lab', 'factory']);
+const LATE_TYPES = () => [STRUCTURE_LAB, STRUCTURE_FACTORY, STRUCTURE_EXTRACTOR];
 
 function pack(tiles) {
     let out = '';
@@ -500,6 +505,13 @@ function buildRoom(room, plan) {
         }
     }
 
+    // Below RCL8: unstarted lab, factory and extractor sites go (LATE_RCL).
+    if (rcl < LATE_RCL) {
+        for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
+            if (s.progress === 0 && LATE_TYPES().includes(s.structureType)) s.remove();
+        }
+    }
+
     // Focus: builders go to the nearest site, so placement order alone decides nothing. A room
     // without a spawn gets only its spawn; a tower the controller level now allows is placed
     // (and built) before anything else; a young room with no tower possible yet gets nothing more.
@@ -524,6 +536,7 @@ function buildRoom(room, plan) {
         const type = TYPES[kind];
         const allowed = (CONTROLLER_STRUCTURES[type] && CONTROLLER_STRUCTURES[type][rcl]) || 0;
         if (kind === 'lab' && skipLabs) continue;
+        if (rcl < LATE_RCL && LATE_KINDS.has(kind)) continue;
         for (const tile of plan.structures[kind] || []) {
             if ((counts[type] || 0) >= allowed || budget <= 0) break;
             const here = occupied.get(tile) || [];
@@ -648,7 +661,7 @@ function controllerWalls(room, plan, rcl, site, occupied, always) {
 }
 
 function ensureExtractor(room, rcl, budget) {
-    if (rcl < 6 || budget <= 0) return;
+    if (rcl < LATE_RCL || budget <= 0) return;      // see LATE_RCL
     const mineral = runtimeCache.find(room, FIND_MINERALS)[0];
     if (!mineral) return;
     if (mineral.pos.lookFor(LOOK_STRUCTURES).some(s => s.structureType === STRUCTURE_EXTRACTOR)) return;

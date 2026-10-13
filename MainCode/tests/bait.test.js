@@ -154,7 +154,10 @@ test('the bait creep upgrades below RCL3; at RCL3 it places, builds and fills on
     assert.equal(JSON.stringify(c3t.calls), JSON.stringify(['transfer']));
     tower.store.energy = 900;
     role.run(c3t);
-    assert.equal(c3t.calls[c3t.calls.length - 1], 'upgrade', 'tower full enough: upgrade');
+    assert.equal(c3t.calls[c3t.calls.length - 1], 'transfer', '900 of 1000: filled up, not left at half');
+    tower.store.energy = 1000;
+    role.run(c3t);
+    assert.equal(c3t.calls[c3t.calls.length - 1], 'upgrade', 'full: upgrade');
 });
 
 test('the bait creep claims; a blocked or taken controller is noted and the creep recycled; a GCL refusal backs off', () => {

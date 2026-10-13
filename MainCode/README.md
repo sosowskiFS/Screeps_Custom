@@ -384,7 +384,7 @@ When the back-off ends, the room stays disabled until it has been seen clear: th
   - **Controller walls:** from RCL2 it walls the free tiles next to the controller and keeps those walls at about 2,000 hits (about 20 energy each), building and repairing them before anything else. A lone declaimer can't reach the controller; the attacker has to bring something that breaks a wall.
     - **Never in the way:** no wall goes on a tile next to a source. If the ring would cut off any part of the room (a source, the upgrading tiles, an exit), none are placed.
     - **Reclaiming:** a bait claimer that finds the controller walled in (our walls, after the room was lost) dismantles the weakest one first.
-  - **What it does:** claims, then harvests and upgrades. From RCL3 it places one tower 2-4 tiles from the controller, builds it, and keeps it at least half full before upgrading again.
+  - **What it does:** claims, then harvests and upgrades. From RCL3 it places one tower 2-4 tiles from the controller, builds it, and keeps it full before upgrading again (it is a real tower and shoots).
   - **Nothing else:** no base planning or building (`base.builder` skips them), no helpers, guards or quads, no swamp roads, and never safe mode (it would take the shard's one safe mode from the real targets).
   - **Upgrade block:** no creep is sent while the controller's upgrade block would outlast its trip. A creep that finds the controller blocked, or owned or reserved by someone else, notes it (the room is skipped until the block ends, or for 1,500 ticks) and is recycled.
   - **Fleeing:** it uses the shared escape logic, and waits outside its room while armed hostiles are in it, so the attacker has to keep coming back.
@@ -483,7 +483,7 @@ Every owned room is laid out automatically. Rooms no longer opt in. `base.planne
   - Base roads only beside built or planned structures.
   - The Supply, storageMiner and upgradeMiner flags.
   - Ramparts over finished planned structures and the core's creep tiles, from RCL 2 as before.
-  - The extractor from RCL 6.
+  - Labs, the factory and the extractor only from RCL 8: below it they would take energy the controller needs. Ones already built stay; unstarted sites for them are removed.
 - **What it never touches:** existing structures are never destroyed. The one exception, in fresh layouts only, is a road on a tile reserved for a building.
 - **Rooms with a storage are adopted:** the storage and core stay, flags aren't moved, and the plan only fills gaps around existing structures. Their roads are never removed.
 - **CPU:** a plan is computed once and kept in `Memory.basePlan` (a few ms per room). At most one room is planned per tick, and only when the CPU governor allows path-heavy work, so a deploy with every room unplanned spreads over several ticks. At most one room is built per tick: on an RCL change, otherwise every ~1,000 ticks (staggered). Both are charged to the room's CPU. A room where no core fits is retried after 20,000 ticks.
@@ -683,6 +683,7 @@ Tower fixes:
   - No route: the spawn is skipped and `Memory.unreachable["HOME>TARGET"]` holds it off for 10,000 ticks before the next check. A flag in an unreachable room no longer holds up the flag commands after it.
   - A harasser already on its way checks every 25 ticks; if its target has become unreachable it goes home and recycles.
 - **Haulers turn back on their last delivery:** mules, distributors (including young-room ones) and the operator filling spawns work out what is left after a transfer (the store only updates next tick). When the load is spent, they start walking back to their link, storage or container on the same tick instead of stepping on toward the next sink. Shared helper: `returnIfEmptied` in `creep.logistics.js`.
+- **Old source containers removed** (`system.rooms.clearSourceContainers`, every 500 ticks): once a room runs on link miners (RCL5+, storage, 2+ links: `Memory.RoomsAt5`), the container next to a source whose link stands (within 2) is destroyed. Its link miner only feeds the link, and the early harvesters that used and rebuilt the container are no longer spawned. A source still without its link keeps its container; the mineral's container is never touched.
 - **Parked creeps are obstacles:** creeps on their work tile (`atSpot`/`onPoint`: miners, the tower supplier, upgraders in position) are impassable in path planning, because they never move aside. Paths planned through the storage miner deadlocked a queue of haulers at the storage in E29N43.
   - **Upgraders in position** (`creep.upgrader`): an upgrader next to its link and within reach of the controller (also while the link refills), or upgrading wherever it works from when it has no link, is parked. It can't be swapped aside, others path around it, and it no longer steps aside for creeps that ask. Upgraders and helpers kept pushing working upgraders off their spot by the link to upgrade there themselves, which slowed the room down.
 - **Spawn exits:** in the tick before a spawn finishes a creep, if every exit tile is taken, one of our non-parked creeps on an exit steps one tile outward (`spawn.exit.js`).

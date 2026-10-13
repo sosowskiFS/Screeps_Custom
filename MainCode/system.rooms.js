@@ -17,8 +17,35 @@ function processRoomManagement(thisRoom) {
     handleRoomOperations(thisRoom);
 }
 
+// RCL5+ on link miners: the containers the early harvesters built at the sources are destroyed once
+// that source's link stands (within 2 of it): its link miner no longer uses the container, and
+// nothing removed them. A source still without its link keeps its container; the mineral's
+// container is never touched. Returns the number destroyed.
+function clearSourceContainers(room) {
+    if (!room.controller || !room.controller.my || room.controller.level < 5 || !room.storage) return 0;
+    // Only once the room runs on link miners (system.state RoomsAt5: RCL5, storage, 2+ links): before
+    // that its harvesters (spawn.BuildCreeps) use the containers and would put them back.
+    if (!(Memory.RoomsAt5 || []).includes(room.name)) return 0;
+    const links = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LINK } });
+    const containers = runtimeCache.find(room, FIND_STRUCTURES, { filter: { structureType: STRUCTURE_CONTAINER } });
+    const minerals = runtimeCache.find(room, FIND_MINERALS);
+    let removed = 0;
+    for (const source of runtimeCache.find(room, FIND_SOURCES)) {
+        if (!links.some(l => l.pos.inRangeTo(source, 2))) continue;
+        for (const c of containers) {
+            if (!c.pos.inRangeTo(source, 1) || minerals.some(m => c.pos.inRangeTo(m, 1))) continue;
+            if (c.destroy() === OK) {
+                removed++;
+                console.log('[rooms] ' + room.name + ': source container at ' + c.pos.x + ',' + c.pos.y + ' removed (the source has its link)');
+            }
+        }
+    }
+    return removed;
+}
+
 function manageRoomStructures(thisRoom) {
     const roomName = thisRoom.name;
+    if ((Game.time + roomName.length * 37) % 500 === 0) clearSourceContainers(thisRoom);
 
     // Empty lists are valid cached results, not a request to rescan every tick.
     const needsStructureRefresh = !Memory.linkList[roomName] ||
@@ -222,4 +249,4 @@ function handleRoomFlags(thisRoom) {
     // For now, keeping this as a placeholder to maintain functionality
 }
 
-module.exports = { processRoomManagement, manageRoomStructures, handleRoomFlags };
+module.exports = { processRoomManagement, manageRoomStructures, handleRoomFlags, clearSourceContainers };

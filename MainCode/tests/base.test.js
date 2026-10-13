@@ -502,3 +502,28 @@ test('a hardened room keeps repairers by its stored energy: 1 under 50k, 2 under
     assert.equal(spawn.getRepairMax(room(113000)), 2);
     assert.equal(spawn.getRepairMax(room(400000)), 3);
 });
+
+test('below RCL8 no labs, factory or extractor: unstarted sites go, the extractor is not placed; at RCL8 they stay', () => {
+    for (const rcl of [7, 8]) {
+        const existing = [];
+        const s = builderRoom(rcl, existing);
+        const { g, room, builder } = s;
+        builder.planRoom(room);
+        buildCore(g, builder, room, existing);
+        const removed = [];
+        const labSite = { structureType: g.STRUCTURE_LAB, progress: 0, pos: { x: 1, y: 1 }, remove: () => removed.push('lab') };
+        const startedFactory = { structureType: g.STRUCTURE_FACTORY, progress: 500, pos: { x: 2, y: 1 }, remove: () => removed.push('factory') };
+        const find = room.find;
+        room.find = type => (type === g.FIND_MY_CONSTRUCTION_SITES || type === g.FIND_CONSTRUCTION_SITES ? [labSite, startedFactory] : find(type));
+        let extractor = false;
+        const mineral = { pos: { x: 40, y: 10, roomName: 'W1N1', lookFor: () => [], createConstructionSite: () => { extractor = true; return g.OK; } } };
+        room.find = (inner => type => (type === g.FIND_MINERALS ? [mineral] : inner(type)))(room.find);
+        builder.buildRoom(room);
+        if (rcl === 7) {
+            assert.equal(removed.join(), 'lab', 'RCL7: the unstarted lab site goes; the started factory stays');
+            assert.equal(extractor, false);
+        } else {
+            assert.equal(removed.length, 0, 'RCL8: kept');
+        }
+    }
+});
