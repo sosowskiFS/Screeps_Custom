@@ -32,7 +32,9 @@ const BUILD_INTERVAL = 1000;
 const RETRY_FAILED = 20000;
 const SITES_PER_PASS = 10;
 const SITE_HEADROOM = 90;          // leave room under the 100-site cap for roads/repairs elsewhere
-const RAMPART_RCL = 2;             // ramparts over every planned structure (previous generator)
+const RAMPART_RCL = 2;
+const RING_RANGE = 13;           // planned tiles this far from the core (or nearer) make the base footprint
+const RAMPART_UPKEEP = 10;       // rampart hits per tick a ring rampart takes to hold and grow (decay is 3)             // ramparts over every planned structure (previous generator)
 const PATH_CHECK_EVERY = 100;      // ticks between checks for sites that seal a path
 const OFFSET = 48;
 
@@ -458,6 +460,11 @@ function buildRoom(room, plan) {
     // ramparts over them (and over a spawn it already has), walls around the controller.
     const fortified = !established && require('system.shardX').fortified(room);
     const shellRamparts = new Set();
+    // Hardened shardX room (RCL5+, fortified before): the outer rampart ring of its planned base too.
+    const hardened = require('system.shardX').hardened(room);
+    const ringPlan = hardened ? ringTiles(room, plan, Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP)) : null;
+    const ring = new Set(ringPlan ? ringPlan.r : []);
+    const ringWalls = ringPlan ? ringPlan.w : [];
     if (!established && rcl >= RAMPART_RCL) {
         for (const structure of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
             if (structure.structureType === STRUCTURE_SPAWN || structure.structureType === STRUCTURE_TOWER ||
@@ -483,7 +490,7 @@ function buildRoom(room, plan) {
     if (!established) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
             const type = s.structureType;
-            const keepSiegeRampart = type === STRUCTURE_RAMPART && shellRamparts.has(tileOf(s.pos));
+            const keepSiegeRampart = type === STRUCTURE_RAMPART && (shellRamparts.has(tileOf(s.pos)) || ring.has(tileOf(s.pos)));
             const held = towerless && s.progress === 0 && !keepSiegeRampart && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
                 type !== STRUCTURE_CONTAINER && type !== STRUCTURE_WALL;
             const swampRoad = type === STRUCTURE_ROAD && require('system.swampRoads').wanted(room.name, s.pos.x, s.pos.y);
@@ -586,6 +593,20 @@ function buildRoom(room, plan) {
         }
     }
 
+    // Hardened shardX room: the outer rampart ring, after everything else this pass (the site budget
+    // goes to structures first).
+    for (const tile of ring) {
+        if (budget <= 0) break;
+        const here = occupied.get(tile) || [];
+        if (here.includes(STRUCTURE_RAMPART) || here.some(t => !PASSABLE.has(t))) continue;
+        site(tile, STRUCTURE_RAMPART);
+    }
+    for (const tile of ringWalls) {
+        if (budget <= 0) break;
+        if (occupied.has(tile)) continue;              // a rampart already there stays
+        site(tile, STRUCTURE_WALL);
+    }
+
     if (!established) controllerWalls(room, plan, rcl, site, occupied, fortified);
 
     ensureExtractor(room, rcl, budget);
@@ -636,6 +657,82 @@ function ensureExtractor(room, rcl, budget) {
 }
 
 // ---------------------------------------------------------------- tick
+
+// The outer ring of the planned base: open tiles just outside its footprint (planned structures and
+// roads within RING_RANGE of the core, and the tiles around the controller when it is that close), on
+// the side reachable from the room's exits. Barriers there give defenders cover all round the base.
+//   - Nothing can be built within 1 tile of an exit: where a ring tile is that close, the barrier
+//     moves inward onto the footprint tiles next to it (ramparts on its roads and structures), and
+//     further in while those are that close too. W1N9's base runs up to its north exits and its
+//     ring had gaps there.
+//   - Walls: when the outer tiles outnumber the ramparts its repairers keep up (maxRamparts), every
+//     other one is a wall (no decay; planned road tiles stay ramparts for traffic). Once chosen it
+//     stays.
+// Returns { r: rampart tiles, w: wall tiles, alt }; kept with the plan (plan.ring).
+function ringTiles(room, plan, maxRamparts = Infinity) {
+    if (plan.ring && plan.ring.r && (plan.ring.alt || plan.ring.n <= maxRamparts)) return plan.ring;
+    const terrain = room.getTerrain();
+    const anchor = plan.anchor;
+    if (anchor === undefined) return (plan.ring = { r: [], w: [], alt: false, n: 0 });
+    const ax = (anchor / 50) | 0, ay = anchor % 50;
+    const near = t => Math.max(Math.abs(((t / 50) | 0) - ax), Math.abs(t % 50 - ay)) <= RING_RANGE;
+    const footprint = new Set();
+    for (const kind in plan.structures) {
+        if (kind === 'container' || kind === 'extractor') continue;
+        for (const t of plan.structures[kind]) if (near(t)) footprint.add(t);
+    }
+    for (const t of plan.roads || []) if (near(t)) footprint.add(t);
+    const c = room.controller && room.controller.pos;
+    if (c && near(c.x * 50 + c.y)) {
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) footprint.add((c.x + dx) * 50 + c.y + dy);
+    }
+    const blocked = new Set(room.find(FIND_SOURCES).concat(room.find(FIND_MINERALS)).map(o => o.pos.x * 50 + o.pos.y));
+    if (c) blocked.add(c.x * 50 + c.y);
+    const wall = t => terrain.get((t / 50) | 0, t % 50) === TERRAIN_MASK_WALL;
+    const inside = t => { const x = (t / 50) | 0, y = t % 50; return x >= 1 && y >= 1 && x <= 48 && y <= 48; };
+    const open = t => inside(t) && !wall(t) && !blocked.has(t) && !footprint.has(t);
+    const around = t => {
+        const x = (t / 50) | 0, y = t % 50, out = [];
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (dx || dy) out.push((x + dx) * 50 + y + dy);
+        return out;
+    };
+    // No building next to an exit (an open edge tile).
+    const exitNear = t => {
+        const x = (t / 50) | 0, y = t % 50;
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+            const ex = x + dx, ey = y + dy;
+            if ((ex === 0 || ey === 0 || ex === 49 || ey === 49) && ex >= 0 && ey >= 0 && ex <= 49 && ey <= 49 && terrain.get(ex, ey) !== TERRAIN_MASK_WALL) return true;
+        }
+        return false;
+    };
+    // Outside: everything reachable from the tiles next to the exits without crossing the footprint.
+    const seen = new Set(), queue = [];
+    for (let i = 1; i <= 48; i++) for (const t of [1 * 50 + i, 48 * 50 + i, i * 50 + 1, i * 50 + 48]) {
+        if (!seen.has(t) && open(t)) { seen.add(t); queue.push(t); }
+    }
+    for (let q = 0; q < queue.length; q++) for (const n of around(queue[q])) if (!seen.has(n) && open(n)) { seen.add(n); queue.push(n); }
+    const outer = [], inner = new Set();
+    for (const t of seen) {
+        if (!around(t).some(n => footprint.has(n))) continue;
+        if (!exitNear(t)) { outer.push(t); continue; }
+        // Too close to an exit: the footprint tiles next to it instead, further in while needed.
+        const stack = around(t).filter(n => footprint.has(n)), done = new Set(stack);
+        while (stack.length) {
+            const f = stack.pop();
+            if (!inside(f) || wall(f) || blocked.has(f)) continue;
+            if (!exitNear(f)) { inner.add(f); continue; }
+            for (const n of around(f)) if (footprint.has(n) && !done.has(n)) { done.add(n); stack.push(n); }
+        }
+    }
+    const alt = !!(plan.ring && plan.ring.alt) || outer.length > maxRamparts;
+    const roads = new Set((plan.roads || []).concat(plan.paths || []));
+    const r = [...inner], w = [];
+    for (const t of outer) {
+        const x = (t / 50) | 0, y = t % 50;
+        if (alt && (x + y) % 2 === 0 && !roads.has(t)) w.push(t); else r.push(t);
+    }
+    return (plan.ring = { r: r.sort((a, b) => a - b), w: w.sort((a, b) => a - b), alt, n: outer.length });
+}
 
 function enabled(roomName) {
     return !(Memory.baseBuildOff && Memory.baseBuildOff[roomName]);
@@ -782,4 +879,4 @@ function visualizeFlagged() {
     vis.text(`base plan (${plan.mode}${labs.length ? '' : ', no lab stamp fits'})`, 25, 1, { color: '#ffffff', font: 0.7 });
 }
 
-module.exports = { run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
+module.exports = { ringTiles, run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };

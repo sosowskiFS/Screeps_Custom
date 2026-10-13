@@ -49,6 +49,7 @@ const HELPERS = 6;
 const HAULERS = 3;               // support haulers once the new room has its storage
 const SUPPLY_TARGET = 100000;    // trucked until the new room's storage holds this much energy
 const SUPPLY_FLOOR = 75000;      // ...and only while the sponsor's storage keeps more than this
+const SUPPLY_RESUME = 150000;    // paused at the floor until the sponsor's storage is back to this
 const SPONSOR_RCL = 6;
 const SPONSOR_ENERGY = 50000;
 const DISTANCE_WEIGHT = 1;
@@ -620,12 +621,23 @@ function countFor(role, roomName) {
 }
 
 // Should energy be trucked from `sponsorName` into `roomName`? Its own storage is built and holds
-// less than SUPPLY_TARGET, and the sponsor's storage keeps more than SUPPLY_FLOOR.
+// less than SUPPLY_TARGET, and the sponsor can spare it: a sponsor down to SUPPLY_FLOOR pauses until
+// its storage is back to SUPPLY_RESUME (Memory.expansion.supplyPaused). Without the gap, trucking
+// restarted the moment the sponsor crept back over the floor and kept it pinned there.
 function supplyWanted(roomName, sponsorName) {
     const room = Game.rooms[roomName];
     const sponsor = Game.rooms[sponsorName];
     if (!room || !room.storage || !room.storage.my || !sponsor || !sponsor.storage) return false;
-    return (room.storage.store[RESOURCE_ENERGY] || 0) < SUPPLY_TARGET && (sponsor.storage.store[RESOURCE_ENERGY] || 0) > SUPPLY_FLOOR;
+    const s = state(), paused = s.supplyPaused || (s.supplyPaused = {});
+    const reserve = sponsor.storage.store[RESOURCE_ENERGY] || 0;
+    if (reserve <= SUPPLY_FLOOR && !paused[sponsorName]) {
+        paused[sponsorName] = Game.time;
+        console.log('[expansion] ' + sponsorName + ' down to ' + reserve + ' energy: energy hauling paused until ' + SUPPLY_RESUME);
+    } else if (paused[sponsorName] && reserve >= SUPPLY_RESUME) {
+        delete paused[sponsorName];
+        console.log('[expansion] ' + sponsorName + ' back to ' + reserve + ' energy: energy hauling resumes');
+    }
+    return (room.storage.store[RESOURCE_ENERGY] || 0) < SUPPLY_TARGET && !paused[sponsorName];
 }
 
 // Console: expansion() prints budget, state and the best candidates.

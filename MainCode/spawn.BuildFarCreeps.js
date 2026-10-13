@@ -164,7 +164,9 @@ var spawn_BuildFarCreeps = {
                             flagName = Game.flags[thisRoom.name + config.flag].name;
                             storageID = thisRoom.storage.id;
                             break;
-                        } else if (claimers.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + config.flag].pos.roomName]) {
+                        } else if (claimers.length < 1 && Memory.FarClaimerNeeded[Game.flags[thisRoom.name + config.flag].pos.roomName] &&
+                            !(Game.flags[thisRoom.name + config.flag].room && Game.flags[thisRoom.name + config.flag].room.controller &&
+                                Game.flags[thisRoom.name + config.flag].room.controller.my)) {
                             prioritizedRole = 'farClaimer';
                             roomTarget = Game.flags[thisRoom.name + config.flag].pos.roomName;
                             flagName = Game.flags[thisRoom.name + config.flag].name;
@@ -355,7 +357,9 @@ function nodeJob(thisRoom, controlledCreeps, Flag25, Flag50) {
             return { role: 'farMule', room: n.r, node: remoteMining.nodeRef(n) };
         }
         const claimers = Object.values(controlledCreeps).filter(c => c && c.memory && c.memory.priority === 'farClaimer' && c.memory.destination === n.r).length;
-        if (!claimers && Memory.FarClaimerNeeded[n.r]) return { role: 'farClaimer', room: n.r, node: remoteMining.nodeRef(n) };
+        // No reserver for a room of ours (a shardX decoy mined as a remote): it cannot be reserved.
+        const ours = Game.rooms[n.r] && Game.rooms[n.r].controller && Game.rooms[n.r].controller.my;
+        if (!claimers && !ours && Memory.FarClaimerNeeded[n.r]) return { role: 'farClaimer', room: n.r, node: remoteMining.nodeRef(n) };
     }
     return null;
 }

@@ -77,3 +77,16 @@ test('a support hauler fills at the sponsor, empties into the new storage, and r
     w.h.load('creep.supportHauler').run(w.creep({ priority: 'supportHauler', homeRoom: 'HOME', destination: 'NEW' }, {}));
     assert.deepEqual(plain(w.calls), [['suicide']]);
 });
+
+test('a sponsor down to 75k pauses energy hauling until its storage is back to 150k, then resumes', () => {
+    const w = world({ homeEnergy: 70000 });
+    const expansion = w.h.load('system.expansion');
+    const home = w.g.Game.rooms.HOME;
+    assert.equal(expansion.supplyWanted('NEW', 'HOME'), false, 'down to the floor: paused');
+    home.storage.store[w.g.RESOURCE_ENERGY] = 120000;
+    assert.equal(expansion.supplyWanted('NEW', 'HOME'), false, 'over the floor but not recovered: still paused');
+    home.storage.store[w.g.RESOURCE_ENERGY] = 150000;
+    assert.equal(expansion.supplyWanted('NEW', 'HOME'), true, 'recovered: hauling again');
+    home.storage.store[w.g.RESOURCE_ENERGY] = 120000;
+    assert.equal(expansion.supplyWanted('NEW', 'HOME'), true, 'above the floor: keeps going');
+});

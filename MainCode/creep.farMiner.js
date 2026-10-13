@@ -55,6 +55,9 @@ var creep_farMiner = {
                     if (remoteMining.target(creep)) {
                         remoteMining.target(creep).remove();
                     }
+                } else if (creep.room.controller && creep.room.controller.my) {
+                    // A room of ours mined as a remote (a shardX decoy, system.bait): it cannot be reserved.
+                    if (Memory.FarClaimerNeeded[creep.room.name]) Memory.FarClaimerNeeded[creep.room.name] = false;
                 } else if (creep.room.controller && creep.room.controller.reservation) {
         			if (creep.room.controller.reservation.username != 'Montblanc') {
                 		// Get guards in to clear invader core/hostiles

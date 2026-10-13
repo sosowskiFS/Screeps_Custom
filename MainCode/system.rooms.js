@@ -100,7 +100,10 @@ function manageRoomStructures(thisRoom) {
     // An empty result is stored as "" (falsy), which used to force a full structure scan
     // every tick in rooms with nothing to repair. Retry those rooms every 50 ticks instead.
     // Repair creeps clear the target with `undefined`, which still rescans immediately.
-    if (Game.time % 1000 == 0 || Memory.repairTarget[thisRoom.name] === undefined ||
+    // A hardened shardX room re-picks every 50 ticks: its repairers share the target and used to
+    // pour everything into one rampart (up to 3M hits) while the rest of its ring decayed.
+    const spread = Game.time % 50 == 0 && require('system.shardX').hardened(thisRoom);
+    if (Game.time % 1000 == 0 || spread || Memory.repairTarget[thisRoom.name] === undefined ||
         (Memory.repairTarget[thisRoom.name] === "" && Game.time % 50 == 0)) {
         Memory.repairTarget[thisRoom.name] = "";
         const guardSquads = require('system.guardSquads');

@@ -238,3 +238,18 @@ test('strikes expire by time alone: a room quiet for 30,000 ticks with its back-
     remote.expireStrikes();
     assert.equal(Object.keys(g.Memory.remoteStatus).sort().join(), 'LONG,RECENT');
 });
+
+test('a node in a room of ours (a shardX decoy mined as a remote) is mined but gets no reserver', () => {
+    const { h, g } = world();
+    g.Memory.FarRoomsUnderAttack = []; g.Memory.FarClaimerNeeded = { E6N5: true };
+    const far = h.load('spawn.BuildFarCreeps');
+    g.Memory.remotePlan = { E5N5: { t: 1, list: [{ r: 'E6N5', id: 'a', x: 10, y: 10, trip: 136 }] } };
+    const room = { name: 'E5N5', energyCapacityAvailable: 1300 };
+    const creeps = [];
+    const add = priority => creeps.push({ memory: { priority, homeRoom: 'E5N5', node: { id: 'a', r: 'E6N5' } } });
+    add('farMiner'); add('farMule'); add('farMule'); add('farMule');
+    const job = () => { const j = far.nodeJob(room, creeps, false, false); return j && j.role; };
+    assert.equal(job(), 'farClaimer', 'a neutral remote: reserved');
+    g.Game.rooms.E6N5 = { name: 'E6N5', controller: { my: true } };
+    assert.equal(job(), null, 'ours: no reserver');
+});

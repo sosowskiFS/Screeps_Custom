@@ -429,3 +429,76 @@ test('a young room on its own (no sponsor) builds its extensions at RCL2 without
     builder.buildRoom(room);
     assert.ok(sites.filter(s => s[2] === g.STRUCTURE_EXTENSION).length > 0, JSON.stringify(sites.map(s => s[2])));
 });
+
+test('hardened shardX rooms (fortified before, RCL5+): an outer rampart ring round the planned base, ramparts and walls repaired freely', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.Game.shard = { name: 'shardX' };
+    g.RESOURCE_ENERGY = 'energy';
+    const room = { name: 'X', controller: { my: true, level: 5, pos: { x: 25, y: 30 } },
+        getTerrain: () => ({ get: () => 0 }), find: () => [] };
+    const shardX = h.load('system.shardX');
+    assert.equal(shardX.hardened(room), false, 'never fortified');
+    g.Memory.xs = { fortify: { X: 1 } };
+    assert.equal(shardX.hardened(room), true);
+    room.controller.level = 4;
+    assert.equal(shardX.hardened(room), false, 'below RCL5');
+    room.controller.level = 5;
+    // A 5x5 base at 23..27 x 23..27 (anchor 25,25), the controller at 25,30 (ring 24..26 x 29..31).
+    const tiles = [];
+    for (let x = 23; x <= 27; x++) for (let y = 23; y <= 27; y++) tiles.push(x * 50 + y);
+    const plan = { anchor: 25 * 50 + 25, structures: { extension: tiles }, roads: [] };
+    const ring = h.load('base.builder').ringTiles(room, plan);
+    const has = (x, y) => ring.r.includes(x * 50 + y);
+    assert.ok(has(22, 22) && has(28, 28) && has(22, 25) && has(25, 22), 'all round the base');
+    assert.ok(has(23, 32) && has(27, 32), 'and round the controller');
+    assert.ok(!has(25, 25) && !has(24, 24), 'not inside');
+    assert.ok(has(25, 28), 'the gap between base and controller is closed too');
+    assert.equal(plan.ring, ring, 'kept with the plan');
+    assert.equal(ring.w.length, 0, 'no walls while its repairers keep up');
+    // Repairs: no cap; ramparts and walls always count.
+    assert.equal(h.load('system.guardSquads').rampartCap(room), Infinity);
+    const needsRepair = h.load('spawn.BuildCreeps').needsRepair;
+    assert.equal(needsRepair({ structureType: g.STRUCTURE_WALL, room, hits: 50000, hitsMax: 300000000 }), true);
+    assert.equal(needsRepair({ structureType: g.STRUCTURE_RAMPART, room, hits: 400000, hitsMax: 3000000 }), true);
+});
+
+test('the ring never runs next to an exit (nothing can be built there): the barrier moves onto the base; too many ramparts for the repairers: every other outer tile a wall', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    // A base against the north edge (W1N9): rows 2..6, the edge row 0 open at x 20..30.
+    const terrain = { get: (x, y) => (y === 0 && (x < 20 || x > 30) ? 1 : x === 0 || x === 49 || y === 49 ? 1 : 0) };
+    const room = { name: 'X', controller: null, getTerrain: () => terrain, find: () => [] };
+    const tiles = [];
+    for (let x = 22; x <= 28; x++) for (let y = 2; y <= 6; y++) tiles.push(x * 50 + y);
+    const plan = { anchor: 25 * 50 + 4, structures: { extension: tiles }, roads: [] };
+    const builder = h.load('base.builder');
+    const ring = builder.ringTiles(room, plan);
+    const all = ring.r.concat(ring.w);
+    const exitNear = t => { const x = (t / 50) | 0, y = t % 50; return y <= 1 && x >= 19 && x <= 31; };
+    assert.ok(!all.some(exitNear), 'nothing next to the open edge');
+    assert.ok(ring.r.includes(25 * 50 + 2), 'the base\'s own top row is ramparted instead');
+    assert.ok(ring.r.includes(25 * 50 + 7), 'and the ring runs on round the rest');
+    // Repairers that keep up only 10 ramparts: every other outer tile a wall, and that stays.
+    delete plan.ring;
+    const tight = builder.ringTiles(room, plan, 10);
+    assert.equal(tight.alt, true);
+    assert.ok(tight.w.length > 0 && tight.w.every(t => (((t / 50) | 0) + t % 50) % 2 === 0));
+    assert.equal(builder.ringTiles(room, plan, 1000).alt, true, 'once walls, always walls');
+});
+
+test('a hardened room keeps repairers by its stored energy: 1 under 50k, 2 under 150k, 3 above', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.Game.shard = { name: 'shardX' };
+    g.RESOURCE_ENERGY = 'energy';
+    g.Memory.xs = { fortify: { X: 1 } };
+    const room = energy => ({ name: 'X', controller: { my: true, level: 5 }, storage: { store: { energy } }, find: () => [] });
+    const spawn = h.load('spawn.BuildCreeps');
+    assert.equal(spawn.getRepairMax(room(20000)), 1);
+    assert.equal(spawn.getRepairMax(room(113000)), 2);
+    assert.equal(spawn.getRepairMax(room(400000)), 3);
+});

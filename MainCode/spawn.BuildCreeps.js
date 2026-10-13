@@ -271,6 +271,11 @@ function getUpgraderMax(room) {
 // it is below half.
 function needsRepair(structure) {
     const type = structure.structureType;
+    // A hardened shardX room (system.shardX.hardened): its ramparts and walls are always worth
+    // raising, so it keeps a repairer at them.
+    if ((type === STRUCTURE_RAMPART || type === STRUCTURE_WALL) && structure.room && require('system.shardX').hardened(structure.room)) {
+        return structure.hits < structure.hitsMax;
+    }
     // The rampart shell (spawn, towers, storage, Supply tile) up to its cap; no other rampart.
     if (type === STRUCTURE_RAMPART) return !!structure.room && require('system.guardSquads').shellRampartDue(structure.room, structure);
     if (type === STRUCTURE_ROAD || type === STRUCTURE_WALL) return false;
@@ -279,9 +284,21 @@ function needsRepair(structure) {
 }
 
 function getRepairMax(room) {
+    // A hardened shardX room keeps repairers by its storage: 1 under 50k energy, 2 under 150k, else 3.
+    if (require('system.shardX').hardened(room)) {
+        const energy = (room.storage && room.storage.store[RESOURCE_ENERGY]) || 0;
+        return energy < 50000 ? 1 : energy < 150000 ? 2 : 3;
+    }
     // Only spawn repairers when there is something a repairer would repair (decaying roads used
     // to keep one alive permanently, and it then worked on walls).
     return runtimeCache.find(room, FIND_STRUCTURES, { filter: needsRepair }).length > 0 ? 1 : 0;
+}
+
+// Rampart hits per tick this room's repairers keep up (count x WORK x 100, about 30% of their time
+// at it: the rest is fetching energy and walking).
+function repairCapacity(room) {
+    const work = getWorkerConfig(room.energyCapacityAvailable, 'repair').filter(p => p === WORK).length;
+    return getRepairMax(room) * work * REPAIR_POWER * 0.3;
 }
 
 const UPGRADER_CAP = 6;
@@ -493,6 +510,8 @@ spawn_BuildCreeps.sourceContainer = sourceContainer;
 spawn_BuildCreeps.getWorkerConfig = getWorkerConfig;
 spawn_BuildCreeps.getDistributorConfig = getDistributorConfig;
 spawn_BuildCreeps.needsRepair = needsRepair;
+spawn_BuildCreeps.getRepairMax = getRepairMax;
+spawn_BuildCreeps.repairCapacity = repairCapacity;
 spawn_BuildCreeps.sourceShortOfWork = sourceShortOfWork;
 spawn_BuildCreeps.fitBody = fitBody;
 module.exports = spawn_BuildCreeps;

@@ -884,6 +884,16 @@ function fortified(room) {
     return towers < FORTIFY_UNTIL_TOWERS;
 }
 
+// From RCL5 a fortified room (marked: lost before, marked by hand, or a promoted focus room) is
+// hardened, as progress slows there: an outer ring of ramparts around its planned base for its
+// defenders to fight from (base.builder), and a repairer raising its ramparts and walls without the
+// young-room cap (system.guardSquads.rampartCap, spawn.BuildCreeps.needsRepair).
+function hardened(room) {
+    if (!room || Game.shard.name !== X_SHARD || !room.controller || !room.controller.my || room.controller.level < 5) return false;
+    const s = Memory.xs || {};
+    return !!((s.losses && s.losses[room.name] > 0) || (s.fortify && s.fortify[room.name]));
+}
+
 function command(cmd, picks) {
     if (cmd === 'reset') return reset();
     if (cmd === 'fortify' || cmd === 'unfortify') {
@@ -981,6 +991,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, fortified, refreshSeen, scheduleNuisance, shiftFocus, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, hardened, refreshSeen, scheduleNuisance, shiftFocus, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

@@ -71,6 +71,7 @@ function protectedRampart(room, rampart) {
 // has been attacked (escalated). Established rooms (terminal) have no cap here.
 function rampartCap(room) {
     if (!room || stage.established(room)) return Infinity;
+    if (require('system.shardX').hardened(room)) return Infinity;      // ramparts raised freely
     return escalated(Game.shard.name, room.name) ? SIEGE_RAMPART_HITS : SHELL_RAMPART_HITS;
 }
 // Young room: is this rampart one to repair now? (A shell rampart below its cap.)

@@ -44,9 +44,11 @@ var creep_upgrader = {
         const carriedEnergy = creep.store[RESOURCE_ENERGY];
         const workParts = creep.memory.workParts || (creep.memory.workParts = creep.getActiveBodyparts(WORK));
 
-        let attemptedTravel = false;
+        let attemptedTravel = false, upgrading = false;
         if (carriedEnergy > 0) {
-            if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
+            const result = creep.upgradeController(creep.room.controller);
+            upgrading = result === OK;
+            if (result == ERR_NOT_IN_RANGE) {
                 attemptedTravel = true;
                 creep.travelTo(Game.flags[creep.room.name + "Controller"] || creep.room.controller, {
                     maxRooms: 1,
@@ -61,6 +63,7 @@ var creep_upgrader = {
         if (carriedEnergy <= workParts && !attemptedTravel) {
             var linkTarget = Game.getObjectById(creep.memory.linkSource);
             if (linkTarget && linkTarget.store[RESOURCE_ENERGY] > 0 && creep.withdraw(linkTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                attemptedTravel = true;
                 creep.travelTo(linkTarget, {
                     maxRooms: 1,
                     stuckValue: 4
@@ -73,8 +76,19 @@ var creep_upgrader = {
             }
         }
 
+        // In position (next to its link within reach of the controller, or upgrading wherever it upgrades
+        // from without a link): parked.
+        // Other creeps can't swap it aside or path through it, and it doesn't step aside for them.
+        // Upgraders and helpers kept pushing working upgraders off their spot by the link to upgrade
+        // there themselves, and the room's upgrading slowed instead of adding up.
+        const link = creep.memory.linkSource && Game.getObjectById(creep.memory.linkSource);
+        const inRange = creep.pos.inRangeTo(creep.room.controller, 3);
+        const placed = link ? creep.pos.isNearTo(link) && inRange : upgrading;   // by the link: also while it refills
+        if (placed && !attemptedTravel) creep.memory.onPoint = true;
+        else delete creep.memory.onPoint;
+
         // Only creeps standing still next to others can be in someone's way.
-        if (Game.time % 5 == 0 && !attemptedTravel) {
+        if (Game.time % 5 == 0 && !attemptedTravel && !creep.memory.onPoint) {
             let talkingCreeps = creep.pos.findInRange(FIND_MY_CREEPS, 1, {
                 filter: (thisCreep) => (creep.id != thisCreep.id && thisCreep.saying && thisCreep.saying.indexOf(";") > 0)
             });
