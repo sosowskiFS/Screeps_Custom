@@ -21,14 +21,23 @@ function updateRoomStructureLists(thisRoom) {
     const otherLinks = [];
 
     Memory.linkList[roomName] = [];
-    // Categorize links by their function
+    // The link right beside the storage is the storage link, even when the controller is close too
+    // (E29N43, shard3: storage and controller 3 apart; the storage's own link was filed as the
+    // controller link, a link 3 away became the "storage link", and the source links never sent).
+    const storage = thisRoom.storage;
+    const besideStorage = storage ? links.filter(l => l.pos.getRangeTo(storage) <= 1)
+        .sort((a, b) => a.pos.getRangeTo(storage) - b.pos.getRangeTo(storage))[0] : null;
+    if (besideStorage) storageLinks.push(besideStorage);
+    // The controller link: the nearest other link within 4 of the controller.
+    const nearController = links.filter(l => l !== besideStorage && l.pos.getRangeTo(thisRoom.controller) <= 4)
+        .sort((a, b) => a.pos.getRangeTo(thisRoom.controller) - b.pos.getRangeTo(thisRoom.controller));
     for (let link of links) {
-        // Check if near controller (within 4 range)
-        if (link.pos.getRangeTo(thisRoom.controller) <= 4) {
+        if (link === besideStorage) continue;
+        if (nearController.length && link === nearController[0]) {
             controllerLinks.push(link);
         }
-        // Check if near storage (within 3 range - increased from 2)
-        else if (thisRoom.storage && link.pos.getRangeTo(thisRoom.storage) <= 3) {
+        // No link beside the storage: one within 3 of it (not the controller's)
+        else if (!besideStorage && storage && !storageLinks.length && link.pos.getRangeTo(storage) <= 3) {
             storageLinks.push(link);
         }
         // Check if near sources (within 3 range - increased from 2)
@@ -42,6 +51,8 @@ function updateRoomStructureLists(thisRoom) {
             }
         }
     }
+    // Links beyond the first two at the sources: kept as other links instead of dropped.
+    for (const extra of sourceLinks.slice(2)) otherLinks.push(extra);
 
      // Add first source link
     if (sourceLinks.length > 0) {

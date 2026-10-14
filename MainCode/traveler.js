@@ -239,7 +239,9 @@ class Traveler {
             const blocker = next.lookFor(LOOK_CREEPS)[0];
             if (!blocker || !blocker.my || blocker.spawning || blocker.fatigue > 0 || Traveler.movedThisTick(blocker)) return false;
             const memory = blocker.memory || {};
-            if (memory.atSpot || memory.onPoint || PARKED_ROLES.has(memory.priority)) return false;
+            // A worker of a parked role still on its way to its tile (atSpot false) can be swapped: a
+            // miner short of its tile blocked the only way to it (E29N43's storage corridor).
+            if (memory.atSpot || memory.onPoint || (PARKED_ROLES.has(memory.priority) && memory.atSpot !== false)) return false;
             if (blocker.move(blocker.pos.getDirectionTo(creep.pos)) !== OK) return false;
             Traveler._pushed[blocker.name] = Game.time;
             return true;

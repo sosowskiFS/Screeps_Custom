@@ -213,7 +213,12 @@ var creep_workV2 = {
                     creep.memory.priority = 'builderNearDeath';
                 }
 
-                if (_.sum(creep.carry) > 0) {
+                // Worker (spawn.BuildCreeps, before links): the controller first when its downgrade
+                // timer runs low, else build, else upgrade.
+                if (_.sum(creep.carry) > 0 && creep.room.controller && creep.room.controller.my &&
+                    creep.room.controller.ticksToDowngrade < downgradeFloor(creep.room.controller)) {
+                    if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) creep.travelTo(creep.room.controller, { range: 3, maxRooms: 1 });
+                } else if (_.sum(creep.carry) > 0) {
                     let needSearch = true;
                     if (creep.memory.structureTarget) {
                         let thisStructure = Game.getObjectById(creep.memory.structureTarget);
@@ -261,33 +266,15 @@ var creep_workV2 = {
                             }
                         }
                     }
-                } else if (creep.memory.storageTarget) {
-                    creep.memory.structureTarget = undefined;
-
-                    let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                    if (thisTarget && _.sum(thisTarget.store) > creep.carryCapacity) {
-                        if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisTarget);
-                        }
-                    } else {
-                        let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
-                        if (newContainer) {
-                            creep.memory.storageTarget = newContainer.id;
-                            if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(newContainer);
-                            }
-                        }
-                    }
                 } else {
+                    // Energy: dropped piles, containers or the storage (findEnergy).
                     creep.memory.structureTarget = undefined;
-
-                    let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
-                    if (newContainer) {
-                        creep.memory.storageTarget = newContainer.id;
-                        if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(newContainer);
-                        }
+                    let source = creep.memory.storageTarget && Game.getObjectById(creep.memory.storageTarget);
+                    if (!source || (source.resourceType ? source.amount < 50 : (source.store[RESOURCE_ENERGY] || 0) < 50)) {
+                        source = findEnergy(creep, Math.min(creep.carryCapacity, 200));
+                        creep.memory.storageTarget = source ? source.id : undefined;
                     }
+                    if (source && takeEnergy(creep, source) === OK) delete creep.memory.storageTarget;
                 }
                 break;
             case 'repair':
@@ -337,12 +324,11 @@ var creep_workV2 = {
                     } else {
                         creep.memory.structureTarget = undefined;
 
-                        let newContainer = findContainerWithEnergy(creep, 100);
-                        if (newContainer) {
-                            creep.memory.storageTarget = newContainer.id;
-                            if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(newContainer);
-                            }
+                        // Dropped energy too (full containers spill beside them).
+                        const newSource = findEnergy(creep, 100);
+                        if (newSource) {
+                            creep.memory.storageTarget = newSource.id;
+                            if (takeEnergy(creep, newSource) === OK) creep.memory.storageTarget = undefined;
                         }
                     }
                 } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable || !creep.room.storage || creep.room.name != creep.memory.homeRoom) {
@@ -626,6 +612,28 @@ function repairCompare(a, b) {
 // Callers run this whenever their energy source runs low, often every tick in young
 // rooms, so avoid pathfinding: pre-filter storage/containers, pick the nearest by
 // range, and back off briefly when nothing qualifies.
+// Energy for a worker or distributor before links: the nearest of dropped energy (a pile at least
+// energyMin, or one that fills it), a container or the storage with energyMin. Dropped first when
+// it is as close: it decays. Returns the object (a Resource is picked up, a store withdrawn from).
+function findEnergy(creep, energyMin) {
+    const room = creep.room;
+    const need = Math.min(energyMin, creep.store ? creep.store.getFreeCapacity(RESOURCE_ENERGY) : energyMin);
+    const piles = runtimeCache.find(room, FIND_DROPPED_RESOURCES).filter(r => r.resourceType === RESOURCE_ENERGY && r.amount >= Math.max(50, need));
+    const stores = runtimeCache.find(room, FIND_STRUCTURES, { filter: { structureType: STRUCTURE_CONTAINER } })
+        .filter(s => (s.store[RESOURCE_ENERGY] || 0) >= energyMin);
+    if (room.storage && (room.storage.store[RESOURCE_ENERGY] || 0) >= energyMin) stores.push(room.storage);
+    const pile = piles.length ? creep.pos.findClosestByRange(piles) : null;
+    const store = stores.length ? creep.pos.findClosestByRange(stores) : null;
+    if (pile && (!store || creep.pos.getRangeTo(pile) <= creep.pos.getRangeTo(store) + 5)) return pile;
+    return store || pile;
+}
+// Take energy from what findEnergy returned (pickup or withdraw), walking there if needed.
+function takeEnergy(creep, target) {
+    const result = target.resourceType ? creep.pickup(target) : creep.withdraw(target, RESOURCE_ENERGY);
+    if (result === ERR_NOT_IN_RANGE) creep.travelTo(target, { maxRooms: 1 });
+    return result;
+}
+
 function findContainerWithEnergy(thisCreep, energyMin) {
     if (thisCreep.memory.energySearchAt && Game.time < thisCreep.memory.energySearchAt) {
         return undefined;
@@ -646,6 +654,14 @@ function findContainerWithEnergy(thisCreep, energyMin) {
     return undefined;
 }
 
+// Below this the controller is upgraded before anything is built: 30% of its full timer, at most 10,000.
+function downgradeFloor(controller) {
+    const full = (typeof CONTROLLER_DOWNGRADE !== 'undefined' && CONTROLLER_DOWNGRADE[controller.level]) || 20000;
+    return Math.min(10000, full * 0.3);
+}
+
+creep_workV2.findEnergy = findEnergy;
+creep_workV2.downgradeFloor = downgradeFloor;
 creep_workV2.bootstrapping = bootstrapping;
 creep_workV2.bootstrapHarvester = bootstrapHarvester;
 module.exports = creep_workV2;

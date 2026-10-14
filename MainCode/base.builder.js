@@ -45,8 +45,12 @@ const TYPES = {
 };
 const KIND_OF = {};
 for (const kind in TYPES) KIND_OF[TYPES[kind]] = kind;
-// Build order when sites are scarce.
-const ORDER = ['spawn', 'extension', 'storage', 'tower', 'link', 'terminal', 'lab', 'factory', 'powerSpawn', 'nuker', 'observer'];
+// Build priority: what grows the room fastest first. Towers always lead (defence; and the tower-first
+// rule in buildRoom), then extensions (bigger creeps, cheap), the storage (energy kept), links (miners
+// and upgraders without hauling), more spawns, then the terminal (100k to build) and the late kinds.
+// A kind with sites still unfinished holds back every kind after it (buildRoom), so builders work on
+// the most useful thing: a terminal used to go up beside half-built extensions.
+const ORDER = ['tower', 'extension', 'storage', 'link', 'spawn', 'terminal', 'lab', 'factory', 'observer', 'powerSpawn', 'nuker'];
 const PASSABLE = new Set([STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART]);
 // Below RCL8 these wait: labs, the factory and the extractor would take energy the controller needs.
 // Ones already built stay; sites not yet started are removed.
@@ -558,6 +562,17 @@ function buildRoom(room, plan) {
             if (tile !== undefined && site(tile, type)) counts[type] = (counts[type] || 0) + 1;
         }
         refused = false;
+        // Sites of this kind still to build (placed now or before): the kinds after it wait, and their
+        // sites not yet started go (started ones are finished).
+        if ((counts[type] || 0) > built(type)) {
+            if (kinds === ORDER) {
+                const later = new Set(ORDER.slice(ORDER.indexOf(kind) + 1).map(k => TYPES[k]));
+                for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
+                    if (s.progress === 0 && later.has(s.structureType)) s.remove();
+                }
+            }
+            break;
+        }
     }
 
     // Base roads beside something already built or being built. Never on a wall tile (tunnels

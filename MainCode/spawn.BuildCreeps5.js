@@ -35,6 +35,7 @@ var spawn_BuildCreeps5 = {
         // Get cached structure references
         const structures = this.getCachedStructures(roomName);
         const { strSources, strLinks, strMineral, strTerminal, strExtractor } = structures;
+        this.rebalanceMiners(creepCounts, strSources, strLinks, roomName);
         let readyForMineral = false;
         let mineralType = '';
         
@@ -277,26 +278,22 @@ var spawn_BuildCreeps5 = {
                 }
                 creepSource = strTerminal;
             } else if (miners.length < minerMax) {
-                switch (storageMiners.length) {
-                case 0:
-                    if (!blockedSubRole.includes('storageMiner')) {
-                        prioritizedRole = 'miner';
-                        creepSource = strSources[0];
-                        connectedLink = thisRoom.storage.id;
-                        jobSpecificPri = 'storageMiner';
+                // The miner a source lacks: the storage one first, then the upgrade one. Chosen by
+                // count it never got past two storage miners (E29N43, shard3: two storage miners
+                // queued for one tile, no upgrade miner, its second source full for thousands of ticks).
+                if (!storageMiners.length && !blockedSubRole.includes('storageMiner')) {
+                    prioritizedRole = 'miner';
+                    creepSource = strSources[0];
+                    connectedLink = thisRoom.storage.id;
+                    jobSpecificPri = 'storageMiner';
+                } else if (!upgradeMiners.length && strSources.length > 1 && !blockedSubRole.includes('upgradeMiner')) {
+                    prioritizedRole = 'miner';
+                    creepSource = strSources[1];
+                    connectedLink = strLinks[0];
+                    if (strLinks.length >= 3) {
+                        backupLink = strLinks[2];
                     }
-                    break;
-                case 1:
-                    if (!blockedSubRole.includes('upgradeMiner')) {
-                        prioritizedRole = 'miner';
-                        creepSource = strSources[1];
-                        connectedLink = strLinks[0];
-                        if (strLinks.length >= 3) {
-                            backupLink = strLinks[2];
-                        }
-                        jobSpecificPri = 'upgradeMiner';
-                    }
-                    break;
+                    jobSpecificPri = 'upgradeMiner';
                 }
             } else if (distributors.length < distributorMax && !blockedRole.includes('distributor')) {
                 prioritizedRole = 'distributor';
@@ -859,6 +856,20 @@ function GetUpgraderConfig(upgraderMax, energyCap, cLevel) {
 }
 
 Object.assign(spawn_BuildCreeps5, {
+    // A second storage miner and no upgrade miner: the extra one (the youngest) becomes the upgrade
+    // miner on the second source; two storage miners only queue for one tile (E29N43, shard3).
+    rebalanceMiners: function(counts, strSources, strLinks, roomName) {
+        if (counts.storageMiners.length < 2 || counts.upgradeMiners.length || !strSources || strSources.length < 2 || !strLinks || !strLinks.length) return null;
+        const extra = counts.storageMiners.slice().sort((a, b) => (b.ticksToLive || 0) - (a.ticksToLive || 0))[0];
+        Object.assign(extra.memory, { jobSpecific: 'upgradeMiner', mineSource: strSources[1], linkSource: strLinks[0], atSpot: false });
+        if (strLinks.length >= 3) extra.memory.linkSource2 = strLinks[2]; else delete extra.memory.linkSource2;
+        delete extra.memory._trav;
+        counts.storageMiners.splice(counts.storageMiners.indexOf(extra), 1);
+        counts.upgradeMiners.push(extra);
+        console.log('[spawn] ' + roomName + ': surplus storage miner ' + extra.name + ' made the upgrade miner');
+        return extra;
+    },
+
     // Efficiently categorize all creeps in a single pass
     categorizeCreeps: function(RoomCreeps) {
         const counts = {

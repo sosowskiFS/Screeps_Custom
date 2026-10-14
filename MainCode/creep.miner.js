@@ -18,7 +18,10 @@ var creep_miner = {
             creep.memory.jobSpecific = creep.memory.jobSpecific + 'NearDeath';
         }
 
-        let minerFlag = Game.flags[creep.room.name + creep.memory.jobSpecific];
+        // Near death its job reads 'storageMinerNearDeath': still the same tile (it used to find no
+        // flag, stop short of its tile and stand in the way for the rest of its life).
+        const job = String(creep.memory.jobSpecific || '').replace(/NearDeath$/, '');
+        let minerFlag = Game.flags[creep.room.name + job];
         if (minerFlag && !creep.memory.atSpot) {
             creep.memory.ignoreTravel = true;
             if (creep.pos.x != minerFlag.pos.x || creep.pos.y != minerFlag.pos.y) {

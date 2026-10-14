@@ -527,3 +527,41 @@ test('below RCL8 no labs, factory or extractor: unstarted sites go, the extracto
         }
     }
 });
+
+test('build priority: no storage (or anything later) while extension sites are unfinished; then the storage', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(4, existing);
+    builder.planRoom(room);
+    buildCore(g, builder, room, existing);
+    builder.buildRoom(room);
+    const types = () => sites.map(s => s[2]);
+    assert.ok(types().includes(g.STRUCTURE_EXTENSION));
+    assert.ok(!types().includes(g.STRUCTURE_STORAGE), 'extensions first');
+    // All 20 extensions built: the storage is next.
+    const plan = builder.planOf(room.name);
+    for (const t of plan.structures.extension.slice(0, 20)) {
+        existing.push({ structureType: g.STRUCTURE_EXTENSION, my: true, pos: { x: X(t), y: Y(t), roomName: room.name, lookFor: () => [] } });
+    }
+    sites.length = 0;
+    g.Memory.baseBuild = {};
+    g.Game.time += 1;                // a new tick: the structure lists are read again
+    builder.buildRoom(room);
+    assert.ok(types().includes(g.STRUCTURE_STORAGE), 'then the storage: ' + types().join());
+});
+
+test('while extension sites are unfinished, an unstarted terminal site goes; a started one stays', () => {
+    const existing = [];
+    const { g, room, builder } = builderRoom(6, existing);
+    builder.planRoom(room);
+    buildCore(g, builder, room, existing);
+    const plan = builder.planOf(room.name);
+    const t2 = plan.structures.tower[1];
+    existing.push({ structureType: g.STRUCTURE_TOWER, my: true, pos: { x: X(t2), y: Y(t2), roomName: room.name, lookFor: () => [] } });
+    const removed = [];
+    const fresh = { structureType: g.STRUCTURE_TERMINAL, progress: 0, pos: { x: 1, y: 1 }, remove: () => removed.push('fresh') };
+    const started = { structureType: g.STRUCTURE_LINK, progress: 100, pos: { x: 2, y: 1 }, remove: () => removed.push('started') };
+    const find = room.find;
+    room.find = type => (type === g.FIND_MY_CONSTRUCTION_SITES || type === g.FIND_CONSTRUCTION_SITES ? [fresh, started] : find(type));
+    builder.buildRoom(room);
+    assert.equal(removed.join(), 'fresh');
+});
