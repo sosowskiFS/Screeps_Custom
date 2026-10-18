@@ -58,3 +58,36 @@ test('an empty worker takes dropped energy first when it is as close as a contai
     far.run();
     assert.ok(far.calls.includes('withdraw:box'), 'a pile far off: the container ' + JSON.stringify(far.calls));
 });
+
+test('a worker goes only to working range (3) and is parked while it works there; not once it walks off', () => {
+    const site = { id: 'site', progressTotal: 3000, pos: { x: 12, y: 10 } };
+    const s = setup({ carry: 100, sites: [site] });
+    const ranges = [];
+    s.creep.travelTo = (t, o) => { ranges.push(o && o.range); return s.g.OK; };
+    s.creep.build = () => s.g.OK;
+    s.run();
+    assert.equal(s.creep.memory.onPoint, true, 'built this tick: parked');
+    const far = setup({ carry: 100, sites: [site] });
+    far.creep.travelTo = (t, o) => { ranges.push(o && o.range); return far.g.OK; };
+    far.creep.build = () => far.g.ERR_NOT_IN_RANGE;
+    far.creep.memory.onPoint = true;
+    far.run();
+    assert.equal(far.creep.memory.onPoint, undefined, 'on its way: not parked');
+    assert.equal(ranges[ranges.length - 1], 3, 'to the site only as far as range 3');
+});
+
+// shardSeason W24N8: workers and the upgrader stood 2-3 tiles from the storage, empty, with 105k in
+// it. Working range (3) applied to every structure they walked to, the storage included.
+test('an empty worker or upgrader walks right up to the storage, not to working range', () => {
+    for (const role of ['builder', 'upgrader']) {
+        const s = setup();
+        s.creep.memory.priority = role;
+        const storage = { id: 'storage', structureType: s.g.STRUCTURE_STORAGE, store: { energy: 105000 }, pos: { x: 12, y: 12 } };
+        s.creep.room.storage = storage;
+        const ranges = [];
+        s.creep.withdraw = () => s.g.ERR_NOT_IN_RANGE;
+        s.creep.travelTo = (t, o = {}) => { ranges.push(o.range); return s.g.OK; };
+        s.run();
+        assert.deepEqual(ranges, [1], role + ': ' + JSON.stringify(ranges));
+    }
+});

@@ -16,6 +16,10 @@ var spawn_BuildCreeps5 = {
         
         // Categorize creeps efficiently in a single pass
         const creepCounts = this.categorizeCreeps(RoomCreeps);
+        // Dedicated builders while the room has sites to finish (builderMax).
+        const builders = (RoomCreeps || []).filter(c => c && c.memory && c.memory.homeRoom === thisRoom.name &&
+            (c.memory.priority === 'builder' || c.memory.priority === 'builderNearDeath'));
+        const builderMax = this.builderMax(thisRoom);
         
         // Extract individual counts for readability
         const {
@@ -73,7 +77,7 @@ var spawn_BuildCreeps5 = {
             //Custom limits for beseiged rooms
             minerMax = 1;
             muleMax = 1;
-            upgraderMax = 0;
+            upgraderMax = thisRoom.controller.level < 8 ? 1 : 0;   // below RCL8 one upgrader always
             repairMax = 3;
             upSupplierMax = 0;
             supplierMax = 1;
@@ -102,6 +106,19 @@ var spawn_BuildCreeps5 = {
             if (repairTarget && repairTarget.structureType === STRUCTURE_RAMPART && repairTarget.hits > 290000000) {
                 repairMax = 0;
             }
+        }
+
+        // Upgraders and repairers from what the room earns (system.energyFlow), once it has the data;
+        // the storage breakpoints above until then.
+        // Hard rampart caps (25M/50M flags, the 290M check above) stay; storage breakpoints don't.
+        const repairTargetObj = Memory.repairTarget[thisRoom.name] && Game.getObjectById(Memory.repairTarget[thisRoom.name]);
+        const repairCapped = !!(Game.flags[thisRoom.name + "25mCap"] || Game.flags[thisRoom.name + "50mCap"] ||
+            (repairTargetObj && repairTargetObj.structureType === STRUCTURE_RAMPART && repairTargetObj.hits > 290000000));
+        const flow = require('system.energyFlow').staffing(thisRoom,
+            { upgrade: 12, repair: this.repairWork(thisRoom), repairCapped }, { upgraderMax, repairMax });
+        if (flow) {
+            if (flow.upgraderModules !== undefined) upgraderMax = flow.upgraderModules;
+            repairMax = flow.repairMax;
         }
 
         //Returns [upgraderMax, upgraderConfig]
@@ -219,7 +236,7 @@ var spawn_BuildCreeps5 = {
             }
         }
         if (!global.isSpawnBusy || !global.isSpawnBusy(spawn)) {
-            if ((miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax || salvagers.length < salvagerMax) || (roomMineral && roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
+            if ((builders.length < builderMax || miners.length < minerMax || mules.length < muleMax || upgraders.length < upgraderMax || repairers.length < repairMax || suppliers.length < supplierMax || distributors.length < distributorMax || labWorkers.length < labWorkerMax || upSuppliers.length < upSupplierMax || scrapers.length < scraperMax || salvagers.length < salvagerMax) || (roomMineral && roomMineral.mineralAmount > 0 && mineralMiners.length == 0 && readyForMineral)) {
                 let prioritizedRole = '';
                 let creepSource = '';
                 let connectedLink = '';
@@ -312,6 +329,8 @@ var spawn_BuildCreeps5 = {
                     connectedLink = strLinks[3];
                 }
                 creepSource = strTerminal;
+            } else if (builders.length < builderMax && !blockedRole.includes('builder')) {
+                prioritizedRole = 'builder';
             } else if (upgraders.length < upgraderMax && !blockedRole.includes('upgrader')) {
                 prioritizedRole = 'upgrader';
                 storageID = thisRoom.storage.id;
@@ -499,6 +518,19 @@ var spawn_BuildCreeps5 = {
                         });
                         Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
 
+                    }
+                } else if (prioritizedRole == 'builder') {
+                    // A worker (creep.workV2 'builder'): builds the sites, upgrades when none are left.
+                    global.setSpawnBusy(spawn);
+                    const builderConfig = require('spawn.BuildCreeps').getWorkerConfig(thisRoom.energyCapacityAvailable, 'worker');
+                    const configCost = calculateConfigCost(builderConfig);
+                    if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
+                        Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
+                        spawn.spawnCreep(builderConfig, 'builder_' + spawn.name + '_' + Game.time, {
+                            memory: { priority: 'builder', fromSpawn: spawn.id, homeRoom: thisRoom.name, deathWarn: _.size(builderConfig) * 4 },
+                            directions: buildDirections
+                        });
+                        Memory.creepInQue.push(thisRoom.name, prioritizedRole, jobSpecificPri, spawn.name);
                     }
                 } else if (prioritizedRole == 'repair') {
                     global.setSpawnBusy(spawn);
@@ -856,6 +888,27 @@ function GetUpgraderConfig(upgraderMax, energyCap, cLevel) {
 }
 
 Object.assign(spawn_BuildCreeps5, {
+    // Builders for a room on links with sites to finish: mules only built once every spawn,
+    // extension and tower was full, which with busy spawns was never (shard3 E29N43: a power spawn
+    // and an extension site untouched for days mid migration, 100k stored). One while sites need
+    // work and 20k is stored; two with over 20k of progress left and 50k stored.
+    builderMax: function(room) {
+        const sites = runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES);
+        const left = sites.reduce((n, s) => n + Math.max(0, (s.progressTotal || 0) - (s.progress || 0)), 0);
+        const stored = room.storage ? room.storage.store[RESOURCE_ENERGY] || 0 : 0;
+        if (!left || stored < 20000) return 0;
+        return left > 20000 && stored >= 50000 ? 2 : 1;
+    },
+
+    // WORK parts of the repairer this room would spawn now (the repair body below).
+    repairWork: function(room) {
+        const energy = room.storage ? room.storage.store[RESOURCE_ENERGY] || 0 : 0;
+        if (energy >= 450000 && room.energyCapacityAvailable >= 3300) return 16;
+        if (energy >= 450000 && room.energyCapacityAvailable >= 3000) return 12;
+        if (energy >= 300000 && room.energyCapacityAvailable >= 1800) return 9;
+        return 4;
+    },
+
     // A second storage miner and no upgrade miner: the extra one (the youngest) becomes the upgrade
     // miner on the second source; two storage miners only queue for one tile (E29N43, shard3).
     rebalanceMiners: function(counts, strSources, strLinks, roomName) {

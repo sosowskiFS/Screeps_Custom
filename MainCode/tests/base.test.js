@@ -213,7 +213,7 @@ test('a young room (no terminal) gets no road sites and no ramparts off its shel
     assert.deepEqual(removed, ['road', 'rampart'], 'the stray rampart site at 3,3 goes');
 });
 
-test('every young room gets a rampart shell over its spawn, towers and storage, and the Supply tile once a supplier stands there', () => {
+test('every young room gets a rampart shell over its spawn, towers and storage only (below RCL8 not the Supply tile, even with a supplier)', () => {
     const existing = [];
     const { g, room, sites, builder } = builderRoom(5, existing);
     builder.planRoom(room);
@@ -228,7 +228,7 @@ test('every young room gets a rampart shell over its spawn, towers and storage, 
     g.Game.time++;
     g.Game.creeps.sup = { name: 'sup', memory: { priority: 'supplier', homeRoom: room.name } };
     builder.buildRoom(room, plan);
-    assert.ok(at().includes(X(plan.flags.Supply) + ',' + Y(plan.flags.Supply)), 'the supplier spawned: its tile too');
+    assert.ok(!at().includes(X(plan.flags.Supply) + ',' + Y(plan.flags.Supply)), 'below RCL8 the core only: not the Supply tile');
 });
 
 test('the shell is kept at 50k hits, 250k once the room has been attacked, and no cap once established', () => {
@@ -493,6 +493,7 @@ test('a hardened room keeps repairers by its stored energy: 1 under 50k, 2 under
     const { harness } = require('./harness');
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
+    g.BODYPART_COST = { work: 100, carry: 50, move: 50, WORK: 100, CARRY: 50, MOVE: 50 };
     g.Game.shard = { name: 'shardX' };
     g.RESOURCE_ENERGY = 'energy';
     g.Memory.xs = { fortify: { X: 1 } };
@@ -564,4 +565,23 @@ test('while extension sites are unfinished, an unstarted terminal site goes; a s
     room.find = type => (type === g.FIND_MY_CONSTRUCTION_SITES || type === g.FIND_CONSTRUCTION_SITES ? [fresh, started] : find(type));
     builder.buildRoom(room);
     assert.equal(removed.join(), 'fresh');
+});
+
+test('below RCL8 an established room ramparts its spawns, towers and storage only, and unstarted ramparts elsewhere go', () => {
+    const existing = [];
+    const { g, room, sites, builder } = builderRoom(7, existing);
+    room.terminal = { my: true, store: { energy: 0 } };          // established
+    builder.planRoom(room);
+    buildCore(g, builder, room, existing);
+    const plan = builder.planOf(room.name);
+    const ext = plan.structures.extension[0];
+    existing.push({ structureType: g.STRUCTURE_EXTENSION, my: true, pos: { x: X(ext), y: Y(ext), roomName: room.name, lookFor: () => [] } });
+    const removed = [];
+    const stray = { structureType: g.STRUCTURE_RAMPART, progress: 0, pos: { x: X(ext), y: Y(ext) }, remove: () => removed.push('stray') };
+    const find = room.find;
+    room.find = type => (type === g.FIND_MY_CONSTRUCTION_SITES || type === g.FIND_CONSTRUCTION_SITES ? [stray] : find(type));
+    builder.buildRoom(room, plan);
+    const ramparts = sites.filter(s => s[2] === g.STRUCTURE_RAMPART).map(s => s[0] + ',' + s[1]);
+    assert.ok(!ramparts.includes(X(ext) + ',' + Y(ext)), 'not over an extension');
+    assert.equal(removed.join(), 'stray', 'the unstarted one over the extension goes');
 });

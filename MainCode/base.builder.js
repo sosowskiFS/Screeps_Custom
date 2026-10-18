@@ -33,6 +33,10 @@ const RETRY_FAILED = 20000;
 const SITES_PER_PASS = 10;
 const SITE_HEADROOM = 90;          // leave room under the 100-site cap for roads/repairs elsewhere
 const RAMPART_RCL = 2;
+// Below RCL8 ramparts go only over the core (spawns, towers, storage): a room in development (one
+// spawn) could not keep up with building and repairing more. The fortified ring waits for RCL8 too.
+const CORE_RAMPART_RCL = 8;
+const CORE_RAMPART_TYPES = () => [STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_STORAGE];
 const RING_RANGE = 13;           // planned tiles this far from the core (or nearer) make the base footprint
 const RAMPART_UPKEEP = 10;       // rampart hits per tick a ring rampart takes to hold and grow (decay is 3)             // ramparts over every planned structure (previous generator)
 const PATH_CHECK_EVERY = 100;      // ticks between checks for sites that seal a path
@@ -469,9 +473,14 @@ function buildRoom(room, plan) {
     // ramparts over them (and over a spawn it already has), walls around the controller.
     const fortified = !established && require('system.shardX').fortified(room);
     const shellRamparts = new Set();
-    // Hardened shardX room (RCL5+, fortified before): the outer rampart ring of its planned base too.
-    const hardened = require('system.shardX').hardened(room);
-    const ringPlan = hardened ? ringTiles(room, plan, Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP)) : null;
+    // Hardened shardX room (fortified before): the outer rampart ring of its planned base too, from
+    // RCL8 (CORE_RAMPART_RCL).
+    const hardened = rcl >= CORE_RAMPART_RCL && require('system.shardX').hardened(room);
+    // No new ring sites while the room has nothing to spare (system.energyFlow): they and their
+    // repairs are what emptied W1N9.
+    const ringBudget = hardened ? require('system.energyFlow').budget(room) : null;
+    const ringPlan = hardened && !(ringBudget !== null && ringBudget <= 0) ?
+        ringTiles(room, plan, Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP)) : null;
     const ring = new Set(ringPlan ? ringPlan.r : []);
     const ringWalls = ringPlan ? ringPlan.w : [];
     if (!established && rcl >= RAMPART_RCL) {
@@ -485,7 +494,7 @@ function buildRoom(room, plan) {
             (c.memory.priority === 'supplier' || c.memory.priority === 'supplierNearDeath'));
         const supply = Game.flags[room.name + 'Supply'];
         const supplyTile = supply ? tileOf(supply.pos) : plan.flags && plan.flags.Supply;
-        if (supplier && supplyTile !== undefined && !fortified) shellRamparts.add(supplyTile);
+        if (supplier && supplyTile !== undefined && !fortified && rcl >= CORE_RAMPART_RCL) shellRamparts.add(supplyTile);
     }
     const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
     // Young and no tower yet: hostile creeps can stomp construction sites unopposed, so only the
@@ -609,10 +618,22 @@ function buildRoom(room, plan) {
 
     // Ramparts over finished planned structures and over the core's creep spots (Supply,
     // miner tiles), as the previous generator did.
+    // Below RCL8: the core only (CORE_RAMPART_RCL).
+    const coreTiles = new Set(runtimeCache.find(room, FIND_MY_STRUCTURES)
+        .filter(s => CORE_RAMPART_TYPES().includes(s.structureType)).map(s => tileOf(s.pos)));
+    if (rcl < CORE_RAMPART_RCL) {
+        for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
+            if (s.structureType === STRUCTURE_RAMPART && s.progress === 0 && !coreTiles.has(tileOf(s.pos))) s.remove();
+        }
+    }
     if (rcl >= RAMPART_RCL && established && kinds === ORDER) {
         const covered = [];
-        for (const kind in plan.structures) for (const tile of plan.structures[kind]) if (finished.has(tile)) covered.push(tile);
-        if (plan.mode === 'fresh') for (const name in plan.flags) covered.push(plan.flags[name]);
+        if (rcl < CORE_RAMPART_RCL) {
+            for (const tile of coreTiles) covered.push(tile);
+        } else {
+            for (const kind in plan.structures) for (const tile of plan.structures[kind]) if (finished.has(tile)) covered.push(tile);
+            if (plan.mode === 'fresh') for (const name in plan.flags) covered.push(plan.flags[name]);
+        }
         for (const tile of covered) {
             if (budget <= 0) break;
             const here = occupied.get(tile);

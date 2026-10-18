@@ -6,6 +6,20 @@ var creep_workV2 = {
 
     /** @param {Creep} creep **/
     run: function(creep, moveRecalc) {
+        // Workers and upgraders: up to the controller or a site only as far as working range (3),
+        // and parked (onPoint) on a tick they worked there, so others path round them and can't
+        // swap them aside. Two workers in a line to the controller used to swap places every few
+        // ticks, the one behind always out of range.
+        if (WORKING_ROLES.has(creep.memory.priority)) {
+            const worked = workTracking(creep);
+            this.runRole(creep, moveRecalc);
+            if (worked.done) creep.memory.onPoint = true; else delete creep.memory.onPoint;
+            return;
+        }
+        this.runRole(creep, moveRecalc);
+    },
+
+    runRole: function(creep, moveRecalc) {
 
         if (creep.carry.energy > 0 && creep.memory.priority != 'harvester' && creep.memory.priority != 'harvesterNearDeath') {
             //All creeps check for road under them and repair if needed.
@@ -182,29 +196,14 @@ var creep_workV2 = {
 
                         speech.say(creep, Game.time % 2 == 0 ? "\u261D\uD83D\uDE3C" : "\uD83D\uDC4C\uD83D\uDE39", true);
                     }
-                } else if (creep.memory.storageTarget) {
-                    let thisTarget = Game.getObjectById(creep.memory.storageTarget);
-                    if (thisTarget && _.sum(thisTarget.store) > creep.carryCapacity) {
-                        if (creep.withdraw(thisTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(thisTarget);
-                        }
-                    } else {
-                        let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
-                        if (newContainer) {
-                            creep.memory.storageTarget = newContainer.id;
-                            if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                                creep.travelTo(newContainer);
-                            }
-                        }
-                    }
                 } else {
-                    let newContainer = findContainerWithEnergy(creep, creep.carryCapacity);
-                    if (newContainer) {
-                        creep.memory.storageTarget = newContainer.id;
-                        if (creep.withdraw(newContainer, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(newContainer);
-                        }
+                    // Energy: dropped piles, containers or the storage (findEnergy), like the workers.
+                    let source = creep.memory.storageTarget && Game.getObjectById(creep.memory.storageTarget);
+                    if (!source || (source.resourceType ? source.amount < 50 : (source.store[RESOURCE_ENERGY] || 0) < 50)) {
+                        source = findEnergy(creep, Math.min(creep.carryCapacity, 200));
+                        creep.memory.storageTarget = source ? source.id : undefined;
                     }
+                    if (source && takeEnergy(creep, source) === OK) delete creep.memory.storageTarget;
                 }
                 break;
             case 'builder':
@@ -630,7 +629,9 @@ function findEnergy(creep, energyMin) {
 // Take energy from what findEnergy returned (pickup or withdraw), walking there if needed.
 function takeEnergy(creep, target) {
     const result = target.resourceType ? creep.pickup(target) : creep.withdraw(target, RESOURCE_ENERGY);
-    if (result === ERR_NOT_IN_RANGE) creep.travelTo(target, { maxRooms: 1 });
+    // Range 1 given: workTracking sends a worker only to range 3 of a structure, and workers stood
+    // 2-3 tiles from the storage for good, empty (shardSeason W24N8, 105k stored).
+    if (result === ERR_NOT_IN_RANGE) creep.travelTo(target, { maxRooms: 1, range: 1 });
     return result;
 }
 
@@ -652,6 +653,24 @@ function findContainerWithEnergy(thisCreep, energyMin) {
     }
     thisCreep.memory.energySearchAt = Game.time + 5;
     return undefined;
+}
+
+const WORKING_ROLES = new Set(['builder', 'builderNearDeath', 'upgrader', 'upgraderNearDeath']);
+// For this tick: travelTo the controller, a site or a structure goes to range 3 unless a range is
+// given; a successful upgrade, build or repair is noted (returned .done).
+function workTracking(creep) {
+    const state = { done: false };
+    const travelTo = creep.travelTo, upgrade = creep.upgradeController, build = creep.build, repair = creep.repair;
+    creep.travelTo = (target, options = {}) => {
+        const t = target && (target.structureType !== undefined || target.progressTotal !== undefined || target === creep.room.controller);
+        return travelTo.call(creep, target, t && options.range === undefined ? Object.assign({}, options, { range: 3 }) : options);
+    };
+    const note = fn => (...args) => { const r = fn.apply(creep, args); if (r === OK) state.done = true; return r; };
+    if (upgrade) creep.upgradeController = note(upgrade);
+    if (build) creep.build = note(build);
+    // Not the roads it patches in passing: that is on the move.
+    if (repair) creep.repair = (target, ...rest) => (target && target.structureType === STRUCTURE_ROAD ? repair.call(creep, target, ...rest) : note(repair)(target, ...rest));
+    return state;
 }
 
 // Below this the controller is upgraded before anything is built: 30% of its full timer, at most 10,000.

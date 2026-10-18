@@ -34,6 +34,7 @@ const phases = [
     ['market', market.handleMarketOperations],
     ['shardX', shardX.run],   // before creeps: creeps arriving on shardX get their memory first
     ['creeps', creeps.handleCreepOperations],
+    ['energyFlow', () => require('system.energyFlow').sample()],   // after creeps: this tick's events
     ['guardProgress', () => require('system.guardSquads').publish(false)],
     ['remoteMining', remoteMining.run],
     ['minerals', labs.run],

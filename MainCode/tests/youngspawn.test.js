@@ -134,13 +134,13 @@ test('a source gets more harvesters until it has 5 WORK (small early bodies); th
     let r = staffRoom({ sources: [s1, s2], energy: 300, level: 1, residents: [worker('harvester', 2, { sourceLocation: 's1' }), worker('harvester', 5, { sourceLocation: 's2' })] });
     assert.equal(r.spawned[0].role, 'harvester');
     assert.equal(r.spawned[0].source, 's1', 'the source short of WORK gets a second harvester');
-    r = staffRoom({ sources: [s1, s2], residents: [worker('harvester', 5, { sourceLocation: 's1' }), worker('harvester', 5, { sourceLocation: 's2' }), dist(), worker('builder', 4), worker('builder', 4)] });
+    r = staffRoom({ sources: [s1, s2], residents: [worker('harvester', 5, { sourceLocation: 's1' }), worker('harvester', 5, { sourceLocation: 's2' }), dist(), worker('upgrader'), worker('builder', 4), worker('builder', 4)] });
     assert.ok(!r.spawned.some(c => c.role === 'harvester'), 'both sources at 5 WORK: ' + JSON.stringify(r.spawned));
 });
 
 test('no supplier before the storage (it only takes from the storage), even with a Supply flag', () => {
     const s1 = source('s1', 10, 10);
-    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('builder', 4), worker('builder', 4)];
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('upgrader'), worker('builder', 4), worker('builder', 4)];
     const tower = { structureType: 'tower', hits: 3000, hitsMax: 3000, pos: near(20, 20) };
     let r = staffRoom({ sources: [s1], residents, structures: [tower], flags: { NEWSupply: { pos: { isNearTo: () => false } } } });
     assert.ok(!r.spawned.some(c => c.role === 'supplier'), JSON.stringify(r.spawned));
@@ -150,7 +150,7 @@ test('no supplier before the storage (it only takes from the storage), even with
 
 test('decaying roads and walls alone spawn no repairer; a damaged spawn or a half-broken container does', () => {
     const s1 = source('s1', 10, 10);
-    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('builder', 4), worker('builder', 4)];
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('upgrader'), worker('builder', 4), worker('builder', 4)];
     const road = { structureType: 'road', hits: 1000, hitsMax: 5000, pos: near(5, 5) };
     const rampart = { structureType: 'rampart', hits: 1000, hitsMax: 300000, pos: near(6, 6) };
     const container = { structureType: 'container', hits: 200000, hitsMax: 250000, store: { energy: 0 }, pos: near(11, 11) };
@@ -160,22 +160,24 @@ test('decaying roads and walls alone spawn no repairer; a damaged spawn or a hal
     assert.equal(r.spawned[0].role, 'repair');
 });
 
-test('before links, workers (builders) and no upgraders; helpers stand in for workers (one of its own kept)', () => {
+test('before links: one dedicated upgrader always (first after harvesters and distributors), workers for the rest; helpers stand in for workers', () => {
     const s1 = source('s1', 10, 10);
     const base = [worker('harvester', 5, { sourceLocation: 's1' }), dist()];
     const helper = worker('helper', 8, { destination: 'NEW', homeRoom: 'E1N1' });
     let r = staffRoom({ sources: [s1], residents: base, sites: 3 });
-    assert.equal(r.spawned[0].role, 'builder', 'a worker, not an upgrader');
+    assert.equal(r.spawned[0].role, 'upgrader', 'the upgrader first');
+    r = staffRoom({ sources: [s1], residents: base.concat([worker('upgrader')]), sites: 3 });
+    assert.equal(r.spawned[0].role, 'builder', 'then workers');
     assert.equal(r.spawned[0].body.filter(p => p === 'work').length, 4, 'sized to the room: 4 WORK at 800');
-    r = staffRoom({ sources: [s1], residents: base.concat([worker('upgrader'), worker('upgrader'), worker('upgrader')]) });
-    assert.ok(!r.spawned.some(c => c.role === 'upgrader'), 'no upgraders, whatever is there: ' + JSON.stringify(r.spawned));
-    r = staffRoom({ sources: [s1], residents: base.concat([worker('builder', 4), helper, helper, helper]), sites: 3 });
+    r = staffRoom({ sources: [s1], residents: base.concat([worker('upgrader'), worker('upgrader'), worker('builder', 4), worker('builder', 4)]) });
+    assert.ok(!r.spawned.some(c => c.role === 'upgrader'), 'one is enough: ' + JSON.stringify(r.spawned));
+    r = staffRoom({ sources: [s1], residents: base.concat([worker('upgrader'), worker('builder', 4), helper, helper, helper]), sites: 3 });
     assert.equal(r.spawned.length, 0, 'helpers cover the second worker: ' + JSON.stringify(r.spawned));
 });
 
 test('energy waiting (containers, dropped, storage) adds a worker per 3,000', () => {
     const s1 = source('s1', 10, 10);
-    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('builder', 4), worker('builder', 4)];
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('upgrader'), worker('builder', 4), worker('builder', 4)];
     const container = { structureType: 'container', hits: 250000, hitsMax: 250000, store: { energy: 300 }, pos: near(11, 11) };
     let r = staffRoom({ sources: [s1], residents, structures: [container] });
     assert.equal(r.spawned.length, 0, '2 workers of 4 WORK for one source: enough');
@@ -185,7 +187,7 @@ test('energy waiting (containers, dropped, storage) adds a worker per 3,000', ()
 
 test('the rampart shell over the spawn is repaired up to its cap; ramparts off the shell are not', () => {
     const s1 = source('s1', 10, 10);
-    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('builder', 4), worker('builder', 4)];
+    const residents = [worker('harvester', 5, { sourceLocation: 's1' }), dist(), worker('upgrader'), worker('builder', 4), worker('builder', 4)];
     const spawn = () => ({ structureType: 'spawn', my: true, hits: 5000, hitsMax: 5000, pos: near(20, 20) });
     const rampart = hits => ({ structureType: 'rampart', my: true, hits, hitsMax: 1000000, pos: near(20, 20) });
     let r = staffRoom({ sources: [s1], residents, structures: [spawn(), rampart(1000)] });

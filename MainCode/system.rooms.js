@@ -188,8 +188,12 @@ function manageRoomStructures(thisRoom) {
             ? [STRUCTURE_RAMPART, STRUCTURE_WALL, STRUCTURE_CONTROLLER, STRUCTURE_EXTRACTOR, STRUCTURE_CONTAINER]
             : [STRUCTURE_RAMPART, STRUCTURE_WALL, STRUCTURE_CONTROLLER, STRUCTURE_EXTRACTOR, STRUCTURE_CONTAINER, STRUCTURE_EXTENSION];
 
+        // Below RCL8 the core only (spawns, towers, storage), and no controller ring (base.builder).
+        const coreOnly = thisRoom.controller.level < 8;
         const structuresNeedingRamparts = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
-            filter: (structure) => !excludedTypes.includes(structure.structureType)
+            filter: (structure) => coreOnly
+                ? [STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_STORAGE].includes(structure.structureType)
+                : !excludedTypes.includes(structure.structureType)
         });
 
         // Check each structure for rampart coverage
@@ -209,7 +213,7 @@ function manageRoomStructures(thisRoom) {
         }
 
         // Generate ramparts around controller (8 adjacent tiles)
-        if (!constructionLimitReached) {
+        if (!constructionLimitReached && !coreOnly) {
             const controllerPos = thisRoom.controller.pos;
             outer: for (let dx = -1; dx <= 1; dx++) {
                 for (let dy = -1; dy <= 1; dy++) {

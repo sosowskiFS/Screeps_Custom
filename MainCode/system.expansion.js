@@ -179,8 +179,29 @@ function sponsorFit(room) {
         room.find(FIND_MY_SPAWNS).length > 0);
 }
 
+// shardX rooms sponsor nobody: every spare unit goes into the target's own controller (rushing it
+// to RCL8), and the shard's other rooms are decoys run by system.bait. W1N9 adopted the bait room
+// E2N11 as a young room (no terminal) and sent it helpers and guards for days.
 function sponsors() {
+    if (Game.shard.name === 'shardX') return [];
     return myRooms().filter(name => sponsorFit(Game.rooms[name]));
+}
+
+// A support already under way on shardX (or for a bait room) is dropped, and its helpers go home
+// to work there.
+function unsupported(roomName) {
+    return Game.shard.name === 'shardX' || require('system.bait').isBait(roomName);
+}
+
+function recallHelpers(target, home) {
+    for (const name in Game.creeps) {
+        const m = Game.creeps[name].memory;
+        if (m.destination !== target || m.homeRoom !== home) continue;
+        if (m.priority === 'helper' || m.priority === 'helperNearDeath') {
+            m.destination = home;
+            delete m.path;
+        }
+    }
 }
 
 // Route length in rooms (Traveler's route, avoiding claimed rooms); Infinity when unreachable.
@@ -462,6 +483,10 @@ function claimFailed(roomName, code) {
 
 function progress() {
     const s = state();
+    if (unsupported(s.t)) {
+        if (s.sp) recallHelpers(s.t, s.sp);
+        return finish('dropped (shardX: no sponsored development, bait rooms run on their own)');
+    }
     const room = Game.rooms[s.t];
     if (s.st === 'claim') {
         if (room && room.controller && room.controller.my) return claimed(s.t);
@@ -548,7 +573,7 @@ function adoptYoungRoom() {
     for (const name of myRooms()) {
         const room = Game.rooms[name];
         // Established rooms (able to sponsor others) do not need help, terminal or not.
-        if ((room.terminal && room.terminal.my) || sponsorFit(room) || require('system.retire').retiring(name)) continue;
+        if ((room.terminal && room.terminal.my) || sponsorFit(room) || require('system.retire').retiring(name) || unsupported(name)) continue;
         const sponsor = pickSponsor(name, sponsors().filter(n => n !== name));
         if (!sponsor) continue;
         if (s.bad) delete s.bad[name];
@@ -628,6 +653,9 @@ function supplyWanted(roomName, sponsorName) {
     const room = Game.rooms[roomName];
     const sponsor = Game.rooms[sponsorName];
     if (!room || !room.storage || !room.storage.my || !sponsor || !sponsor.storage) return false;
+    // Nothing to spare (system.energyFlow budget below zero): no energy goes out.
+    const spare = require('system.energyFlow').budget(sponsor);
+    if (spare !== null && spare < 0) return false;
     const s = state(), paused = s.supplyPaused || (s.supplyPaused = {});
     const reserve = sponsor.storage.store[RESOURCE_ENERGY] || 0;
     if (reserve <= SUPPLY_FLOOR && !paused[sponsorName]) {

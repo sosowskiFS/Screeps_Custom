@@ -94,3 +94,35 @@ test('while essentials are missing: no flag commands, remote creeps, scouts or h
     h2.load('system.observers').handleHarasserOperations(room, observed, 'E14N18', 'E15N18');
     assert.deepEqual(calls, []);
 });
+
+// shard3 E29N43: mid migration, a power spawn and an extension site untouched for days with 100k
+// stored. Only mules built there, and only once every spawn and extension was full.
+test('a room on links with construction sites keeps dedicated builders', () => {
+    const { h, g, room } = collapsed();
+    const sites = [];
+    room.find = (type) => (type === g.FIND_MY_CONSTRUCTION_SITES ? sites : []);
+    const spawns = h.load('spawn.BuildCreeps5');
+    const max = () => { g.Game.time++; return spawns.builderMax(room); };
+    assert.equal(max(), 0, 'nothing to build');
+    sites.push({ progress: 38077, progressTotal: 100000 }, { progress: 540, progressTotal: 3000 });
+    room.storage.store.energy = 99454;
+    assert.equal(max(), 2, 'over 20k of work left and 50k stored');
+    room.storage.store.energy = 30000;
+    assert.equal(max(), 1, 'under 50k stored: one');
+    room.storage.store.energy = 15000;
+    assert.equal(max(), 0, 'under 20k stored: none');
+    sites.splice(0, 1);
+    room.storage.store.energy = 99454;
+    assert.equal(max(), 1, 'a small site: one');
+});
+
+test('with its essentials staffed, the room spawns a builder for its sites', () => {
+    const { h, g, room, spawn, roomCreeps, orders } = collapsed({ creeps: ['distributor', 'supplier', 'miner', 'miner', 'mule'], energy: 12900 });
+    const find = room.find;
+    room.find = (type, opts) => (type === g.FIND_MY_CONSTRUCTION_SITES ? [{ progress: 0, progressTotal: 100000 }] : find(type, opts));
+    h.load('spawn.state');
+    g.isSpawnBusy = () => false;
+    g.setSpawnBusy = () => {};
+    h.load('spawn.BuildCreeps5').run(spawn, room, roomCreeps, 1);
+    assert.deepEqual(orders.map(o => o.role), ['builder'], JSON.stringify(orders));
+});

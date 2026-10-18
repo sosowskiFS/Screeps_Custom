@@ -109,10 +109,10 @@ var spawn_BuildCreeps = {
 
         // Before links (this spawner): three roles. Harvesters mine, distributors carry, and workers
         // (the 'builder' role) build, else upgrade, and upgrade first when the downgrade timer runs
-        // low (creep.workV2). No upgraders: they took the energy while one small builder worked
-        // through the sites, and nothing picked up what the full containers spilled (shardSeason
-        // W24N8 at RCL3: five upgraders, a 1-WORK builder, 9,000 energy on the ground).
-        upgraderMax = 0;
+        // low (creep.workV2). And one dedicated upgrader, always (reaching RCL8 matters most); no
+        // more: five upgraders took the energy while one small builder worked through the sites
+        // (shardSeason W24N8 at RCL3, 9,000 energy on the ground).
+        upgraderMax = 1;
         builderMax = workerMax(thisRoom, strSources);
         // Helpers from a sponsor (creep.helper) build and upgrade here: each one present stands in
         // for a worker (the room keeps one of its own).
@@ -123,6 +123,9 @@ var spawn_BuildCreeps = {
         const distributors = RoomCreeps.filter(c => c && c.memory && c.memory.priority === 'distributor' && typeof c.getActiveBodyparts === 'function');
         const wantCarry = getDistributorConfig(thisRoom.energyCapacityAvailable).filter(p => p === CARRY).length;
         if (distributors.length === 1 && distributors[0].getActiveBodyparts(CARRY) * 2 < wantCarry) distributorMax = 2;
+        // Income lost on the ground (system.energyFlow: over a fifth unaccounted): one more, at most 3.
+        const flowNow = require('system.energyFlow').staffing(thisRoom, {});
+        if (flowNow && flowNow.extraDistributor) distributorMax = Math.min(3, Math.max(distributorMax, distributors.length + 1));
 
         if (bootstrap) {
             // Distributors and upgraders take energy only from containers and storage: none yet.
@@ -189,6 +192,13 @@ var spawn_BuildCreeps = {
                 // The first one now (whatever the spawn holds); a replacement at full size.
                 bestWorker = getDistributorConfig(distributorCount ? thisRoom.energyCapacityAvailable : budget, ownCreeps, harvesterCount);
                 if (distributorCount && calculateConfigCost(bestWorker) > budget) return;
+            } else if (upgraderCount < upgraderMax && thisRoom.energyCapacityAvailable >= 200) {
+                // The dedicated upgrader: at the size the room affords once a distributor fills the
+                // extensions (the first one now, whatever the spawn holds).
+                prioritizedRole = 'upgrader';
+                const full = distributorCount > 0;
+                bestWorker = getWorkerConfig(full ? thisRoom.energyCapacityAvailable : budget, 'upgrader');
+                if (full && calculateConfigCost(bestWorker) > budget) return;
             } else if (supplierCount < supplierMax && supplierDirection.length > 0 && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'supplier';
                 bestWorker = getSupplierConfig(budget);
@@ -202,9 +212,6 @@ var spawn_BuildCreeps = {
                 const full = builderCount > 0 && distributorCount > 0;
                 bestWorker = getWorkerConfig(full ? thisRoom.energyCapacityAvailable : budget, 'worker');
                 if (full && calculateConfigCost(bestWorker) > budget) return;
-            } else if (upgraderCount < upgraderMax && thisRoom.energyCapacityAvailable >= 200) {
-                prioritizedRole = 'upgrader';
-                bestWorker = getWorkerConfig(budget, 'upgrader');
             } else if (repairerCount < repairMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'repair';
                 bestWorker = getWorkerConfig(budget, 'repair');
@@ -293,8 +300,12 @@ function needsRepair(structure) {
 }
 
 function getRepairMax(room) {
-    // A hardened shardX room keeps repairers by its storage: 1 under 50k energy, 2 under 150k, else 3.
+    // A hardened shardX room: repairers from what it earns (system.energyFlow), else by its storage:
+    // 1 under 50k energy, 2 under 150k, else 3.
     if (require('system.shardX').hardened(room)) {
+        const work = getWorkerConfig(room.energyCapacityAvailable, 'repair').filter(p => p === WORK).length;
+        const flow = require('system.energyFlow').staffing(room, { repair: work });
+        if (flow) return flow.repairMax;
         const energy = (room.storage && room.storage.store[RESOURCE_ENERGY]) || 0;
         return energy < 50000 ? 1 : energy < 150000 ? 2 : 3;
     }
@@ -409,6 +420,11 @@ function waitingEnergy(room) {
 }
 function workerMax(room, sourceIds) {
     const work = Math.max(1, getWorkerConfig(room.energyCapacityAvailable, 'worker').filter(p => p === WORK).length);
+    // From what the room earns (system.energyFlow) once it has the data: a worker spends about
+    // 1.5 per WORK a tick (5 building, 1 upgrading).
+    const upgradeWork = getWorkerConfig(room.energyCapacityAvailable, 'upgrader').filter(p => p === WORK).length;
+    const flow = require('system.energyFlow').staffing(room, { worker: work * 1.5, reserved: upgradeWork * require('system.energyFlow').DUTY });
+    if (flow) return flow.workers;
     const base = Math.max(1, Math.ceil(WORK_PER_SOURCE * Math.max(1, sourceIds.length) / work));
     return Math.min(WORKER_CAP, base + Math.min(3, Math.floor(waitingEnergy(room) / WAITING_PER_WORKER)));
 }

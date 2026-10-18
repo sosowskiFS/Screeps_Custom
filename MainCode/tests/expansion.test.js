@@ -177,3 +177,27 @@ test('shard1/shard2 never expand; a room an expansion there already claimed is h
     assert.equal(g.Memory.expansion.t, undefined, 'no new expansion');
     assert.ok(!g.Memory.expansion.scan, 'no scanning either');
 });
+
+// shardX W1N9 adopted the bait room E2N11 as a young room and sent it helpers and guards for days,
+// instead of rushing its own controller to RCL8.
+test('shardX: no room sponsors, a bait room is never adopted, and a support under way is dropped', () => {
+    const { g, expansion } = setup();
+    g.Game.shard = { name: 'shardX' };
+    g.Game.rooms.E10N10.terminal = undefined;
+    assert.deepEqual(plain(expansion.sponsors()), [], 'the sponsor-fit room sponsors nothing on shardX');
+    g.Memory.bait = { rooms: { E11N10: { t: 'E11N10' } } };
+    g.Game.rooms.E11N10 = { name: 'E11N10', controller: { my: true, level: 3 }, find: () => [] };
+    g.Memory.expansion = { next: 0, bad: {}, t: 'E11N10', sp: 'E10N10', st: 'develop', since: 1 };
+    g.Game.creeps.h1 = { memory: { priority: 'helper', destination: 'E11N10', homeRoom: 'E10N10', path: ['E11N10'] } };
+    g.Game.creeps.other = { memory: { priority: 'helper', destination: 'E11N10', homeRoom: 'E9N10' } };
+    g.Game.time = 100001;
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, undefined, 'the bait room is no longer supported');
+    assert.equal(g.Memory.expansion.bad.E11N10, undefined, 'not marked bad');
+    assert.equal(g.Game.creeps.h1.memory.destination, 'E10N10', "the sponsor's helper goes home");
+    assert.equal(g.Game.creeps.other.memory.destination, 'E11N10');
+    assert.equal(expansion.spawnOrder('E10N10'), null, 'no more helpers or guards');
+    g.Game.time = 100100;
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, undefined, 'and it is not adopted again');
+});
