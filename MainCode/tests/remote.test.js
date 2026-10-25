@@ -253,3 +253,24 @@ test('a node in a room of ours (a shardX decoy mined as a remote) is mined but g
     g.Game.rooms.E6N5 = { name: 'E6N5', controller: { my: true } };
     assert.equal(job(), null, 'ours: no reserver');
 });
+
+// shardX W1N9: every room round it was its own decoys or another player's, so it mined no remote.
+test('a shardX bait room of ours is recorded and planned as a remote; other rooms of ours are not', () => {
+    const { g, home, remote } = world();
+    g.Game.shard = { name: 'shardX' };
+    g.Memory.bait = { rooms: { E6N5: { t: 'E5N5' } } };
+    g.FIND_SOURCES = 'FIND_SOURCES';
+    const room = (name, extra) => Object.assign({ name, controller: { my: true, owner: { username: 'Montblanc' } },
+        find: type => (type === g.FIND_SOURCES ? [{ id: name + 's', pos: { x: 10, y: 10 } }] : []) }, extra);
+    g.Memory.remoteIntel = {};
+    remote.recordIntel(room('E6N5'));
+    remote.recordIntel(room('E4N5'));
+    assert.equal(g.Memory.remoteIntel.E4N5, undefined, 'an ordinary room of ours is a home');
+    assert.equal(g.Memory.remoteIntel.E6N5.o, undefined, 'the bait room: no owner to rule it out');
+    remote.planHome(home);
+    assert.deepEqual(plain(g.Memory.remotePlan.E5N5.list).map(e => e.id), ['E6N5s']);
+    g.Game.shard = { name: 'shard2' };
+    g.Memory.remoteIntel = {};
+    remote.recordIntel(room('E6N5'));
+    assert.equal(g.Memory.remoteIntel.E6N5, undefined, 'bait rooms exist on shardX only');
+});

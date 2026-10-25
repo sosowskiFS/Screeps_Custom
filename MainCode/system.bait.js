@@ -105,6 +105,20 @@ function entryFor(name, t, k, ctx) {
     // How far along a held one is (a focus shift picks the furthest, system.shardX shiftFocus).
     // and its sources: only a 2-source room can become the focus.
     if (cl) { entry.lv = c.level; entry.pg = c.progress || 0; entry.ns = room.find(FIND_SOURCES).length; }
+    // A held 2-source room: can the base planner lay out a full base there (system.shardX
+    // promoteBait makes such rooms full rooms)? Checked once per room, one per report (CPU).
+    if (cl && entry.ns >= 2) {
+        const rec = s.rooms[name];
+        const srcs = room.find(FIND_SOURCES);
+        if (rec.pf === undefined && !ctx.planned && c.pos && srcs.every(src => src.pos)) {
+            ctx.planned = true;
+            const sources = srcs.map(src => [src.pos.x, src.pos.y]);
+            const mineral = room.find(FIND_MINERALS)[0];
+            const intel = { c: [c.pos.x, c.pos.y], s: sources, m: mineral ? [mineral.pos.x, mineral.pos.y] : undefined };
+            rec.pf = expansion.planCheck(name, intel) ? 1 : 0;
+        }
+        if (rec.pf !== undefined) entry.pf = rec.pf;
+    }
     return entry;
 }
 

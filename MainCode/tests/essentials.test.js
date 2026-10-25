@@ -126,3 +126,16 @@ test('with its essentials staffed, the room spawns a builder for its sites', () 
     h.load('spawn.BuildCreeps5').run(spawn, room, roomCreeps, 1);
     assert.deepEqual(orders.map(o => o.role), ['builder'], JSON.stringify(orders));
 });
+
+// shardSeason W24N8: a room with a storage but no links runs on harvesters (spawn.BuildCreeps). The
+// storage miner was required there too, so every scout and remote creep stood down for good.
+test('before links, a harvester is the room miner essential; on links, a storage miner', () => {
+    const { h, g, room } = collapsed({ creeps: ['distributor', 'supplier', 'harvester'] });
+    g.Memory.RoomsAt5 = [];
+    const essentials = h.load('spawn.essentials');
+    assert.deepEqual(plain(essentials.missing(room)), []);
+    g.Game.time++;
+    g.Memory.RoomsAt5 = ['E14N18'];
+    const linked = collapsed({ creeps: ['distributor', 'supplier', 'harvester'] });
+    assert.deepEqual(plain(linked.h.load('spawn.essentials').missing(linked.room)), ['miner']);
+});

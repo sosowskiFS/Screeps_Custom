@@ -96,7 +96,7 @@ test('young repairers keep strengthening the weakest controller wall beyond help
 });
 
 // A young room for the staffing pass: structures, sources and residents as given.
-function staffRoom({ residents = [], structures = [], sources = [], storage, energy = 800, level = 3, sites = 0, flags = {}, containers = true } = {}) {
+function staffRoom({ residents = [], structures = [], sources = [], storage, energy = 800, level = 3, sites = 0, flags = {}, containers = true, cap, slots } = {}) {
     const { h, g, build } = load(), spawned = [];
     // A container beside each source (the miners' economy), unless the room is still bootstrapping.
     if (containers) structures = structures.concat(sources.map(src => ({ structureType: 'container', hits: 250000, hitsMax: 250000, store: { energy: 0 }, pos: near(src.pos.x + 1, src.pos.y) })));
@@ -108,8 +108,17 @@ function staffRoom({ residents = [], structures = [], sources = [], storage, ene
     const objects = {};
     for (const s of sources) objects[s.id] = s;
     g.Game.getObjectById = id => objects[id];
-    const room = { name: 'NEW', storage, energyAvailable: energy, energyCapacityAvailable: energy, controller: { my: true, level, pos: { x: 40, y: 40 } },
-        getTerrain: () => ({ get: () => 0 }),
+    const room = { name: 'NEW', storage, energyAvailable: energy, energyCapacityAvailable: cap || energy, controller: { my: true, level, pos: { x: 40, y: 40 } },
+        // slots: open tiles round each source (the first ones clockwise), the rest walls.
+        getTerrain: () => ({ get: (x, y) => {
+            if (!slots) return 0;
+            for (const src of sources) {
+                const ring = [[-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0]];
+                const i = ring.findIndex(([dx, dy]) => src.pos.x + dx === x && src.pos.y + dy === y);
+                if (i >= 0) return i < slots ? 0 : g.TERRAIN_MASK_WALL;
+            }
+            return 0;
+        } }),
         find: type => type === g.FIND_STRUCTURES || type === g.FIND_MY_STRUCTURES ? structures :
             type === g.FIND_CONSTRUCTION_SITES ? Array(sites).fill({}) : [] };
     for (const s of sources) s.room = room;
@@ -222,4 +231,53 @@ test('bootstrap bodies scale by whole blocks, up to 3', () => {
     assert.equal(build.getBootstrapConfig(299).length, 0);
     assert.equal(build.getBootstrapConfig(550).length, 5);
     assert.equal(build.getBootstrapConfig(1300).length, 15);
+});
+
+// shardSeason W24N8: harvesters sized to the energy on hand came out at 1 WORK (one with no CARRY),
+// filled every tile at their source and kept it a third mined: income 13 a tick of 20.
+test('a harvester replacement waits for full size while energy still comes in; without income it takes what fits', () => {
+    const s1 = source('h1', 10, 10), s2 = source('h2', 30, 30);
+    const others = [worker('harvester', 5, { sourceLocation: 'h2' }), dist(), worker('upgrader'), worker('builder', 4)];
+    let r = staffRoom({ sources: [s1, s2], energy: 300, cap: 1350, level: 5, residents: others });
+    assert.deepEqual(r.spawned, [], 'saving up: ' + JSON.stringify(r.spawned));
+    r = staffRoom({ sources: [s1, s2], energy: 800, cap: 1350, level: 5, residents: others });
+    assert.equal(r.spawned[0].role, 'harvester');
+    assert.equal(r.spawned[0].body.filter(p => p === 'work').length, 5, 'full size: ' + r.spawned[0].body);
+    // Nothing else harvesting: whatever fits now.
+    r = staffRoom({ sources: [s1, s2], energy: 300, cap: 1350, level: 5, residents: [dist()] });
+    assert.equal(r.spawned[0].role, 'harvester');
+    assert.ok(r.spawned[0].body.includes('carry'));
+});
+
+test('a harvester is never made without CARRY (it would drop all it mines)', () => {
+    const s1 = source('c1', 10, 10);
+    const r = staffRoom({ sources: [s1], energy: 150, cap: 1350, level: 5, residents: [dist()] });
+    assert.deepEqual(r.spawned, [], JSON.stringify(r.spawned));
+});
+
+test('undersized harvesters filling every tile at a source: the smallest makes way for a full one when affordable', () => {
+    const s1 = source('w1', 10, 10), s2 = source('w2', 30, 30);
+    const small = [1, 1, 1, 1].map((w, i) => Object.assign(worker('harvester', w, { sourceLocation: 'w1' }), { name: 'tiny' + i }));
+    let gone = [];
+    const residents = small.map(c => Object.assign(c, { suicide() { gone.push(c.name); } }))
+        .concat([worker('harvester', 5, { sourceLocation: 'w2' }), dist(), worker('upgrader'), worker('builder', 4)]);
+    let r = staffRoom({ sources: [s1, s2], energy: 1350, cap: 1350, level: 5, slots: 4, residents });
+    assert.equal(r.spawned[0].role, 'harvester', JSON.stringify(r.spawned));
+    assert.equal(r.spawned[0].source, 'w1');
+    assert.equal(r.spawned[0].body.filter(p => p === 'work').length, 5);
+    assert.equal(gone.length, 1, 'one tiny harvester retired');
+    gone = [];
+    r = staffRoom({ sources: [s1, s2], energy: 500, cap: 1350, level: 5, slots: 4, residents });
+    assert.equal(gone.length, 0, 'not before a full one is affordable');
+    assert.ok(!r.spawned.some(c => c.role === 'harvester'));
+});
+
+// shardSeason W24N8: energy in the storage, a harvester bringing more, but no distributor: every
+// body after that came out at what the spawn regenerates.
+test('harvesters at work and energy stored but no distributor: the distributor comes first', () => {
+    const s1 = source('d1', 10, 10), s2 = source('d2', 30, 30);
+    const storage = { id: 'st', structureType: 'storage', store: { energy: 999, RESOURCE_ENERGY: 999 }, pos: near(20, 20) };
+    const r = staffRoom({ sources: [s1, s2], energy: 130, cap: 1350, level: 5, storage,
+        residents: [worker('harvester', 2, { sourceLocation: 'd1' })] });
+    assert.equal(r.spawned[0] && r.spawned[0].role, 'distributor', JSON.stringify(r.spawned));
 });

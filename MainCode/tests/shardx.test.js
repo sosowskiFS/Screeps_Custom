@@ -387,3 +387,42 @@ test('helpers stop once the room has every RCL5 structure built; its guard is st
     s3.x.run();
     assert.equal(s3.g.Memory.xs.queue.E28N48.kind, 'helper');
 });
+
+test('promotion: while shardX is quiet, a held 2-source bait room whose base fits becomes a full room, one per free home', () => {
+    const { g, x } = setup('shard2');
+    g.Game.notify = () => {};
+    const w1n9 = { r: 'W1N9', h: 'shard2:E3N12', e: 'E0N10', t: 481 };
+    g.Memory.xs = { mode: 'done', manual: 1, targets: [w1n9], baitCenters: [{ r: 'W1N22', h: 'shard2:E1N16', e: 'W0N20', t: 353 }] };
+    const bt = [
+        { r: 'W2N8', h: 'shard2:E3N12', e: 'E0N10', cl: 1, lv: 4, pg: 0, k: 450, ns: 2, pf: 1 },      // within 2 of W1N9
+        { r: 'W1N22', h: 'shard2:E1N16', e: 'W0N20', cl: 1, lv: 3, pg: 0, k: 353, ns: 2, pf: 1 },
+        { r: 'W2N21', h: 'shard2:E1N16', e: 'W0N20', cl: 1, lv: 5, pg: 0, k: 353, ns: 2, pf: 1 },    // within 2 of W1N22
+        { r: 'E22N32', h: 'shard2:E18N26', e: 'E20N30', cl: 1, lv: 2, pg: 0, k: 412, ns: 2, pf: 0 },  // base does not fit
+        { r: 'E23N33', h: 'shard2:E18N26', e: 'E20N30', cl: 1, lv: 2, pg: 0, k: 412, ns: 1, pf: 1 },  // 1 source
+    ];
+    // Attacked: nothing.
+    assert.equal(x.promoteBait({ progress: { W1N9: { cl: 1, r5: 1, hz: 2 } }, bt }).length, 0);
+    // W1N9's home still building it up: its own bait rooms wait.
+    let up = x.promoteBait({ progress: { W1N9: { cl: 1 } }, bt });
+    assert.equal(JSON.stringify(up.map(t => t.r)), JSON.stringify(['W2N21']), 'the furthest along of the free home');
+    assert.equal(g.Memory.xs.mode, 'claim', 'support runs again');
+    assert.equal(g.Memory.xs.targets.length, 2);
+    assert.ok(g.Memory.xs.targets[1].up && g.Memory.xs.targets[1].held);
+    // E1N16 now builds W2N21: nothing more from it; W1N9 done (RCL5 built), but W2N8 is too close.
+    up = x.promoteBait({ progress: { W1N9: { cl: 1, r5: 1 }, W2N21: { cl: 1 } }, bt });
+    assert.equal(up.length, 0);
+});
+
+test('on shardX a promoted bait room leaves the bait rooms and is not fortified', () => {
+    const { g, x } = setup('shardX', { shard2: { mode: 'claim', targets: [{ r: 'E5N15', h: 'shard2:E1N16', e: 'E0N10', t: 300, held: 1, up: 1 }] } });
+    g.Game.gcl = { level: 9 };
+    g.CREEP_CLAIM_LIFE_TIME = 600;
+    g.Game.map.getRoomStatus = () => ({ status: 'normal' });
+    g.Game.creeps = {};
+    g.Game.rooms = { E5N15: { name: 'E5N15', controller: { my: true, level: 3 }, find: () => [] } };
+    g.Memory.bait = { rooms: { E5N15: { t: 'W1N9' } }, block: {} };
+    g.Game.time = 5100;
+    x.run();
+    assert.equal(g.Memory.bait.rooms.E5N15, undefined);
+    assert.ok(!(g.Memory.xs.fortify || {}).E5N15);
+});

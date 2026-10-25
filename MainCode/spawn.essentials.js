@@ -12,7 +12,11 @@
 // Essentials (rooms with a storage):
 //   refill   a distributor or mule: they refill spawns and extensions from the storage
 //   supplier with towers built: keeps them fed for defense
-//   miner    a storage miner, except in maintenance mode (no miners by design there)
+//   miner    a storage miner, except in maintenance mode (no miners by design there); before links
+//            (not in Memory.RoomsAt5, spawn.BuildCreeps) a harvester, the miner of those rooms. The
+//            storage miner was required there too, a role that spawner never makes: shardSeason
+//            W24N8 stood down every scout and remote creep from its storage on, and never mined a
+//            remote.
 // Rooms without a storage only need creeps at all (their staffing is harvester-based).
 const runtimeCache = require('runtime.cache');
 const maintenance = require('system.maintenance');
@@ -20,6 +24,7 @@ const maintenance = require('system.maintenance');
 const REFILL = new Set(['distributor', 'distributorNearDeath', 'mule', 'muleNearDeath']);
 const SUPPLIER = new Set(['supplier', 'supplierNearDeath']);
 const MINER = new Set(['miner', 'minerNearDeath']);
+const HARVESTER = new Set(['harvester', 'harvesterNearDeath']);
 
 // Missing essential roles for this room ('refill', 'supplier', 'miner'), cached per tick.
 // Creeps ordered earlier this tick count (runtime.cache placeholders).
@@ -38,7 +43,7 @@ function missing(room) {
         if (!has(REFILL)) out.push('refill');
         const towers = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } });
         if (towers.length && !has(SUPPLIER)) out.push('supplier');
-        if (!maintenance.inMaintenance(room.name) && runtimeCache.find(room, FIND_SOURCES).length && !has(MINER)) out.push('miner');
+        if (!maintenance.inMaintenance(room.name) && runtimeCache.find(room, FIND_SOURCES).length && !has((Memory.RoomsAt5 || []).includes(room.name) ? MINER : HARVESTER)) out.push('miner');
     }
     memo[room.name] = { n: ordered, out };
     return out;

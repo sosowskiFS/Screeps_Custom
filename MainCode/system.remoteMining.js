@@ -65,7 +65,11 @@ function mem(key) {
 // ---------------------------------------------------------------- intel
 
 function recordIntel(room) {
-    if (room.controller && room.controller.my) return;
+    // Our own rooms are homes, not remotes; except shardX bait rooms (system.bait): ours, so never
+    // reserved, and mined like any remote (W1N9 had no remote at all, the rooms round it being its
+    // decoys or another player's).
+    const ours = !!(room.controller && room.controller.my);
+    if (ours && !require('system.bait').isBait(room.name)) return;
     const controller = room.controller;
     let towers = 0;
     if (controller && controller.owner && !controller.my) {
@@ -75,7 +79,8 @@ function recordIntel(room) {
         t: Game.time,
         s: runtimeCache.find(room, FIND_SOURCES).map(s => [s.id, s.pos.x, s.pos.y]),
         c: controller ? 1 : 0,
-        o: controller && controller.owner ? controller.owner.username : undefined,
+        o: controller && controller.owner && !ours ? controller.owner.username : undefined,
+        b: ours ? 1 : undefined,
         r: controller && controller.reservation ? controller.reservation.username : undefined,
         k: runtimeCache.find(room, FIND_STRUCTURES, { filter: { structureType: STRUCTURE_KEEPER_LAIR } }).length ? 1 : 0,
         tw: towers,

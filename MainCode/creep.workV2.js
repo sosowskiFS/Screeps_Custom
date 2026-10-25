@@ -46,8 +46,15 @@ var creep_workV2 = {
                 if (creep.memory.sourceLocation) {
                     mineTarget = Game.getObjectById(creep.memory.sourceLocation);
                     if (mineTarget) {
+                        // At its source it is parked (Traveler.pushBlocker): passing creeps used to
+                        // swap it off, and with a few energy carried it then walked home to the
+                        // storage (shardSeason W24N8: two small harvesters shuttling 5 energy at a
+                        // time, nobody left to build or repair the source container).
                         if (creep.harvest(mineTarget) == ERR_NOT_IN_RANGE) {
+                            delete creep.memory.onPoint;
                             creep.travelTo(mineTarget);
+                        } else {
+                            creep.memory.onPoint = true;
                         }
                     }
                 } else {
@@ -114,8 +121,9 @@ var creep_workV2 = {
                             }
                         }
                     }
-                } else if (!creep.memory.storageUnit && _.sum(creep.carry) > 0) {
-                    // Fallback: if harvester is full but has no storage unit, find somewhere to deposit energy
+                } else if (!creep.memory.storageUnit && creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0 &&
+                    !(mineTarget && creep.pos.inRangeTo(mineTarget, 1))) {
+                    // Fallback: full, away from its source and with no storage unit: deposit somewhere.
                     let storage = creep.room.storage;
                     if (storage) {
                         if (creep.transfer(storage, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {

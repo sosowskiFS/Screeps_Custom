@@ -4,6 +4,11 @@
 //   (a bonus role that only uses free CPU) + one average room. It must stay at or under
 //   CPU_MARGIN of the limit. Room averages come from runtime.roomCpu; global overhead is
 //   whatever the shard average holds beyond the rooms. A claim refused for GCL backs off.
+// Scouting: from RCL6 (scoutFit: storage, not under attack), whatever the room has stored: the
+//   rooms within SEARCH_RANGE are looked at long before a claim is affordable.
+// Claiming: only once COVERAGE of the rooms within SEARCH_RANGE of the scouting homes is known
+//   (or after SCAN_PATIENCE ticks of scanning, from what is known), so the best candidate is
+//   picked from the area and not the first valid room seen.
 // Sponsors: "normally operating" rooms (RCL6+, storage with energy, not under attack). The
 //   sponsor nearest the target by route sends the claimer, then helpers, until the new room has
 //   built its terminal. From then on the room develops itself.
@@ -43,7 +48,10 @@ const FAIL_COOLDOWN = 100000;
 const GCL_BACKOFF = 20000;
 const PLAN_CHECKS = 3;            // planner runs per evaluation
 const SCOUT_EVERY = 1500;
-const SCOUT_TARGETS = 8;
+const SCOUT_TARGETS = 20;          // a 1-MOVE scout lives 1500 ticks: about 50 a room
+const SCOUT_RCL = 6;
+const COVERAGE = 0.8;              // share of the rooms in range known before a claim
+const SCAN_PATIENCE = 30000;       // scanning this long: claim from what is known (rooms no scout reaches)
 const OBSERVER_RANGE = 10;
 const HELPERS = 6;
 const HAULERS = 3;               // support haulers once the new room has its storage
@@ -185,6 +193,33 @@ function sponsorFit(room) {
 function sponsors() {
     if (Game.shard.name === 'shardX') return [];
     return myRooms().filter(name => sponsorFit(Game.rooms[name]));
+}
+
+// Homes that scout for expansion candidates: RCL6+ with a storage, whatever it holds.
+function scoutFit(room) {
+    return !!(room && room.controller && room.controller.my && room.controller.level >= SCOUT_RCL && room.storage &&
+        (Memory.roomsUnderAttack || []).indexOf(room.name) === -1 && !require('system.retire').retiring(room.name) &&
+        room.find(FIND_MY_SPAWNS).length > 0);
+}
+
+function scoutHomes() {
+    if (Game.shard.name === 'shardX') return [];   // shardX grows from its bait rooms (system.shardX promoteBait)
+    return myRooms().filter(name => scoutFit(Game.rooms[name]));
+}
+
+// Share of the rooms within SEARCH_RANGE of these homes that are known (scouted, or unclaimable by
+// name): { known, total, share }.
+function coverage(homes) {
+    const seen = new Set();
+    let n = 0;
+    for (const home of homes) {
+        for (const name of around(home, SEARCH_RANGE)) {
+            if (seen.has(name)) continue;
+            seen.add(name);
+            if (known(name)) n++;
+        }
+    }
+    return { known: n, total: seen.size, share: seen.size ? n / seen.size : 1 };
 }
 
 // A support already under way on shardX (or for a bait room) is dropped, and its helpers go home
@@ -408,7 +443,7 @@ function scanQueue(home) {
 
 // Observer homes: the next room to look at for expansion intel (only while scanning).
 function observeRequest(home) {
-    if (!scanning() || !sponsorFit(Game.rooms[home])) return undefined;
+    if (!scanning() || !scoutFit(Game.rooms[home])) return undefined;
     const rooms = scanQueue(home);
     return rooms.length ? rooms.shift() : undefined;
 }
@@ -426,7 +461,7 @@ function observerCovers(name) {
 
 // Homes without an observer: rooms for a scout to visit, every SCOUT_EVERY ticks while scanning.
 function scoutTargets(home) {
-    if (!scanning() || Game.time % SCOUT_EVERY !== 0 || hasObserver(home) || !sponsorFit(Game.rooms[home])) return [];
+    if (!scanning() || Game.time % SCOUT_EVERY !== 0 || hasObserver(home) || !scoutFit(Game.rooms[home])) return [];
     return scanQueue(home).filter(name => !observerCovers(name)).slice(0, SCOUT_TARGETS);
 }
 
@@ -512,12 +547,20 @@ function evaluate() {
     const s = state();
     s.next = Game.time + EVAL_EVERY;
     const cpu = budget();
-    const list = sponsors();
-    if (!cpu.allowed || (s.gcl && Game.time < s.gcl) || !list.length || myRooms().length >= Game.gcl.level) {
+    const scouts = scoutHomes();
+    if (!cpu.allowed || (s.gcl && Game.time < s.gcl) || !scouts.length || myRooms().length >= Game.gcl.level) {
         delete s.scan;
+        delete s.scanFrom;
         return;
     }
     s.scan = Game.time + EVAL_EVERY * 2;
+    if (!s.scanFrom) s.scanFrom = Game.time;
+    // Scouting only until enough of the area is known to tell the best candidate.
+    const cov = coverage(scouts);
+    s.cov = Math.round(cov.share * 100);
+    if (cov.share < COVERAGE && Game.time - s.scanFrom < SCAN_PATIENCE) return;
+    const list = sponsors();
+    if (!list.length) return;   // RCL6 homes scouting, none able to sponsor yet
     let checks = 0;
     for (const candidate of candidates()) {
         if (candidate.reason) break;
@@ -532,6 +575,7 @@ function evaluate() {
         }
         const sponsor = pickSponsor(candidate.room, list);
         if (!sponsor) continue;
+        delete s.scanFrom;
         start(candidate.room, sponsor);
         return;
     }
@@ -678,7 +722,8 @@ function report(limit = 10) {
         (cpu.allowed ? 'room to expand' : 'no room to expand'),
         'GCL ' + Game.gcl.level + ', rooms here ' + myRooms().length + (s.gcl > Game.time ? ', GCL back-off until ' + s.gcl : ''),
         s.t ? 'In progress: ' + s.t + ' (' + s.st + ' since ' + s.since + ', sponsor ' + s.sp + ')' : 'Nothing in progress; next evaluation at ' + s.next,
-        'Scanning: ' + (scanning() ? 'until ' + s.scan : 'off') + ', sponsors: ' + sponsors().join(', ')];
+        'Scanning: ' + (scanning() ? 'until ' + s.scan + ' (since ' + s.scanFrom + ', ' + s.cov + '% of the area known, ' + Math.round(COVERAGE * 100) + '% needed)' : 'off') +
+        ', scouting homes: ' + scoutHomes().join(', ') + ', sponsors: ' + sponsors().join(', ')];
     const list = candidates();
     lines.push('Candidates (' + list.filter(c => !c.reason).length + ' valid of ' + list.length + ' with a free controller):');
     for (const c of list.slice(0, limit)) {
@@ -690,7 +735,7 @@ function report(limit = 10) {
 }
 
 module.exports = {
-    run, budget, sponsors, sponsorFit, pickSponsor, candidates, invalidReason, score, remotePotential, planCheck,
+    run, budget, sponsors, sponsorFit, scoutFit, scoutHomes, coverage, pickSponsor, candidates, invalidReason, score, remotePotential, planCheck,
     record, observe, observeRequest, scoutTargets, spawnOrder, claimed, claimFailed, pruneIntel, report, supplyWanted,
-    parse, format, linear, around, HARASSER_KEY, CPU_MARGIN, HELPERS, HAULERS,
+    parse, format, linear, around, HARASSER_KEY, CPU_MARGIN, HELPERS, HAULERS, COVERAGE, SCAN_PATIENCE, SPACING,
 };

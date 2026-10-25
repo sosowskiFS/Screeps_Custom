@@ -152,6 +152,7 @@ function builderRoom(rcl, existing = []) {
     const sites = [];
     const flags = [];
     const room = { name: 'W1N1', controller: { my: true, level: rcl, pos: pos(25, 8) },
+        getTerrain: () => g.Game.map.getRoomTerrain('W1N1'),
         find: type => {
             if (type === g.FIND_SOURCES) return OPEN.sources.map(t => ({ pos: pos(X(t), Y(t)) }));
             if (type === g.FIND_MINERALS) return [{ pos: pos(40, 10) }];
@@ -584,4 +585,83 @@ test('below RCL8 an established room ramparts its spawns, towers and storage onl
     const ramparts = sites.filter(s => s[2] === g.STRUCTURE_RAMPART).map(s => s[0] + ',' + s[1]);
     assert.ok(!ramparts.includes(X(ext) + ',' + Y(ext)), 'not over an extension');
     assert.equal(removed.join(), 'stray', 'the unstarted one over the extension goes');
+});
+
+test('the ring has depth tiles: footprint tiles within 2 of it, inside', () => {
+    const { harness } = require('./harness');
+    const h = harness();
+    h.load('runtime.memory').ensureInitialized();
+    const room = { name: 'X', controller: null, getTerrain: () => ({ get: () => 0 }), find: () => [] };
+    const tiles = [];
+    for (let x = 20; x <= 30; x++) for (let y = 20; y <= 30; y++) tiles.push(x * 50 + y);
+    const plan = { anchor: 25 * 50 + 25, structures: { extension: tiles }, roads: [] };
+    const ring = h.load('base.builder').ringTiles(room, plan);
+    const d = new Set(ring.d);
+    assert.ok(ring.r.includes(19 * 50 + 25), 'the ring just outside');
+    assert.ok(d.has(20 * 50 + 25) && d.has(21 * 50 + 25) && d.has(21 * 50 + 21), 'two tiles in');
+    assert.ok(!d.has(22 * 50 + 25) && !d.has(25 * 50 + 25), 'not further');
+    assert.ok(!ring.d.some(t => ring.r.includes(t)), 'not the ring itself');
+});
+
+// A finished 11x11 base (extensions), established; returns the rampart sites one pass places.
+function ringPass(rcl, { storage = true, extraRamparts = [], extra = [], ring } = {}) {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.RESOURCE_ENERGY = 'energy';
+    g.CONTROLLER_STRUCTURES = {};
+    g.CONTROLLER_STRUCTURES[g.STRUCTURE_EXTENSION] = { 7: 200, 8: 200 };
+    g.Game.map.getRoomTerrain = () => ({ get: (x, y) => (x === 0 || y === 0 || x === 49 || y === 49 ? 1 : 0) });
+    const pos = (x, y) => ({ x, y, roomName: 'R', lookFor: () => [] });
+    const tiles = [];
+    // Column 21 (rows 22..28) left open: ground inside the base, within 2 of the ring.
+    for (let x = 20; x <= 30; x++) for (let y = 20; y <= 30; y++) if (!(x === 21 && y >= 22 && y <= 28)) tiles.push(x * 50 + y);
+    const supply = 25 * 50 + 25;
+    const ext = tiles.filter(t => t !== supply);
+    const structures = ext.map(t => ({ structureType: g.STRUCTURE_EXTENSION, my: true, pos: pos((t / 50) | 0, t % 50) }));
+    const store = storage ? { structureType: g.STRUCTURE_STORAGE, my: true, pos: pos(26, 26), store: { energy: 100000 } } : null;
+    for (const t of extraRamparts) structures.push({ structureType: g.STRUCTURE_RAMPART, my: true, pos: pos((t / 50) | 0, t % 50) });
+    for (const [t, type] of extra) structures.push({ structureType: g['STRUCTURE_' + type], my: true, pos: pos((t / 50) | 0, t % 50) });
+    const placed = [];
+    const room = { name: 'R', terminal: { my: true }, storage: store || undefined, controller: { my: true, level: rcl, pos: pos(25, 45) },
+        getTerrain: () => g.Game.map.getRoomTerrain('R'),
+        find: type => (type === g.FIND_STRUCTURES || type === g.FIND_MY_STRUCTURES ? structures : []),
+        createConstructionSite: (x, y, type) => { placed.push([x * 50 + y, type]); return g.OK; }, createFlag: () => g.OK };
+    g.Game.rooms.R = room;
+    g.Game.constructionSites = {};
+    const builder = h.load('base.builder');
+    const plan = { mode: 'adopt', anchor: 25 * 50 + 25, flags: { Supply: supply }, roads: [], paths: [], structures: { extension: ext }, ring };
+    builder.buildRoom(room, plan);
+    return { ramparts: placed.filter(p => p[1] === g.STRUCTURE_RAMPART).map(p => p[0]), walls: placed.filter(p => p[1] === g.STRUCTURE_WALL).map(p => p[0]), ring: plan.ring, supply, ext };
+}
+
+test('RCL7: a one-tile rampart ring outside the base; RCL8: two tiles deeper, and every structure', () => {
+    const at7 = ringPass(7);
+    assert.ok(at7.ramparts.length > 0, 'ring sites');
+    assert.ok(at7.ramparts.every(t => at7.ring.r.includes(t) || t === at7.supply), 'only ring tiles (and the Supply tile): ' + at7.ramparts);
+    assert.ok(at7.ramparts.includes(at7.supply), 'the Supply tile, the storage standing');
+    assert.ok(!at7.ramparts.some(t => at7.ring.d.includes(t)), 'no depth yet');
+    // RCL8 with every structure and the ring ramparted already: the depth tiles go down.
+    const done = at7.ext.concat(at7.ring.r, [at7.supply]);
+    const at8 = ringPass(8, { extraRamparts: done });
+    assert.ok(at8.ramparts.length > 0 && at8.ramparts.every(t => at8.ring.d.includes(t)), 'depth tiles: ' + at8.ramparts);
+    assert.ok(at8.ramparts.every(t => ((t / 50) | 0) === 21), 'the open ground inside (the structures had theirs)');
+});
+
+test('before RCL8 the Supply tile is ramparted only once the storage stands', () => {
+    const r = ringPass(6, { storage: false });
+    assert.ok(!r.ramparts.includes(r.supply));
+    assert.ok(ringPass(6).ramparts.includes(r.supply));
+});
+
+// shardX W1N9: gaps in the ring where a road was built on a wall tile, and on edge tiles under its
+// extensions (the ring moved onto the base beside an exit).
+test('every ring tile gets its barrier: a rampart over a structure or road, a wall only on an empty tile', () => {
+    const t = (x, y) => x * 50 + y;
+    const ring = { r: [t(19, 25), t(20, 20)], w: [t(19, 24), t(19, 26)], d: [], alt: true, n: 4 };
+    const r = ringPass(7, { ring, extra: [[t(19, 24), 'ROAD'], [t(19, 25), 'CONTAINER']] });
+    assert.ok(r.ramparts.includes(t(19, 24)), 'a wall tile with a road: a rampart');
+    assert.ok(r.walls.includes(t(19, 26)) && !r.walls.includes(t(19, 24)), 'an empty wall tile: a wall');
+    assert.ok(r.ramparts.includes(t(19, 25)), 'over a container');
+    assert.ok(r.ramparts.includes(t(20, 20)), 'over an extension (the ring on the base edge)');
 });

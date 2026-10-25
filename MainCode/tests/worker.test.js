@@ -91,3 +91,31 @@ test('an empty worker or upgrader walks right up to the storage, not to working 
         assert.deepEqual(ranges, [1], role + ': ' + JSON.stringify(ranges));
     }
 });
+
+// shardSeason W24N8: small harvesters at a source with no container were swapped off their tile,
+// walked a few energy home to the storage, and the source container was never rebuilt.
+test('a harvester is parked at its source; a few energy carried does not send it home', () => {
+    const source = { id: 'src', pos: { x: 11, y: 10, findInRange: () => [] } };
+    const harvest = (inRange, carry, full) => {
+        const s = setup({ carry });
+        s.creep.memory = { priority: 'harvester', homeRoom: 'R', sourceLocation: 'src' };
+        s.creep.store.getFreeCapacity = () => (full ? 0 : 40);
+        s.creep.room.storage = { id: 'storage', structureType: s.g.STRUCTURE_STORAGE, pos: { x: 20, y: 20 } };
+        s.creep.pos.inRangeTo = (o, r) => inRange && r >= 1;
+        s.g.Game.getObjectById = id => (id === 'src' ? source : null);
+        const moves = [];
+        s.creep.harvest = () => (inRange ? s.g.OK : s.g.ERR_NOT_IN_RANGE);
+        s.creep.transfer = () => s.g.ERR_NOT_IN_RANGE;
+        s.creep.travelTo = t => { moves.push(t.id); return s.g.OK; };
+        s.run();
+        return { memory: s.creep.memory, moves };
+    };
+    let r = harvest(true, 6, false);
+    assert.equal(r.memory.onPoint, true, 'parked while harvesting');
+    assert.deepEqual(r.moves, []);
+    r = harvest(false, 6, false);
+    assert.ok(!r.memory.onPoint);
+    assert.deepEqual(r.moves, ['src'], 'pushed off with 6 energy: back to the source, not the storage');
+    r = harvest(false, 50, true);
+    assert.deepEqual(r.moves, ['src', 'storage'], 'full and away: delivers');
+});

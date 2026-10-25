@@ -33,9 +33,16 @@ const RETRY_FAILED = 20000;
 const SITES_PER_PASS = 10;
 const SITE_HEADROOM = 90;          // leave room under the 100-site cap for roads/repairs elsewhere
 const RAMPART_RCL = 2;
-// Below RCL8 ramparts go only over the core (spawns, towers, storage): a room in development (one
-// spawn) could not keep up with building and repairing more. The fortified ring waits for RCL8 too.
+// Below RCL8 ramparts go only over the core (spawns, towers, storage, and the Supply tile once the
+// storage stands): a room in development could not keep up with building and repairing more.
+// From RCL8 every planned structure gets one.
 const CORE_RAMPART_RCL = 8;
+// The outer rampart ring round the planned base (ringTiles), for every established room (and every
+// hardened shardX room): one tile wide from RCL7, and RING_DEPTH tiles further in from RCL8, so a
+// ranged attacker (range 3) outside it reaches nothing uncovered. In two steps for the energy.
+const RING_RCL = 7;
+const RING_DEPTH_RCL = 8;
+const RING_DEPTH = 2;
 const CORE_RAMPART_TYPES = () => [STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_STORAGE];
 const RING_RANGE = 13;           // planned tiles this far from the core (or nearer) make the base footprint
 const RAMPART_UPKEEP = 10;       // rampart hits per tick a ring rampart takes to hold and grow (decay is 3)             // ramparts over every planned structure (previous generator)
@@ -473,16 +480,23 @@ function buildRoom(room, plan) {
     // ramparts over them (and over a spawn it already has), walls around the controller.
     const fortified = !established && require('system.shardX').fortified(room);
     const shellRamparts = new Set();
-    // Hardened shardX room (fortified before): the outer rampart ring of its planned base too, from
-    // RCL8 (CORE_RAMPART_RCL).
-    const hardened = rcl >= CORE_RAMPART_RCL && require('system.shardX').hardened(room);
+    // The outer rampart ring (RING_RCL): established rooms (their repairers raise any rampart) and
+    // hardened shardX rooms (fortified before; their ramparts are raised freely). A hardened room's
+    // ring alternates walls where its repairers cannot keep every tile a rampart.
+    const isHardened = require('system.shardX').hardened(room);
+    const ringRoom = rcl >= RING_RCL && (established || isHardened);
     // No new ring sites while the room has nothing to spare (system.energyFlow): they and their
     // repairs are what emptied W1N9.
-    const ringBudget = hardened ? require('system.energyFlow').budget(room) : null;
-    const ringPlan = hardened && !(ringBudget !== null && ringBudget <= 0) ?
-        ringTiles(room, plan, Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP)) : null;
+    const ringBudget = ringRoom ? require('system.energyFlow').budget(room) : null;
+    const ringPlan = ringRoom && !(ringBudget !== null && ringBudget <= 0) ?
+        ringTiles(room, plan, isHardened ? Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP) : Infinity) : null;
     const ring = new Set(ringPlan ? ringPlan.r : []);
     const ringWalls = ringPlan ? ringPlan.w : [];
+    // From RCL8 the ring is RING_DEPTH tiles deeper: ramparts over whatever stands there.
+    const ringDepth = new Set(ringPlan && rcl >= RING_DEPTH_RCL ? ringPlan.d || [] : []);
+    // The Supply tile (the tower supplier's spot) once the storage stands.
+    const supplyFlag = Game.flags[room.name + 'Supply'];
+    const supplyTile = room.storage ? (supplyFlag && supplyFlag.pos.roomName === room.name ? tileOf(supplyFlag.pos) : plan.flags && plan.flags.Supply) : undefined;
     if (!established && rcl >= RAMPART_RCL) {
         for (const structure of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
             if (structure.structureType === STRUCTURE_SPAWN || structure.structureType === STRUCTURE_TOWER ||
@@ -490,11 +504,7 @@ function buildRoom(room, plan) {
                 shellRamparts.add(tileOf(structure.pos));
             }
         }
-        const supplier = runtimeCache.homeCreeps(room.name).some(c => c.memory &&
-            (c.memory.priority === 'supplier' || c.memory.priority === 'supplierNearDeath'));
-        const supply = Game.flags[room.name + 'Supply'];
-        const supplyTile = supply ? tileOf(supply.pos) : plan.flags && plan.flags.Supply;
-        if (supplier && supplyTile !== undefined && !fortified && rcl >= CORE_RAMPART_RCL) shellRamparts.add(supplyTile);
+        if (supplyTile !== undefined && !fortified) shellRamparts.add(supplyTile);
     }
     const built = type => runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
     // Young and no tower yet: hostile creeps can stomp construction sites unopposed, so only the
@@ -508,7 +518,7 @@ function buildRoom(room, plan) {
     if (!established) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
             const type = s.structureType;
-            const keepSiegeRampart = type === STRUCTURE_RAMPART && (shellRamparts.has(tileOf(s.pos)) || ring.has(tileOf(s.pos)));
+            const keepSiegeRampart = type === STRUCTURE_RAMPART && (shellRamparts.has(tileOf(s.pos)) || ring.has(tileOf(s.pos)) || ringDepth.has(tileOf(s.pos)));
             const held = towerless && s.progress === 0 && !keepSiegeRampart && type !== STRUCTURE_SPAWN && type !== STRUCTURE_TOWER &&
                 type !== STRUCTURE_CONTAINER && type !== STRUCTURE_WALL;
             const swampRoad = type === STRUCTURE_ROAD && require('system.swampRoads').wanted(room.name, s.pos.x, s.pos.y);
@@ -621,9 +631,11 @@ function buildRoom(room, plan) {
     // Below RCL8: the core only (CORE_RAMPART_RCL).
     const coreTiles = new Set(runtimeCache.find(room, FIND_MY_STRUCTURES)
         .filter(s => CORE_RAMPART_TYPES().includes(s.structureType)).map(s => tileOf(s.pos)));
+    if (supplyTile !== undefined) coreTiles.add(supplyTile);
     if (rcl < CORE_RAMPART_RCL) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
-            if (s.structureType === STRUCTURE_RAMPART && s.progress === 0 && !coreTiles.has(tileOf(s.pos))) s.remove();
+            const t = tileOf(s.pos);
+            if (s.structureType === STRUCTURE_RAMPART && s.progress === 0 && !coreTiles.has(t) && !ring.has(t)) s.remove();
         }
     }
     if (rcl >= RAMPART_RCL && established && kinds === ORDER) {
@@ -642,18 +654,29 @@ function buildRoom(room, plan) {
         }
     }
 
-    // Hardened shardX room: the outer rampart ring, after everything else this pass (the site budget
-    // goes to structures first).
+    // The outer rampart ring (RING_RCL), after everything else this pass (the site budget goes to
+    // structures first); its deeper tiles from RCL8, over whatever stands there.
+    // Every ring tile needs its barrier, whatever stands there: a rampart over a structure or road,
+    // and on a wall tile that holds anything (a wall needs an empty tile). W1N9's ring had gaps on
+    // wall tiles a road was built on later and on edge tiles under its extensions.
+    const barrier = here => here.includes(STRUCTURE_RAMPART) || here.includes(STRUCTURE_WALL);
     for (const tile of ring) {
         if (budget <= 0) break;
         const here = occupied.get(tile) || [];
-        if (here.includes(STRUCTURE_RAMPART) || here.some(t => !PASSABLE.has(t))) continue;
+        if (barrier(here)) continue;
+        site(tile, STRUCTURE_RAMPART);
+    }
+    for (const tile of ringDepth) {
+        if (budget <= 0) break;
+        const here = occupied.get(tile) || [];
+        if (here.includes(STRUCTURE_RAMPART)) continue;
         site(tile, STRUCTURE_RAMPART);
     }
     for (const tile of ringWalls) {
         if (budget <= 0) break;
-        if (occupied.has(tile)) continue;              // a rampart already there stays
-        site(tile, STRUCTURE_WALL);
+        const here = occupied.get(tile) || [];
+        if (barrier(here)) continue;                  // a rampart already there stays
+        site(tile, here.length ? STRUCTURE_RAMPART : STRUCTURE_WALL);
     }
 
     if (!established) controllerWalls(room, plan, rcl, site, occupied, fortified);
@@ -717,12 +740,14 @@ function ensureExtractor(room, rcl, budget) {
 //   - Walls: when the outer tiles outnumber the ramparts its repairers keep up (maxRamparts), every
 //     other one is a wall (no decay; planned road tiles stay ramparts for traffic). Once chosen it
 //     stays.
-// Returns { r: rampart tiles, w: wall tiles, alt }; kept with the plan (plan.ring).
+//   - Depth (d): the tiles inside the ring within RING_DEPTH of it (not next to an exit),
+//     ramparted from RCL8 over whatever stands there.
+// Returns { r: rampart tiles, w: wall tiles, d: depth tiles, alt }; kept with the plan (plan.ring).
 function ringTiles(room, plan, maxRamparts = Infinity) {
-    if (plan.ring && plan.ring.r && (plan.ring.alt || plan.ring.n <= maxRamparts)) return plan.ring;
-    const terrain = room.getTerrain();
+    if (plan.ring && plan.ring.r && plan.ring.d && (plan.ring.alt || plan.ring.n <= maxRamparts)) return plan.ring;
     const anchor = plan.anchor;
-    if (anchor === undefined) return (plan.ring = { r: [], w: [], alt: false, n: 0 });
+    if (anchor === undefined) return (plan.ring = { r: [], w: [], d: [], alt: false, n: 0 });
+    const terrain = room.getTerrain ? room.getTerrain() : Game.map.getRoomTerrain(room.name);
     const ax = (anchor / 50) | 0, ay = anchor % 50;
     const near = t => Math.max(Math.abs(((t / 50) | 0) - ax), Math.abs(t % 50 - ay)) <= RING_RANGE;
     const footprint = new Set();
@@ -780,7 +805,20 @@ function ringTiles(room, plan, maxRamparts = Infinity) {
         const x = (t / 50) | 0, y = t % 50;
         if (alt && (x + y) % 2 === 0 && !roads.has(t)) w.push(t); else r.push(t);
     }
-    return (plan.ring = { r: r.sort((a, b) => a - b), w: w.sort((a, b) => a - b), alt, n: outer.length });
+    // Depth: tiles inside the ring (not reachable from the exits) within RING_DEPTH of it (Chebyshev):
+    // planned structures and roads, and open ground between them where defenders stand.
+    const ringSet = new Set(r.concat(w));
+    const d = new Set();
+    for (const t of ringSet) {
+        const x = (t / 50) | 0, y = t % 50;
+        for (let dx = -RING_DEPTH; dx <= RING_DEPTH; dx++) for (let dy = -RING_DEPTH; dy <= RING_DEPTH; dy++) {
+            const n = (x + dx) * 50 + y + dy;
+            if (x + dx < 1 || x + dx > 48 || y + dy < 1 || y + dy > 48) continue;
+            if (ringSet.has(n) || seen.has(n) || wall(n) || blocked.has(n) || exitNear(n)) continue;
+            d.add(n);
+        }
+    }
+    return (plan.ring = { r: r.sort((a, b) => a - b), w: w.sort((a, b) => a - b), d: [...d].sort((a, b) => a - b), alt, n: outer.length });
 }
 
 function enabled(roomName) {

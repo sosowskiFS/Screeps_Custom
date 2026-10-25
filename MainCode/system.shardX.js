@@ -9,6 +9,10 @@
 //                    shardX('reset')  forget the attempt (works while switched off)
 //                    shardX('focus', ['W1N9'])  all in: only these targets stay; the others become
 //                                     bait centres (system.bait) supplied by their old sponsors
+// Promotions (promoteBait): while no target is under attack, a held 2-source bait room whose base
+// fits becomes a full target (claimed already: helpers, then guards, from the home that runs it),
+// one per home at a time and only from a home not still building up another target (helpers go
+// until a target's RCL5 structures stand). Never within 2 rooms of another target.
 // Focus shifts (shiftFocus): when the one target's controller is attacked (upgrade block) or lost,
 // the held bait room furthest along (level, then progress) becomes the target, built fortified by
 // the home that runs it; the old target becomes a bait centre. It shifts again on every attack:
@@ -422,9 +426,10 @@ function runX() {
     for (const t of (readISM(COORD_SHARD) || {}).targets || []) {
         const room = Game.rooms[t.r];
         // A bait room made the target (a focus shift): no longer a decoy, built fortified.
+        // A promoted one (promoteBait, t.up) is built as a normal room: nothing is attacking it.
         if (bait.isBait(t.r)) {
             delete bait.state().rooms[t.r];
-            (xState().fortify || (xState().fortify = {}))[t.r] = Game.time;
+            if (!t.up) (xState().fortify || (xState().fortify = {}))[t.r] = Game.time;
         }
         progress[t.r] = {
             cl: room && room.controller && room.controller.my ? 1 : 0,
@@ -680,6 +685,40 @@ function shiftFocus(x) {
     return shift;
 }
 
+// Coordinator: bait rooms made full rooms while shardX is quiet (see the header). Returns the
+// promoted targets.
+const PROMOTE_SPACING = 2;
+function promoteBait(x) {
+    const s = state();
+    const list = s.targets || [];
+    const prog = x.progress || {};
+    // Quiet: no target attacked at its controller, lost, or with armed players in it.
+    if (list.some(t => { const p = prog[t.r] || {}; return p.ub > 0 || p.lost || p.hz > 0; })) return [];
+    // Homes still building up a target (its helpers run until its RCL5 structures stand).
+    const busy = new Set(list.filter(t => !(prog[t.r] || {}).r5).map(t => t.h));
+    const cands = (x.bt || []).filter(b => b.cl && b.ns >= 2 && b.pf === 1 && !(b.ub > 0) && b.h && !busy.has(b.h))
+        .sort((a, b) => (b.lv || 0) - (a.lv || 0) || (b.pg || 0) - (a.pg || 0) || a.k - b.k);
+    const promoted = [];
+    for (const b of cands) {
+        if (busy.has(b.h)) continue;
+        if (list.concat(promoted).some(t => t.r === b.r || linear(t.r, b.r) <= PROMOTE_SPACING)) continue;
+        const next = { r: b.r, h: b.h, e: b.e, t: b.k, held: 1, up: 1 };
+        promoted.push(next);
+        busy.add(b.h);
+    }
+    if (!promoted.length) return [];
+    s.targets = list.concat(promoted);
+    s.baitCenters = (s.baitCenters || []).filter(c => !promoted.some(p => p.r === c.r));
+    s.manual = 1;       // no fresh automatic claims on top
+    s.mode = 'claim';   // support runs again until they have their terminals
+    s.dirty = 1;
+    const text = '[shardX] bait room' + (promoted.length > 1 ? 's ' : ' ') + promoted.map(p => p.r + ' (from ' + p.h + ')').join(', ') +
+        ' promoted to full room' + (promoted.length > 1 ? 's' : '');
+    console.log(text);
+    Game.notify(text);
+    return promoted;
+}
+
 // Pests (system.nuisance): one per Harabi-reserved room, from the home that scouted it.
 function scheduleNuisance(x) {
     const s = state();
@@ -714,6 +753,7 @@ function runHome() {
         }
     }
     if ((m === 'claim' || m === 'done') && here === COORD_SHARD && Game.time % 25 === 0) shiftFocus(readISM(X_SHARD) || {});
+    if ((m === 'claim' || m === 'done') && here === COORD_SHARD && Game.time % 500 === 0) promoteBait(readISM(X_SHARD) || {});
     if (mode() === 'claim' && Game.time % 25 === 0) {
         const x = readISM(X_SHARD) || {};
         if (here === COORD_SHARD) {
@@ -991,6 +1031,6 @@ function command(cmd, picks) {
 
 module.exports = {
     enabled,
-    run, reset, fortified, hardened, refreshSeen, scheduleNuisance, shiftFocus, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
+    run, reset, fortified, hardened, refreshSeen, scheduleNuisance, shiftFocus, promoteBait, baitCenters, focused, FOCUS_HELPERS, scheduleBait, scheduleFortifyHelpers, FORTIFY_HELPERS, manualTargets, noteBlock,breakerBody, portalStep, runScout, adopt, inferMemory, recordRoom, nextRoom, candidates, pick, nearCorners, scheduleScout, spawnOrder,
     spawned, command, isCorner, isSourceKeeper, X_SHARD, COORD_SHARD, BODIES, CLAIM_TICKS,
 };

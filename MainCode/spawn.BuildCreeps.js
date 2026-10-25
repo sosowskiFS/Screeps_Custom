@@ -62,6 +62,17 @@ var spawn_BuildCreeps = {
         // upgrade) and no distributor or upgrader is made yet; see bootstrap() below.
         const bootstrap = isBootstrap(thisRoom, strSources);
         const harvestSource = bootstrap ? bootstrapSource(thisRoom, strSources, RoomCreeps) : sourceShortOfWork(thisRoom, strSources, RoomCreeps);
+        // Harvesters at full size (5 WORK) whenever energy still comes in: another harvester at work
+        // and a distributor to fill the extensions. Sized to the energy on hand they came out at
+        // 1 WORK after a bad patch, filled every tile at their source and kept it a third mined for
+        // their whole lives (shardSeason W24N8: four of them, income 13 a tick of 20).
+        const fullMiner = getMinerConfig(thisRoom.energyCapacityAvailable, ownCreeps, harvesterCount);
+        const harvesting = RoomCreeps.some(c => c && c.memory && (c.memory.priority === 'harvester' || c.memory.priority === 'harvesterNearDeath') &&
+            c.memory.homeRoom === roomName && typeof c.getActiveBodyparts === 'function' && c.getActiveBodyparts(WORK) > 0);
+        const waitForMiner = !bootstrap && harvesting && distributorCount > 0;
+        // A source whose tiles are all taken by undersized harvesters: the smallest makes way for a
+        // full one once that is affordable.
+        const weak = bootstrap ? undefined : weakHarvester(thisRoom, strSources, RoomCreeps, fullMiner.filter(p => p === WORK).length);
         let builderMax = runtimeCache.find(thisRoom, FIND_CONSTRUCTION_SITES).length > 0 ? 1 : 0;
         let upgraderMax = getUpgraderMax(thisRoom);
         // Walls around the controller: one local repairer keeps strengthening them (claim defense).
@@ -178,20 +189,35 @@ var spawn_BuildCreeps = {
 					directions: buildDirections
                 });
                 global.setSpawnBusy(spawn);
-        } else if ((harvestSource || builderCount < builderMax || upgraderCount < upgraderMax || repairerCount < repairMax || supplierCount < supplierMax || distributorCount < distributorMax)) {
+        } else if ((harvestSource || weak || builderCount < builderMax || upgraderCount < upgraderMax || repairerCount < repairMax || supplierCount < supplierMax || distributorCount < distributorMax)) {
             var prioritizedRole = 'harvester';
             var creepSourceID = '';
 
             // Prioritize essential roles first, then support roles
-            if (harvestSource) {
+            if (!bootstrap && harvesting && distributorCount === 0 && distributorMax > 0 && thisRoom.energyCapacityAvailable >= 150 &&
+                thisRoom.storage && (thisRoom.storage.store[RESOURCE_ENERGY] || 0) >= 100) {
+                // Harvesters at work but nobody refilling the spawn and extensions: the distributor
+                // first, whatever the spawn holds. Every body after it came out at what the spawn
+                // regenerates (shardSeason W24N8: 1-WORK harvesters, energy in the storage).
+                prioritizedRole = 'distributor';
+                bestWorker = getDistributorConfig(budget, ownCreeps, harvesterCount);
+            } else if (harvestSource) {
                 prioritizedRole = 'harvester';
                 creepSourceID = harvestSource;
-                bestWorker = bootstrap ? getBootstrapConfig(budget) : getMinerConfig(budget, ownCreeps, harvesterCount);
+                if (bootstrap) bestWorker = getBootstrapConfig(budget);
+                else if (calculateConfigCost(fullMiner) <= budget) bestWorker = fullMiner;
+                else if (waitForMiner) return;   // saving up for a full one
+                else bestWorker = getMinerConfig(budget, ownCreeps, harvesterCount);
             } else if (distributorCount < distributorMax && thisRoom.energyCapacityAvailable >= 150) {
                 prioritizedRole = 'distributor';
                 // The first one now (whatever the spawn holds); a replacement at full size.
                 bestWorker = getDistributorConfig(distributorCount ? thisRoom.energyCapacityAvailable : budget, ownCreeps, harvesterCount);
                 if (distributorCount && calculateConfigCost(bestWorker) > budget) return;
+            } else if (weak && calculateConfigCost(fullMiner) <= budget) {
+                weak.creep.suicide();
+                prioritizedRole = 'harvester';
+                creepSourceID = weak.source;
+                bestWorker = fullMiner;
             } else if (upgraderCount < upgraderMax && thisRoom.energyCapacityAvailable >= 200) {
                 // The dedicated upgrader: at the size the room affords once a distributor fills the
                 // extensions (the first one now, whatever the spawn holds).
@@ -221,6 +247,8 @@ var spawn_BuildCreeps = {
             }
 
             bestWorker = fitBody(bestWorker, budget);
+            // A harvester without CARRY drops everything it mines: wait instead.
+            if (prioritizedRole === 'harvester' && !bootstrap && !bestWorker.includes(CARRY)) return;
             let configCost = calculateConfigCost(bestWorker);
 
             if (bestWorker.length && configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
@@ -399,6 +427,23 @@ function sourceShortOfWork(room, sourceIds, roomCreeps) {
         if (work < bestWork) { best = id; bestWork = work; }
     }
     return best;
+}
+
+// A source short of 5 WORK with every tile taken: { source, creep } with its smallest harvester, if
+// that one has fewer WORK than a full harvester would.
+function weakHarvester(room, sourceIds, roomCreeps, fullWork) {
+    for (const id of sourceIds) {
+        const source = Game.getObjectById(id);
+        if (!source) continue;
+        const assigned = roomCreeps.filter(c => c && c.memory && c.memory.sourceLocation === id &&
+            (c.memory.priority === 'harvester' || c.memory.priority === 'harvesterNearDeath'));
+        if (assigned.length < harvestSlots(source) || assigned.some(c => c.pending || typeof c.getActiveBodyparts !== 'function')) continue;
+        const work = assigned.reduce((n, c) => n + c.getActiveBodyparts(WORK), 0);
+        if (work >= SOURCE_WORK) continue;
+        const smallest = assigned.slice().sort((a, b) => a.getActiveBodyparts(WORK) - b.getActiveBodyparts(WORK))[0];
+        if (smallest.getActiveBodyparts(WORK) < fullWork) return { source: id, creep: smallest };
+    }
+    return undefined;
 }
 
 // Containers beside the sources that are nearly full: harvested energy about to overflow.

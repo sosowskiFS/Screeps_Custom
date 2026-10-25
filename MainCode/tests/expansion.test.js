@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { harness, plain } = require('./harness');
 
 // Home E10N10 (sponsor), candidate E14N10 four rooms east. Every room nearby is scouted and empty.
-function setup({ ema = 150, harasser = 10, roomCpu = 5 } = {}) {
+function setup({ ema = 150, harasser = 10, roomCpu = 5, scouted = true } = {}) {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
     g.RESOURCE_ENERGY = 'energy';
@@ -30,7 +30,7 @@ function setup({ ema = 150, harasser = 10, roomCpu = 5 } = {}) {
     };
     g.Game.map.getRoomTerrain = () => ({ get: (x, y) => (x === 0 || y === 0 || x === 49 || y === 49 ? 1 : 0) });
     g.Memory.expandIntel = {};
-    for (const name of expansion.around('E12N10', 4)) g.Memory.expandIntel[name] = { t: g.Game.time };
+    for (const name of expansion.around('E12N10', 4).concat(scouted ? expansion.around('E10N10', 6) : [])) g.Memory.expandIntel[name] = { t: g.Game.time };
     const candidate = { t: g.Game.time, n: 2, c: [25, 10], s: [[10, 30], [40, 30]], m: [20, 40] };
     g.Memory.expandIntel.E14N10 = candidate;
     return { h, g, expansion, candidate };
@@ -200,4 +200,35 @@ test('shardX: no room sponsors, a bait room is never adopted, and a support unde
     g.Game.time = 100100;
     expansion.run();
     assert.equal(g.Memory.expansion.t, undefined, 'and it is not adopted again');
+});
+
+test('scouting starts at RCL6 whatever is stored; a claim waits for a fit sponsor', () => {
+    const { g, expansion } = setup();
+    const home = g.Game.rooms.E10N10;
+    home.controller.level = 5;
+    expansion.run();
+    assert.ok(!g.Memory.expansion.scan, 'RCL5: no scouting');
+    home.controller.level = 6;
+    home.storage.store.energy = 5000;
+    g.Memory.expansion.next = 0;
+    expansion.run();
+    assert.ok(g.Memory.expansion.scan > g.Game.time, 'RCL6 with 5,000 stored: scanning');
+    assert.equal(g.Memory.expansion.t, undefined, 'but no claim: it cannot sponsor yet');
+    home.storage.store.energy = 200000;
+    g.Memory.expansion.next = 0;
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, 'E14N10');
+});
+
+test('no claim until most of the area is known (the best room, not the first seen); after long enough, from what is known', () => {
+    const { g, expansion } = setup({ scouted: false });
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, undefined, 'a valid candidate, but only part of the area scouted');
+    assert.ok(g.Memory.expansion.cov < expansion.COVERAGE * 100);
+    assert.ok(g.Memory.expansion.scan > g.Game.time, 'scanning on');
+    g.Game.time += expansion.SCAN_PATIENCE;
+    for (const name in g.Memory.expandIntel) g.Memory.expandIntel[name].t = g.Game.time;
+    g.Memory.expansion.next = 0;
+    expansion.run();
+    assert.equal(g.Memory.expansion.t, 'E14N10', 'scanned long enough: the best of what is known');
 });
