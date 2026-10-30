@@ -32,6 +32,7 @@ const creep_farScout = require('creep.farScout');
 const creep_highwayPatrol = require('creep.highwayPatrol');
 const creep_harasser = require('creep.harasser');
 const creep_retireHauler = require('creep.retireHauler');
+const creep_reactorClaimer = require('creep.reactorClaimer');
 const roles = Object.create(null);
 function register(names, run) {
     for (const name of names) roles[name] = run;
@@ -193,6 +194,12 @@ register(['farScout'], (creep, isRoomAt5) => {
     return;
 });
 
+// Seasonal World: takes a sector-centre reactor (system.reactors).
+register(['reactorClaimer'], (creep, isRoomAt5) => {
+    creep_reactorClaimer.run(creep);
+    return;
+});
+
 register(['highwayPatrol', 'highwayPatrolNearDeath'], (creep, isRoomAt5) => {
     creep_highwayPatrol.run(creep);
     return;
@@ -232,7 +239,7 @@ function tier(names, value) {
 }
 const underAttack = creep => Memory.roomsUnderAttack && Memory.roomsUnderAttack.indexOf(creep.memory.homeRoom || creep.room.name) !== -1;
 tier(['farMule', 'farMuleNearDeath', 'farClaimer', 'farClaimerNearDeath', 'farMineralMiner',
-    'looter', 'helper', 'distantSupplier', 'farScout'], ECONOMY);
+    'looter', 'helper', 'distantSupplier', 'farScout', 'reactorClaimer'], ECONOMY);
 // Keeper-room miners carry HEAL and fight keepers: skipping their ticks gets them killed.
 tier(['farMiner', 'farMinerNearDeath'], creep => creep.memory.jobSpecific === 'SKMiner' || creep.getActiveBodyparts(HEAL) > 0 ? ESSENTIAL : ECONOMY);
 tier(['repair', 'repairNearDeath'], creep => underAttack(creep) ||

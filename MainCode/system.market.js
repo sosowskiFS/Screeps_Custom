@@ -343,6 +343,7 @@ function handleMarketOperations() {
     if (Game.time % 100 === 0) {
         if (intershard) sellPixels();
         sellCompounds();   // room resources: every shard sells its own
+        require('system.mineralBuy').run();   // base minerals for the boost labs, when critically low
     }
 }
 
@@ -361,4 +362,4 @@ function handleCPUUnlocking() {
     }
 }
 
-module.exports = { sellTradeGoods, MARKET_SHARD,managesIntershard, isIntershard, cleanupOrders, handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice };
+module.exports = { sellTradeGoods, MARKET_SHARD,managesIntershard, isIntershard, cleanupOrders, handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice, competitors };

@@ -212,8 +212,9 @@ function manageRoomStructures(thisRoom) {
             }
         }
 
-        // Generate ramparts around controller (8 adjacent tiles)
-        if (!constructionLimitReached && !coreOnly) {
+        // No ramparts round the controller: ramparts go over structures and on the ring only
+        // (base.builder rampartTiles; others are removed there).
+        if (false) {
             const controllerPos = thisRoom.controller.pos;
             outer: for (let dx = -1; dx <= 1; dx++) {
                 for (let dy = -1; dy <= 1; dy++) {

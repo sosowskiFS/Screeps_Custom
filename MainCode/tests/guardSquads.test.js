@@ -4,7 +4,7 @@ const { harness, plain } = require('./harness');
 function setup(overrides = {}) {
     const h = harness(overrides), g = h.context;
     h.load('runtime.memory').ensureInitialized();
-    h.context.Memory.settings = Object.assign({}, h.context.Memory.settings, { shardX: true });   // these tests exercise shardX switched on
+    h.context.Memory.settings = Object.assign({}, h.context.Memory.settings, { shardX: true, shardXQuads: true });   // these tests exercise shardX (and its quads) switched on
     g.Game.shard.name = 'shard2';
     let now = 1000000;
     g.Date = { now: () => now };

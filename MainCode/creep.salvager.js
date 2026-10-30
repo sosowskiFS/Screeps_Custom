@@ -85,7 +85,11 @@ var creep_salvager = {
                 }
             } else if (creep.memory.targetType == 1) {
                 var pickupResult = creep.pickup(foundObject);
-                if (pickupResult == ERR_NOT_IN_RANGE) {
+                if (pickupResult == ERR_NOT_IN_RANGE && !require('room.reach').reachable(foundObject, creep)) {
+                    // Nobody can stand next to it (room.reach): give it up.
+                    creep.memory.targetId = undefined;
+                    creep.memory.targetType = undefined;
+                } else if (pickupResult == ERR_NOT_IN_RANGE) {
                     creep.travelTo(foundObject, {
                         maxRooms: 1
                     });
@@ -179,12 +183,12 @@ function findTarget(creep, amountWithdrawn) {
             if (creep.memory.lastTargetId) {
                 returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
                     filter: (thisResource) => (thisResource.id != creep.memory.lastTargetId &&
-                        !mineralBudget.isDumped(creep.room.name, thisResource.resourceType))
+                        !mineralBudget.isDumped(creep.room.name, thisResource.resourceType) && require('room.reach').reachable(thisResource, creep))
                 });
             } else {
                 // Piles the lab worker dumped on purpose (excess minerals) are left to decay.
                 returnObject = creep.pos.findClosestByRange(FIND_DROPPED_RESOURCES, {
-                    filter: (thisResource) => !mineralBudget.isDumped(creep.room.name, thisResource.resourceType)
+                    filter: (thisResource) => !mineralBudget.isDumped(creep.room.name, thisResource.resourceType) && require('room.reach').reachable(thisResource, creep)
                 });
             }
             if (returnObject) {

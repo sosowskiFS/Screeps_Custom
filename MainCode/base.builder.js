@@ -323,6 +323,81 @@ function clearLeftovers(room) {
     return true;
 }
 
+// Where a rampart of ours may stand (anything else is removed, clearStrays): over a structure of ours
+// (built, or a site for one), the Supply tile (the tower supplier's spot), and the ring with its
+// depth (ringTiles: outer tiles, alternate walls, and the 2 tiles in) in a ring room from RCL7.
+const NOT_COVERED = () => new Set([STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART, STRUCTURE_WALL, STRUCTURE_CONTROLLER]);
+function rampartTiles(room, plan) {
+    const allowed = new Set();
+    const skip = NOT_COVERED();
+    for (const s of runtimeCache.find(room, FIND_MY_STRUCTURES)) if (!skip.has(s.structureType)) allowed.add(tileOf(s.pos));
+    for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) if (!skip.has(s.structureType)) allowed.add(tileOf(s.pos));
+    const flag = Game.flags[room.name + 'Supply'];
+    if (flag && flag.pos.roomName === room.name) allowed.add(tileOf(flag.pos));
+    if (plan.flags && plan.flags.Supply !== undefined) allowed.add(plan.flags.Supply);
+    const hardened = require('system.shardX').hardened(room);
+    if (room.controller.level >= RING_RCL && (stage.established(room) || hardened)) {
+        const ring = ringTiles(room, plan, hardened ? Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP) : Infinity);
+        for (const t of ring.r.concat(ring.w, ring.d || [])) allowed.add(t);
+    }
+    return allowed;
+}
+
+// Our structures off the plan, removed on each build pass while no hostile is in the room:
+//   - ramparts (and rampart sites) where rampartTiles allows none, under STRAY_KEEP_HITS; in every
+//     room, migrating too.
+//     Ramparts kept going up over everything (the old generator, a ring at RCL5, the controller's
+//     tiles) and each one costs repairs for ever.
+//   - fresh-layout rooms not migrating (base.migrate moves those): a structure of a planned kind
+//     on a tile not planned for that kind, one per pass. Never the last spawn, a spawning one, or
+//     a store holding anything but a little energy (storage, terminal: never while not empty).
+// Other players' structures go by clearLeftovers.
+const STRAY_RAMPARTS_PER_PASS = 20;
+// Established ramparts stay where they are: over 1M hits (the RCL8 rooms' exit-line walls and
+// controller rings held about 181 billion hits in about 1,550 such ramparts).
+const STRAY_KEEP_HITS = 1000000;
+function clearStrays(room, plan) {
+    if (runtimeCache.find(room, FIND_HOSTILE_CREEPS).length) return 0;
+    if ((Memory.roomsUnderAttack || []).includes(room.name)) return 0;
+    const allowed = rampartTiles(room, plan);
+    let removed = 0;
+    for (const site of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
+        if (site.structureType === STRUCTURE_RAMPART && !allowed.has(tileOf(site.pos)) && typeof site.remove === 'function') site.remove();
+    }
+    for (const s of runtimeCache.find(room, FIND_MY_STRUCTURES)) {
+        if (removed >= STRAY_RAMPARTS_PER_PASS) break;
+        if (s.structureType !== STRUCTURE_RAMPART || allowed.has(tileOf(s.pos)) || s.hits >= STRAY_KEEP_HITS) continue;
+        if (typeof s.destroy === 'function' && s.destroy() === OK) removed++;
+    }
+    if (removed) console.log('[base] ' + room.name + ': removed ' + removed + ' stray rampart' + (removed > 1 ? 's' : '') + ' (off the structures and the ring)');
+    if (plan.mode === 'fresh' && !plan.migration) {
+        const misplaced = misplacedStructure(room, plan);
+        if (misplaced && typeof misplaced.destroy === 'function' && misplaced.destroy() === OK) {
+            removed++;
+            console.log('[base] ' + room.name + ': removed a ' + misplaced.structureType + ' at ' + misplaced.pos.x + ',' + misplaced.pos.y + ' (not a planned tile for it)');
+        }
+    }
+    return removed;
+}
+
+function misplacedStructure(room, plan) {
+    const mine = runtimeCache.find(room, FIND_MY_STRUCTURES);
+    const spawns = mine.filter(s => s.structureType === STRUCTURE_SPAWN);
+    for (const s of mine) {
+        const kind = KIND_OF[s.structureType];
+        if (!kind || (plan.structures[kind] || []).includes(tileOf(s.pos))) continue;
+        if (s.structureType === STRUCTURE_SPAWN && (spawns.length <= 1 || s.spawning)) continue;
+        if (s.store) {
+            const used = s.store.getUsedCapacity ? s.store.getUsedCapacity() : Object.values(s.store).reduce((n, v) => n + (v || 0), 0);
+            const energyOnly = !s.store.getUsedCapacity || used === (s.store.getUsedCapacity(RESOURCE_ENERGY) || 0);
+            const big = s.structureType === STRUCTURE_STORAGE || s.structureType === STRUCTURE_TERMINAL || s.structureType === STRUCTURE_FACTORY;
+            if ((big && used > 0) || !energyOnly || used > 2000) continue;
+        }
+        return s;
+    }
+    return undefined;
+}
+
 // Extensions no hauler can reach any more (walled in by structures of two layouts during a
 // migration: E19N59 37,47). One per pass is destroyed; the builder only puts it back once its
 // tile is reachable again. Other kinds are only reported.
@@ -426,6 +501,7 @@ function buildRoom(room, plan) {
     plan = plan || planOf(room.name);
     if (!plan || !room.controller || !room.controller.my) return 0;
     const rcl = room.controller.level;
+    clearStrays(room, plan);
     const occupied = new Map();   // tile -> [structureType]
     const roadObjects = new Map();
     const finished = new Set();   // tiles holding a built (not just planned) structure
@@ -626,8 +702,7 @@ function buildRoom(room, plan) {
         }
     }
 
-    // Ramparts over finished planned structures and over the core's creep spots (Supply,
-    // miner tiles), as the previous generator did.
+    // Ramparts over finished planned structures and the Supply tile (rampartTiles: nothing else).
     // Below RCL8: the core only (CORE_RAMPART_RCL).
     const coreTiles = new Set(runtimeCache.find(room, FIND_MY_STRUCTURES)
         .filter(s => CORE_RAMPART_TYPES().includes(s.structureType)).map(s => tileOf(s.pos)));
@@ -644,7 +719,7 @@ function buildRoom(room, plan) {
             for (const tile of coreTiles) covered.push(tile);
         } else {
             for (const kind in plan.structures) for (const tile of plan.structures[kind]) if (finished.has(tile)) covered.push(tile);
-            if (plan.mode === 'fresh') for (const name in plan.flags) covered.push(plan.flags[name]);
+            if (supplyTile !== undefined) covered.push(supplyTile);
         }
         for (const tile of covered) {
             if (budget <= 0) break;
@@ -966,4 +1041,4 @@ function visualizeFlagged() {
     vis.text(`base plan (${plan.mode}${labs.length ? '' : ', no lab stamp fits'})`, 25, 1, { color: '#ffffff', font: 0.7 });
 }
 
-module.exports = { ringTiles, run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
+module.exports = { ringTiles, rampartTiles, clearStrays, misplacedStructure, STRAY_KEEP_HITS, run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };

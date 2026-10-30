@@ -274,4 +274,4 @@ function surplus(resource, stock) {
 
 const SELLABLE = Object.keys(TARGET_PER_ROOM).filter(res => res !== RESOURCE_GHODIUM);
 
-module.exports = { run, plan, jobFor, surplus, recipeOf, candidates, targets, empireStock, SELLABLE, TARGET_PER_ROOM, COMBAT, AFTER_COMBAT };
+module.exports = { run, plan, jobFor, surplus, recipeOf, candidates, targets, empireStock, labRooms, SELLABLE, TARGET_PER_ROOM, COMBAT, AFTER_COMBAT };

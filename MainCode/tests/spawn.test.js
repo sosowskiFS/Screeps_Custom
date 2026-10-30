@@ -132,3 +132,31 @@ test('supplier role: fills towers on foot while its Supply tile is blocked, foll
     supplier.run(creep);
     assert.deepEqual(calls, [['travelTo', 'flag']]);
 });
+
+test('supplier on its tile: towers first, then the spawn beside it (not one further off); nothing when all are full', () => {
+    const { h, g } = setup();
+    const calls = [];
+    g.Game.flags.ASupply = { pos: { x: 25, y: 25, lookFor: () => [] } };
+    const free = { near: 300, far: 300 };
+    const spawnAt = (id, x, y) => ({ id, pos: { x, y }, store: { getFreeCapacity: () => free[id] } });
+    const near = spawnAt('near', 26, 25), far = spawnAt('far', 30, 30);
+    const tower = { id: 'tower' };
+    g.Game.getObjectById = id => ({ tower, near, far })[id];
+    g.Memory.towerNeedEnergy = { A: ['tower'] };
+    const creep = { room: { name: 'A', storage: { id: 'storage' }, find: () => [near, far] },
+        pos: { x: 25, y: 25, isNearTo: o => Math.max(Math.abs(o.pos.x - 25), Math.abs(o.pos.y - 25)) <= 1 },
+        memory: { priority: 'supplier', deathWarn: 0, spot: '25,25', atSpot: true },
+        ticksToLive: 1000, body: [], carry: { energy: 400 },
+        travelTo: t => calls.push(['travelTo', t.id]),
+        transfer: t => { calls.push(['transfer', t.id]); return g.OK; },
+        withdraw: t => { calls.push(['withdraw', t.id]); return g.OK; } };
+    const supplier = h.load('creep.supplier');
+    supplier.run(creep);
+    assert.deepEqual(calls.splice(0), [['transfer', 'tower']], 'a tower needs energy: the tower');
+    g.Memory.towerNeedEnergy.A = [];
+    supplier.run(creep);
+    assert.deepEqual(calls.splice(0), [['transfer', 'near']], 'towers fed: the spawn beside its tile');
+    free.near = 0;
+    supplier.run(creep);
+    assert.deepEqual(calls.splice(0), [], 'never walks to the far spawn; all full: waits');
+});

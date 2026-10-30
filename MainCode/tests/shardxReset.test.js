@@ -7,7 +7,7 @@ const { harness, plain } = require('./harness');
 function setup() {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
-    g.Memory.settings = Object.assign({}, g.Memory.settings, { shardX: true });
+    g.Memory.settings = Object.assign({}, g.Memory.settings, { shardX: true, shardXQuads: true });
     g.Game.shard.name = 'shard2';
     g.console = { log: () => {} };
     g.Date = { now: () => 1000000 };
@@ -90,4 +90,16 @@ test('a declaimed shardX room still being claimed keeps its quads (reclaim), and
     t.messages.shardX = JSON.stringify({ guards: { at: 1000000, ms: 3000, rooms: {}, members: {} }, xs: { progress: { E29N36: { cl: 0, lost: 1 } } } });
     t.sys.run();
     assert.ok(t.sys.state().targets['shardX:E29N36'], 'quads are scheduled for the reclaim');
+});
+
+// Boosts ran dry: quads for shardX rooms paused. No new members; one waiting at home for a squad
+// that will not fill goes back (unboosted); the target itself stays.
+test('shardX quads paused: no orders for them, and a member waiting at home is recalled', () => {
+    const s = setup();
+    delete s.g.Memory.settings.shardXQuads;   // the default: paused
+    s.sys.run();
+    assert.ok(s.sys.state().targets['shardX:E29N36'], 'the target stays');
+    assert.equal(s.sys.xQuadsOn(), false);
+    assert.equal(s.sys.spawnOrder('E32N39'), null, 'nothing new for it');
+    assert.equal(s.g.Game.creeps.q0.memory.guardRecall, 1, 'the member at home goes back');
 });

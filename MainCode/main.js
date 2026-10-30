@@ -37,6 +37,7 @@ const phases = [
     ['energyFlow', () => require('system.energyFlow').sample()],   // after creeps: this tick's events
     ['guardProgress', () => require('system.guardSquads').publish(false)],
     ['remoteMining', remoteMining.run],
+    ['reactors', () => require('system.reactors').run()],   // Seasonal World only
     ['minerals', labs.run],
     ['construction', construction.handleAutoBuildRoomsRegeneration],
     ['roads', roads.run],

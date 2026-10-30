@@ -155,6 +155,9 @@ function processSpawnCommands(spawn, thisRoom, energyIndex, spawnRoleCache) {
 
     // Remote-mining intel: a 1-MOVE scout when nearby rooms are unknown/stale or a disabled
     // remote is due its safety check (homes with an observer use that instead).
+    // Seasonal World: a claimer for a sector-centre reactor now and then (system.reactors).
+    if (!isSpawnBusy(spawn)) require('system.reactors').spawn(spawn, thisRoom, energyIndex);
+
     if (!isSpawnBusy(spawn) && remoteMining.needsScout(thisRoom)) {
         spawn_BuildInstruction.run(spawn, 'farScout', '', energyIndex, thisRoom.name);
     }

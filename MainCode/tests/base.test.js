@@ -211,7 +211,7 @@ test('a young room (no terminal) gets no road sites and no ramparts off its shel
     assert.ok(!types.includes(g.STRUCTURE_ROAD));
     const shell = new Set(existing.map(s => s.pos.x + ',' + s.pos.y));
     assert.ok(sites.filter(s => s[2] === g.STRUCTURE_RAMPART).every(s => shell.has(s[0] + ',' + s[1])), 'ramparts only over the shell');
-    assert.deepEqual(removed, ['road', 'rampart'], 'the stray rampart site at 3,3 goes');
+    assert.deepEqual([...new Set(removed)].sort(), ['rampart', 'road'], 'the stray rampart site at 3,3 goes');
 });
 
 test('every young room gets a rampart shell over its spawn, towers and storage only (below RCL8 not the Supply tile, even with a supplier)', () => {
@@ -664,4 +664,50 @@ test('every ring tile gets its barrier: a rampart over a structure or road, a wa
     assert.ok(r.walls.includes(t(19, 26)) && !r.walls.includes(t(19, 24)), 'an empty wall tile: a wall');
     assert.ok(r.ramparts.includes(t(19, 25)), 'over a container');
     assert.ok(r.ramparts.includes(t(20, 20)), 'over an extension (the ring on the base edge)');
+});
+
+// Stray cleanup (clearStrays): ramparts only over structures, the Supply tile and the ring; our
+// structures off a fresh plan go one per pass; never in a migrating room (ramparts still are).
+function strayRoom({ migration = false, mode = 'fresh', hostiles = 0 } = {}) {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.RESOURCE_ENERGY = 'energy';
+    const t = (x, y) => x * 50 + y;
+    const gone = [];
+    const mk = (type, x, y, extra = {}) => Object.assign({ structureType: g['STRUCTURE_' + type], my: true, pos: { x, y }, hits: 5000,
+        destroy() { gone.push(type + '@' + x + ',' + y); return g.OK; } }, extra);
+    const structures = [
+        mk('SPAWN', 20, 20), mk('SPAWN', 21, 20), mk('RAMPART', 20, 20),           // over a structure: stays
+        mk('RAMPART', 30, 30),                                                         // stray, low: goes
+        mk('RAMPART', 31, 31, { hits: 50000000 }),                                     // stray, established: stays
+        mk('RAMPART', 25, 26),                                                         // the Supply tile: stays
+        mk('EXTENSION', 10, 10, { store: { getUsedCapacity: r => (r ? 50 : 50) } }),   // off the plan: goes
+        mk('STORAGE', 12, 12, { store: { getUsedCapacity: r => (r ? 1000 : 1000) } }), // off the plan, not empty: stays
+    ];
+    const room = { name: 'R', controller: { my: true, level: 6, pos: { x: 40, y: 40 } },
+        find: type => type === g.FIND_MY_STRUCTURES ? structures : type === g.FIND_HOSTILE_CREEPS ? new Array(hostiles).fill({}) : [] };
+    g.Game.rooms.R = room;
+    const plan = { mode, migration, anchor: t(25, 25), flags: { Supply: t(25, 26) }, roads: [], paths: [],
+        structures: { spawn: [t(20, 20), t(21, 20)], extension: [t(11, 11)], storage: [t(26, 26)] } };
+    const builder = h.load('base.builder');
+    return { run: () => builder.clearStrays(room, plan), gone };
+}
+
+test('stray ramparts under 1M hits go; established ones, those over structures and on the Supply tile stay; misplaced structures go one per pass', () => {
+    const s = strayRoom();
+    s.run();
+    assert.deepEqual(s.gone.slice().sort(), ['EXTENSION@10,10', 'RAMPART@30,30'], JSON.stringify(s.gone));
+});
+
+test('a migrating room: stray ramparts still go, structures stay; nothing at all with hostiles in the room', () => {
+    let s = strayRoom({ migration: true });
+    s.run();
+    assert.deepEqual(s.gone, ['RAMPART@30,30']);
+    s = strayRoom({ mode: 'adopt' });
+    s.run();
+    assert.deepEqual(s.gone, ['RAMPART@30,30'], 'adopted layouts keep their hand-built structures');
+    s = strayRoom({ hostiles: 1 });
+    s.run();
+    assert.deepEqual(s.gone, []);
 });

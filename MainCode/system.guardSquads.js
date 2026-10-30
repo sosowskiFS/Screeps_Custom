@@ -327,6 +327,17 @@ function updateTarget(t) {
         if (switchedOff) delete state().targets[key(t.shard, t.room)];
         return;
     }
+    // shardX quads paused (xQuadsOn): a member still at home for a squad that will not fill goes
+    // back (unboosted, its minerals partly recovered) rather than waiting for ever.
+    if (t.shard === 'shardX' && !xQuadsOn()) {
+        for (const c of localMembers()) {
+            if (c.memory.destination !== t.room || c.memory.guardTargetShard !== t.shard) continue;
+            if (c.memory.guardPhase && c.memory.guardPhase !== 'boosting') continue;
+            if (!c.room || c.room.name !== c.memory.homeRoom) continue;
+            const q = t.squads.find(sq => sq.id === c.memory.guardSquad);
+            if (!q || q.slots.some(sl => !sl.name)) c.memory.guardRecall = 1;
+        }
+    }
     const desired = t.desired || DESIRED_SQUADS;
     t.lead = leadTime(t);
     complete.sort((a, b) => b.created - a.created);
@@ -482,9 +493,18 @@ function run() {
     require('system.guardBoosts').prepare();
     publish(false);
 }
+// Quads for shardX rooms are paused (boosts ran dry): no new members are spawned for them, and
+// members still waiting at home for an incomplete squad are recalled (creep.recall unboosts them).
+// Squads already travelling or posted stay. Memory.settings.shardXQuads = true resumes them.
+const X_QUADS = false;
+function xQuadsOn() {
+    const setting = Memory.settings && Memory.settings.shardXQuads;
+    return setting === undefined ? X_QUADS : !!setting;
+}
 function spawnOrder(home) {
     for (const t of Object.values(state().targets)) {
         if (t.stopped || !t.squads.some(q => homeOf(t, q) === home)) continue;
+        if (t.shard === 'shardX' && !xQuadsOn()) continue;
         const remaining = safeModeRemaining(t.shard, t.room);
         if (remaining > (t.lead || leadTime(t)) + PREDEPLOY_MARGIN) continue;
         const activeIds = Array.isArray(t.active) ? t.active : t.active ? [t.active] : [];
@@ -553,6 +573,6 @@ function report() {
     }
     return rows;
 }
-module.exports = { register, alignManifests, followManifests, retarget, REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
+module.exports = { xQuadsOn, register, alignManifests, followManifests, retarget, REFILL_WINDOW, canBuildQuads, chooseHome, helperHome, homeOf,forget, claimTarget, state, key, body, clock, latch, escalated, run, publish, adopt, spawnOrder, spawned,
     report, fresh, snapshot, movement, travelTicks, leadTime, safeModeRemaining, protectedRampart, rampartCap, shellRampartDue,
     DESIRED_SQUADS, SIEGE_RAMPART_HITS, SHELL_RAMPART_HITS, BOOSTS_BY_PART };

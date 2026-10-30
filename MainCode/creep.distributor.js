@@ -78,7 +78,8 @@ module.exports = {
             let locatedTarget = false;
             if (creep.memory.groundEnergy) {
                 let groundTarget = Game.getObjectById(creep.memory.groundEnergy)
-                if (groundTarget) {
+                // A pile nobody can stand next to (room.reach) is given up.
+                if (groundTarget && require('room.reach').reachable(groundTarget, creep)) {
                     if (creep.pickup(groundTarget) == ERR_NOT_IN_RANGE && groundTarget.amount >= 100) {
                         creep.travelTo(groundTarget, {
                             ignoreRoads: true
@@ -94,7 +95,7 @@ module.exports = {
             if (!locatedTarget && Memory.roomsUnderAttack.indexOf(creep.room.name) === -1) {
                 let groundItems = creep.pos.findInRange(FIND_DROPPED_RESOURCES, 10, {
                     filter: (thisResource) => {
-                        return (thisResource.resourceType == RESOURCE_ENERGY && thisResource.amount >= 100);
+                        return (thisResource.resourceType == RESOURCE_ENERGY && thisResource.amount >= 100 && require('room.reach').reachable(thisResource, creep));
                     }
                 });
                 if (groundItems.length > 0) {
