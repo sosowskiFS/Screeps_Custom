@@ -592,7 +592,8 @@ function evacuate(creep, target, storage) {
         }
         return true;
     }
-    const resource = Object.keys(target.store).find(res => target.store[res] > 0);
+    const held = Object.keys(target.store).filter(res => target.store[res] > 0);
+    const resource = held.find(res => res !== RESOURCE_ENERGY) || (target.structureType === STRUCTURE_LAB ? undefined : held[0]);
     if (!resource) return false;
     if (creep.withdraw(target, resource) == ERR_NOT_IN_RANGE) {
         creep.travelTo(target, { maxRooms: 1, ignoreRoads: true });
@@ -602,7 +603,7 @@ function evacuate(creep, target, storage) {
 
 // Lab ids and minerals are not stored in creep memory (they were ~20 fields per lab worker, and
 // went stale when base migration rebuilt labs). Each tick they come from the room:
-//   lab1..lab10       Memory.labList[room] (boost labs 0-2, reagents 3-4, outputs 5+)
+//   lab1..lab10       Memory.labList[room] (0-2 load a boost on demand, reagents 3-4, outputs 5+)
 //   mineral1..3       the room's boost minerals (Memory.roomConfigs[room].mineralConfig), or the
 //                     reaction's product for a flex boost lab reacting now (system.labLayout)
 //   react / flex      ids of boost labs reacting now / of every flex boost lab

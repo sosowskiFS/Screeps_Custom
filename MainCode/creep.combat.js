@@ -226,7 +226,10 @@ function handleBoosting(creep, intel) {
         filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_KEANIUM_ALKALIDE)
     })[0];
     if (!lab || lab.mineralAmount < unboosted * LAB_BOOST_MINERAL || lab.energy < unboosted * LAB_BOOST_ENERGY) {
-        creep.memory.needBoosts = false;
+        // The lab worker is loading a lab that was reacting (system.labLayout): fight until it is ready.
+        if (!require('system.labLayout').boostPending(creep.room, RESOURCE_CATALYZED_KEANIUM_ALKALIDE, unboosted * LAB_BOOST_MINERAL)) {
+            creep.memory.needBoosts = false;
+        }
         return false;
     }
     if (!creep.pos.isNearTo(lab)) {

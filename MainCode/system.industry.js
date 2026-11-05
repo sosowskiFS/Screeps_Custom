@@ -86,21 +86,24 @@ function updateRoomStructureLists(thisRoom) {
     const labs = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
         filter: { structureType: STRUCTURE_LAB }
     });
-    // Planned rooms: boost labs, then the two reagent labs, then outputs (labWorker and
-    // manageLabOperations read roles by index). Only when every lab is a planned one.
+    // Planned rooms: 3 that load boosts on demand, then the two reagent labs, then outputs (labWorker
+    // and manageLabOperations read roles by index). In plan order only when every lab is a planned
+    // one and all 10 stand.
     const labOrder = baseBuilder.labOrder(roomName);
-    let planned = false;
+    let planned = false, pair;
     if (labOrder) {
         const rank = new Map(labOrder.map((tile, n) => [tile, n]));
         const key = lab => lab.pos.x * 50 + lab.pos.y;
-        if (labs.every(lab => rank.has(key(lab)))) {
+        if (labs.length === labOrder.length && labs.every(lab => rank.has(key(lab)))) {
             labs.sort((a, b) => rank.get(key(a)) - rank.get(key(b)));
             planned = true;
         }
+        const reagents = [labOrder[3], labOrder[4]].map(tile => labs.find(lab => key(lab) === tile));
+        if (reagents[0] && reagents[1]) pair = reagents;
     }
     // The reagent pair that reaches the most outputs (system.labLayout.arrange): unplanned rooms'
     // find order had pairs no output could react from.
-    Memory.labList[roomName] = require('system.labLayout').arrange(labs, planned).map(lab => lab.id);
+    Memory.labList[roomName] = require('system.labLayout').arrange(labs, planned, pair).map(lab => lab.id);
 
     const powerSpawns = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
         filter: { structureType: STRUCTURE_POWER_SPAWN }

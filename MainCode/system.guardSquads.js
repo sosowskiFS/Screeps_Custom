@@ -63,9 +63,11 @@ function protectedRampart(room, rampart) {
     const x = rampart.pos.x, y = rampart.pos.y;
     const supply = Game.flags[room.name + 'Supply'];
     if (supply && supply.pos.x === x && supply.pos.y === y) return true;
-    return require('runtime.cache').find(room, FIND_MY_STRUCTURES).some(s => s.pos &&
+    if (require('runtime.cache').find(room, FIND_MY_STRUCTURES).some(s => s.pos &&
         (s.structureType === STRUCTURE_SPAWN || s.structureType === STRUCTURE_TOWER || s.structureType === STRUCTURE_STORAGE) &&
-        s.pos.x === x && s.pos.y === y);
+        s.pos.x === x && s.pos.y === y)) return true;
+    // The outer ring from RCL6 (base.builder), which a young room keeps at the same cap.
+    return require('base.builder').onRing(room, x * 50 + y);
 }
 // Hits a young room keeps its shell ramparts at: SHELL_RAMPART_HITS, or SIEGE_RAMPART_HITS once it
 // has been attacked (escalated). Established rooms (terminal) have no cap here.
@@ -189,7 +191,7 @@ function canBuildQuads(name, sponsor) {
     // Labs counted in the room itself: Memory.labList is heap-only and empty on the first tick after
     // a global reset (every deploy), when this used to find no helper anywhere and cache that.
     if (require('runtime.cache').find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } }).length < 3) return false;
-    if (!Object.values(Game.spawns).some(sp => sp.room.name === name)) return false;
+    if (!Object.values(Game.spawns).some(sp => sp.room.name === name) || require('system.bait').isBait(name)) return false;
     return !s || room.energyCapacityAvailable >= s.energyCapacityAvailable;
 }
 function helperHome(t) {

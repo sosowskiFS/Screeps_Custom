@@ -16,7 +16,8 @@ function claimX(creep) {
     const reserved = c.reservation && c.reservation.username !== creep.owner.username;
     shardX.noteBlock(room.name, reserved ? { rs: c.reservation.username, e: c.reservation.ticksToEnd } : null);
     if (!creep.pos.isNearTo(c)) {
-        creep.travelTo(c, { range: 1, ignoreRoads: true, offRoad: true });
+        // Walls or someone's ramparts closing the controller off: broken on the way (creep.breach).
+        if (!require('creep.breach').breach(creep, c, 1)) creep.travelTo(c, { range: 1, ignoreRoads: true, offRoad: true });
         return;
     }
     if (reserved) {

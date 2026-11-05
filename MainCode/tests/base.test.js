@@ -66,14 +66,97 @@ test('core: Supply centre, storage + spawn + 6 towers ring, miner tile touching 
     assertReachable(walls, result);
 });
 
-test('labs: 3 boost labs, then 2 inputs and 5 outputs packed so every output reacts', () => {
+test('labs: all 10 in reaction range of the 2 inputs, and the lab worker reaches them from 2 road tiles', () => {
     const result = plan(terrain(() => false), OPEN);
     const labs = result.structures.lab;
+    assert.equal(new Set(labs).size, 10);
     const [a, b] = [labs[3], labs[4]];
-    for (const out of labs.slice(5)) assert.ok(cheb(out, a) <= 2 && cheb(out, b) <= 2);
-    // The 7 reaction labs ring one road tile the lab worker can stand on to reach all of them.
-    const hub = result.roads.find(r => labs.slice(3).every(l => cheb(l, r) === 1));
-    assert.ok(hub !== undefined);
+    labs.forEach((lab, i) => { if (i !== 3 && i !== 4) assert.ok(cheb(lab, a) <= 2 && cheb(lab, b) <= 2, 'lab ' + i); });
+    const hubs = result.roads.filter(r => cheb(r, a) === 1 && cheb(r, b) === 1);
+    assert.equal(hubs.length, 2);
+    for (const lab of labs) assert.ok(hubs.some(hub => cheb(lab, hub) === 1), 'beside a road tile');
+    assert.equal(cheb(hubs[0], hubs[1]), 1);
+});
+
+test('a plan from before the 10-lab stamp gets new lab tiles once, keeping its standing labs; new plans need none', () => {
+    const { g, room, builder } = builderRoom(8);
+    builder.planRoom(room);
+    const stored = g.Memory.basePlan.W1N1;
+    assert.equal(stored.lf, 1, 'a new plan has them in range');
+    g.Game.cpu.bucket = 5000;
+    assert.equal(builder.refitDue(stored), false);
+    // A plan with no lf mark: its standing labs, already all in range here, stay.
+    const old = builder.planOf('W1N1').structures.lab;
+    delete stored.lf;
+    const labs = old.map((t, n) => ({ id: 'lab' + n, structureType: g.STRUCTURE_LAB, my: true, pos: { x: X(t), y: Y(t) } }));
+    room.find = type => (type === g.FIND_STRUCTURES || type === g.FIND_MY_STRUCTURES ? labs : []);
+    g.Game.map.getRoomTerrain = () => ({ get: () => 0 });
+    assert.equal(builder.refitDue(stored), true);
+    g.Game.time += 10;
+    assert.equal(builder.refitLabs(room), true);
+    assert.equal(stored.lf, 1);
+    assert.equal(builder.refitDue(stored), false, 'once');
+    const now = builder.planOf('W1N1').structures.lab;
+    assert.deepEqual(plain(now).slice().sort(), plain(old).slice().sort(), 'already all in range: every lab stays');
+});
+
+test('one due room looks for a step each tick; a room with nothing due does not hold the turn', () => {
+    const { builder } = builderRoom(8);
+    const turn = builder.migrationTurn;
+    assert.equal(turn(true, false, true), 'step', 'a step in progress always advances');
+    assert.equal(turn(false, true, false), 'look');
+    assert.equal(turn(false, false, false), null, 'not due: the next room gets the turn');
+    assert.equal(turn(false, true, true), null, 'one room a tick');
+});
+
+test('planned tiles behind terrain move once: a factory and an extension across a wall come back to the core side', () => {
+    const { g, room, builder } = builderRoom(8);
+    builder.planRoom(room);
+    const stored = g.Memory.basePlan.W1N1;
+    const plan = builder.planOf('W1N1');
+    const anchor = plan.anchor;
+    const ax = X(anchor), ay = Y(anchor);
+    // A wall column 6 east of the core, closed but for a far gap; the tiles beyond are a long walk away.
+    const wallX = ax + 6, beyondFactory = I(wallX + 1, ay), beyondExt = I(wallX + 1, ay + 1);
+    const gapY = ay < 25 ? 48 : 1;
+    const isWall = (x, y) => x === wallX && y !== gapY;
+    const terrain = { get: (x, y) => (isWall(x, y) ? g.TERRAIN_MASK_WALL : 0) };
+    g.TERRAIN_MASK_WALL = 1;
+    g.Game.map.getRoomTerrain = () => terrain;
+    room.getTerrain = () => terrain;
+    // Keep the plan's real tiles off the wall and beyond it, except the two under test.
+    for (const kind in plan.structures) plan.structures[kind] = plan.structures[kind].filter(t => X(t) < wallX);
+    plan.roads = plan.roads.filter(t => X(t) < wallX);
+    plan.paths = plan.paths.filter(t => X(t) < wallX);
+    plan.structures.factory = [beyondFactory];
+    plan.structures.extension = plan.structures.extension.slice(0, 20).concat(beyondExt);
+    stored.s.factory = 'x'; stored.s.extension = 'x'; stored.r = ''; stored.p = '';
+    const pack = list => list.map(t => String.fromCharCode(t + 48)).join('');
+    for (const kind in plan.structures) stored.s[kind] = pack(plan.structures[kind]);
+    stored.r = pack(plan.roads); stored.p = pack(plan.paths);
+    g.Game.time += 10;
+    g.Game.cpu.bucket = 5000;
+    room.find = () => [];
+    delete stored.bw;
+    assert.equal(builder.behindDue(stored), true);
+    const moved = builder.fixBehind(room);
+    assert.equal(moved, 2);
+    assert.equal(stored.bw, 1);
+    assert.equal(builder.behindDue(stored), false, 'once');
+    const after = builder.planOf('W1N1');
+    for (const t of [...after.structures.factory, ...after.structures.extension]) assert.ok(X(t) < wallX, 'on the core side: ' + X(t));
+    assert.equal(after.structures.extension.length, 21, 'none lost');
+});
+
+test('only a full room outside shardX moves its labs first', () => {
+    const { g, room, builder } = builderRoom(8);
+    g.Game.shard = { name: 'shard2' };
+    assert.equal(builder.labsUrgent(room), true);
+    g.Game.shard = { name: 'shardX' };
+    assert.equal(builder.labsUrgent(room), false);
+    g.Game.shard = { name: 'shard2' };
+    room.controller.level = 7;
+    assert.equal(builder.labsUrgent(room), false);
 });
 
 test('a room with only a 3x3 + miner tile beside its source still gets a full base in its other space', () => {
@@ -614,7 +697,7 @@ test('the ring has depth tiles: footprint tiles within 2 of it, inside', () => {
 });
 
 // A finished 11x11 base (extensions), established; returns the rampart sites one pass places.
-function ringPass(rcl, { storage = true, extraRamparts = [], extra = [], ring } = {}) {
+function ringPass(rcl, { storage = true, extraRamparts = [], extra = [], ring, tower = true, terminal = true } = {}) {
     const { harness } = require('./harness');
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
@@ -629,13 +712,14 @@ function ringPass(rcl, { storage = true, extraRamparts = [], extra = [], ring } 
     const supply = 25 * 50 + 25;
     const ext = tiles.filter(t => t !== supply);
     const structures = ext.map(t => ({ structureType: g.STRUCTURE_EXTENSION, my: true, pos: pos((t / 50) | 0, t % 50) }));
+    if (tower) structures.push({ structureType: g.STRUCTURE_TOWER, my: true, pos: pos(24, 24) });
     const store = storage ? { structureType: g.STRUCTURE_STORAGE, my: true, pos: pos(26, 26), store: { energy: 100000 } } : null;
     for (const t of extraRamparts) structures.push({ structureType: g.STRUCTURE_RAMPART, my: true, pos: pos((t / 50) | 0, t % 50) });
     const destroyed = [];
     for (const [t, type, hits] of extra) structures.push({ structureType: g['STRUCTURE_' + type], my: true, pos: pos((t / 50) | 0, t % 50), hits,
         destroy: () => { destroyed.push(t); return g.OK; } });
     const placed = [];
-    const room = { name: 'R', terminal: { my: true }, storage: store || undefined, controller: { my: true, level: rcl, pos: pos(25, 45) },
+    const room = { name: 'R', terminal: terminal ? { my: true } : undefined, storage: store || undefined, controller: { my: true, level: rcl, pos: pos(25, 45) },
         getTerrain: () => g.Game.map.getRoomTerrain('R'),
         find: type => (type === g.FIND_STRUCTURES || type === g.FIND_MY_STRUCTURES ? structures : []),
         createConstructionSite: (x, y, type) => { placed.push([x * 50 + y, type]); return g.OK; }, createFlag: () => g.OK };
@@ -647,10 +731,16 @@ function ringPass(rcl, { storage = true, extraRamparts = [], extra = [], ring } 
     return { ramparts: placed.filter(p => p[1] === g.STRUCTURE_RAMPART).map(p => p[0]), walls: placed.filter(p => p[1] === g.STRUCTURE_WALL).map(p => p[0]), ring: plan.ring, supply, ext, destroyed };
 }
 
-test('RCL7: a one-tile rampart ring outside the base; RCL8: two tiles deeper, and every structure', () => {
+test('from RCL6, terminal or not, once a tower stands: a one-tile rampart ring outside the base; RCL8: two tiles deeper, and every structure', () => {
+    const young = ringPass(6, { terminal: false });
+    assert.ok(young.ring.r.some(t => young.ramparts.includes(t)), 'RCL6 with no terminal yet: ring sites');
+    assert.equal(ringPass(5).ramparts.filter(t => (ringPass(7).ring.r).includes(t)).length, 0, 'not below RCL6');
+    const towerless = ringPass(6, { tower: false });
+    assert.ok(!towerless.ramparts.some(t => ringPass(7).ring.r.includes(t)), 'no tower to fight from behind it: no ring yet');
     const at7 = ringPass(7);
     assert.ok(at7.ramparts.length > 0, 'ring sites');
-    assert.ok(at7.ramparts.every(t => at7.ring.r.includes(t) || t === at7.supply), 'only ring tiles (and the Supply tile): ' + at7.ramparts);
+    const tower = 24 * 50 + 24;
+    assert.ok(at7.ramparts.every(t => at7.ring.r.includes(t) || t === at7.supply || t === tower), 'only ring tiles (the Supply tile, the core): ' + at7.ramparts);
     assert.ok(at7.ramparts.includes(at7.supply), 'the Supply tile, the storage standing');
     assert.ok(!at7.ramparts.some(t => at7.ring.d.includes(t)), 'no depth yet');
     // RCL8 with every structure and the ring ramparted already: the depth tiles go down.
@@ -694,12 +784,12 @@ function strayRoom({ migration = false, mode = 'fresh', hostiles = 0 } = {}) {
     const structures = [
         mk('SPAWN', 20, 20), mk('SPAWN', 21, 20), mk('RAMPART', 20, 20),           // over a structure: stays
         mk('RAMPART', 30, 30),                                                         // stray, low: goes
-        mk('RAMPART', 31, 31, { hits: 50000000 }),                                     // stray, established: stays
+        mk('RAMPART', 31, 31, { hits: 50000000 }),                                     // stray, established: goes once the ring holds
         mk('RAMPART', 25, 26),                                                         // the Supply tile: stays
         mk('EXTENSION', 10, 10, { store: { getUsedCapacity: r => (r ? 50 : 50) } }),   // off the plan: goes
         mk('STORAGE', 12, 12, { store: { getUsedCapacity: r => (r ? 1000 : 1000) } }), // off the plan, not empty: stays
     ];
-    const room = { name: 'R', controller: { my: true, level: 6, pos: { x: 40, y: 40 } },
+    const room = { name: 'R', controller: { my: true, level: 5, pos: { x: 40, y: 40 } },   // below the ring (RCL6)
         find: type => type === g.FIND_MY_STRUCTURES ? structures : type === g.FIND_HOSTILE_CREEPS ? new Array(hostiles).fill({}) : [] };
     g.Game.rooms.R = room;
     const plan = { mode, migration, anchor: t(25, 25), flags: { Supply: t(25, 26) }, roads: [], paths: [],
@@ -707,6 +797,48 @@ function strayRoom({ migration = false, mode = 'fresh', hostiles = 0 } = {}) {
     const builder = h.load('base.builder');
     return { run: () => builder.clearStrays(room, plan), gone };
 }
+
+test('with the ring standing, established stray ramparts and off-ring walls go; ring walls and shardX controller walls stay', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.Game.shard = { name: 'shard2' };
+    const t = (x, y) => x * 50 + y;
+    const gone = [];
+    const mk = (type, x, y, hits) => ({ id: type + x + y, structureType: g['STRUCTURE_' + type], my: type !== 'WALL', pos: { x, y }, hits,
+        destroy() { gone.push(type + '@' + x + ',' + y); return g.OK; } });
+    const ringTilesList = [t(10, 10), t(10, 11), t(10, 12), t(10, 13), t(10, 14)];
+    const ringRamparts = ringTilesList.slice(0, 4).map(k => mk('RAMPART', (k / 50) | 0, k % 50, 200000));
+    const stray = mk('RAMPART', 30, 30, 50000000), strayWall = mk('WALL', 31, 31, 90000000), ringWall = mk('WALL', 10, 14, 90000000), byController = mk('WALL', 39, 39, 90000000);
+    const list = [...ringRamparts, stray, strayWall, ringWall, byController];
+    const room = { name: 'R', storage: { pos: { x: 25, y: 25 } }, controller: { my: true, level: 8, pos: { x: 40, y: 40 } }, find: type => {
+        if (type === g.FIND_MY_STRUCTURES) return list.filter(s => s.my);
+        if (type === g.FIND_STRUCTURES) return list;
+        return [];
+    } };
+    g.Game.rooms.R = room;
+    const plan = { mode: 'fresh', migration: true, anchor: t(25, 25), flags: {}, roads: [], paths: [], structures: {},
+        ring: { r: ringTilesList, w: [], d: [], n: 5, at: g.Game.time } };
+    const builder = h.load('base.builder');
+    assert.equal(builder.ringHolds(room, plan), true, '4 of 5 strong');
+    builder.clearStrays(room, plan);
+    assert.ok(gone.includes('RAMPART@30,30'));
+    assert.ok(gone.includes('WALL@31,31'));
+    assert.ok(!gone.includes('WALL@10,14'), 'on the ring: swapped for a rampart by the build pass');
+    assert.ok(gone.includes('WALL@39,39'), 'an established room outside shardX has no use for it');
+    gone.length = 0;
+    g.Game.shard = { name: 'shardX' };
+    g.Game.time++;
+    builder.clearStrays(room, plan);
+    assert.ok(!gone.includes('WALL@39,39'), 'on shardX it stays');
+    // A ring not standing yet: only weak strays go.
+    gone.length = 0;
+    ringRamparts.forEach(s => { s.hits = 5000; });
+    g.Game.time++;
+    assert.equal(builder.ringHolds(room, plan), false);
+    builder.clearStrays(room, plan);
+    assert.ok(!gone.includes('RAMPART@30,30') && !gone.includes('WALL@31,31'), 'they may be all that covers a gap');
+});
 
 test('stray ramparts under 1M hits go; established ones, those over structures and on the Supply tile stay; misplaced structures go one per pass', () => {
     const s = strayRoom();
@@ -756,4 +888,18 @@ test('nothing for the base behind a terrain wall: E19N44\'s spawn at 36,30, near
     assert.equal(builder.behindWall(room, plan, 36 * 50 + 30, g.STRUCTURE_SPAWN), true, 'range 5, walk round the band ~25');
     assert.equal(builder.behindWall(room, plan, 36 * 50 + 33, g.STRUCTURE_SPAWN), false, 'same side');
     assert.equal(builder.behindWall(room, plan, 36 * 50 + 30, g.STRUCTURE_LINK), false, 'links go where their job is');
+});
+
+test('a young RCL6 room keeps its ring ramparts at the shell cap: they count as protected, so they get repaired', () => {
+    const { h, g, room, builder } = builderRoom(6);
+    builder.planRoom(room);
+    const guards = h.load('system.guardSquads');
+    const ring = builder.ringTiles(room, builder.planOf(room.name)).r;
+    assert.ok(ring.length > 0);
+    const rampart = (tile, hits) => ({ structureType: g.STRUCTURE_RAMPART, pos: { x: X(tile), y: Y(tile), roomName: room.name }, hits });
+    assert.equal(guards.protectedRampart(room, rampart(ring[0], 100)), true, 'on the ring');
+    assert.equal(guards.shellRampartDue(room, rampart(ring[0], 100)), true, 'below the 50k cap: due');
+    assert.equal(guards.shellRampartDue(room, rampart(ring[0], 60000)), false, 'at its cap: left');
+    const off = [X(ring[0]) * 50 + 1].find(t => !ring.includes(t));
+    assert.equal(guards.protectedRampart(room, rampart(off, 100)), false, 'a stray rampart is not');
 });

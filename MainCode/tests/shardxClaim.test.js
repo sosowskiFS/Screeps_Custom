@@ -7,7 +7,7 @@ function setup(progress = {}, targets = [{ r: 'E36N36', h: 'shard2:E28N48', e: '
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
     g.Memory.settings = Object.assign({}, g.Memory.settings, { shardX: true });
-    g.BODYPART_COST = { claim: 600, move: 50 }; g.CLAIM = 'claim'; g.MOVE = 'move';
+    g.BODYPART_COST = { claim: 600, move: 50, attack: 80 }; g.CLAIM = 'claim'; g.MOVE = 'move'; g.ATTACK = 'attack';
     g.Game.time = 5025;
     g.Game.shard = { name: 'shard2' };
     g.console = { log: () => {} };
@@ -47,6 +47,8 @@ test('claimers keep coming until the room is claimed; a reservation by another p
     s.g.Memory.xs.queue.E28N48 = order;
     const built = plain(s.x.spawnOrder('E28N48').body);
     assert.ok(built.filter(p => p === s.g.CLAIM).length >= 15, 'many CLAIM parts: ' + built.length);
+    assert.equal(built.filter(p => p === s.g.ATTACK).length, 1, 'and an ATTACK part for walls');
+    assert.ok(built.length <= 50 && built.filter(p => p === s.g.MOVE).length === built.length - built.filter(p => p === s.g.MOVE).length);
     // A claimer still on shardX (reported) holds the next one back.
     s.g.Memory.xs.queue = {};
     s.g.Game.time += 1000;
@@ -225,4 +227,29 @@ test('a fortified room gets 2 more helpers from its second supporting room; the 
     s.remote.shardX.progress = { E36N36: { cl: 1, ft: 1, hp: 5, gd: 1500, hh: { E28N48: 3, E29N48: 2 } } };
     s.x.run();
     assert.equal(s.g.Memory.xs.queue.E28N48 && s.g.Memory.xs.queue.E28N48.kind, 'helper');
+});
+
+test('a shardX claimer carries an ATTACK part at full speed, and breaks the 1-hit walls closing the controller off (E28N31)', () => {
+    const s = setup();
+    const g = s.g;
+    const body = plain(s.x.BODIES.claimer);
+    assert.equal(body.filter(p => p === g.ATTACK).length, 1);
+    assert.equal(body.filter(p => p === g.MOVE).length, 10, '5 MOVE for each of its 2 other parts: full speed on swamp');
+    // In the room: at 8,18, the controller at 10,16 behind walls at 9,17 10,17 11,17.
+    const pos = (x, y) => ({ x, y, roomName: 'E28N31',
+        isNearTo: o => Math.max(Math.abs((o.pos || o).x - x), Math.abs((o.pos || o).y - y)) <= 1,
+        inRangeTo: (o, r) => Math.max(Math.abs((o.pos || o).x - x), Math.abs((o.pos || o).y - y)) <= r });
+    const wall = { id: 'w', structureType: g.STRUCTURE_WALL, pos: pos(9, 17), hits: 1 };
+    const room = { name: 'E28N31', controller: { pos: pos(10, 16) }, find: t => (t === g.FIND_STRUCTURES ? [wall] : []) };
+    g.Game.rooms.E28N31 = room;
+    g.Game.getObjectById = id => (id === 'w' ? wall : null);
+    g.PathFinder = { CostMatrix: function () { const m = {}; this.get = (x, y) => m[x * 50 + y] || 0; this.set = (x, y, v) => { m[x * 50 + y] = v; }; },
+        search: (from, goal, opts) => { opts.roomCallback('E28N31'); return { incomplete: false, path: [{ x: 9, y: 17 }] }; } };
+    const calls = [];
+    const creep = { room, pos: pos(8, 18), memory: { xTarget: 1, destination: 'E28N31' }, owner: { username: 'me' },
+        getActiveBodyparts: t => (t === g.ATTACK ? 1 : 0),
+        attack: t => { calls.push(['attack', t.id]); return g.OK; }, dismantle: () => { calls.push(['dismantle']); return g.OK; },
+        travelTo: () => { calls.push(['travelTo']); return g.OK; } };
+    s.h.load('creep.claimer').claimX(creep);
+    assert.deepEqual(calls, [['attack', 'w']], 'beside the wall: it attacks it');
 });

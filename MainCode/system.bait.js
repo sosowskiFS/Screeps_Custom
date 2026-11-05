@@ -2,10 +2,12 @@
 //
 // Around each shardX target (system.shardX targets, the fortified rooms), every room within RADIUS
 // that nobody else owns or reserves gets one cheap creep (creep.xBait): it claims the controller
-// (1-source rooms too), then upgrades it. At RCL3 it builds a tower and keeps it supplied; otherwise
-// it only upgrades. Nothing else is built there (base.builder), and no other creep is sent: no
-// helpers, guards or quads, no safe mode (it would take the one-per-shard safe mode from the real
-// targets).
+// (1-source rooms too), then upgrades it. At RCL3 it builds a tower and keeps it supplied, then the
+// room's whole planned base, one site at a time (base.builder.decoyNext): an empty decoy stopped
+// drawing the attacker. Its spawns make no creep and it counts as nobody's home (isBait checks in
+// system.spawning, remoteMining, roads, badRooms, guardSquads, energyFlow), to keep its CPU near
+// nothing. No other creep is sent: no helpers, guards or quads, no safe mode (it would take the
+// one-per-shard safe mode from the real targets).
 //   - One creep per room at a time. A claimer (CLAIM_BODY, 600 ticks of life) is sent only where the
 //     trip fits in its life; once the room is ours, replacements are KEEP_BODY (1,500 ticks).
 //   - No creep while the controller's upgrade block (after an attack) outlasts the trip: it could

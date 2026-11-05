@@ -80,7 +80,8 @@ function ownedRooms() {
     const seen = new Set();
     for (const name in Game.spawns) {
         const room = Game.spawns[name].room;
-        if (!seen.has(room.name) && room.controller && room.controller.my) {
+        // Decoys (system.bait): no roads.
+        if (!seen.has(room.name) && room.controller && room.controller.my && !require('system.bait').isBait(room.name)) {
             seen.add(room.name);
             rooms.push(room);
         }

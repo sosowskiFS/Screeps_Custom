@@ -27,7 +27,7 @@ test('blockers go first: an extension on a planned tower tile moves before other
 test('nothing moves with hostiles around, without site headroom, or without energy for the rebuild', () => {
     const built = [b('e1', 'extension', 40), b('e2', 'extension', 41)];
     assert.equal(M.chooseStep(state(built, { hostiles: true })), null);
-    assert.equal(M.chooseStep(state(built, { globalSites: 90 })), null);
+    assert.equal(M.chooseStep(state(built, { globalSites: 95 })), null);
     assert.equal(M.chooseStep(state(built, { energy: 30000 })), null, '2 x 3000 + 30k needed');
     assert.equal(M.chooseStep(state(built)).id, 'e1');
 });
@@ -132,14 +132,13 @@ test('a step: empty the terminal, destroy it, ask for the rebuild, finish when t
     assert.ok(g.Memory.baseMigrate.R.next > g.Game.time, 'cooldown before the next step');
 });
 
-test('steps start at most every 20 ticks empire-wide; a finished room is marked done', () => {
+test('a step starts right after another room\'s; a finished room is marked done', () => {
     const { g, r, mk, kindOf, migrate } = room();
     mk('e1', g.STRUCTURE_EXTENSION, 30, 30);
     mk('e2', g.STRUCTURE_EXTENSION, 31, 31);
     const plan = { structures: { extension: [I(20, 20), I(21, 21)] }, paths: [], flags: {} };
-    g.Memory.baseMigrateLast = g.Game.time - 5;
     migrate.runRoom(r, plan, kindOf, () => {});
-    assert.equal(g.Memory.baseMigrate.R.step, undefined);
+    assert.ok(g.Memory.baseMigrate.R.step);
 
     const done = room();
     done.mk('e1', done.g.STRUCTURE_EXTENSION, 20, 20);

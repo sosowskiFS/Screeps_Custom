@@ -188,10 +188,21 @@ test('from RCL2 the bait creep walls the controller (not the harvesting tiles) a
     g.Game.rooms.W2N22 = r;
     const c = creep(g, r, 100);
     role.run(c);
-    const spots = r.sites.filter(s => s.structureType === g.STRUCTURE_WALL).map(s => s.pos.x + ',' + s.pos.y);
-    assert.equal(spots.length, 7, 'the 8 controller neighbours minus 26,26 (next to the source)');
-    assert.ok(!spots.includes('26,26'));
+    assert.equal(r.sites.length, 1, 'one wall site at a time: the sites are the main rooms\'');
     assert.equal(c.calls[c.calls.length - 1], 'build');
+    // Each finished, the next: the 8 controller neighbours minus 26,26 (next to the source).
+    const walls = [], spots = [];
+    const roomFind = r.find;
+    r.find = t => (t === g.FIND_STRUCTURES ? walls : roomFind(t));
+    for (let i = 0; i < 12 && r.sites.length; i++) {
+        const done = r.sites.pop();
+        spots.push(done.pos.x + ',' + done.pos.y);
+        walls.push({ id: 'w' + i, structureType: g.STRUCTURE_WALL, pos: done.pos, hits: 5000 });
+        g.Game.time += 101;
+        role.run(c);
+    }
+    assert.equal(spots.length, 7, spots.join(' '));
+    assert.ok(!spots.includes('26,26'));
     // Built: repaired up to 2,000 hits, then back to upgrading.
     const wall = (id, x, y, hits) => ({ id, structureType: g.STRUCTURE_WALL, pos: pos(g, x, y), hits });
     const built = room(g, 2, { structures: [wall('w1', 24, 24, 1500), wall('w2', 25, 24, 400)] });
@@ -339,4 +350,109 @@ test('a bait creep that finds the room reserved by someone else records it befor
     assert.ok(recorded, 'recorded');
     assert.equal(recorded.r, 'Harabi');
     assert.equal(c.calls[c.calls.length - 1], 'suicide');
+});
+
+// Decoy bases: the plan built by the room's creep, one site at a time.
+function decoyRoom(level, { sources = [[10, 10]], structures = [], sites = [] } = {}) {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.Game.shard = { name: 'shardX' };
+    g.RESOURCE_ENERGY = 'energy';
+    g.CONTROLLER_STRUCTURES = {
+        [g.STRUCTURE_TOWER]: { 1: 0, 2: 0, 3: 1, 4: 1 }, [g.STRUCTURE_WALL]: { 1: 0, 2: 0, 3: 0, 4: 0 },
+        [g.STRUCTURE_SPAWN]: { 1: 1, 2: 1, 3: 1, 4: 1 }, [g.STRUCTURE_EXTENSION]: { 1: 0, 2: 5, 3: 10, 4: 20 },
+    };
+    g.CONTROLLER_DOWNGRADE = { 1: 20000, 2: 10000, 3: 20000, 4: 40000 };
+    const posAt = (x, y) => ({ x, y, roomName: 'D', lookFor: () => [],
+        findClosestByRange: list => (Array.isArray(list) ? list[0] : null) });
+    g.Game.map.getRoomTerrain = () => ({ get: (x, y) => (x === 0 || y === 0 || x === 49 || y === 49 ? 1 : 0) });
+    g.Game.constructionSites = {};
+    const room = { name: 'D', controller: { my: true, level, pos: posAt(25, 40), ticksToDowngrade: 19000 },
+        getTerrain: () => g.Game.map.getRoomTerrain('D'),
+        find: t => (t === g.FIND_SOURCES || t === g.FIND_SOURCES_ACTIVE ? sources.map(([x, y]) => ({ pos: posAt(x, y) })) :
+            t === g.FIND_MINERALS ? [] : t === g.FIND_STRUCTURES || t === g.FIND_MY_STRUCTURES ? structures :
+            t === g.FIND_MY_CONSTRUCTION_SITES || t === g.FIND_CONSTRUCTION_SITES ? sites : []),
+        createConstructionSite: (x, y, type) => { sites.push({ pos: posAt(x, y), structureType: type, progress: 0 }); return g.OK; } };
+    g.Game.rooms = { D: room };
+    g.Memory.bait = { rooms: { D: { t: 'T', since: 1, spawnAt: 1 } }, block: {} };
+    const builder = h.load('base.builder');
+    const calls = [];
+    const creep = { name: 'b', room, pos: posAt(25, 30), owner: { username: 'me' },
+        memory: { priority: 'xBait', destination: 'D', full: true }, store: { energy: 100, getFreeCapacity: () => 0 },
+        getActiveBodyparts: () => 0, upgradeController: () => { calls.push('upgrade'); return g.OK; },
+        build: t => { calls.push('build:' + t.structureType); return g.OK; }, travelTo: () => calls.push('travel') };
+    h.load('combat.tactics').escape = () => false;
+    return { h, g, room, sites, structures, builder, creep, calls, role: h.load('creep.xBait'), posAt };
+}
+
+test('a one-source decoy gets a normal base plan, and its creep builds it one site at a time, tower first', () => {
+    const s = decoyRoom(3);
+    assert.ok(s.builder.planRoom(s.room), 'the plan fits with one source');
+    const plan = s.builder.planOf('D');
+    assert.ok(plan.structures.spawn.length === 3 && plan.structures.extension.length === 60);
+    assert.equal(plan.flags.upgradeMiner, undefined, 'no second source to work');
+    const X = t => (t / 50) | 0, Y = t => t % 50;
+    s.role.run(s.creep);
+    assert.equal(s.sites.length, 1);
+    assert.equal(s.sites[0].structureType, s.g.STRUCTURE_TOWER, 'the tower first');
+    s.role.run(s.creep);
+    assert.equal(s.sites.length, 1, 'no second site while one is open');
+    assert.equal(s.calls[s.calls.length - 1], 'build:' + s.g.STRUCTURE_TOWER);
+    // The tower stands (full): the next site is the planned spawn.
+    const towerSite = s.sites.pop();
+    s.structures.push({ structureType: s.g.STRUCTURE_TOWER, my: true, pos: towerSite.pos, store: { energy: 1000, getCapacity: () => 1000 } });
+    s.g.Game.time++;
+    s.role.run(s.creep);
+    assert.equal(s.sites[0].structureType, s.g.STRUCTURE_SPAWN);
+    assert.ok(plan.structures.spawn.some(t => X(t) === s.sites[0].pos.x && Y(t) === s.sites[0].pos.y), 'on its planned tile');
+    assert.equal(s.calls[s.calls.length - 1], 'upgrade', 'placed this tick; building starts on the next');
+});
+
+test('a decoy leaves the construction sites to the main rooms: none placed from 50 on the shard', () => {
+    const s = decoyRoom(3);
+    s.builder.planRoom(s.room);
+    for (let i = 0; i < 50; i++) s.g.Game.constructionSites['x' + i] = {};
+    s.structures.push({ structureType: s.g.STRUCTURE_TOWER, my: true, pos: s.posAt(30, 30), store: { energy: 1000, getCapacity: () => 1000 } });
+    s.role.run(s.creep);
+    assert.equal(s.sites.length, 0);
+    assert.equal(s.calls[s.calls.length - 1], 'upgrade');
+});
+
+test('a decoy creep drops building to upgrade when the controller timer runs low, and with all its level allows built', () => {
+    const s = decoyRoom(3);
+    s.builder.planRoom(s.room);
+    s.sites.push({ pos: s.posAt(30, 30), structureType: s.g.STRUCTURE_EXTENSION, progress: 0 });
+    s.room.controller.ticksToDowngrade = 5000;     // under 30% of 20,000
+    s.role.run(s.creep);
+    assert.equal(s.calls[s.calls.length - 1], 'upgrade');
+    s.room.controller.ticksToDowngrade = 8000;     // still under 50%: it finishes the job
+    s.role.run(s.creep);
+    assert.equal(s.calls[s.calls.length - 1], 'upgrade');
+    s.room.controller.ticksToDowngrade = 11000;
+    s.role.run(s.creep);
+    assert.equal(s.calls[s.calls.length - 1], 'build:' + s.g.STRUCTURE_EXTENSION);
+    // Below RCL3 the controller comes first: the tower is the point.
+    const r2 = decoyRoom(2);
+    r2.sites.push({ pos: r2.posAt(30, 30), structureType: r2.g.STRUCTURE_SPAWN, progress: 200 });
+    r2.room.controller.ticksToDowngrade = 9000;
+    r2.role.run(r2.creep);
+    assert.equal(r2.calls[r2.calls.length - 1], 'upgrade');
+});
+
+test('a decoy spawn makes no creep and runs no room upkeep; the room is nobody\'s home', () => {
+    const s = decoyRoom(3);
+    const spawning = s.h.load('system.spawning');
+    let touched = 0;
+    const roomGuard = new Proxy({}, { get: () => { touched++; return undefined; } });
+    s.g.Game.spawns = { Spawn1: { name: 'Spawn1', room: { name: 'D', get controller() { touched++; return roomGuard; } } } };
+    s.g.Memory.settings = s.g.Memory.settings || {};
+    spawning.handleSpawning();
+    assert.equal(touched, 0, 'skipped before anything reads the room');
+    const room = s.room;
+    s.g.Game.spawns.Spawn1.room = room;
+    room.storage = { store: { energy: 50000 } };
+    s.g.Game.rooms.D = room;
+    assert.equal(s.h.load('system.energyFlow').budget(room), null);
+    assert.equal(s.h.load('system.bait').isBait('D'), true);
 });

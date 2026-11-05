@@ -222,19 +222,8 @@ function getNeededTower(creep) {
 }
 
 function getNeededLab(creep) {
-    if (!Memory.labList[creep.room.name]) return undefined;
-
-    // Check if reagent labs have materials
-    if (Memory.labList[creep.room.name][3] && Memory.labList[creep.room.name][4]) {
-        const regLab1 = Game.getObjectById(Memory.labList[creep.room.name][3]);
-        const regLab2 = Game.getObjectById(Memory.labList[creep.room.name][4]);
-        if (!regLab1 || !regLab2 || !regLab1.mineralType || !regLab2.mineralType) {
-            return undefined;
-        }
-    }
-
-    // Labs reacting now (system.labLayout: outputs in reach, boost labs while their boost is not wanted).
-    return require('system.labLayout').reactionLabs(creep.room.name).find(lab => !hasEffectActive(lab, PWR_OPERATE_LAB));
+    // Labs the room's reaction is running in (system.labLayout), never the reagent labs.
+    return require('system.labLayout').operateTargets(creep.room.name).find(lab => !hasEffectActive(lab, PWR_OPERATE_LAB));
 }
 
 function getNeededSpawn(creep) {

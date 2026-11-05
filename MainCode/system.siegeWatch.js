@@ -10,20 +10,23 @@
 //     creep.distributor);
 //   - the watched room is sent energy now, before the next attack, until its storage + terminal
 //     hold WATCH_STOCK (system.energyAid, after any emergency).
-// The watch ends with the cooldown; if no attack came, the economy goes back to normal.
+// The watch ends with the cooldown; if no attack came, the economy goes back to normal. A room with no
+// terminal (never built, or lost) cannot be sent energy, so it puts no shard on watch; and one with no
+// terminal cannot send any, so it keeps no extra reserve.
 const EXTRA_RESERVE = level => (level >= 6 ? 100000 : level >= 4 ? 50000 : 0);
 const TERMINAL_NORMAL = 30000;
 const TERMINAL_WATCH = 60000;
 const WATCH_STOCK = 200000;
 
 let cache = { t: -1, rooms: [] };
-// Our rooms on this shard in safe mode or its cooldown (bait rooms never take safe mode).
+// Our rooms on this shard in safe mode or its cooldown, with a terminal to receive energy (bait rooms
+// never take safe mode).
 function watchedRooms() {
     if (cache.t === Game.time) return cache.rooms;
     const rooms = [];
     for (const name in Game.rooms) {
         const c = Game.rooms[name].controller;
-        if (!c || !c.my) continue;
+        if (!c || !c.my || !Game.rooms[name].terminal) continue;
         if ((c.safeMode || 0) > 0 || (c.safeModeCooldown || 0) > 0) rooms.push(name);
     }
     cache = { t: Game.time, rooms };
@@ -38,7 +41,7 @@ function onWatch() {
 
 // Extra energy a room keeps in reserve while the shard is on watch (not the watched room itself).
 function extraReserve(room) {
-    if (!room || !room.controller || !onWatch() || watched(room.name)) return 0;
+    if (!room || !room.controller || !room.terminal || !onWatch() || watched(room.name)) return 0;
     return EXTRA_RESERVE(room.controller.level || 0);
 }
 

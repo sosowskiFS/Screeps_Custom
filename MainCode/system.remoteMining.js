@@ -102,7 +102,8 @@ function homeRooms() {
         const room = Game.spawns[name].room;
         if (seen.has(room.name)) continue;
         seen.add(room.name);
-        if (room.controller && room.controller.my && room.storage) homes.push(room);
+        // A decoy's spawns make no creeps (system.bait): no home.
+        if (room.controller && room.controller.my && room.storage && !require('system.bait').isBait(room.name)) homes.push(room);
     }
     return homes;
 }

@@ -1,17 +1,14 @@
-// system.labLayout — which lab does what, and which boost labs can react while no boost is wanted.
+// system.labLayout — which lab does what, and which labs hold a boost instead of reacting right now.
 //
-// Memory.labList[room] is read by index everywhere: 0-2 boost labs, 3-4 reagent labs, 5+ outputs.
-// An output only reacts within range 2 of both reagent labs. The list used to be in find order in
-// rooms built before the base planner, and labs 4 and 5 there could sit 12 tiles apart: E18N22 and
-// E22N19 (shard2) had no output in reach, E1N16 one, E18N26 two. arrange() orders the labs so the
-// reagent pair reaches the most labs; labs no pair reaches make the best boost labs (they could
-// never react anyway).
+// Memory.labList[room] is read by index everywhere: 0-2 load a boost on demand, 3-4 reagent labs, 5+
+// outputs. An output only reacts within range 2 of both reagent labs. Planned bases stand all 10 labs
+// in range (base.planner's stamp, base.labRefit for rooms already built), so all but the reagents react.
+// While labs still stand elsewhere, arrange() orders them so the reagent pair reaches the most, and
+// labs no pair reaches hold the boosts (they could not react anyway).
 //
-// Flex labs: a boost lab within range 2 of both reagent labs. While nothing in the room wants its
-// boost it reacts like an output (labWorker sees the product as its mineral); when a creep wants
+// Flex labs: labs 0-2 within range 2 of both reagent labs. While nothing in the room wants the boost
+// a lab holds it reacts like an output (labWorker sees the product as its mineral); when a creep wants
 // the boost (boostWanted) the lab worker empties the product and loads FLEX_FILL of the boost.
-// Planned bases keep their boost labs by the spawns, out of reach of the reaction stamp, so this
-// applies where the labs happen to stand close.
 const runtimeCache = require('runtime.cache');
 
 const REACH = 2;
@@ -28,16 +25,19 @@ function key(lab) {
 }
 
 // Order the labs: boost labs (3), the reagent pair, outputs (in reach first). labs: in the planned
-// order where the room has a plan (planned: true), so its stamp pair wins a tie. Deterministic from
-// positions alone (Memory.labList is heap-only and rebuilt after a reset).
-function arrange(labs, planned) {
+// order where the room has a plan (planned: true), so its stamp pair wins a tie. pair: the plan's two
+// reagent labs where only some labs have moved yet, so the pair need not change (and flush) again when
+// the rest arrive. Deterministic from positions alone (Memory.labList is heap-only and rebuilt after a
+// reset).
+function arrange(labs, planned, pair) {
     if (labs.length < 6) return labs.slice();
     const reached = (a, b) => labs.filter(l => l !== a && l !== b && near(l, a) && near(l, b));
     const order = planned ? labs : labs.slice().sort((x, y) => key(x) - key(y));
     let best = null, bestReach = -1;
-    if (planned) {
-        best = [order[3], order[4]];
-        bestReach = near(best[0], best[1]) ? reached(best[0], best[1]).length : -1;
+    if (planned) pair = [order[3], order[4]];
+    if (pair && near(pair[0], pair[1])) {
+        best = pair;
+        bestReach = reached(pair[0], pair[1]).length;
     }
     for (let i = 0; i < order.length; i++) {
         for (let j = i + 1; j < order.length; j++) {
@@ -147,13 +147,31 @@ function isFlex(roomName, i) {
     return flexIndices(roomName).includes(i);
 }
 
-// Labs to run reactions in: outputs in reach and reacting flex labs, not leased for guard boosts.
+// Labs to run reactions in: outputs in reach and reacting flex labs, not leased for guard boosts and
+// not being emptied to move (base.migrate).
 function reactionLabs(roomName) {
     const labs = labsOf(roomName);
     const reach = new Set(inReach(roomName, labs));
     const flex = reacting(roomName);
     const lease = id => require('system.guardBoosts').assignment(roomName, id);
-    return labs.filter((l, i) => l && reach.has(l) && (i >= 5 || flex.has(i)) && !lease(l.id));
+    const moving = require('base.migrate').evacuationTarget(roomName);
+    return labs.filter((l, i) => l && reach.has(l) && (i >= 5 || flex.has(i)) && !lease(l.id) && l.id !== moving);
+}
+
+// Labs PWR_OPERATE_LAB would speed up now: reacting labs the planner's reaction can run in, with both
+// reagents loaded and room for the product. Operators used to put it on any lab in the list with
+// reagents of any kind standing by: live, effects were running on empty labs with no reaction possible.
+// Fullest room first, so the lab with the longest run ahead gets it.
+const OPERATE_ROOM = 15;         // LAB_REACTION_AMOUNT with the level 5 power
+function operateTargets(roomName) {
+    const job = require('system.labs').jobFor(roomName);
+    const labs = labsOf(roomName);
+    const a = labs[3], b = labs[4];
+    if (!job || !a || !b || a.mineralType !== job.a || b.mineralType !== job.b) return [];
+    if (a.mineralAmount < LAB_REACTION_AMOUNT || b.mineralAmount < LAB_REACTION_AMOUNT) return [];
+    return reactionLabs(roomName)
+        .filter(l => (!l.mineralType || l.mineralType === job.p) && (l.mineralAmount || 0) <= l.mineralCapacity - OPERATE_ROOM)
+        .sort((x, y) => (x.mineralAmount || 0) - (y.mineralAmount || 0));
 }
 
 // A flex lab is being switched to this boost (wanted, not yet holding enough): a new creep should
@@ -168,5 +186,5 @@ function boostPending(room, mineral, amount) {
     return false;
 }
 
-module.exports = { arrange, inReach, flexIndices, isFlex, reacting, reactionLabs, boostWanted, boostPending, boostMineral,
+module.exports = { arrange, inReach, flexIndices, isFlex, reacting, reactionLabs, operateTargets, boostWanted, boostPending, boostMineral,
     REACH, FLEX_FILL, FLEX_HOLD, BOOST_WAIT, MIN_STOCK };

@@ -92,3 +92,22 @@ test('on watch the other rooms keep more in reserve and in their terminals; it e
     g.Game.time++;
     assert.equal(watch.extraReserve(donor), 0, 'cooldown over, no attack: back to normal');
 });
+
+test('a safe-moded room with no terminal puts no shard on watch; one with no terminal keeps no extra reserve', () => {
+    const { h, g } = setup();
+    const watch = h.load('system.siegeWatch');
+    const donor = g.Game.rooms.E23N31, attacked = g.Game.rooms.W1N9;
+    donor.controller.level = 6;
+    attacked.controller.safeModeCooldown = 40000;
+    const terminal = attacked.terminal;
+    delete attacked.terminal;
+    g.Game.time++;
+    assert.equal(watch.onWatch(), false, 'energy could not reach it');
+    assert.equal(watch.extraReserve(donor), 0);
+    assert.equal(watch.terminalEnergyGoal(donor), 30000);
+    attacked.terminal = terminal;                  // it has one again: the watch is on
+    g.Game.time++;
+    assert.equal(watch.extraReserve(donor), 100000);
+    delete donor.terminal;                         // and a room with none cannot send
+    assert.equal(watch.extraReserve(donor), 0);
+});

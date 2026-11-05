@@ -142,7 +142,7 @@ function ownedHomes() {
     const out = [];
     for (const name in Game.rooms) {
         const room = Game.rooms[name];
-        if (room.controller && room.controller.my && room.find(FIND_MY_SPAWNS).length) out.push(room);
+        if (room.controller && room.controller.my && room.find(FIND_MY_SPAWNS).length && !require('system.bait').isBait(name)) out.push(room);
     }
     return out;
 }
@@ -261,6 +261,17 @@ function staffing(room, units, current = {}) {
     return out;
 }
 
+// Can the room afford new ring ramparts (base.builder)? It earns more than spawning takes and holds
+// its usual reserve. Repairs, upgrading and a watch stockpile are choices it can cut, so they do not
+// count: budget() takes the watch's whole shortfall off, which kept shardX E23N31 (124k stored, 17
+// a tick to spare) at about zero. True without data.
+function ringAffordable(room) {
+    const e = state()[room.name];
+    if (!e || e.n < MIN_SAMPLES) return true;
+    if (e.in - e.sp <= 0) return false;
+    return !room.storage || (e.bank || 0) >= RESERVE(room.controller ? room.controller.level : 0);
+}
+
 // Lean spawning: a room whose stores keep falling (nb under LEAN_ENTER a tick) while it holds less
 // than its reserve (plus a watch stockpile, system.siegeWatch) spawns its spenders (upgraders,
 // builders, repairers) at LEAN_SHARE of their usual size until the stores are back at the reserve.
@@ -305,4 +316,4 @@ function report() {
     return Object.keys(state()).filter(n => n !== '_cpu').length + ' rooms';
 }
 
-module.exports = { lean, LEAN_SHARE, cpuSpare, RCL8_UPGRADE, REPAIR_MAX_SURPLUS, losses, RECOVER_TICKS, sample, budget, staffing, report, noteSpawn, install, count, AMOUNT, SAMPLE_EVERY, MIN_SAMPLES, DUTY, RESERVE, DRAW_TICKS };
+module.exports = { ringAffordable, lean, LEAN_SHARE, cpuSpare, RCL8_UPGRADE, REPAIR_MAX_SURPLUS, losses, RECOVER_TICKS, sample, budget, staffing, report, noteSpawn, install, count, AMOUNT, SAMPLE_EVERY, MIN_SAMPLES, DUTY, RESERVE, DRAW_TICKS };

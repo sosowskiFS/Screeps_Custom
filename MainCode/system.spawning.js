@@ -24,8 +24,11 @@ function handleSpawning() {
     const spawnRoleCache = null; // Build census only on ticks when a spawn can act.
     const roomSpawnCache = {};
 
+    // A decoy room's spawns (system.bait) are for show: no creeps, no room upkeep, no CPU.
+    const bait = require('system.bait');
     for (const spawnName in Game.spawns) {
         const roomName = Game.spawns[spawnName].room.name;
+        if (bait.isBait(roomName)) continue;
         if (!roomSpawnCache[roomName]) {
             roomSpawnCache[roomName] = [];
         }
@@ -36,6 +39,7 @@ function handleSpawning() {
     // and spawn logic are charged to the spawn's room.
     const cpu = roomCpu.timer();
     for (const i in Game.spawns) {
+        if (bait.isBait(Game.spawns[i].room.name)) continue;
         processSpawn(Game.spawns[i], spawnRoleCache, roomSpawnCache);
         // A creep about to finish with every exit taken: move an idle creep off one.
         spawnExit.clearExit(Game.spawns[i]);

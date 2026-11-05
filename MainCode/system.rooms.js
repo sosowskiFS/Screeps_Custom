@@ -130,8 +130,10 @@ function manageRoomStructures(thisRoom) {
     // every tick in rooms with nothing to repair. Retry those rooms every 50 ticks instead.
     // Repair creeps clear the target with `undefined`, which still rescans immediately.
     // A hardened shardX room re-picks every 50 ticks: its repairers share the target and used to
-    // pour everything into one rampart (up to 3M hits) while the rest of its ring decayed.
-    const spread = Game.time % 50 == 0 && require('system.shardX').hardened(thisRoom);
+    // pour everything into one rampart (up to 3M hits) while the rest of its ring decayed. So does
+    // any room with a ring below RCL8: its ramparts are new and low.
+    const spread = Game.time % 50 == 0 && (require('system.shardX').hardened(thisRoom) ||
+        (thisRoom.controller && thisRoom.controller.level >= require('base.builder').RING_RCL && thisRoom.controller.level < 8));
     if (Game.time % 1000 == 0 || spread || Memory.repairTarget[thisRoom.name] === undefined ||
         (Memory.repairTarget[thisRoom.name] === "" && Game.time % 50 == 0)) {
         Memory.repairTarget[thisRoom.name] = "";

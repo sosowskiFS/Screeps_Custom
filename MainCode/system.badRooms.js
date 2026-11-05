@@ -84,6 +84,7 @@ function nearestHome(roomName) {
     let best, bestDistance = Infinity;
     for (const name in Game.spawns) {
         const home = Game.spawns[name].room.name;
+        if (require('system.bait').isBait(home)) continue;      // its spawns make no scouts
         const distance = Game.map.getRoomLinearDistance(home, roomName);
         if (distance < bestDistance) { bestDistance = distance; best = home; }
     }

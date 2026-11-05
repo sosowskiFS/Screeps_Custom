@@ -159,3 +159,21 @@ test('lean spawning: stores falling under the reserve until they are back at it 
     g.Memory.energyFlow.E32N45.bank = 40000;
     assert.equal(flow.lean(r), false, 'a slow drift is not a deficit');
 });
+
+test('ring ramparts: affordable on income after spawning and the usual reserve; repairs, upgrading and a watch stockpile do not count', () => {
+    const { g, room, flow } = setup();
+    const r = room('E23N31');                                     // RCL6: 50k reserve
+    g.Memory.energyFlow = { E23N31: { n: 40, in: 25.7, up: 5, bu: 0, re: 20, sp: 8.8, nb: -9, bank: 124000 } };
+    assert.equal(flow.ringAffordable(r), true, 'heavy repairs and falling stores: still 17 a tick after spawning, 124k stored');
+    g.Game.rooms.E32N45 = { name: 'E32N45', controller: { my: true, safeModeCooldown: 20000, level: 6 } };
+    g.Game.rooms.E23N31 = r;
+    g.Game.time++;
+    assert.equal(flow.ringAffordable(r), true, 'the shard on watch: same answer');
+    g.Memory.energyFlow.E23N31.bank = 700;
+    assert.equal(flow.ringAffordable(r), false, 'stores empty (E19N44): not yet');
+    g.Memory.energyFlow.E23N31.bank = 124000;
+    g.Memory.energyFlow.E23N31.sp = 30;
+    assert.equal(flow.ringAffordable(r), false, 'spawning takes all it earns');
+    delete g.Memory.energyFlow.E23N31;
+    assert.equal(flow.ringAffordable(r), true, 'no data yet: allowed');
+});

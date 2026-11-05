@@ -9,7 +9,7 @@
 //   2. evacuate it if it holds goods (terminal, factory, lab): the lab worker carries everything
 //      to the storage first
 //   3. destroy it; base.builder places the replacement site at the planned tile right away
-//   4. wait until the replacement is built, then a cooldown before the next step
+//   4. wait until the replacement is built, then a short cooldown before the next step
 //
 // Safety, so a room never collapses:
 //   - nothing while hostiles are in the room, when sites are short (the replacement could not be
@@ -23,22 +23,29 @@
 //   - power spawn: only while the room's operator (if any) has 2,500+ ticks to live to cover
 //     the rebuild
 //   - terminal/factory: only if the storage can take everything they hold
+// Behind terrain first (behind: tile -> bool): what stands across a terrain wall from the core moves before
+// anything else in the room. Then labs first (labsFirst, base.builder.labsUrgent): while a lab, or what
+// stands on a lab's planned tile, is out of place, nothing else moves, a terminal or factory still only
+// being emptied goes back to work, and the next step follows the last one's rebuild at once. holdLabs:
+// labs stay for now.
 // Layout flags (Supply, storageMiner, upgradeMiner) move once their planned tile is clear (the
 // upgrade miner's once its new link is built); miners walk to the new spot.
 //
 // Memory.baseMigrate[room] = { step: { id, kind, tile, phase, t, before }, next, done }
 const runtimeCache = require('runtime.cache');
 
-const PASS_INTERVAL = 100;      // ticks between looks for a new step in a room
-const ROOM_COOLDOWN = 300;      // after a replacement is finished
-const START_GAP = 20;           // empire-wide: ticks between two steps starting
+const PASS_INTERVAL = 50;       // ticks between looks for a new step in a room
+const ROOM_COOLDOWN = 20;       // after a replacement is finished
 const EVACUATE_TIMEOUT = 3000;
 const REBUILD_TIMEOUT = 10000;
-const SITE_HEADROOM = 90;
+const SITE_HEADROOM = 95;
 // Leftovers below this stay in the ruin (salvagers pick them up). Terminals keep receiving
 // deliveries while being emptied, so they get a looser bar.
-const EVACUATED = { lab: 500, terminal: 3000, factory: 3000 };
+const EVACUATED = { lab: 100, terminal: 3000, factory: 3000 };
 const evacuatedBelow = kind => EVACUATED[kind] || 500;
+const LAB_EVACUATE_TIMEOUT = 300;   // what is left stays in the ruin for the salvagers
+const LAB_COOLDOWN = 5;
+const LAB_FLOOR = 100000;           // storage energy to start a lab move at, labs first
 const OPERATOR_TTL = 2500;
 const MIN_TOWERS_LEFT = 2;
 
@@ -59,8 +66,14 @@ const COST = { container: 5000, extension: 3000, observer: 8000, link: 5000, lab
  *   globalSites, energy (storage), storageFree, hostiles (bool), operatorTtl (number|undefined)
  * }
  *   canPlace (optional): kind -> can its replacement site go down now without blocking a path
+ *   labsFirst, holdLabs, behind (optional): see the top of this file
  * Returns { id, kind, tile, evacuate } or null; s.misplaced is set to how many are left.
  */
+// A lab, or anything standing on a tile planned for one.
+function isLabWork(b, planned) {
+    return b.kind === 'lab' || planned.get(b.tile) === 'lab';
+}
+
 function chooseStep(s) {
     const planned = new Map();
     for (const kind in s.plan.structures) for (const tile of s.plan.structures[kind]) planned.set(tile, kind);
@@ -83,11 +96,18 @@ function chooseStep(s) {
         (!s.canPlace || s.canPlace(kind));
     const isBlocker = b => (planned.has(b.tile) && planned.get(b.tile) !== b.kind) || mustBeClear.has(b.tile);
     misplaced.sort((a, b) => (isBlocker(b) - isBlocker(a)) || MOVABLE.indexOf(a.kind) - MOVABLE.indexOf(b.kind));
+    const labWork = b => isLabWork(b, planned);
+    let list = s.holdLabs ? misplaced.filter(b => !labWork(b)) : misplaced;
+    const behindNow = s.behind ? list.filter(b => b.kind !== 'container' && s.behind(b.tile)) : [];
+    const labsNow = !behindNow.length && !!s.labsFirst && list.some(labWork);
+    if (behindNow.length) list = behindNow;
+    else if (labsNow) list = list.filter(labWork);
 
-    for (const b of misplaced) {
+    for (const b of list) {
         const kind = b.kind;
         if (kind === 'container') return { id: b.id, kind, tile: b.tile, evacuate: false };
-        if (s.energy < COST[kind] * 2 + 30000) continue;
+        const floor = labsNow && kind === 'lab' ? LAB_FLOOR : COST[kind] * 2 + 30000;
+        if (s.energy < floor) continue;
         if (IMPORTANT.has(kind) && s.roomSites > 0) continue;
         if (kind === 'spawn' && ((counts.spawn || 0) < 2 || b.spawning)) continue;
         if (kind === 'tower' && (counts.tower || 0) - 1 < MIN_TOWERS_LEFT) continue;
@@ -95,7 +115,11 @@ function chooseStep(s) {
         if ((kind === 'terminal' || kind === 'factory') && s.storageFree < (b.used || 0) + 50000) continue;
         const hasDestination = freeTileFor(kind);
         if (!hasDestination && !(isBlocker(b) && EXPENDABLE.has(kind) && (counts[kind] || 0) >= 2)) continue;
-        return { id: b.id, kind, tile: b.tile, evacuate: EVACUATE.has(kind) && (b.used || 0) > evacuatedBelow(kind) };
+        // No free tile yet: it comes back once something else moves, so nothing waits for it.
+        const step = { id: b.id, kind, tile: b.tile, evacuate: EVACUATE.has(kind) && (b.used || 0) > evacuatedBelow(kind) };
+        if (!hasDestination) step.noWait = true;
+        if (labsNow || behindNow.length) step.fast = true;
+        return step;
     }
     return null;
 }
@@ -108,7 +132,13 @@ function memoryFor(roomName) {
 }
 
 const tileOf = pos => pos.x * 50 + pos.y;
-const used = obj => (obj && obj.store && obj.store.getUsedCapacity ? obj.store.getUsedCapacity() : 0);
+// A lab's store has no total (getUsedCapacity() is null, and its labs were destroyed with what they
+// held); its minerals are what matters, the energy goes with the ruin.
+const used = obj => {
+    if (!obj || !obj.store) return 0;
+    if (obj.structureType === STRUCTURE_LAB) return Object.keys(obj.store).reduce((n, res) => n + (res === RESOURCE_ENERGY ? 0 : obj.store[res] || 0), 0);
+    return obj.store.getUsedCapacity ? obj.store.getUsedCapacity() : 0;
+};
 
 function operatorTtl(room) {
     for (const name in Game.powerCreeps) {
@@ -203,12 +233,16 @@ function progress(room, mem, kindOf, rebuildNow) {
     const target = Game.getObjectById(step.id);
     if (step.phase === 'evacuate') {
         if (target && used(target) > evacuatedBelow(step.kind)) {
-            if (Game.time - step.t > EVACUATE_TIMEOUT) {
+            if (step.kind === 'lab' && Game.time - step.t > LAB_EVACUATE_TIMEOUT) {
+                // Fall through to the destroy: a lab's rest is not worth holding the move up.
+            } else if (Game.time - step.t <= EVACUATE_TIMEOUT) {
+                return;
+            } else {
                 console.log(`[migrate] ${room.name}: gave up emptying ${step.kind} at ${(step.tile / 50) | 0},${step.tile % 50}`);
                 delete mem.step;
                 mem.next = Game.time + 2000;
+                return;
             }
-            return;
         }
         step.phase = 'destroy';
     }
@@ -217,6 +251,10 @@ function progress(room, mem, kindOf, rebuildNow) {
         step.phase = 'rebuild';
         step.t = Game.time;
         rebuildNow(room.name);   // the replacement site goes down once the destroy has resolved
+        if (step.noWait) {
+            mem.next = Game.time + LAB_COOLDOWN;
+            delete mem.step;
+        }
         return;
     }
     // rebuild: done when the kind is back to its count before the move
@@ -224,8 +262,8 @@ function progress(room, mem, kindOf, rebuildNow) {
     const count = step.kind === 'container' ? step.before
         : runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: type } }).length;
     if (count >= step.before || Game.time - step.t > REBUILD_TIMEOUT) {
+        mem.next = Game.time + (step.fast ? LAB_COOLDOWN : ROOM_COOLDOWN);
         delete mem.step;
-        mem.next = Game.time + ROOM_COOLDOWN;
     }
 }
 
@@ -234,8 +272,13 @@ function progress(room, mem, kindOf, rebuildNow) {
  * structureType -> kind; rebuildNow(roomName): asks base.builder for a build pass next tick.
  * Returns true when it started or advanced a step.
  */
-function runRoom(room, plan, kindOf, rebuildNow, canPlace) {
+function runRoom(room, plan, kindOf, rebuildNow, canPlace, options = {}) {
     const mem = memoryFor(room.name);
+    // A terminal or factory still being emptied waits while labs are out of place.
+    if (mem.step && options.labsFirst && mem.step.phase === 'evacuate' && mem.step.kind !== 'lab' && Game.time % 10 === 0 && labsOutOfPlace(room, plan, kindOf)) {
+        console.log('[migrate] ' + room.name + ': the labs first; ' + mem.step.kind + ' stays for now');
+        delete mem.step;
+    }
     if (mem.step) {
         progress(room, mem, kindOf, rebuildNow);
         return true;
@@ -244,10 +287,11 @@ function runRoom(room, plan, kindOf, rebuildNow, canPlace) {
     mem.next = Game.time + PASS_INTERVAL;
     removeStraySites(room, plan, kindOf);
     moveFlags(room, plan);
-    if (Memory.baseMigrateLast && Game.time - Memory.baseMigrateLast < START_GAP) return false;
-
     const state = gather(room, plan, kindOf);
     state.canPlace = canPlace;
+    state.labsFirst = options.labsFirst;
+    state.holdLabs = options.holdLabs;
+    state.behind = options.behind;
     const step = chooseStep(state);
     if (!step) {
         if (state.misplaced === 0) {
@@ -258,10 +302,17 @@ function runRoom(room, plan, kindOf, rebuildNow, canPlace) {
     }
     const counts = state.built.filter(b => b.kind === step.kind).length;
     mem.step = { id: step.id, kind: step.kind, tile: step.tile, phase: step.evacuate ? 'evacuate' : 'destroy', t: Game.time, before: counts };
-    Memory.baseMigrateLast = Game.time;
+    if (step.noWait) mem.step.noWait = 1;
+    if (step.fast) mem.step.fast = 1;
     console.log(`[migrate] ${room.name}: moving ${step.kind} from ${(step.tile / 50) | 0},${step.tile % 50}${step.evacuate ? ' (emptying it first)' : ''}`);
     if (!step.evacuate) progress(room, mem, kindOf, rebuildNow);
     return true;
+}
+
+function labsOutOfPlace(room, plan, kindOf) {
+    const planned = new Map();
+    for (const kind in plan.structures) for (const tile of plan.structures[kind]) planned.set(tile, kind);
+    return gather(room, plan, kindOf).built.some(b => MOVABLE.includes(b.kind) && planned.get(b.tile) !== b.kind && isLabWork(b, planned));
 }
 
 // Structure the lab worker should empty into the storage (a step in its evacuate phase).
@@ -270,4 +321,4 @@ function evacuationTarget(roomName) {
     return mem && mem.step && mem.step.phase === 'evacuate' ? mem.step.id : undefined;
 }
 
-module.exports = { chooseStep, runRoom, evacuationTarget, progress, moveFlags, COST, MOVABLE };
+module.exports = { chooseStep, runRoom, evacuationTarget, labsOutOfPlace, progress, moveFlags, COST, MOVABLE };

@@ -27,7 +27,7 @@
 //   Memory is per shard: a creep publishes its memory in its shard's InterShardMemory just before
 //     stepping in; shardX gives it that memory on arrival (else infers the role from the body).
 //   shardX: scouts explore nearest-first from where they arrived. A 1-MOVE scout moves at full
-//     speed on any terrain, like the claimer (CLAIM + 5 MOVE), so its life used when it enters a
+//     speed on any terrain, like the claimer (CLAIM, ATTACK + 10 MOVE), so its life used when it enters a
 //     room is a real measure of the trip from its home's spawn. Every room entered is recorded
 //     where the rest of the code looks (Memory.expandIntel, Memory.badRooms, Memory.remoteIntel)
 //     and tagged with the fastest trip seen: home (shard:room), arrival room, and ticks to the
@@ -88,7 +88,9 @@ const TRAVELLER_TTL = 2000;
 
 const BODIES = {
     xScout: [MOVE],
-    claimer: [CLAIM, MOVE, MOVE, MOVE, MOVE, MOVE],
+    // ATTACK: breaks what closes the controller off (creep.breach); shardX E28N31's claimers stood
+    // behind 1-hit walls with nothing to break them. 5 MOVE a part: full speed on swamp.
+    claimer: [CLAIM, ATTACK, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE],
     helper: [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE,
         WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY],
 };
@@ -98,10 +100,12 @@ function state() {
 }
 
 // A claimer that must first wear down another player's reservation: each CLAIM takes a tick off
-// it per tick (the reservation also runs down by itself), so as many as the home can afford.
+// it per tick (the reservation also runs down by itself), so as many as the home can afford. An
+// ATTACK part (with its MOVE) breaks walls in the way, as on every shardX claimer.
 function breakerBody(capacity) {
-    const n = Math.max(1, Math.min(25, Math.floor(capacity / (BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]))));
-    return Array(n).fill(CLAIM).concat(Array(n).fill(MOVE));
+    const spare = capacity - BODYPART_COST[ATTACK] - BODYPART_COST[MOVE];
+    const n = Math.max(1, Math.min(24, Math.floor(spare / (BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]))));
+    return [ATTACK].concat(Array(n).fill(CLAIM), Array(n + 1).fill(MOVE));
 }
 
 // ---------------------------------------------------------------- inter-shard memory

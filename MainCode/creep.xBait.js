@@ -2,10 +2,14 @@
 //
 // Flees armed hostiles (combat.tactics.escape) and waits outside its room while they are there.
 // In the room: claims the controller (a CLAIM body), then harvests and upgrades. From RCL2 it walls
-// the free tiles next to the controller and keeps those walls at WALL_HITS (light: a lone declaimer
-// can't reach the controller, the attacker has to bring something to break a wall). At RCL3 it
-// places one tower, builds it, and keeps it full (TOWER_FILL) before upgrading again. From the
-// claim on it also keeps a spawn site in the room, built to SPAWN_BAIT only (spawnBait).
+// the free tiles next to the controller, one site at a time, and keeps those walls at WALL_HITS
+// (light: a lone declaimer can't reach the controller, the attacker has to bring something to break a
+// wall). At RCL3 it places one tower, builds it, and keeps it full (TOWER_FILL). From the claim on it
+// also keeps a spawn site in the room, built to SPAWN_BAIT below RCL3 (spawnBait).
+// From RCL3 it builds the room's whole planned base, one site at a time (buildBase,
+// base.builder.decoyNext), so it looks like a full room: the attacker went past bare decoys for
+// the primary rooms. It upgrades when there is nothing more its level allows, and sooner when the
+// controller's timer runs low (TIMER_LOW). Its spawns never make a creep (system.spawning).
 // A controller it can do nothing with (owned or reserved by someone else, upgrade-blocked) is noted
 // for system.bait (not sent to again until the block ends) and the creep is recycled.
 const combat = require('combat.tactics');
@@ -17,6 +21,8 @@ const WALL_CHECK = 100;          // ticks between checks for missing wall sites
 const SPAWN_BAIT = 200;          // energy put into the spawn site, no more
 const SPAWN_RETRY = 1500;        // a spawn site destroyed (stomped) is placed again after this long
 const BLOCK_RETRY = 1500;        // owned/reserved by someone else: look again after this long
+const TIMER_LOW = 0.3;           // of the controller's full timer: stop building and upgrade...
+const TIMER_OK = 0.5;            // ...up to this share
 
 function give(creep, until) {
     bait.noteBlock(creep.memory.destination, until);
@@ -96,7 +102,12 @@ function walls(creep) {
         creep.memory.wallCheck = Game.time + WALL_CHECK;
         const taken = new Set(room.find(FIND_STRUCTURES).concat(room.find(FIND_CONSTRUCTION_SITES)).filter(s => s.pos)
             .map(s => s.pos.x * 50 + s.pos.y));
-        for (const p of wallSpots(room)) if (!taken.has(p.x * 50 + p.y)) room.createConstructionSite(p.x, p.y, STRUCTURE_WALL);
+        // One at a time (the sites are the main rooms'): the next when this one stands.
+        const open = room.find(FIND_MY_CONSTRUCTION_SITES, { filter: { structureType: STRUCTURE_WALL } }).length > 0;
+        if (!open && require('base.builder').decoySiteRoom()) {
+            const p = wallSpots(room).find(s => !taken.has(s.x * 50 + s.y));
+            if (p) room.createConstructionSite(p.x, p.y, STRUCTURE_WALL);
+        }
     }
     const site = room.find(FIND_MY_CONSTRUCTION_SITES, { filter: { structureType: STRUCTURE_WALL } })[0];
     if (site) {
@@ -156,14 +167,44 @@ function spawnBait(creep) {
     return false;
 }
 
+// The controller's timer low: upgrade until it is well clear (the building stops meanwhile).
+function timerLow(creep) {
+    const c = creep.room.controller;
+    const full = typeof CONTROLLER_DOWNGRADE !== 'undefined' && CONTROLLER_DOWNGRADE[c.level];
+    if (!full || c.ticksToDowngrade === undefined) return false;
+    if (c.ticksToDowngrade < full * TIMER_LOW) creep.memory.upkeep = 1;
+    else if (c.ticksToDowngrade >= full * TIMER_OK) delete creep.memory.upkeep;
+    return !!creep.memory.upkeep;
+}
+
+// The room's planned base, one site at a time. False with nothing to build this tick: below RCL3 the
+// controller comes first (the tower is the point), and with all its level allows standing it goes up.
+function buildBase(creep) {
+    const room = creep.room;
+    if (!(CONTROLLER_STRUCTURES[STRUCTURE_TOWER][room.controller.level] > 0)) return false;
+    const site = room.find(FIND_MY_CONSTRUCTION_SITES)[0];
+    if (site) {
+        if (creep.build(site) === ERR_NOT_IN_RANGE) creep.travelTo(site, { range: 3 });
+        return true;
+    }
+    const builder = require('base.builder');
+    if (!builder.decoySiteRoom()) return false;
+    const next = builder.decoyNext(room);
+    if (next) room.createConstructionSite(next.x, next.y, next.type);
+    return false;
+}
+
 function work(creep) {
     const c = creep.room.controller;
     if (creep.memory.full && !creep.store[RESOURCE_ENERGY]) creep.memory.full = false;
     if (!creep.memory.full && !creep.store.getFreeCapacity(RESOURCE_ENERGY)) creep.memory.full = true;
     if (!creep.memory.full) return harvest(creep);
-    if (walls(creep)) return;
-    if (spawnBait(creep)) return;
-    if (tower(creep)) return;
+    if (!timerLow(creep)) {
+        if (walls(creep)) return;
+        if (spawnBait(creep)) return;
+        if (tower(creep)) return;
+        if (buildBase(creep)) return;
+    }
     if (creep.upgradeController(c) === ERR_NOT_IN_RANGE) creep.travelTo(c, { range: 3 });
 }
 

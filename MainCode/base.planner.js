@@ -9,9 +9,10 @@
 //          supplier stands there and reaches everything), ring of storage, spawn and 6 towers.
 //          The storageMiner tile sits just outside, touching both the storage and the source.
 //          The storage keeps one more free neighbour for haulers, the spawn one for its creeps.
-//   labs   3x3 stamp: 7 reaction labs around a road tile, one ring tile left as the entrance.
-//          Every output is within range 2 of both inputs, and the lab worker reaches all 7
-//          from the centre tile. The 3 boost labs are separate, next to the spawns.
+//   labs   4x4 stamp, a road along one diagonal, the other two corners left free: 10 labs. The two
+//          inputs sit either side of the road, every other lab within range 2 of both, and the lab
+//          worker reaches all 10 from the two middle road tiles. Any lab can react or hold a boost
+//          (system.labLayout).
 //   rest   a diagonal road lattice anchored on the core: roads where (dx+dy)%4==0 or
 //          (dx-dy)%4==0. 62.5% of tiles are buildable and every one of them touches a road.
 //          Structures fill these slots nearest-first (breadth-first from the core), so the base
@@ -32,6 +33,11 @@ const cheb = (a, b) => Math.max(Math.abs(X(a) - X(b)), Math.abs(Y(a) - Y(b)));
 const rangeTo = (a, b) => b === undefined ? 99 : cheb(a, b);
 const OFFSETS = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
 
+// The stamp, for the diagonal from (3,0) to (0,3).
+const LAB_INPUTS = [[1, 1], [2, 2]];
+const LAB_OUTPUTS = [[1, 0], [2, 0], [0, 1], [0, 2], [3, 1], [3, 2], [1, 3], [2, 3]];
+const LAB_HUBS = [[2, 1], [1, 2]];
+const LAB_ENDS = [[3, 0], [0, 3]];
 const COUNTS = { spawn: 3, tower: 6, extension: 60, lab: 10, link: 4, terminal: 1, factory: 1, powerSpawn: 1, nuker: 1, observer: 1 };
 
 function neighbors(i) {
@@ -283,32 +289,30 @@ function plan(ctx) {
     const planned = new Map();  // tile -> kind
     const free = i => inBuild(i) && passable(i) && !reserved[i] && !forced.has(i) && !planned.has(i) && dist[i] >= 0;
 
-    // Reaction labs: first 3x3 stamp (nearest the core) whose tiles are all free.
-    const labs = { boost: [], input: [], output: [] };
-    for (const c of order) {
+    // Labs: first 4x4 stamp (nearest the core) that fits, either way round. c is a middle road tile.
+    const labs = { input: [], output: [] };
+    const walkable = i => passable(i) && dist[i] >= 0 && !planned.has(i);
+    // Behind terrain (base.builder.behindWall's measure): only if nothing else fits.
+    const detour = i => anchor !== undefined && dist[i] > cheb(i, anchor) * 1.5 + 4;
+    stamping: for (const far of [false, true]) for (const c of order) {
         if (dist[c] < 2) continue;
-        const stamp = square(c);
-        if (!stamp.every(free)) continue;
-        const inStamp = new Set(stamp);
-        let entrance, entranceDist = Infinity;
-        for (const tile of stamp) {
-            if (tile === c) continue;
-            for (const n of neighbors(tile)) {
-                if (inStamp.has(n) || !passable(n) || dist[n] < 0 || planned.has(n)) continue;
-                if (dist[n] < entranceDist) { entranceDist = dist[n]; entrance = tile; }
-            }
+        for (const mirror of [false, true]) {
+            const x0 = X(c) - (mirror ? 1 : 2), y0 = Y(c) - 1;
+            if (x0 < 0 || y0 < 0 || x0 + 3 > 49 || y0 + 3 > 49) continue;
+            const at = ([dx, dy]) => I(x0 + (mirror ? 3 - dx : dx), y0 + dy);
+            const input = LAB_INPUTS.map(at), output = LAB_OUTPUTS.map(at), hubs = LAB_HUBS.map(at), ends = LAB_ENDS.map(at);
+            if (![...input, ...output].every(free) || !hubs.every(walkable)) continue;
+            if (!far && [...input, ...output].some(detour)) continue;
+            // The road's way in: an end with a walkable tile outside the stamp.
+            const inStamp = new Set([...input, ...output, ...hubs]);
+            const usableEnds = ends.filter(end => walkable(end) && neighbors(end).some(n => !inStamp.has(n) && !ends.includes(n) && walkable(n)));
+            if (!usableEnds.length) continue;
+            labs.input = input;
+            labs.output = output;
+            for (const tile of [...input, ...output]) planned.set(tile, 'lab');
+            for (const tile of [...hubs, ...usableEnds]) { roads.add(tile); forced.add(tile); }
+            break stamping;
         }
-        if (entrance === undefined) continue;
-        // A 3x3 has diameter 2, so any two of the 7 work as inputs for the other five.
-        const ring = stamp.filter(tile => tile !== c && tile !== entrance);
-        labs.input = ring.slice(0, 2);
-        labs.output = ring.slice(2);
-        for (const tile of ring) planned.set(tile, 'lab');
-        roads.add(c);
-        roads.add(entrance);
-        forced.add(c);
-        forced.add(entrance);
-        break;
     }
 
     // Lattice slots, nearest the core first.
@@ -353,13 +357,6 @@ function plan(ctx) {
     const storageLink = pickNear(storage, i => (cheb(i, storage) > 3 ? 50 : 0) + (rangeTo(i, controller) <= 4 ? 100 : 0));
     place('factory', pickNear(storage));
     place('powerSpawn', pickNear(storage));
-    const spawnHub = out.spawn[0] !== undefined ? out.spawn[0] : storage;
-    if (labs.input.length) {
-        for (let n = 0; n < 3; n++) {
-            const tile = pickNear(spawnHub);
-            if (tile !== undefined) { planned.set(tile, 'lab'); labs.boost.push(tile); }
-        }
-    }
     for (let n = 0; n < COUNTS.extension; n++) place('extension', pickNext());
     place('nuker', pickNext());
     place('observer', pickNext());
@@ -391,7 +388,11 @@ function plan(ctx) {
         planned.set(tile, 'link');
         out.link.push(tile);
     }
-    out.lab = [...labs.boost, ...labs.input, ...labs.output];
+    // Listed as system.labLayout reads them: 3 that load a boost on demand (nearest the first spawn, for
+    // the creeps it makes), the 2 inputs, the other 5.
+    const spawnHub = out.spawn[0] !== undefined ? out.spawn[0] : storage;
+    const outputs = labs.output.slice().sort((a, b) => cheb(a, spawnHub) - cheb(b, spawnHub) || a - b);
+    out.lab = labs.input.length ? [...outputs.slice(0, 3), ...labs.input, ...outputs.slice(3)] : [];
 
     // Every planned structure must touch a tile creeps can reach once everything is built (a
     // structure in a 1-wide gap can cut off what lies behind it). Drop the ones that do not and
@@ -429,7 +430,7 @@ function plan(ctx) {
     for (const tile of roads) if (X(tile) === 0 || X(tile) === 49 || Y(tile) === 0 || Y(tile) === 49) roads.delete(tile);
 
     const paths = [...forced].filter(tile => !roads.has(tile));
-    return { mode, anchor, flags, structures: out, roads: [...roads], paths, labRoles: { boost: labs.boost.length, input: labs.input.length } };
+    return { mode, anchor, flags, structures: out, roads: [...roads], paths };
 }
 
 module.exports = { plan, chooseCore, latticeRoad, bfs, neighbors, I, X, Y, cheb, COUNTS };
