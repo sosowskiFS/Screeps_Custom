@@ -65,3 +65,50 @@ test('safe mode fires when a hostile claimer has an open path to the controller,
         assert.deepEqual(activated, expected, 'incomplete path: ' + incomplete);
     }
 });
+
+// The claimer's distance and our ramparts: shard2 E42N31 spent a charge on a claimer nowhere near its controller.
+function claimerCase(x, y, ramparts = []) {
+    const { h, g } = load();
+    g.Game.notify = () => {};
+    const blocked = [];
+    class Matrix { set(px, py, v) { if (v === 255) blocked.push(px + ',' + py); } get() { return 0; } clone() { return this; } }
+    const searches = [];
+    g.PathFinder = { CostMatrix: Matrix, search: (from, goal, opts) => {
+        searches.push(from);
+        opts.roomCallback('NEW');
+        return { incomplete: blocked.length >= 8, path: [] };
+    } };
+    const r = room(g, { hostiles: [Object.assign(hostile(g, 'raider', body(g.CLAIM, 2)), { pos: { x, y, roomName: 'NEW' } })] });
+    r.controller.pos = { x: 25, y: 25, roomName: 'NEW' };
+    const find = r.find;
+    const rampartList = ramparts.map(([px, py], n) => ({ id: 'r' + n, my: true, structureType: g.STRUCTURE_RAMPART, isPublic: true, pos: { x: px, y: py } }));
+    r.find = (type, opts) => (type === g.FIND_MY_STRUCTURES ? rampartList : find(type, opts));
+    g.Game.rooms = { NEW: r };
+    return { room: r, safeMode: h.load('system.safeMode'), searches, blocked };
+}
+const AROUND = [[24, 24], [25, 24], [26, 24], [24, 25], [26, 25], [24, 26], [25, 26], [26, 26]];
+
+test('a claimer further than 5 tiles from the controller is no reason for safe mode, and no path is searched', () => {
+    const c = claimerCase(31, 25);
+    assert.equal(c.safeMode.claimerApproaching(c.room), null);
+    assert.equal(c.searches.length, 0);
+});
+
+test('a claimer within 5 tiles with an open path is', () => {
+    const c = claimerCase(30, 25);
+    assert.match(c.safeMode.claimerApproaching(c.room), /raider|close/);
+    assert.equal(c.searches.length, 1);
+});
+
+test('public ramparts round the controller close the path: they shut before it could step on one', () => {
+    const c = claimerCase(28, 25, AROUND);
+    assert.equal(c.safeMode.claimerApproaching(c.room), null);
+    assert.equal(c.blocked.length, 8, 'every rampart closed in the hostile matrix');
+});
+
+test('in a built room a lone claimer far from the controller is never a breach', () => {
+    const c = claimerCase(45, 45);
+    c.room.storage = { pos: { x: 25, y: 20 } };
+    c.room.getEventLog = () => [];
+    assert.equal(c.safeMode.lastResort(c.room), null);
+});

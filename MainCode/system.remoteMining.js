@@ -68,6 +68,7 @@ function recordIntel(room) {
     // Our own rooms are homes, not remotes; except shardX bait rooms (system.bait): ours, so never
     // reserved, and mined like any remote (W1N9 had no remote at all, the rooms round it being its
     // decoys or another player's).
+    require('room.status').noteBorderWalls(room);
     const ours = !!(room.controller && room.controller.my);
     if (ours && !require('system.bait').isBait(room.name)) return;
     const controller = room.controller;
@@ -285,7 +286,7 @@ function muleCapacity(energyCapacity) {
     return pairs * CARRY_CAPACITY;
 }
 
-function eligibleRoom(roomName, intel, homeName, homeStatus) {
+function eligibleRoom(roomName, intel, homeName) {
     if (!intel || !intel.c || !intel.s.length) return false;
     if (intel.o) return false;                                   // owned by anyone (us included: that's a home)
     if (intel.r && intel.r !== ME && intel.r !== 'Invader') return false; // reserved by a player
@@ -293,8 +294,23 @@ function eligibleRoom(roomName, intel, homeName, homeStatus) {
     if (Memory.blockedRooms && Memory.blockedRooms.indexOf(roomName) !== -1) return false;
     const st = status(roomName);
     if (st && st.strikes >= MAX_STRIKES) return false;
-    const roomStatus = Game.map.getRoomStatus(roomName);
-    return !roomStatus || roomStatus.status === homeStatus;
+    return require('room.status').accessible(homeName, roomName);
+}
+
+// Can creeps from this home get there? No: a novice or respawn zone (room.status). Hand-placed
+// FarMining flags came with no such check: shard2 E49N33 kept building miners and mules for E48N33 and
+// E48N34, a respawn zone, and they stood at its border wall.
+function reachable(homeName, roomName) {
+    return require('room.status').accessible(homeName, roomName);
+}
+
+// A remote creep whose work is out of reach goes home and is recycled. True when it was handled.
+function cutOff(creep) {
+    const work = target(creep);
+    const home = creep.memory.homeRoom;
+    if (!work || !home || creep.room.name === work.pos.roomName || reachable(home, work.pos.roomName)) return false;
+    require('creep.recall').recall(creep);
+    return true;
 }
 
 // Round trip for a far mule: loaded leg pays swamp fatigue (1 MOVE per CARRY), empty leg doesn't.
@@ -322,7 +338,6 @@ function flagKey(roomName, x, y) {
 function planHome(home) {
     const plans = mem('remotePlan');
     const intel = mem('remoteIntel');
-    const homeStatus = (Game.map.getRoomStatus(home.name) || {}).status;
 
     // Sources another home already mines, and any source under a hand-placed FarMining flag (this
     // home's too: the flag's creeps mine it), stay theirs. Old auto flags being retired don't count.
@@ -343,7 +358,7 @@ function planHome(home) {
     let complete = true;
     const list = [];
     for (const roomName of nearbyRooms(home.name)) {
-        if (!eligibleRoom(roomName, intel[roomName], home.name, homeStatus)) continue;
+        if (!eligibleRoom(roomName, intel[roomName], home.name)) continue;
         for (const [id, x, y] of intel[roomName].s) {
             if (taken.has(id) || taken.has(flagKey(roomName, x, y))) continue;
             let cached = trips[id];
@@ -494,7 +509,7 @@ function run() {
 }
 
 module.exports = { expireStrikes,
-    run, recordIntel, noteIncident, isDisabled, needsProbe, needsScout, scoutTargets, observeRequest,
+    run, recordIntel, noteIncident, isDisabled, reachable, cutOff, needsProbe, needsScout, scoutTargets, observeRequest,
     planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE, nodes, target, nodeRef, guardRef, rescoutAge,
     haul, haulFor, netGain, worthMining,
 };

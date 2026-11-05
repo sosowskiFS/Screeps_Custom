@@ -3,6 +3,7 @@ const combat = require('combat.tactics');
 const runtimeCache = require('runtime.cache');
 let creep_farMule = {
     run: function(creep, doExcessWork) {
+        if (remoteMining.cutOff(creep)) return;
         const targetFlag = remoteMining.target(creep);
         const carryUsed = getUsedCarry(creep);
         const carryCapacity = getCarryCapacity(creep);

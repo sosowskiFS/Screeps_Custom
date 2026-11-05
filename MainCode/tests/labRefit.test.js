@@ -229,3 +229,65 @@ test('behind terrain goes first, then labs, then the rest', () => {
     s.built = s.built.filter(b => b.id !== 'term');
     assert.equal(migrate.chooseStep(s).id, 'ext', 'then what is on the lab tile');
 });
+
+// shard2 E26N32: a stray tower on the Supply tile, its other towers unfed.
+function coreCase(extra = {}) {
+    const h = harness();
+    const migrate = h.load('base.migrate');
+    const built = [
+        { id: 'towerOnSupply', kind: 'tower', tile: 50, used: 0 },
+        { id: 't1', kind: 'tower', tile: 11, used: 0 }, { id: 't2', kind: 'tower', tile: 12, used: 0 },
+        { id: 'strayLab', kind: 'lab', tile: 60, used: 0 },
+        { id: 'spawnOff', kind: 'spawn', tile: 70, used: 0 }, { id: 'spawnOff2', kind: 'spawn', tile: 71, used: 0 },
+        { id: 'strayTerm', kind: 'terminal', tile: 80, used: 5000 },
+    ];
+    return { migrate, s: Object.assign({ plan: { structures: { tower: [10, 11, 12], spawn: [20, 21], lab: [30], terminal: [40] }, paths: [], flags: { Supply: 50 } }, built,
+        siteTiles: new Set(), roomSites: 3, globalSites: 0, energy: 500000, storageFree: 500000, hostiles: false, labsFirst: true }, extra) };
+}
+
+test('a tower comes first, even with other sites in the room; then the supplier spawn, then labs, then the rest', () => {
+    const { migrate, s } = coreCase();
+    const first = migrate.chooseStep(s);
+    assert.equal(first.id, 'towerOnSupply');
+    assert.equal(first.fast, true);
+    s.built = s.built.filter(b => b.id !== 'towerOnSupply').concat({ id: 't0', kind: 'tower', tile: 10, used: 0 });
+    assert.equal(migrate.chooseStep(s).id, 'spawnOff');
+    s.built = s.built.filter(b => b.id !== 'spawnOff').concat({ id: 'core', kind: 'spawn', tile: 20, used: 0 });
+    assert.equal(migrate.chooseStep(s).id, 'strayLab', 'the first spawn stands: the other waits with the rest');
+    s.built = s.built.filter(b => b.id !== 'strayLab');
+    s.roomSites = 0;
+    assert.equal(migrate.chooseStep(s).id, 'spawnOff2');
+});
+
+test('what blocks a tower tile outranks labs; what moves at once goes before what must be emptied', () => {
+    const { migrate, s } = coreCase();
+    s.built.push({ id: 'termOnTower', kind: 'terminal', tile: 10, used: 90000 });
+    const before = migrate.chooseStep(s);
+    assert.equal(before.id, 'towerOnSupply', 'no emptying first');
+    assert.equal(before.noWait, true, 'no free tower tile, but it cannot stay on the Supply tile');
+    s.built = s.built.filter(b => b.id !== 'towerOnSupply');
+    s.plan.flags = {};
+    s.plan.structures.terminal = [40];
+    const step = migrate.chooseStep(s);
+    assert.equal(step.id, 'termOnTower');
+    assert.equal(step.evacuate, true);
+});
+
+test('a rank short of energy holds the lower ones; a rank stuck for another reason does not', () => {
+    let { migrate, s } = coreCase({ energy: 20000 });
+    assert.equal(migrate.chooseStep(s), null, 'saving for the tower: no lab spending');
+    ({ migrate, s } = coreCase());
+    s.built = s.built.filter(b => !['t1', 't2'].includes(b.id));   // one tower: never below 2... none may move
+    const step = migrate.chooseStep(s);
+    assert.equal(step.id, 'spawnOff', 'towers cannot move; the next rank can');
+});
+
+test('a step in progress gives way to a higher rank; a tower step to nothing', () => {
+    const { migrate, s } = coreCase();
+    assert.equal(migrate.outranked({ kind: 'lab', tile: 60 }, s), true);
+    assert.equal(migrate.outranked({ kind: 'terminal', tile: 80 }, s), true);
+    assert.equal(migrate.outranked({ kind: 'tower', tile: 50 }, s), false);
+    s.built = s.built.filter(b => b.id !== 'towerOnSupply').concat({ id: 't0', kind: 'tower', tile: 10, used: 0 }, { id: 'core', kind: 'spawn', tile: 20, used: 0 });
+    assert.equal(migrate.outranked({ kind: 'lab', tile: 60 }, s), false, 'nothing above it now');
+    assert.equal(migrate.outranked({ kind: 'terminal', tile: 80 }, s), true, 'the lab outranks it');
+});

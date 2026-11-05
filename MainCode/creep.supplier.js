@@ -41,6 +41,18 @@ var creep_supplier = {
             }
         }
 
+        // Out on foot (a stray tower took it off its tile) while a tower beside the Supply tile needs energy:
+        // back to the tile, where storage and those towers are in reach without a step.
+        if (flag && creep.memory.spot === spot && (creep.pos.x !== flag.pos.x || creep.pos.y !== flag.pos.y) && Game.time >= (creep.memory.spotBlockedUntil || 0)) {
+            const needing = (Memory.towerNeedEnergy && Memory.towerNeedEnergy[creep.room.name]) || [];
+            const core = needing.map(id => Game.getObjectById(id)).some(t => t && t.pos &&
+                Math.max(Math.abs(t.pos.x - flag.pos.x), Math.abs(t.pos.y - flag.pos.y)) === 1);
+            if (core && standable(flag.pos)) {
+                creep.travelTo(flag);
+                return;
+            }
+        }
+
         // Energy dropped on its own tile (nobody else can reach it there, room.reach): its own.
         if (creep.memory.atSpot && creep.store && creep.pos.lookFor && creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
             const here = creep.pos.lookFor(LOOK_RESOURCES).find(r => r.resourceType === RESOURCE_ENERGY);
@@ -71,7 +83,11 @@ var creep_supplier = {
                 else if (creep.memory.spawns.some(id => !Game.getObjectById(id))) delete creep.memory.spawns;   // one gone
             }
         } else {
-            var target = Game.getObjectById(Memory.towerNeedEnergy[creep.room.name][0]);
+            // Those it can reach from where it stands first: stray towers off the core must not walk it
+            // past the ones beside it (shard2 E26N32: five towers empty, its supplier out of reach of them).
+            const needing = Memory.towerNeedEnergy[creep.room.name];
+            const beside = creep.pos.isNearTo ? needing.map(id => Game.getObjectById(id)).find(t => t && t.pos && creep.pos.isNearTo(t)) : null;
+            var target = beside || Game.getObjectById(needing[0]);
             if (target) {
                 if (creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.travelTo(target);

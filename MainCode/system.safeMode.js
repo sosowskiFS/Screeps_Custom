@@ -9,8 +9,10 @@
 // Hostiles merely being in the room do not count: a quad stuck on a room exit next door marched in
 // and out of shardX's E29N36 without touching anything. Invaders, source keepers and whitelisted
 // players never count; nor does an attacker that is already gone (owner unknown).
-// It also fires, before any damage, when another player's creep with CLAIM parts has an open path to
-// a tile next to the controller: once the controller is attacked, safe mode is blocked.
+// It also fires, before any damage, when another player's creep with CLAIM parts is within
+// CLAIMER_RANGE of the controller with an open path to a tile next to it: once the controller is
+// attacked, safe mode is blocked. Further off the towers have time to kill it (shard2 E42N31 spent a
+// charge on one lone claimer nowhere near its controller).
 // Only with a charge available, no cooldown, and no other room of ours on this shard already in
 // safe mode (the game allows one at a time). tower.Operate's proximity rule skips these rooms.
 // An attacked room that cannot have safe mode (another room has it, no charge, cooldown, blocked
@@ -24,7 +26,8 @@
 //   - breach imminent: a barrier being worn down (net hits lost a tick, repairs included, over the
 //     last BREACH_WINDOW ticks) falls within BREACH_LEAD ticks, and its loss would open the ring;
 //   - a spawn, storage, terminal or tower hit by a player and under half its hits;
-//   - the controller attacked, or a claimer with an open path to it (as for young rooms).
+//   - the controller attacked, or a claimer close with an open path to it (as for young rooms).
+// A creep with only CLAIM parts can do nothing to the base: it never counts as a breach.
 // Rooms that never had a closed ring get only the last two (and tower.Operate's proximity rule).
 //
 // Reserved safe mode: the game allows one room in safe mode per shard at a time, for 20,000 ticks.
@@ -77,15 +80,24 @@ function attackedBy(room) {
     return null;
 }
 
-// A hostile claimer that can walk up to the controller (structures in the way count; creeps move).
+// A hostile claimer close to the controller that can walk up to it (structures in the way count; creeps
+// move). Our ramparts stop it, public ones too: the shared matrix is for our own creeps, who walk through
+// them, and system.defense closes any within 4 of a hostile before it could step on one.
+const CLAIMER_RANGE = 5;
+function hostileMatrix(room) {
+    const matrix = require('traveler').Traveler.getStructureMatrix(room).clone();
+    for (const s of runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_RAMPART } })) matrix.set(s.pos.x, s.pos.y, 255);
+    return matrix;
+}
 function claimerApproaching(room) {
     const controller = room.controller;
     for (const creep of require('system.claimDefense').claimers(room)) {
+        if (Math.max(Math.abs(creep.pos.x - controller.pos.x), Math.abs(creep.pos.y - controller.pos.y)) > CLAIMER_RANGE) continue;
         const ret = PathFinder.search(creep.pos, { pos: controller.pos, range: 1 }, {
             maxRooms: 1, plainCost: 2, swampCost: 10,
-            roomCallback: name => (name === room.name ? require('traveler').Traveler.getStructureMatrix(room) : false),
+            roomCallback: name => (name === room.name ? hostileMatrix(room) : false),
         });
-        if (!ret.incomplete) return creep.owner.username + '\'s claimer has an open path to the controller';
+        if (!ret.incomplete) return creep.owner.username + '\'s claimer is close, with an open path to the controller';
     }
     return null;
 }
@@ -252,6 +264,9 @@ function lastResort(room) {
     }
     const claimer = claimerApproaching(room);
     if (claimer) return claimer;
+    // Claimers alone: the rest of this is about what can hurt the base.
+    const fighter = new Set([ATTACK, RANGED_ATTACK, WORK]);
+    if (!armed.some(c => (c.body || []).some(p => p.hits > 0 && fighter.has(p.type)))) return null;
     const core = CORE();
     for (const entry of log) {
         if (entry.event !== EVENT_ATTACK || !hostilePlayer(Game.getObjectById(entry.objectId))) continue;
@@ -332,4 +347,4 @@ function run() {
     }
 }
 
-module.exports = { run, threat, attackedBy, lastResort, flood, reservedRoom, mayActivate, BREACH_LEAD, exposed, underFire, buildHeld };
+module.exports = { run, threat, attackedBy, lastResort, claimerApproaching, CLAIMER_RANGE, flood, reservedRoom, mayActivate, BREACH_LEAD, exposed, underFire, buildHeld };

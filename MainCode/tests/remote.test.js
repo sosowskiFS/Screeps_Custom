@@ -285,3 +285,66 @@ test('a reserver for a remote whose controller was found walled off carries an A
     assert.ok(walled.includes(g.ATTACK) && walled.includes(g.CLAIM), JSON.stringify(walled));
     assert.ok(walled.filter(p => p === g.MOVE).length >= walled.filter(p => p !== g.MOVE).length, 'a MOVE per part');
 });
+
+// Shard2 at E49N33 (home H): west of it a respawn zone. N: walled north but open to H.
+function zoneWorld() {
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    const exits = {
+        H: { 1: 'N', 7: 'Z', 3: 'E' }, N: { 5: 'H', 7: 'ZN', 1: 'NN' }, Z: { 3: 'H', 1: 'ZN' }, ZN: { 3: 'N', 5: 'Z' }, E: { 7: 'H', 3: 'FE' }, FE: { 7: 'E' }, NN: { 5: 'N' },
+    };
+    const zone = new Set(['Z', 'ZN', 'NN']);
+    g.Game.map = { describeExits: r => exits[r], getRoomLinearDistance: () => 1,
+        getRoomStatus: r => ({ status: zone.has(r) ? 'respawn' : 'normal' }) };
+    return { h, g, zone, status: h.load('room.status'), remote: h.load('system.remoteMining') };
+}
+const wallRoom = (g, name, tiles) => ({ name, find: () => tiles.map(([x, y]) => ({ pos: { x, y } })) });
+
+test('a respawn zone is out of reach by its status, with or without walls of its own; a room walled on another side is fine', () => {
+    const { g, status, remote } = zoneWorld();
+    status.noteBorderWalls(wallRoom(g, 'N', [[20, 0], [21, 0]]));
+    status.noteBorderWalls(wallRoom(g, 'H', [[0, 5], [0, 6]]));
+    assert.equal(g.Memory.borderWalls.N.s, 'N');
+    assert.equal(g.Memory.borderWalls.H.s, 'W');
+    assert.equal(remote.reachable('H', 'Z'), false, 'the zone itself');
+    assert.equal(remote.reachable('H', 'ZN'), false, 'no walls of its own there: the status tells');
+    assert.equal(remote.reachable('H', 'N'), true, 'walled on its far side only');
+    assert.equal(remote.reachable('H', 'E'), true);
+});
+
+test('border walls alone cut a way the status cache has not caught up with, and their end opens it again', () => {
+    const { g, zone, status, remote } = zoneWorld();
+    zone.clear();
+    g.Game.time = 100;
+    assert.equal(remote.reachable('H', 'FE'), true);
+    const walls = wallRoom(g, 'E', [[49, 10]]);
+    status.noteBorderWalls(walls);
+    assert.equal(remote.reachable('H', 'FE'), false, 'E is walled on its east: nothing past it');
+    assert.equal(remote.reachable('H', 'E'), true);
+    status.noteBorderWalls(wallRoom(g, 'E', []));
+    assert.equal(g.Memory.borderWalls.E, undefined);
+    assert.equal(remote.reachable('H', 'FE'), true, 'the zone is over');
+    // Never seen again: forgotten, in case the zone ended unseen.
+    status.noteBorderWalls(walls);
+    g.Game.time += 40000;
+    assert.equal(remote.reachable('H', 'FE'), true);
+});
+
+test('walls inside the room do not count', () => {
+    const { g, status } = zoneWorld();
+    status.noteBorderWalls(wallRoom(g, 'E', [[1, 1], [48, 48], [20, 20]]));
+    assert.equal(g.Memory.borderWalls, undefined);
+});
+
+test('a far creep cut off from its work goes home to recycle; one that can reach it, or is in the room, carries on', () => {
+    const { h, g, remote } = zoneWorld();
+    let recalled = 0;
+    h.load('creep.recall').recall = () => { recalled++; };
+    g.RoomPosition = function (x, y, roomName) { this.x = x; this.y = y; this.roomName = roomName; };
+    const creep = (dest, at) => ({ name: 'c', room: { name: at }, memory: { homeRoom: 'H', node: { id: 's', r: dest, x: 5, y: 5 } } });
+    assert.equal(remote.cutOff(creep('Z', 'H')), true);
+    assert.equal(recalled, 1);
+    assert.equal(remote.cutOff(creep('N', 'H')), false);
+    assert.equal(remote.cutOff(creep('Z', 'Z')), false, 'already inside');
+    assert.equal(recalled, 1);
+});

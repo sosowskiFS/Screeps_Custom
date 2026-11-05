@@ -18,7 +18,7 @@ const b = (id, kind, tile, more = {}) => Object.assign({ id, kind, tile, used: 0
 test('blockers go first: an extension on a planned tower tile moves before other misplaced pieces', () => {
     const built = [b('ext-on-tower', 'extension', 1), b('ext-elsewhere', 'extension', 40), b('tower-a', 'tower', 41),
         b('tower-b', 'tower', 42), b('tower-c', 'tower', 43)];
-    assert.deepEqual(plain(M.chooseStep(state(built))), { id: 'ext-on-tower', kind: 'extension', tile: 1, evacuate: false });
+    assert.deepEqual(plain(M.chooseStep(state(built))), { id: 'ext-on-tower', kind: 'extension', tile: 1, evacuate: false, fast: true });
     // Something on a kept-clear path or the Supply tile is a blocker too.
     const onPath = [b('ext-path', 'extension', 99), b('ext-x', 'extension', 40)];
     assert.equal(M.chooseStep(state(onPath)).id, 'ext-path');
@@ -46,7 +46,8 @@ test('important buildings: spawns, towers, power spawn, terminal guards', () => 
     const towers = n => Array.from({ length: n }, (_, i) => b('t' + i, 'tower', 50 + i));
     assert.equal(M.chooseStep(state(towers(2))), null, 'two towers always stay up');
     assert.equal(M.chooseStep(state(towers(3))).kind, 'tower');
-    assert.equal(M.chooseStep(state(towers(3), { roomSites: 1 })), null, 'only when builders have nothing else to do');
+    assert.equal(M.chooseStep(state(towers(3), { roomSites: 1 })).kind, 'tower', 'towers do not wait for other sites');
+    assert.equal(M.chooseStep(state([b('ps', 'powerSpawn', 70)], { roomSites: 1 })), null, 'others only when builders have nothing else to do');
 
     assert.equal(M.chooseStep(state([b('s1', 'spawn', 60)])), null, 'never the only spawn');
     assert.equal(M.chooseStep(state([b('s1', 'spawn', 60, { spawning: true }), b('s2', 'spawn', 7)])), null, 'not while spawning');

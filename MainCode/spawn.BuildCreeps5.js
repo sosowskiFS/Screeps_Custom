@@ -1319,8 +1319,9 @@ Object.assign(spawn_BuildCreeps5, {
     // Auto-build rooms with 3+ spawns make the supplier in the spawn beside the Supply flag,
     // straight onto the flag, and keep that direction free of other creeps. Only while such a spawn
     // actually exists: during base migration the old one may be gone and the new one not built
-    // yet, and the room must still get its tower supplier from any spawn. No Supply flag: any
-    // spawn, any direction. Returns { buildDirections, supplierDirection } (empty = not here).
+    // yet, and the room must still get its tower supplier from any spawn. No Supply flag, or a structure
+    // on its tile (the supplier could not be let out): any spawn, any direction. Returns
+    // { buildDirections, supplierDirection } (empty = not here).
     supplierDirections: function(thisRoom, spawn) {
         const buildDirections = [TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT];
         const supplyFlag = Game.flags[thisRoom.name + "Supply"];
@@ -1330,7 +1331,9 @@ Object.assign(spawn_BuildCreeps5, {
         const isAutoBuild = Memory.autoBuildRooms.indexOf(thisRoom.name) > -1;
         const roomSpawns = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_SPAWN } });
         const supplySpawnExists = roomSpawns.some(s => s.pos.isNearTo(supplyFlag) && s.isActive());
-        if (!(isAutoBuild && roomSpawns.length >= 3 && supplySpawnExists)) {
+        const tileBlocked = supplyFlag.pos.lookFor(LOOK_STRUCTURES).some(s => s.structureType !== STRUCTURE_ROAD &&
+            s.structureType !== STRUCTURE_CONTAINER && !(s.structureType === STRUCTURE_RAMPART && s.my));
+        if (!(isAutoBuild && roomSpawns.length >= 3 && supplySpawnExists) || tileBlocked) {
             return { buildDirections, supplierDirection: buildDirections };
         }
         if (!supplyFlag.pos.isNearTo(spawn)) {

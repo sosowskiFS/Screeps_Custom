@@ -65,7 +65,7 @@ for (const kind in TYPES) KIND_OF[TYPES[kind]] = kind;
 // A kind with sites still unfinished holds back every kind after it (buildRoom), so builders work on
 // the most useful thing: a terminal used to go up beside half-built extensions.
 const ORDER = ['tower', 'extension', 'storage', 'link', 'spawn', 'terminal', 'lab', 'factory', 'observer', 'powerSpawn', 'nuker'];
-const LABS_FIRST = ['lab', ...ORDER.filter(kind => kind !== 'lab')];
+const LABS_FIRST = ['tower', 'spawn', 'lab', ...ORDER.filter(kind => !['tower', 'spawn', 'lab'].includes(kind))];
 const PASSABLE = new Set([STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART]);
 // Below RCL8 these wait: labs, the factory and the extractor would take energy the controller needs.
 // Ones already built stay; sites not yet started are removed.
@@ -150,6 +150,7 @@ function encode(result, migration) {
     for (const kind in result.structures) s[kind] = pack(result.structures[kind]);
     const out = { v: VERSION, t: Game.time, m: result.mode, a: result.anchor, f: result.flags, s, r: pack(result.roads), p: pack(result.paths) };
     if ((result.structures.lab || []).length === 10) out.lf = 1;   // all 10 in reaction range
+    out.cf = 1;                                                    // towers and first spawn on the core
     if (migration) out.mg = 1;
     return out;
 }
@@ -225,6 +226,68 @@ function refitDue(stored) {
 const BEHIND_ORDER = ['tower', 'spawn', 'terminal', 'factory', 'powerSpawn', 'observer', 'extension'];
 const BEHIND_RANGE = { extension: 25 };
 const BEHIND_RANGE_OTHER = 15;
+// Plans whose towers or first spawn were moved off the 8 tiles round the Supply tile (the old relocation:
+// shard2 E26N32's tower went to 14,35, E22N19's to 43,15), where the supplier cannot reach them. Each goes
+// back onto a core tile, and whatever else was planned there takes the tile it leaves. Once (mark cf).
+function coreDue(stored) {
+    return !stored.cf && !stored.fail && stored.m === 'fresh' && Game.cpu.bucket >= REFIT_MIN_BUCKET;
+}
+
+// Pure: the changed lists, or null. plan: { structures, flags, roads, paths }; wall: tile -> bool.
+function coreRepair(plan, wall) {
+    const supply = plan.flags && plan.flags.Supply;
+    if (supply === undefined) return null;
+    const x = (supply / 50) | 0, y = supply % 50;
+    const beside = t => Math.max(Math.abs(((t / 50) | 0) - x), Math.abs(t % 50 - y)) === 1;
+    const lists = {};
+    for (const kind in plan.structures) lists[kind] = plan.structures[kind].slice();
+    const reserved = new Set(Object.keys(plan.flags).filter(n => n !== 'Supply').map(n => plan.flags[n]));
+    const ring = [];
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+        const t = (x + dx) * 50 + y + dy;
+        if ((dx || dy) && !wall(t) && !reserved.has(t) && !(lists.storage || []).includes(t)) ring.push(t);
+    }
+    const kindAt = t => Object.keys(lists).find(k => lists[k].includes(t));
+    const coreTile = t => (lists.tower || []).includes(t) || (lists.spawn || [])[0] === t;
+    const spare = () => ring.filter(t => !coreTile(t)).sort((a, b) => (kindAt(a) ? 1 : 0) - (kindAt(b) ? 1 : 0) || a - b)[0];
+    let changed = false;
+    const bring = (kind, index) => {
+        const from = lists[kind][index], to = spare();
+        if (to === undefined) return;
+        const other = kindAt(to);
+        if (other) lists[other][lists[other].indexOf(to)] = from;
+        lists[kind][index] = to;
+        changed = true;
+    };
+    if (lists.spawn && lists.spawn.length && !beside(lists.spawn[0])) {
+        const near = lists.spawn.findIndex(beside);
+        if (near > 0) {
+            [lists.spawn[0], lists.spawn[near]] = [lists.spawn[near], lists.spawn[0]];
+            changed = true;
+        } else bring('spawn', 0);
+    }
+    (lists.tower || []).forEach((t, i) => { if (!beside(t)) bring('tower', i); });
+    if (!changed) return null;
+    const onCore = new Set([...(lists.tower || []), (lists.spawn || [])[0]]);
+    return { structures: lists, roads: plan.roads.filter(t => !onCore.has(t)), paths: plan.paths.filter(t => !onCore.has(t)) };
+}
+
+function repairCore(room) {
+    const stored = Memory.basePlan[room.name];
+    stored.cf = 1;
+    const terrain = Game.map.getRoomTerrain(room.name);
+    const result = coreRepair(planOf(room.name), t => (terrain.get((t / 50) | 0, t % 50) & TERRAIN_MASK_WALL) !== 0);
+    if (!result) return false;
+    for (const kind in result.structures) stored.s[kind] = pack(result.structures[kind]);
+    stored.r = pack(result.roads);
+    stored.p = pack(result.paths);
+    stored.t = Game.time;
+    if (Memory.baseMigrate && Memory.baseMigrate[room.name]) delete Memory.baseMigrate[room.name].done;
+    if (Memory.baseBuild) delete Memory.baseBuild[room.name];
+    console.log('[base] ' + room.name + ': towers and first spawn planned back round the Supply tile');
+    return true;
+}
+
 function behindDue(stored) {
     return !stored.bw && !stored.fail && stored.m === 'fresh' && Game.cpu.bucket >= REFIT_MIN_BUCKET;
 }
@@ -252,6 +315,7 @@ function fixBehind(room) {
                 console.log('[base] ' + room.name + ': no place for the extension at ' + ((from / 50) | 0) + ',' + (from % 50) + ' behind terrain');
                 continue;
             }
+            if (kind === 'tower') continue;      // on the core: repairCore
             // No free tile: the nearest extension's tile, and the extension moves on later in this pass.
             const walk = terrainWalk(room, room.storage ? tileOf(room.storage.pos) : plan.anchor);
             const swap = (plan.structures.extension || []).filter(t => !behindWall(room, plan, t) && walk[t] >= 0).sort((a, b) => walk[a] - walk[b])[0];
@@ -318,6 +382,32 @@ function labsUrgent(room) {
 // of shard2 went unvisited for 260,000+ ticks with up to 70 structures out of place.
 function migrationTurn(active, due, migrating) {
     return active ? 'step' : due && !migrating ? 'look' : null;
+}
+
+// Layout flags follow the plan whatever the room's migration is doing: base.migrate moved them only
+// between steps, and never once a room was done. shard2 E26N32's Supply flag stayed on 14,38 under a
+// planned tower, its plan's tile being 15,38, and its spawn could only make a supplier onto that tower.
+const FLAG_CHECK_EVERY = 20;
+const STUCK_CHECK_EVERY = 10;
+function syncFlags(room, plan) {
+    for (const name in plan.flags || {}) {
+        const flag = Game.flags[room.name + name];
+        if (flag && tileOf(flag.pos) !== plan.flags[name]) return migrate.moveFlags(room, plan);
+    }
+    return undefined;
+}
+
+// A finished creep a spawn cannot let out (every direction it was given is blocked) waits for ever, and
+// holds the spawn: it may leave any way. Directions are fixed when the creep is ordered, so the move of a
+// flag or a new structure beside the spawn does not reach it.
+function unstickSpawns(room) {
+    let freed = 0;
+    for (const spawn of runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_SPAWN } })) {
+        const job = spawn.spawning;
+        if (!job || job.remainingTime > 0 || typeof job.setDirections !== 'function') continue;
+        if (job.setDirections([TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT]) === OK) freed++;
+    }
+    return freed;
 }
 
 function migrationOn() {
@@ -636,10 +726,13 @@ function replacementTile(room, plan, kind) {
     return undefined;
 }
 
-const RELOCATABLE = new Set(['powerSpawn', 'factory', 'terminal', 'nuker', 'observer', 'tower', 'extension', 'spawn']);
+const RELOCATABLE = new Set(['powerSpawn', 'factory', 'terminal', 'nuker', 'observer', 'extension', 'spawn']);
 const RELOCATE_RANGE = 8;
 
 function relocate(room, plan, kind, from, live, before, occupied, range = RELOCATE_RANGE) {
+    // The core's tiles are its point: a tower or the first spawn elsewhere is out of the supplier's reach.
+    // A tile refused for now (a stray terminal still needs it for access) waits for that to move.
+    if (kind === 'tower' || (kind === 'spawn' && from === plan.structures.spawn[0])) return undefined;
     const anchor = room.storage ? tileOf(room.storage.pos) : plan.anchor;
     if (anchor === undefined) return undefined;
     const reserved = new Set(plan.roads.concat(plan.paths));
@@ -1207,6 +1300,7 @@ function run() {
             releaseSealed(room, live);
             cpu.lap(name);
         }
+        if (Game.time % STUCK_CHECK_EVERY === 0) unstickSpawns(room);
         if (!enabled(name)) continue;
         const stored = Memory.basePlan && Memory.basePlan[name];
         if (!stored || stored.v !== VERSION || (stored.fail && Game.time - stored.fail >= RETRY_FAILED)) {
@@ -1222,6 +1316,7 @@ function run() {
             continue;
         }
         if (stored.fail) continue;
+        if (stored.mg && Game.time % FLAG_CHECK_EVERY === 0) syncFlags(room, planOf(name));
         if (!planned && migrationWanted(room, stored) && governor.allows('planning')) {
             planned = true;
             const cpu = roomCpu.timer();
@@ -1235,6 +1330,13 @@ function run() {
             refitted = true;
             const cpu = roomCpu.timer();
             refitLabs(room);
+            cpu.lap(name);
+            continue;
+        }
+        if (!refitted && coreDue(stored)) {
+            refitted = true;
+            const cpu = roomCpu.timer();
+            repairCore(room);
             cpu.lap(name);
             continue;
         }
@@ -1342,4 +1444,4 @@ function visualizeFlagged() {
     vis.text(`base plan (${plan.mode}${labs.length ? '' : ', no lab stamp fits'})`, 25, 1, { color: '#ffffff', font: 0.7 });
 }
 
-module.exports = { refitDue, refitLabs, behindDue, fixBehind, clearStrays, ringHolds, labsUrgent, migrationTurn, decoyNext, decoySiteRoom, decoyPlanDue, DECOY_SITE_LIMIT, RING_RCL, onRing, behindWall, ringTiles, rampartTiles, clearStrays, misplacedStructure, STRAY_KEEP_HITS, run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
+module.exports = { coreRepair, coreDue, repairCore, syncFlags, unstickSpawns, refitDue, refitLabs, behindDue, fixBehind, clearStrays, ringHolds, labsUrgent, migrationTurn, decoyNext, decoySiteRoom, decoyPlanDue, DECOY_SITE_LIMIT, RING_RCL, onRing, behindWall, ringTiles, rampartTiles, clearStrays, misplacedStructure, STRAY_KEEP_HITS, run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };

@@ -4,6 +4,7 @@ var creep_farMiner = {
     //For miner in SK rooms, see creep_farMinerSK
     /** @param {Creep} creep **/
     run: function(creep) {
+    	if (remoteMining.cutOff(creep)) return;
     	if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'farMinerNearDeath') {
     		creep.memory.priority = 'farMinerNearDeath';
     	}

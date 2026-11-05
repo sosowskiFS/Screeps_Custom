@@ -103,6 +103,7 @@ var spawn_BuildFarCreeps = {
                 const threatPlan = threat ? guardPlanFor(threat, thisRoom.energyCapacityAvailable) : null;
                 const threatBody = threatPlan ? threatPlan.body : null;
                 if (threat && !threatBody) continue;
+                if (guardRoom && !remoteMining.reachable(thisRoom.name, guardRoom)) continue;
                 if (config.condition && prioritizedRole === '' && !(guardRoom && remoteMining.isDisabled(guardRoom) && !threatBody) &&
                     ((Game.flags[guardFlagName] && Memory.FarRoomsUnderAttack.indexOf(Game.flags[guardFlagName].pos.roomName) != -1) || Game.flags[tempFlagName])) {
                     const guards = miningOps.farGuards[config.index] || [];
@@ -137,7 +138,8 @@ var spawn_BuildFarCreeps = {
                 ];
 
                 for (let config of miningConfigs) {
-                    if (config.condition && Game.flags[thisRoom.name + config.flag] && !remoteMining.isDisabled(Game.flags[thisRoom.name + config.flag].pos.roomName)) {
+                    if (config.condition && Game.flags[thisRoom.name + config.flag] && !remoteMining.isDisabled(Game.flags[thisRoom.name + config.flag].pos.roomName) &&
+                        remoteMining.reachable(thisRoom.name, Game.flags[thisRoom.name + config.flag].pos.roomName)) {
                         const miners = (miningOps.farMining[config.index] && miningOps.farMining[config.index].miners) || [];
                         const mules = (miningOps.farMining[config.index] && miningOps.farMining[config.index].mules) || [];
                         const claimers = (miningOps.farMining[config.index] && miningOps.farMining[config.index].claimers) || [];
@@ -346,12 +348,12 @@ function nodeJob(thisRoom, controlledCreeps, Flag25, Flag50) {
         const threat = combatIntel.remoteThreat(room);
         const plan = threat ? guardPlanFor(threat, thisRoom.energyCapacityAvailable) : null;
         if (threat && !plan) continue;                                   // nothing affordable wins: don't feed them
-        if (remoteMining.isDisabled(room) && !plan) continue;
+        if ((remoteMining.isDisabled(room) && !plan) || !remoteMining.reachable(thisRoom.name, room)) continue;
         const wanted = Math.max(plan ? plan.count : 1, combatIntel.isOutmatched(room) ? 2 : 1);
         if (of('farGuard', n => n.r === room) < wanted) return { role: 'farGuard', room, node: remoteMining.guardRef(room), body: plan ? plan.body : null };
     }
     for (const n of all) {
-        if (remoteMining.isDisabled(n.r)) continue;
+        if (remoteMining.isDisabled(n.r) || !remoteMining.reachable(thisRoom.name, n.r)) continue;
         if (!of('farMiner', m => m.id === n.id)) return { role: 'farMiner', room: n.r, node: remoteMining.nodeRef(n) };
         if (of('farMule', m => m.id === n.id) < remoteMining.haul(thisRoom.energyCapacityAvailable, n.trip).mules) {
             return { role: 'farMule', room: n.r, node: remoteMining.nodeRef(n) };

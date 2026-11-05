@@ -76,7 +76,7 @@ function supplyRoom({ spawnTiles, flag = [25, 25], autoBuild = true }) {
     const list = spawnTiles.map((t, n) => mk(t, 's' + n));
     const room = { name: 'A', find: () => list };
     g.Game.rooms.A = room;
-    if (flag) g.Game.flags.ASupply = { pos: { x: flag[0], y: flag[1], isNearTo: o => near(flag, [o.pos.x, o.pos.y]) } };
+    if (flag) g.Game.flags.ASupply = { pos: { x: flag[0], y: flag[1], isNearTo: o => near(flag, [o.pos.x, o.pos.y]), lookFor: () => [] } };
     g.Memory.autoBuildRooms = autoBuild ? ['A'] : [];
     return { g, room, list, spawns };
 }
