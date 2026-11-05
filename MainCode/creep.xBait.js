@@ -203,19 +203,9 @@ function run(creep) {
     if (!creep.getActiveBodyparts(CLAIM)) return give(creep, Game.time + 1);
     const result = creep.claimController(c);
     if (result === ERR_NOT_IN_RANGE) {
-        // Our own walls from before the room was lost (or anyone's) closing the controller off:
-        // break through the weakest with the WORK part.
-        const terrain = creep.room.getTerrain();
-        const walls = require('system.claimDefense').controllerWalls(creep.room);
-        let free = false;
-        for (let dx = -1; dx <= 1 && !free; dx++) for (let dy = -1; dy <= 1 && !free; dy++) {
-            const x = c.pos.x + dx, y = c.pos.y + dy;
-            if ((dx || dy) && terrain.get(x, y) !== TERRAIN_MASK_WALL && !walls.some(w => w.pos.x === x && w.pos.y === y)) free = true;
-        }
-        const weakest = !free && walls.slice().sort((a, b) => a.hits - b.hits)[0];
-        if (weakest) {
-            if (creep.dismantle(weakest) === ERR_NOT_IN_RANGE) creep.travelTo(weakest, { range: 1 });
-        } else creep.travelTo(c, { range: 1 });
+        // Walls (our own old ones, left up by the attacker) or someone's ramparts closing the
+        // controller off, next to it or further out: break the first on the way (creep.breach).
+        if (!require('creep.breach').breach(creep, c, 1)) creep.travelTo(c, { range: 1 });
     }
     else if (result === OK) bait.claimed(dest, creep.memory.baitFor);
     else if (result === ERR_GCL_NOT_ENOUGH) {

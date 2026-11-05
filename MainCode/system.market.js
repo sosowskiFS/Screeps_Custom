@@ -21,7 +21,7 @@ const CREDIT_RESERVE = 5000;      // keep for listing fees
 const UNLOCK_CEILING = 1.05;      // never bid/buy unlocks above 105% of their recent average
 const UNLOCK_LOT = 5;             // unlocks per buy order
 const MAX_UNLOCK_DEALS = 3;       // deals per run (10/tick game limit shared with room sales)
-const PIXEL_MIN_LOT = 10;
+const PIXEL_MIN_LOT = 1;           // every pixel is listed (they used to wait for 10: 5 sat unsold)
 const PIXEL_TAKE_BID = 0.95;      // a bid this close to our ask is sold into directly
 
 const historyCache = {};          // heap: resource -> { at, price }
@@ -344,6 +344,7 @@ function handleMarketOperations() {
         if (intershard) sellPixels();
         sellCompounds();   // room resources: every shard sells its own
         require('system.mineralBuy').run();   // base minerals for the boost labs, when critically low
+        require('system.defenseBoost').supply();   // XKHO2 for rooms short of a full lab set
     }
 }
 

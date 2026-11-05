@@ -51,7 +51,7 @@ test('all role aliases match legacy dispatch across bucket, war, RCL, HEAL and s
     console.log(`Compared ${scenarios} legacy dispatch scenarios.`);
 });
 
-test('industry link priorities and lab recipes produce legacy intents', () => {
+test('industry lab recipes produce legacy intents; links send while a target has room', () => {
     function run(old, controllerEnergy, storageEnergy, recipe) {
         const h = harness(), g = h.context, calls = [];
         h.load('runtime.memory').ensureInitialized();
@@ -63,12 +63,15 @@ test('industry link priorities and lab recipes produce legacy intents', () => {
             objects[id] = { id, energy: amount, cooldown: 0, transferEnergy: target => { calls.push(['link', id, target.id]); return 0; } };
         }
         g.LAB_REACTION_AMOUNT = 5;
-        for (const id of ['l1', 'l2', 'l3', 'l4', 'l5', 'l6']) objects[id] = { id, pos: positions, cooldown: 0,
+        // Boost labs l1-l3 out of reach (they never react), l4-l6 together.
+        const at = { l1: [40, 10], l2: [41, 10], l3: [42, 10], l4: [10, 10], l5: [11, 10], l6: [12, 10] };
+        for (const id of ['l1', 'l2', 'l3', 'l4', 'l5', 'l6']) objects[id] = { id, pos: Object.assign({ x: at[id][0], y: at[id][1] }, positions), cooldown: 0,
             mineralType: recipe === 'OH' ? (id === 'l4' ? g.RESOURCE_HYDROGEN : g.RESOURCE_OXYGEN) : g.RESOURCE_CATALYST,
             store: { [g.RESOURCE_HYDROGEN]: 100, [g.RESOURCE_OXYGEN]: 100, [g.RESOURCE_CATALYST]: 100 },
             mineralAmount: 100, mineralCapacity: 3000,
             runReaction: (a, b) => { calls.push(['reaction', id, a.id, b.id]); return 0; } };
         g.Memory.linkList.A = ['s1', 'c', 's2', 'store'];
+        g.Memory.linkRoles = { A: { up: 'c', store: 'store', senders: ['s1', 's2'] } };
         g.Memory.labList.A = ['l1', 'l2', 'l3', 'l4', 'l5', 'l6'];
         g.Game.getObjectById = id => objects[id];
         if (recipe) g.Game.flags['A' + recipe + (recipe === 'OH' ? 'Producer(3)' : 'Producer')] = {};
@@ -82,9 +85,15 @@ test('industry link priorities and lab recipes produce legacy intents', () => {
         return calls;
     }
     assert.ok(run(false, 0, 0, 'OH').some(call => call[0] === 'reaction'));
+    // Lab reactions match the legacy code; link sends changed on purpose (they send while the target
+    // has 200 free, not only under 400: tests/haulers.test.js).
+    const labsOnly = calls => calls.filter(call => call[0] !== 'link');
     for (const c of [0, 399, 400, 800]) for (const s of [0, 400, 800]) for (const recipe of ['', 'OH', 'XGH2O']) {
-        assert.deepEqual(run(false, c, s, recipe), run(true, c, s, recipe));
+        assert.deepEqual(labsOnly(run(false, c, s, recipe)), labsOnly(run(true, c, s, recipe)));
     }
+    // Links: the hub at 589 (211 free) takes a send now; full ones do not.
+    assert.ok(run(false, 800, 589, '').some(call => call[0] === 'link' && call[2] === 'store'));
+    assert.ok(!run(false, 800, 800, '').some(call => call[0] === 'link'));
 });
 
 test('extension road grid preserves legacy tile order, obstructions and site-cap exit', () => {

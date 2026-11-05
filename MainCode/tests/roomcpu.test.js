@@ -77,18 +77,50 @@ test('creeps are charged to their home room, including remote creeps in other ro
     assert.equal(g.Memory.roomCPU.OTHER.a, 0.2);
 });
 
-test('a base room shows a Room CPU pie next to the shard average', () => {
+test('a base room panel shows its Room CPU and its share of the shard', () => {
     const { g, h } = setup();
     g.Memory.settings = { visuals: true };
     g.Memory.roomCPU = { A: { a: 3.456, n: 500, l: 1 } };
     g.Game.cpu.limit = 20;
     const texts = [];
     g.RoomVisual = function () {
-        return { getSize: () => 0, circle() {}, poly() {}, text: (value, x, y) => texts.push([String(value), x, y]) };
+        return { getSize: () => 0, circle() {}, poly() {}, rect() {}, text: (value, x, y) => texts.push([String(value), x, y]) };
     };
-    g.Game.map.visual = { text() {} };
+    g.Game.map.visual = { text() {}, rect() {} };
+    g.RoomPosition = function (x, y, roomName) { Object.assign(this, { x, y, roomName }); };
+    g.Memory.CPUAverages = { TotalCPU: { CPU: 10 } };
     g.Memory.repairTarget = {};
-    h.load('system.visuals').displayRoomInfo({ name: 'A', controller: { level: 8 }, storage: undefined });
-    assert.ok(texts.some(([value, x]) => value === 'Room CPU' && x === 5), 'labelled pie at x=5 (shard Average is at x=2)');
-    assert.ok(texts.some(([value]) => value === '3.46'), 'shows the rounded room average');
+    h.load('system.visuals').displayRoomInfo({ name: 'A', controller: { level: 8 }, storage: undefined, find: () => [] });
+    assert.ok(texts.some(([value]) => value === 'Room CPU'), 'a Room CPU row');
+    assert.ok(texts.some(([value]) => value === '3.5 (35%)'), 'the rounded room average and its share of the shard (10)');
+});
+
+test('map cards for rooms we know of: other players first, then our remotes (off when disabled), reserved, keeper, scouted', () => {
+    const { g, h } = setup();
+    g.Memory.settings = { visuals: true };
+    g.Game.time = 100000;
+    g.Game.rooms = { HOME: { name: 'HOME', controller: { my: true } } };
+    g.Memory.badRooms = { RIVAL: { o: 'Harabi', t: 99000 } };
+    g.Memory.remoteIntel = {
+        RIVAL: { t: 99500, s: [[1, 1, 1]], o: 'Harabi', tw: 3 },
+        MINE: { t: 99900, s: [['a', 1, 1], ['b', 2, 2]] },
+        DOWN: { t: 99900, s: [['c', 1, 1]] },
+        RES: { t: 90000, s: [['d', 1, 1]], r: 'Someone' },
+        SK: { t: 90000, s: [['e', 1, 1]], k: 1 },
+        HOME: { t: 1, s: [] },
+    };
+    g.Memory.expandIntel = { FAR: { t: 50000, n: 2 } };
+    g.Memory.remotePlan = { HOME: { list: [{ r: 'MINE', id: 'a' }, { r: 'MINE', id: 'b' }, { r: 'DOWN', id: 'c' }] } };
+    g.Memory.remoteStatus = { DOWN: { strikes: 2, until: 100500 } };
+    g.Memory.FarRoomsUnderAttack = ['DOWN'];
+    const cards = h.load('system.visuals').intelCards();
+    const by = Object.fromEntries(cards.map(c => [c.name, c]));
+    assert.equal(cards[0].name, 'RIVAL', 'other players first');
+    assert.ok(by.RIVAL.main.includes('Harabi') && by.RIVAL.side.includes('3'));
+    assert.ok(by.MINE.main.includes('2/2') && by.MINE.main.includes('HOME'));
+    assert.ok(by.DOWN.side.includes('OFF') && by.DOWN.alarm, 'disabled and attacked');
+    assert.ok(by.RES.main.includes('Someone'));
+    assert.equal(by.SK.main, 'SK');
+    assert.ok(by.FAR.faint && by.FAR.main === '2 src' && by.FAR.age === '50k ago');
+    assert.equal(by.HOME, undefined, 'owned rooms keep their own card');
 });

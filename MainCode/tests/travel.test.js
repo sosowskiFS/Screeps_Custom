@@ -196,3 +196,22 @@ test('portal tiles are remembered from rooms in sight and forgotten once gone', 
     assert.equal(Traveler.portalTiles('W0N10').size, 0);
     assert.equal(g.Memory.portalTiles.W0N10, undefined);
 });
+
+// shardX E27N39: two decoy creeps routed along E27N40's bottom row (exit tiles) to reach E27N39,
+// bounced over the border for good. Exit tiles cost more than plains; edge walls stay walls.
+test('exit tiles cost more in every path search; terrain walls and set costs are left alone', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.TERRAIN_MASK_WALL = 1;
+    g.Game.map.getRoomTerrain = () => ({ get: (x, y) => (y === 0 && x < 10 ? 1 : 0) });
+    g.PathFinder = { CostMatrix: function () { const m = {}; this.get = (x, y) => m[x * 50 + y] || 0; this.set = (x, y, v) => { m[x * 50 + y] = v; }; this.clone = () => this; } };
+    const { Traveler } = h.load('traveler');
+    const base = new g.PathFinder.CostMatrix();
+    base.set(20, 49, 0xff);   // a structure on an edge tile
+    const m = Traveler.withExitCost('R', base);
+    assert.equal(m.get(30, 0), 10, 'an open exit tile');
+    assert.equal(m.get(5, 0), 0, 'a terrain wall on the edge is not made walkable');
+    assert.equal(m.get(20, 49), 0xff, 'an obstacle there stays');
+    assert.equal(m.get(25, 25), 0, 'inside: unchanged');
+});

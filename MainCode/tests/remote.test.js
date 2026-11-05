@@ -274,3 +274,14 @@ test('a shardX bait room of ours is recorded and planned as a remote; other room
     remote.recordIntel(room('E6N5'));
     assert.equal(g.Memory.remoteIntel.E6N5, undefined, 'bait rooms exist on shardX only');
 });
+
+test('a reserver for a remote whose controller was found walled off carries an ATTACK part', () => {
+    const { h, g } = world();
+    g.BODYPART_COST = { claim: 600, move: 50, attack: 80, CLAIM: 600, MOVE: 50, ATTACK: 80 };
+    const far = h.load('spawn.BuildFarCreeps');
+    const plain = far.getClaimerBuild(1300);
+    const walled = far.getClaimerBuild(1300, true);
+    assert.ok(!plain.includes(g.ATTACK));
+    assert.ok(walled.includes(g.ATTACK) && walled.includes(g.CLAIM), JSON.stringify(walled));
+    assert.ok(walled.filter(p => p === g.MOVE).length >= walled.filter(p => p !== g.MOVE).length, 'a MOVE per part');
+});

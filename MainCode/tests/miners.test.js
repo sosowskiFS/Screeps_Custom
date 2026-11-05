@@ -13,7 +13,7 @@ test('a surplus storage miner becomes the upgrade miner when there is none (E29N
     assert.equal(young.memory.jobSpecific, 'upgradeMiner');
     assert.equal(young.memory.mineSource, 'B');
     assert.equal(young.memory.linkSource, 'L0');
-    assert.equal(young.memory.linkSource2, 'L2');
+    assert.equal(young.memory.linkSource2, undefined, 'any link beside it is used (creep.miner)');
     assert.equal(young.memory._trav, undefined);
     assert.equal(counts.storageMiners.length, 1);
     assert.equal(counts.upgradeMiners.length, 1);

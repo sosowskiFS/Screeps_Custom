@@ -219,7 +219,7 @@ test('no controller walls where the ring would cut a source off from the upgradi
 });
 
 test('a bait claimer finding the controller walled in (our walls from before the room was lost) breaks through the weakest', () => {
-    const { g, role } = creepSetup();
+    const { g, h, role } = creepSetup();
     const r = room(g, 0);
     const walls = [];
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
@@ -227,10 +227,25 @@ test('a bait claimer finding the controller walled in (our walls from before the
     }
     r.find = t => (t === g.FIND_STRUCTURES ? walls : t === g.FIND_SOURCES ? [{ pos: pos(g, 30, 25) }] : []);
     g.Game.rooms.W2N22 = r;
+    // PathFinder (creep.breach): walls crossable at a cost, the weakest cheapest; the path goes
+    // through it.
+    g.PathFinder = { CostMatrix: function () { const m = {}; this.get = (x, y) => m[x * 50 + y] || 0; this.set = (x, y, v) => { m[x * 50 + y] = v; }; },
+        search: (from, goal, opts) => {
+            const m = opts.roomCallback('W2N22');
+            const cheapest = walls.slice().sort((a, b) => m.get(a.pos.x, a.pos.y) - m.get(b.pos.x, b.pos.y))[0];
+            return { incomplete: false, path: [{ x: cheapest.pos.x, y: cheapest.pos.y }] };
+        } };
     const c = creep(g, r, 0, { claim: true, claimResult: g.ERR_NOT_IN_RANGE });
     c.dismantle = w => { c.calls.push('dismantle:' + w.id); return g.OK; };
+    c.getActiveBodyparts = t => (t === g.WORK || t === g.ATTACK || t === g.CLAIM ? 1 : 0);
+    c.pos.inRangeTo = () => false;
+    c.pos.isNearTo = () => true;
+    g.Game.getObjectById = id => walls.find(w => w.id === id) || null;
+    g.Game.time = 5000;
     role.run(c);
-    assert.equal(c.calls[c.calls.length - 1], 'dismantle:w11');
+    assert.equal(c.calls[c.calls.length - 1], 'dismantle:w11', JSON.stringify(c.calls));
+    assert.equal(c.memory.breachId, 'w11', 'kept until it is gone');
+    assert.ok(h.load('system.bait').body(true).includes(g.ATTACK), 'the claimer carries an ATTACK part');
 });
 
 test('a bait centre (dropped target): the room itself and the rooms within 3 of it, ordered by its old sponsor', () => {

@@ -151,6 +151,9 @@ var spawn_BuildCreeps = {
             repairMax = controllerWalls.length ? 1 : 0;
         }
 
+        // Under attack: no upgrader unless the controller's timer is critical.
+        if (require('system.maintenance').attackHold(thisRoom)) upgraderMax = 0;
+
         let defenderEnergyLim = 780;
         if (thisRoom.controller.level == 4) {
             defenderEnergyLim = 1170;
@@ -172,26 +175,41 @@ var spawn_BuildCreeps = {
             }
 
             global.setSpawnBusy(spawn);
-        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && defenderCount < 2 && !harvestSource && !defenseWatch.isDraining(thisRoom.name)) {
+        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && thisRoom.energyCapacityAvailable >= defenderEnergyLim && !harvestSource && !defenseWatch.isDraining(thisRoom.name) &&
+            defenderCount < youngDefendersWanted(thisRoom)) {
             //Try to produce millitary units
                 // RANGED_ATTACK/MOVE pairs (+ HEAL), ranged parts in front (combat.bodies).
-                var ChosenCreepSet = require('combat.bodies').youngDefender(Memory.CurrentRoomEnergy[energyIndex]);
-                var remainingEnergy = Memory.CurrentRoomEnergy[energyIndex] - require('combat.bodies').cost(ChosenCreepSet);
-
-                Memory.CurrentRoomEnergy[energyIndex] = remainingEnergy;
-
-                spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
-                    memory: {
-                        priority: 'defender',
-                        fromSpawn: spawn.id,
-                        homeRoom: thisRoom.name
-                    },
-					directions: buildDirections
-                });
+                // No HEAL where towers stand: they heal defenders, and it cost 2 ranged parts.
+                // Full size (the room's capacity): sized by the energy on hand it came out at 2 parts
+                // (shardX W1N9). The first one may go out at half size rather than wait.
+                const bodies = require('combat.bodies');
+                const hasTower = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } }).length > 0;
+                const available = Memory.CurrentRoomEnergy[energyIndex];
+                let ChosenCreepSet = bodies.youngDefender(thisRoom.energyCapacityAvailable, !hasTower);
+                if (bodies.cost(ChosenCreepSet) > available && defenderCount == 0 && available >= thisRoom.energyCapacityAvailable / 2) {
+                    ChosenCreepSet = bodies.youngDefender(available, !hasTower);
+                }
+                if (bodies.cost(ChosenCreepSet) <= available) {
+                    Memory.CurrentRoomEnergy[energyIndex] = available - bodies.cost(ChosenCreepSet);
+                    spawn.spawnCreep(ChosenCreepSet, 'defender_' + spawn.name + '_' + Game.time, {
+                        memory: {
+                            priority: 'defender',
+                            fromSpawn: spawn.id,
+                            homeRoom: thisRoom.name
+                        },
+                        directions: buildDirections
+                    });
+                }
+                // Waiting for the energy: nothing else spawns meanwhile.
                 global.setSpawnBusy(spawn);
         } else if ((harvestSource || weak || builderCount < builderMax || upgraderCount < upgraderMax || repairerCount < repairMax || supplierCount < supplierMax || distributorCount < distributorMax)) {
             var prioritizedRole = 'harvester';
             var creepSourceID = '';
+            // Stores falling under the reserve: spenders (upgrader, workers, repairers) at half size
+            // (system.energyFlow.lean); at least the 300-energy body.
+            const flowMod = require('system.energyFlow');
+            const leanCap = flowMod.lean(thisRoom) ? Math.max(300, thisRoom.energyCapacityAvailable * flowMod.LEAN_SHARE) : Infinity;
+            const spend = energy => Math.min(energy, leanCap);
 
             // Prioritize essential roles first, then support roles
             if (!bootstrap && harvesting && distributorCount === 0 && distributorMax > 0 && thisRoom.energyCapacityAvailable >= 150 &&
@@ -223,24 +241,24 @@ var spawn_BuildCreeps = {
                 // extensions (the first one now, whatever the spawn holds).
                 prioritizedRole = 'upgrader';
                 const full = distributorCount > 0;
-                bestWorker = getWorkerConfig(full ? thisRoom.energyCapacityAvailable : budget, 'upgrader');
+                bestWorker = getWorkerConfig(spend(full ? thisRoom.energyCapacityAvailable : budget), 'upgrader');
                 if (full && calculateConfigCost(bestWorker) > budget) return;
             } else if (supplierCount < supplierMax && supplierDirection.length > 0 && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'supplier';
                 bestWorker = getSupplierConfig(budget);
             } else if (controllerWalls.length && repairerCount < repairMax && upgraderCount >= 1 && budget >= 200) {
                 prioritizedRole = 'repair';
-                bestWorker = getWorkerConfig(budget, 'repair');
+                bestWorker = getWorkerConfig(spend(budget), 'repair');
             } else if (builderCount < builderMax && thisRoom.energyCapacityAvailable >= 200) {
                 // Workers at the size the room affords, once it has one and a distributor to fill
                 // the extensions (the first one now, whatever the spawn holds).
                 prioritizedRole = 'builder';
                 const full = builderCount > 0 && distributorCount > 0;
-                bestWorker = getWorkerConfig(full ? thisRoom.energyCapacityAvailable : budget, 'worker');
+                bestWorker = getWorkerConfig(spend(full ? thisRoom.energyCapacityAvailable : budget), 'worker');
                 if (full && calculateConfigCost(bestWorker) > budget) return;
             } else if (repairerCount < repairMax && thisRoom.energyCapacityAvailable >= 200) {
                 prioritizedRole = 'repair';
-                bestWorker = getWorkerConfig(budget, 'repair');
+                bestWorker = getWorkerConfig(spend(budget), 'repair');
             } else {
                 // No valid role to spawn
                 return;
@@ -286,6 +304,14 @@ var spawn_BuildCreeps = {
 };
 
 // Drop parts from the end until the body costs at most `energy` (empty when nothing useful fits).
+// Defenders wanted (defense.staffing): enough full-size defenders, with the towers, to beat the
+// healing of the easiest armed hostile. It was 2 whatever came.
+function youngDefendersWanted(room) {
+    const staffing = require('defense.staffing');
+    const hasTower = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } }).length > 0;
+    return staffing.needed(room, staffing.rangedDamage(require('combat.bodies').youngDefender(room.energyCapacityAvailable, !hasTower)));
+}
+
 function fitBody(body, energy) {
     const out = body.slice();
     while (out.length && calculateConfigCost(out) > energy) out.pop();
@@ -601,6 +627,7 @@ spawn_BuildCreeps.getRepairMax = getRepairMax;
 spawn_BuildCreeps.repairCapacity = repairCapacity;
 spawn_BuildCreeps.sourceShortOfWork = sourceShortOfWork;
 spawn_BuildCreeps.fitBody = fitBody;
+spawn_BuildCreeps.youngDefendersWanted = youngDefendersWanted;
 spawn_BuildCreeps.workerMax = workerMax;
 spawn_BuildCreeps.waitingEnergy = waitingEnergy;
 module.exports = spawn_BuildCreeps;

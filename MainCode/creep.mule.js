@@ -10,7 +10,8 @@ module.exports = {
         if (_.sum(creep.carry) <= REFILL_AT) {
             creep.memory.structureTarget = undefined;
             let linkTarget = creep.memory.linkSource ? Game.getObjectById(creep.memory.linkSource) : undefined;
-            if (!withdrawEnergy(creep, linkTarget, { ignoreRoads: true })) {
+            // The upgrade miner's overflow link first (creep.logistics).
+            if (!require('creep.logistics').takeOverflow(creep, { ignoreRoads: true }) && !withdrawEnergy(creep, linkTarget, { ignoreRoads: true })) {
                 let storageTarget = getStorageTarget(creep);
                 if (storageTarget && storageTarget.store[RESOURCE_ENERGY] >= 50) {
                     withdrawEnergy(creep, storageTarget, { maxRooms: 1 });
@@ -61,8 +62,8 @@ module.exports = {
                             }
                         } else {
                             //Upgrading controller
-                            if (Memory.linkList[creep.room.name].length > 1) {
-                                var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+                            if (require('system.links').upgradeLink(creep.room)) {
+                                var upgraderLink = require('system.links').upgradeLink(creep.room);
                                 if (upgraderLink && upgraderLink.energy < 100) {
                                     if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                         creep.travelTo(upgraderLink, {
@@ -144,16 +145,24 @@ module.exports = {
                             //Store in terminal
                             let terminalTarget = Game.getObjectById(creep.memory.terminalID)
                             if (terminalTarget) {
+                                // Only from a storage at TERMINAL_FIRST_BELOW (100k) or more, never while the
+                                // room draws on the terminal first, and not straight back (logistics.reverses).
+                                // From 50k it took the terminal's own energy and put it back in, again and
+                                // again, with the storage at 99.9-100.1k (shardX E23N31).
+                                const logistics = require('creep.logistics');
                                 let targetEnergy = 0;
-                                if (creep.room.storage) {
-                                    if (creep.room.storage.store[RESOURCE_ENERGY] >= 275000) {
-                                        targetEnergy = 60000;
-                                    } else if (creep.room.storage.store[RESOURCE_ENERGY] >= 50000) {
-                                        targetEnergy = 30000;
-                                    }
+                                const stored = creep.room.storage ? creep.room.storage.store[RESOURCE_ENERGY] || 0 : 0;
+                                if (stored >= 275000) {
+                                    targetEnergy = 60000;
+                                } else if (stored >= logistics.TERMINAL_FIRST_BELOW) {
+                                    targetEnergy = require('system.siegeWatch').terminalEnergyGoal(creep.room);
+                                }
+                                if (getStorageTarget(creep) === terminalTarget || logistics.reverses(creep.room, creep.room.storage, terminalTarget)) {
+                                    targetEnergy = 0;
                                 }
                                 if (terminalTarget.store[RESOURCE_ENERGY] < targetEnergy && terminalTarget.store.getFreeCapacity() > 5000) {
                                     creep.memory.structureTarget = terminalTarget.id;
+                                    logistics.noteEnergyMove(creep.room, creep.room.storage, terminalTarget);
                                     if (creep.transfer(terminalTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                                         creep.travelTo(terminalTarget, {
                                             maxRooms: 1
@@ -204,8 +213,8 @@ module.exports = {
                                         //Upgrade
                                         if (creep.room.controller.level == 8) {
                                             //Check for nearby link and fill it if possible.
-                                            if (Memory.linkList[creep.room.name].length > 1) {
-                                                var upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+                                            if (require('system.links').upgradeLink(creep.room)) {
+                                                var upgraderLink = require('system.links').upgradeLink(creep.room);
                                                 if (upgraderLink && upgraderLink.energy < 200) {
                                                     creep.memory.structureTarget = upgraderLink.id;
                                                     if (creep.transfer(upgraderLink, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -219,6 +228,9 @@ module.exports = {
                                                     creep.memory.previousPriority = 'mule';
                                                 }
                                             }
+                                        } else if (require('system.maintenance').attackHold(creep.room)) {
+                                            // Under attack: no energy into the controller; hold the load.
+                                            handleMovementCoordination(creep);
                                         } else {
                                             creep.memory.structureTarget = creep.room.controller.id;
                                             if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {

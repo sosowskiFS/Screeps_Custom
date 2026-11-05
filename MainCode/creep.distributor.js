@@ -53,6 +53,8 @@ module.exports = {
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
             creep.memory.priority = 'distributorNearDeath';
         }
+        // The boost lab's XKHO2 and energy in a room short of a full lab set (system.defenseBoost).
+        if (creep.memory.previousPriority != 'labWorker' && require('system.defenseBoost').loadLab(creep)) return;
         // A lab worker on loan, needed back for boosting: put the load away and go back at once.
         const boosts = require('system.guardBoosts');
         if (creep.memory.previousPriority == 'labWorker' && boosts.mineralsUrgent(creep.room)) {
@@ -109,12 +111,13 @@ module.exports = {
                 }
             }
             if (!locatedTarget) {
-                //Check 4th link first just in case
-                var linkTarget = undefined;
-                if (creep.memory.linkSource) {
+                // The upgrade miner's overflow link first (creep.logistics), then its own link.
+                const overflow = require('creep.logistics').overflowSource(creep);
+                var linkTarget = overflow || undefined;
+                if (!linkTarget && creep.memory.linkSource) {
                     linkTarget = Game.getObjectById(creep.memory.linkSource)
                 }
-                if (linkTarget && linkTarget.energy >= 600) {
+                if (linkTarget && (linkTarget === overflow || linkTarget.energy >= 600)) {
                     const withdrawResult = creep.withdraw(linkTarget, RESOURCE_ENERGY);
                     if (withdrawResult == ERR_NOT_IN_RANGE) {
                         creep.travelTo(linkTarget, {
@@ -125,12 +128,8 @@ module.exports = {
                         findAndMoveToDistributionTarget(creep);
                     }
                 } else {
-                    var storageTarget = creep.room.storage;
-                    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
-                        storageTarget = creep.room.terminal;
-                    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
-                        storageTarget = creep.room.terminal;
-                    }
+                    // The terminal first under attack or with the storage low (creep.logistics).
+                    var storageTarget = getStorageTarget(creep);
                     if (storageTarget) {
                         const withdrawResult = creep.withdraw(storageTarget, RESOURCE_ENERGY);
                         if (withdrawResult == ERR_NOT_IN_RANGE) {
@@ -196,16 +195,20 @@ module.exports = {
             // stays on the compounds).
             const lab = boosts.labNeedingEnergy(creep);
             if (creep.transfer(lab, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(lab);
-        } else if (Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+        } else if ((Memory.roomsUnderAttack.indexOf(creep.room.name) == -1 && creep.room.terminal && creep.room.storage && creep.room.storage.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > require('system.siegeWatch').terminalEnergyGoal(creep.room) + 1000 &&
+            !require('creep.logistics').reverses(creep.room, creep.room.terminal, creep.room.storage)) ||
+            require('creep.logistics').storageShort(creep.room)) {
+            // Also under attack while the storage is short: the supplier feeds the towers from it.
+            // Not straight back after the terminal was topped up from the storage (logistics.reverses).
             if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                 creep.memory.hasDistributed = true;
             }
-            transferEnergy(creep, creep.room.storage);
-        } else if (creep.room.controller.level != 8 && Memory.linkList[creep.room.name].length > 1) {
+            if (transferEnergy(creep, creep.room.storage)) require('creep.logistics').noteEnergyMove(creep.room, creep.room.terminal, creep.room.storage);
+        } else if (creep.room.controller.level != 8 && require('system.links').upgradeLink(creep.room)) {
             if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {
                 creep.memory.hasDistributed = true;
             }
-            var upLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+            var upLink = require('system.links').upgradeLink(creep.room);
             transferEnergy(creep, upLink);
         } else if (_.sum(creep.carry) < creep.carryCapacity) {
             if (creep.memory.previousPriority == 'labWorker' && !creep.memory.hasDistributed) {

@@ -123,9 +123,8 @@ function setupCreepMemory(creep) {
     }
 
     // Set link source if available
-    if (Memory.linkList[creep.room.name] && Memory.linkList[creep.room.name].length >= 4) {
-        creep.memory.linkSource = Memory.linkList[creep.room.name][3];
-    }
+    const hubLink = require('system.links').storageLink(creep.room);   // the storage receiver
+    if (hubLink) creep.memory.linkSource = hubLink.id;
 
     // Clear job focus on setup
     creep.memory.jobFocus = undefined;
@@ -153,7 +152,9 @@ function findNeededWork(creep, totalOps) {
             spawnDeficit(room) > 0],
         ['OPERATE_SPAWN', () => powerReady(creep, PWR_OPERATE_SPAWN, totalOps) &&
             (Game.flags[room.name + "RunningAssault"] || totalOps >= 600) && totalOps >= 100 && getNeededSpawn(creep)],
-        ['REGEN_SOURCE', () => powerReady(creep, PWR_REGEN_SOURCE, totalOps) && getNeededSource(creep)],
+        // Not while the storage is overflowing anyway: level 5 regen adds ~17 a tick per source, and
+        // shard1 E19N59 sat at 1.07M stored with half its income from it.
+        ['REGEN_SOURCE', () => powerReady(creep, PWR_REGEN_SOURCE, totalOps) && regenWanted(room) && getNeededSource(creep)],
         ['OPERATE_LAB', () => powerReady(creep, PWR_OPERATE_LAB, totalOps) && !Game.flags[room.name + "WarBoosts"] && getNeededLab(creep)],
         ['OPERATE_POWER', () => powerReady(creep, PWR_OPERATE_POWER, totalOps) && room.storage &&
             room.storage.store[RESOURCE_POWER] >= 100 && getNeededPower(creep)],
@@ -206,6 +207,11 @@ function getNeededSource(creep) {
     return undefined;
 }
 
+const REGEN_SOURCE_BELOW = 500000;   // storage energy at which source regeneration stops
+function regenWanted(room) {
+    return !room.storage || (room.storage.store[RESOURCE_ENERGY] || 0) < REGEN_SOURCE_BELOW;
+}
+
 function getNeededTower(creep) {
     for (const thisTower of runtimeCache.find(creep.room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } })) {
         if (thisTower && !hasEffectActive(thisTower, PWR_OPERATE_TOWER)) {
@@ -227,17 +233,8 @@ function getNeededLab(creep) {
         }
     }
 
-    // Check output labs (skip first 5 which are for boosts/reagents)
-    for (let i = 5; i < 10; i++) {
-        const labID = Memory.labList[creep.room.name][i];
-        if (labID) {
-            const thisLab = Game.getObjectById(labID);
-            if (thisLab && !hasEffectActive(thisLab, PWR_OPERATE_LAB)) {
-                return thisLab;
-            }
-        }
-    }
-    return undefined;
+    // Labs reacting now (system.labLayout: outputs in reach, boost labs while their boost is not wanted).
+    return require('system.labLayout').reactionLabs(creep.room.name).find(lab => !hasEffectActive(lab, PWR_OPERATE_LAB));
 }
 
 function getNeededSpawn(creep) {
@@ -395,7 +392,7 @@ function withdrawFromStorageOrTerminal(creep, neededAmount) {
         const terminalEnergy = creep.room.terminal.store[RESOURCE_ENERGY] || 0;
 
         if ((storageEnergy < 100000 && terminalEnergy > 0) ||
-            (storageEnergy < 250000 && terminalEnergy > 31000)) {
+            (storageEnergy < 250000 && terminalEnergy > require('system.siegeWatch').terminalEnergyGoal(creep.room) + 1000)) {
             storageTarget = creep.room.terminal;
         }
     }
@@ -607,5 +604,6 @@ function operatorPresent(roomName) {
     return cache[roomName];
 }
 creep_baseOp.operatorPresent = operatorPresent;
+creep_baseOp.regenWanted = regenWanted;
 
 module.exports = creep_baseOp;

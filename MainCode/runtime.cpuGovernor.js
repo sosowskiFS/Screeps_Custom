@@ -16,13 +16,11 @@
 // Thinned creeps run on a fixed share of ticks, staggered by name so the saving is spread evenly
 // across ticks instead of every creep skipping the same odd ticks.
 //
-// Optional features are gated by shed level (see FEATURES). Pixels are generated only with a
-// full bucket, nothing shed, average comfortably under the limit and no room under attack.
+// Optional features are gated by shed level (see FEATURES). Pixels: see maybeGeneratePixel.
 const ADJUST_EVERY = 100;
 const EMA_TICKS = 100;
 const EMERGENCY_BUCKET = 500;
 const PIXEL_RECOVERY = 2000;   // ticks after a pixel during which a low bucket is expected
-const PIXEL_HEADROOM = 0.9;    // generate pixels only when averaging under 90% of the limit
 const SPIKE_BUCKET = 1000;     // spiky optional work (path-heavy planning) waits for this much
 
 // Run slots out of 4 ticks for each tier at each shed level.
@@ -101,16 +99,48 @@ function shouldRun(name, tier) {
     return (Game.time + nameSlot(name)) % 4 < slots;
 }
 
+// The account has deluxe pixel generation: a pixel takes DELUXE_PIXEL_COST (9,000) of the bucket,
+// not the standard 10,000. One is made at PIXEL_AT: the bucket stops at 10,000, so waiting for it to
+// fill only loses CPU, and PIXEL_KEEP (800) stays as the critical reserve for the next ticks (a tick
+// draws at most 500 of it). The only other bar: none of our own rooms under a player's attack (the
+// bucket is the defence's buffer then).
+// Pixels used to need nothing shed, the average under 90% of the limit and an empty
+// Memory.roomsUnderAttack. That list holds remote and bait rooms too (shard1 W41S24; a dozen on
+// shardX) and shard2/shard3 average near their limits with something shed, so with full buckets
+// almost no shard made pixels.
+const DELUXE_PIXEL_COST = 9000;
+const PIXEL_KEEP = 800;
+const PIXEL_AT = DELUXE_PIXEL_COST + PIXEL_KEEP;
+const NPC = new Set(['Invader', 'Source Keeper']);
+function armed(creep) {
+    return (creep.body || []).some(p => p.hits > 0 && (p.type === ATTACK || p.type === RANGED_ATTACK || p.type === WORK || p.type === CLAIM));
+}
+function ownRoomUnderPlayerAttack() {
+    const white = Memory.whiteList || [];
+    for (const name of Memory.roomsUnderAttack || []) {
+        const room = Game.rooms[name];
+        // In safe mode they cannot hurt it: attackers waiting there (W1N9) are no attack. Decoy rooms
+        // (system.bait) are there to be attacked and are never defended: shardX W1N7, with four
+        // enemy creeps in it, kept every pixel back.
+        if (!room || !room.controller || !room.controller.my || room.controller.safeMode) continue;
+        if (require('system.bait').isBait(name)) continue;
+        // Armed ones (attack, ranged, dismantle, claim): a 1-part scout on E32N45's border is no attack.
+        const hostiles = require('runtime.cache').find(room, FIND_HOSTILE_CREEPS);
+        if (hostiles.some(c => c.owner && !NPC.has(c.owner.username) && !white.includes(c.owner.username) && armed(c))) return true;
+    }
+    return false;
+}
+// Shards that make pixels even while one of their rooms is under attack: shardX has the most CPU
+// to spare (averaging about two thirds of its limit), so the 800 kept back is plenty there, and
+// with a quad camped in W1N22 it made none.
+const PIXELS_UNDER_ATTACK = new Set(['shardX']);
 function maybeGeneratePixel() {
     if (!require('runtime.world').pixels()) return;   // Seasonal World, private servers: no pixels
-    const cost = typeof PIXEL_CPU_COST !== 'undefined' ? PIXEL_CPU_COST : 10000;
-    if (Game.cpu.bucket < cost) return;
-    const gov = state();
-    if (gov.shed > 0 || gov.ema > Game.cpu.limit * PIXEL_HEADROOM) return;
-    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.length) return; // keep the buffer for defence
+    if (Game.cpu.bucket < PIXEL_AT) return;
+    if (!PIXELS_UNDER_ATTACK.has(Game.shard && Game.shard.name) && ownRoomUnderPlayerAttack()) return;
     if (Game.cpu.generatePixel() === OK) {
-        gov.pixel = Game.time;
+        state().pixel = Game.time;
     }
 }
 
-module.exports = { update, shedLevel, allows, shouldRun, maybeGeneratePixel, RUN_SLOTS, FEATURES };
+module.exports = { update, shedLevel, allows, shouldRun, maybeGeneratePixel, RUN_SLOTS, FEATURES, DELUXE_PIXEL_COST, PIXEL_KEEP, PIXEL_AT };

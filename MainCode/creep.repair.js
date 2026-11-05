@@ -1,4 +1,11 @@
 const runtimeCache = require('runtime.cache');
+const BOOST_MIN_LIFE = 750;
+const NPC = new Set(['Invader', 'Source Keeper']);
+// Hostile creeps of another player (not NPCs, not whitelisted) in the room.
+function playerAttack(room) {
+    const white = Memory.whiteList || [];
+    return runtimeCache.find(room, FIND_HOSTILE_CREEPS).some(c => c.owner && !NPC.has(c.owner.username) && !white.includes(c.owner.username));
+}
 var creep_repair = {
 
     /** @param {Creep} creep **/
@@ -6,30 +13,34 @@ var creep_repair = {
         if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'repairNearDeath') {
             creep.memory.priority = 'repairNearDeath';
         }
+        // Under attack: repairs only from tiles no attacker can hit (combat.tactics.guardRepairs).
+        if (require('combat.tactics').guardRepairs(creep)) return;   // stepped out of an attacker's reach
 
-        if (!creep.memory.hasBoosted && creep.room.controller.level >= 6 && Memory.labList[creep.room.name].length >= 3 && !creep.memory.previousPriority) {
+        // Repair boosts (XLH2O) only while the room is under attack by a player (not NPC invaders),
+        // and only for a repairer with BOOST_MIN_LIFE ticks or more left to use them: they used to be
+        // spent on every repairer the moment a lab held them. An unboosted repairer still boosts if
+        // such an attack starts during its life.
+        const attacked = Memory.roomsUnderAttack.indexOf(creep.room.name) != -1;
+        if (attacked && !creep.memory.hasBoosted && (creep.ticksToLive || 0) >= BOOST_MIN_LIFE && playerAttack(creep.room) && creep.room.controller.level >= 6 && Memory.labList[creep.room.name].length >= 3 && !creep.memory.previousPriority) {
             var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
             var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
             var repairLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_LEMERGIUM_ACID)
             });
             if (repairLab.length && repairLab[0].mineralAmount >= mineralCost && repairLab[0].energy >= energyCost) {
-                creep.travelTo(repairLab[0]);
-                if (repairLab[0].boostCreep(creep) == OK) {
-                    creep.memory.hasBoosted = true;
-                } else {
-                    creep.memory.hasBoosted = false;
+                const result = repairLab[0].boostCreep(creep);
+                if (result == ERR_NOT_IN_RANGE) {
+                    creep.travelTo(repairLab[0]);
+                    return;
                 }
-            } else {
-                creep.memory.hasBoosted = true;
+                creep.memory.hasBoosted = true;   // boosted, or it cannot be: work
+                if (result == OK) return;
             }
-        } else {
+        }
+        {
             let repairRange = 2;
-            if (Memory.roomsUnderAttack.indexOf(creep.room.name) != -1) {
+            if (attacked) {
                 repairRange = 3;
-            }
-            if (!creep.memory.hasBoosted) {
-                creep.memory.hasBoosted = true;
             }
 
             if (creep.carryCapacity > 0) {
@@ -49,7 +60,13 @@ function findNewTarget(creep, creepEnergy, repairRange) {
         } else {
             //Get from storage
             var storageTarget = creep.room.storage;
-            if (creep.room.terminal && storageTarget && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+            const overflow = require('creep.logistics').overflowSource(creep);   // the upgrade miner's overflow link first
+            const home = require('creep.logistics').homeEnergy(creep.room, 200);   // the terminal first under attack
+            if (overflow) {
+                storageTarget = overflow;
+            } else if (home && home === creep.room.terminal) {
+                storageTarget = home;
+            } else if (creep.room.terminal && storageTarget && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > require('system.siegeWatch').terminalEnergyGoal(creep.room) + 1000) {
                 storageTarget = creep.room.terminal;
             }
             if (storageTarget && storageTarget.store[RESOURCE_ENERGY] >= 200 && creep.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
@@ -73,8 +90,8 @@ function findNewTarget(creep, creepEnergy, repairRange) {
         }
     } else if (creep.memory.structureTarget) {
         let doRepair = true;
-        if (creep.memory.previousPriority == 'mule' && getEnergyCarry(creep) > 300 && Memory.linkList[creep.room.name].length > 1) {
-            let upgraderLink = Game.getObjectById(Memory.linkList[creep.room.name][1]);
+        if (creep.memory.previousPriority == 'mule' && getEnergyCarry(creep) > 300 && require('system.links').upgradeLink(creep.room)) {
+            let upgraderLink = require('system.links').upgradeLink(creep.room);
             if (upgraderLink && upgraderLink.energy < 100 && getEnergyCarry(creep) > 0 && upgraderLink.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 doRepair = false;
                 creep.memory.priority = 'mule';
@@ -195,4 +212,6 @@ function getEnergyCarry(creep) {
     return creep.carry[RESOURCE_ENERGY] || 0;
 }
 
+creep_repair.playerAttack = playerAttack;
+creep_repair.BOOST_MIN_LIFE = BOOST_MIN_LIFE;
 module.exports = creep_repair;

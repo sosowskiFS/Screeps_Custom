@@ -19,25 +19,40 @@ var creep_upgrader = {
             return;
         }
 
+        // Under attack: the energy is for towers and repairs; it waits unless the controller's
+        // timer is critical (maintenance.attackHold).
+        if (creep.room.name === (creep.memory.homeRoom || creep.room.name) && maintenance.attackHold(creep.room)) {
+            return;
+        }
+
+        let boostPending = false;
         if (!creep.memory.hasBoosted && creep.room.controller.level >= 6 && Memory.labList[creep.room.name].length >= 3 && !creep.memory.previousPriority) {
             var mineralCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_MINERAL;
             var energyCost = creep.getActiveBodyparts(WORK) * LAB_BOOST_ENERGY;
             var upgradeLab = runtimeCache.find(creep.room, FIND_MY_STRUCTURES, {
                 filter: (structure) => (structure.structureType == STRUCTURE_LAB && structure.mineralType == RESOURCE_CATALYZED_GHODIUM_ACID)
             });
-            if (upgradeLab.length && upgradeLab[0].mineralAmount >= mineralCost && upgradeLab[0].energy >= energyCost) {
-                creep.travelTo(upgradeLab[0]);
-                if (upgradeLab[0].boostCreep(creep) == OK) {
+            const ready = upgradeLab.find(lab => lab.mineralAmount >= mineralCost && lab.energy >= energyCost);
+            if (ready) {
+                creep.travelTo(ready);
+                if (ready.boostCreep(creep) == OK) {
                     creep.memory.hasBoosted = true;
                 } else {
                     creep.memory.hasBoosted = false;
                 }
-            } else {
-                creep.memory.hasBoosted = true;
+                return;
             }
-            return;
+            // A flex boost lab being switched to XGH2O (system.labLayout): upgrade meanwhile, for
+            // BOOST_WAIT ticks at most.
+            const layout = require('system.labLayout');
+            const young = (creep.ticksToLive || 0) > CREEP_LIFE_TIME - layout.BOOST_WAIT;
+            if (!(young && layout.boostPending(creep.room, RESOURCE_CATALYZED_GHODIUM_ACID, mineralCost))) {
+                creep.memory.hasBoosted = true;
+                return;
+            }
+            boostPending = true;
         }
-        if (!creep.memory.hasBoosted) {
+        if (!creep.memory.hasBoosted && !boostPending) {
             creep.memory.hasBoosted = true;
         }
 

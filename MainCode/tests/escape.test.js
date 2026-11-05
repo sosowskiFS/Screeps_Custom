@@ -34,11 +34,12 @@ function setup({ hostiles = [{ x: 20, y: 20 }], towers = [], guards = [] } = {})
     return { h, g, room, creep, moves, searches, tactics: h.load('combat.tactics') };
 }
 
-test('the reach of an armed hostile (ranged 3, plus the step it can take) is marked as danger', () => {
+test('the reach of an armed hostile (ranged 3, plus the step it can take, at least its flee range) is marked as danger', () => {
     const s = setup();
     const m = s.tactics.markDanger('R', new Matrix(), 255);
     assert.equal(m.get(24, 20), 255, '4 tiles away: still in reach next tick');
-    assert.equal(m.get(25, 20), 0, '5 tiles away: safe');
+    assert.equal(m.get(25, 20), 255, '5 tiles away: close enough to set off a flee, so not a path');
+    assert.equal(m.get(26, 20), 0, '6 tiles away: safe');
 });
 
 test('a worker with an armed hostile close heads for a tower only by a path that stays out of reach', () => {
@@ -86,10 +87,107 @@ test('a hostile just across the border counts: the worker that fled over it keep
     assert.equal(flee.flee, true);
     const m = s.tactics.markDanger('R', new Matrix(), 255);
     assert.equal(m.get(20, 2), 255, 'within its reach once it steps over');
-    assert.equal(m.get(20, 3), 0);
+    assert.equal(m.get(20, 3), 255, 'within its flee range');
+    assert.equal(m.get(20, 4), 0);
     // Far enough in: it stops fleeing and works.
     const t = setup({ hostiles: [] });
     t.g.Game.rooms.N = s.g.Game.rooms.N; t.g.Game.map.describeExits = s.g.Game.map.describeExits;
     t.creep.pos = at(20, 8);
     assert.equal(t.tactics.escape(t.creep), false);
+});
+
+test('out of flee range in a room with attackers: no flee, and its travel goes around them, planned afresh (shardX W1N9)', () => {
+    const s = setup();
+    s.creep.pos = at(10, 20);                       // 10 tiles from the ranger: no flee
+    const calls = [];
+    s.creep.travelTo = (target, opts) => calls.push(opts);
+    s.creep.memory.priority = 'farMule';
+    assert.equal(s.tactics.avoidDanger(s.creep, null), false, 'it carries on working');
+    assert.deepEqual(s.moves, []);
+    s.creep.travelTo({ x: 30, y: 20 }, { range: 1 });
+    assert.equal(calls[0].repath, 1);
+    assert.equal(calls[0].range, 1, 'its own options kept');
+    const m = calls[0].roomCallback('R', new Matrix());
+    assert.equal(m.get(25, 20), 255, 'the ranger\'s flee zone is not walked through');
+});
+
+test('repairing under fire: never from a tile a ranger can hit; the walk goes to the nearest safe tile in repair range', () => {
+    const s = setup();                              // a ranger at 20,20
+    s.room.getTerrain = () => ({ get: () => 0 });
+    s.g.RoomPosition = function (x, y, roomName) { return { x, y, roomName }; };
+    const wall = { id: 'w', structureType: s.g.STRUCTURE_RAMPART, pos: at(22, 20), hits: 1000, hitsMax: 300000000 };
+    const calls = [];
+    s.creep.pos = at(19, 20);                       // 1 tile from the ranger
+    s.creep.memory.priority = 'builder';
+    s.creep.repair = t => { calls.push(['repair', t.id]); return s.g.OK; };
+    s.creep.travelTo = (dest, opts) => { calls.push(['travel', dest.x, dest.y, opts.range]); return s.g.OK; };
+    assert.equal(s.tactics.guardRepairs(s.creep), true, 'in reach: it steps out first, and does nothing else');
+    assert.equal(s.moves.length, 1);
+    // Out of reach and out of repair range (27,25): repair is the game's to refuse; the walk goes to
+    // the nearest tile in repair range that the ranger cannot hit.
+    const u = setup();
+    u.room.getTerrain = () => ({ get: () => 0 });
+    u.g.RoomPosition = function (x, y, roomName) { return { x, y, roomName }; };
+    u.creep.pos = at(27, 25);
+    u.creep.repair = () => u.g.OK;
+    u.creep.travelTo = (dest, opts) => { calls.push(['travel', dest.x, dest.y, opts.range]); return u.g.OK; };
+    assert.equal(u.tactics.guardRepairs(u.creep), false);
+    u.creep.repair(wall);
+    u.creep.travelTo(wall, { range: 3 });
+    assert.equal(calls.length, 1);
+    const [, x, y, range] = calls[0];
+    assert.equal(range, 0);
+    assert.ok(Math.max(Math.abs(x - 20), Math.abs(y - 20)) > 3, 'out of reach of the ranger: ' + x + ',' + y);
+    assert.ok(Math.max(Math.abs(x - 22), Math.abs(y - 20)) <= 3, 'within repair range of the wall');
+    // From a safe tile in range it repairs.
+    const t = setup();
+    t.room.getTerrain = () => ({ get: () => 0 });
+    const done = [];
+    t.creep.pos = at(24, 21);
+    t.creep.repair = x => { done.push(x.id); return t.g.OK; };
+    t.creep.travelTo = () => t.g.OK;
+    t.tactics.guardRepairs(t.creep);
+    assert.equal(t.creep.repair(wall), t.g.OK);
+    assert.deepEqual(done, ['w']);
+});
+
+test('a repair target no safe tile reaches is swapped for the weakest barrier that has one', () => {
+    // Rangers at 20,20 and 20,26: every tile within 3 of the ring rampart at 20,23 is in reach.
+    const s = setup({ hostiles: [{ x: 20, y: 20 }, { x: 20, y: 26 }] });
+    s.room.find(s.g.FIND_HOSTILE_CREEPS)[1].id = 'e20b';
+    s.room.getTerrain = () => ({ get: () => 0 });
+    s.g.RoomPosition = function (x, y, roomName) { return { x, y, roomName }; };
+    const inReach = { id: 'A', structureType: s.g.STRUCTURE_RAMPART, my: true, pos: at(20, 23), hits: 1000, hitsMax: 300000000 };
+    const elsewhere = { id: 'B', structureType: s.g.STRUCTURE_RAMPART, my: true, pos: at(30, 20), hits: 5000, hitsMax: 300000000 };
+    const find = s.room.find;
+    s.room.find = type => (type === s.g.FIND_STRUCTURES ? [inReach, elsewhere] : find(type));
+    const calls = [];
+    s.creep.pos = at(36, 28);
+    s.creep.repair = t => { calls.push(['repair', t.id]); return s.g.ERR_NOT_IN_RANGE; };
+    s.creep.travelTo = (dest, opts) => { calls.push(['travel', dest.x, dest.y]); return s.g.OK; };
+    assert.equal(s.tactics.guardRepairs(s.creep), false);
+    assert.equal(s.creep.repair(inReach), s.g.ERR_NOT_IN_RANGE);
+    s.creep.travelTo(inReach, { range: 3 });
+    assert.deepEqual(calls[0], ['repair', 'B'], 'the reachable rampart instead');
+    const [, x, y] = calls[1];
+    assert.ok(Math.max(Math.abs(x - 30), Math.abs(y - 20)) <= 3, 'walks to repair range of B: ' + x + ',' + y);
+});
+
+test('a hostile that hopped out is still counted for 10 ticks', () => {
+    const s = setup();                              // a ranger at 20,20
+    s.room.getTerrain = () => ({ get: () => 0 });
+    s.g.Game.time = 100;
+    s.creep.pos = at(30, 30);
+    s.creep.repair = () => s.g.OK;
+    s.creep.travelTo = () => s.g.OK;
+    s.tactics.guardRepairs(s.creep);
+    // It steps over the border: the room looks empty.
+    s.room.find = () => [];
+    s.g.Game.time = 105;
+    const c2 = { name: 'r2', room: s.room, pos: at(19, 20), memory: {}, move: () => {}, repair: () => s.g.OK, travelTo: () => s.g.OK };
+    s.tactics.guardRepairs(c2);
+    assert.equal(c2.repair({ id: 'w', structureType: s.g.STRUCTURE_RAMPART, pos: at(21, 20) }), s.g.ERR_NOT_IN_RANGE, 'still in its reach');
+    s.g.Game.time = 120;
+    const c3 = { name: 'r3', room: s.room, pos: at(19, 20), memory: {}, repair: () => s.g.OK, travelTo: () => s.g.OK };
+    assert.equal(s.tactics.guardRepairs(c3), false, 'gone 20 ticks: no guard');
 });

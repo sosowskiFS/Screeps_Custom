@@ -77,12 +77,15 @@ function threatsAround(roomName) {
 }
 
 // Mark every tile an armed hostile (in this room or seen just across its borders) could hit next
-// tick (its reach plus the step it can take) on `matrix`, with `cost`. Rooms out of sight are left
-// as they are.
+// tick (its reach plus the step it can take) on `matrix`, with `cost`; at least its flee range
+// (fleeRange), so a path around it never comes close enough to set off escape(). It was one short
+// for rangers (4 against 5): shardX W1N9's far miner and hauler, routed along the edge, fled every
+// other tick and went back and forth for good. Rooms out of sight are left as they are.
 function markDanger(roomName, matrix, cost = 255) {
     if (!Game.rooms[roomName] || !matrix) return matrix;
     for (const { t, x: tx, y: ty } of threatsAround(roomName)) {
-        const reach = (intel.assess(t).ranged > 0 ? 3 : 1) + 1;
+        const stats = intel.assess(t);
+        const reach = Math.max((stats.ranged > 0 ? 3 : 1) + 1, fleeRange(stats));
         for (let dx = -reach; dx <= reach; dx++) {
             for (let dy = -reach; dy <= reach; dy++) {
                 const x = tx + dx, y = ty + dy;
@@ -225,8 +228,13 @@ function act(creep, room, focus) {
         let mass = 0;
         for (const hostile of inRange) mass += me.ranged * intel.MASS_FACTOR[creep.pos.getRangeTo(hostile)];
         const allyCritical = rangedHealTarget && !healTarget && rangedHealTarget.hits < rangedHealTarget.hitsMax * 0.4;
+        // The shared focus in reach and healed by its side: a single shot on it. Mass attack spreads
+        // the damage over a quad whose healers cover all four; breaking one takes every hit landing on
+        // the same member. Except beside it: mass attack does the focus full damage at range 1, and
+        // the rest of the quad takes some on top. Unhealed groups still take mass attack.
+        const focusShot = single && single === focus && intel.supportHealing(focus, roomIntel) > 0 && creep.pos.getRangeTo(focus) > 1;
         if (!allyCritical) {
-            if (mass > (single ? me.ranged : 0)) {
+            if (!focusShot && mass > (single ? me.ranged : 0)) {
                 creep.rangedMassAttack();
                 usedRanged = true;
             } else if (single) {
@@ -317,6 +325,8 @@ function avoidDanger(creep, workRoom) {
             goHome(creep);
             return true;
         }
+        // Out of reach: carry on, around them (routeAround).
+        routeAround(creep);
     }
     if (workRoom && remoteMining.isDisabled(workRoom)) {
         // Remote disabled after player attacks: wait at home (alive) until it is re-enabled.
@@ -329,6 +339,165 @@ function avoidDanger(creep, workRoom) {
         return true;
     }
     return false;
+}
+
+// ---------------------------------------------------------------- repairing under fire
+// While armed hostiles are in the room, a creep repairs only from a tile none of them can hit (ranged
+// 3, melee 1, from where they stand): repair() elsewhere is refused (ERR_NOT_IN_RANGE), and the
+// travelTo that follows goes to the nearest such tile within REPAIR_RANGE of the structure, around
+// their reach. With no such tile it steps out of reach and leaves the structure for later. A W1N9
+// builder repaired the ring from 2 tiles inside it, with a ranged quad just outside.
+const REPAIR_RANGE = 3;
+const OBSTACLES = () => new Set([STRUCTURE_WALL, STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_LINK, STRUCTURE_STORAGE, STRUCTURE_TOWER,
+    STRUCTURE_OBSERVER, STRUCTURE_POWER_SPAWN, STRUCTURE_LAB, STRUCTURE_TERMINAL, STRUCTURE_NUKER, STRUCTURE_FACTORY, STRUCTURE_CONTROLLER, STRUCTURE_EXTRACTOR]);
+
+// Tiles (x * 50 + y) an armed hostile in the room can hit where it stands.
+// Every place an armed hostile stood in the last SEEN_TICKS ticks counts: border hoppers are in the
+// room one tick and out the next, and a danger zone that came and went with them sent W1N9's
+// repairers back and forth. Heap: room -> { t, at: { id: [x, y, reach, tick] } }.
+const SEEN_TICKS = 10;
+const seen = Object.create(null);
+function hitTiles(room) {
+    const s = seen[room.name] || (seen[room.name] = { t: -1, at: Object.create(null), tiles: null });
+    if (s.t !== Game.time) {
+        for (const t of armedThreats(room)) s.at[t.id] = [t.pos.x, t.pos.y, intel.assess(t).ranged > 0 ? 3 : 1, Game.time];
+        for (const id in s.at) if (Game.time - s.at[id][3] > SEEN_TICKS) delete s.at[id];
+        const tiles = new Set();
+        for (const id in s.at) {
+            const [hx, hy, reach] = s.at[id];
+            for (let dx = -reach; dx <= reach; dx++) for (let dy = -reach; dy <= reach; dy++) {
+                const x = hx + dx, y = hy + dy;
+                if (x >= 0 && y >= 0 && x <= 49 && y <= 49) tiles.add(x * 50 + y);
+            }
+        }
+        s.t = Game.time;
+        s.tiles = tiles;
+    }
+    return s.tiles;
+}
+
+
+// Tiles a creep cannot stand on (x * 50 + y): obstacle structures, others' ramparts, creeps. Per
+// room per tick.
+const standCache = Object.create(null);
+function unstandable(room) {
+    const c = standCache[room.name];
+    if (c && c.t === Game.time) return c.tiles;
+    const tiles = new Set();
+    const obstacles = OBSTACLES();
+    for (const s of runtimeCache.find(room, FIND_STRUCTURES)) {
+        if (obstacles.has(s.structureType) || (s.structureType === STRUCTURE_RAMPART && !s.my && !s.isPublic)) tiles.add(s.pos.x * 50 + s.pos.y);
+    }
+    for (const c2 of runtimeCache.find(room, FIND_CREEPS)) tiles.add(c2.pos.x * 50 + c2.pos.y);
+    standCache[room.name] = { t: Game.time, tiles };
+    return tiles;
+}
+
+// Nearest tile to the creep within range of target that no hostile can hit and a creep can stand
+// on (its own tile included), or null.
+function safeWorkTile(creep, target, range, danger) {
+    const room = creep.room;
+    const terrain = room.getTerrain();
+    const blocked = unstandable(room);
+    const own = creep.pos.x * 50 + creep.pos.y;
+    const p = target.pos || target;
+    let best = null, bestRange = Infinity;
+    for (let x = Math.max(1, p.x - range); x <= Math.min(48, p.x + range); x++) {
+        for (let y = Math.max(1, p.y - range); y <= Math.min(48, p.y + range); y++) {
+            const k = x * 50 + y;
+            if (danger.has(k) || (blocked.has(k) && k !== own) || (terrain.get(x, y) & TERRAIN_MASK_WALL)) continue;
+            const r = Math.max(Math.abs(x - creep.pos.x), Math.abs(y - creep.pos.y));
+            if (r < bestRange) { best = { x, y }; bestRange = r; }
+        }
+    }
+    return best;
+}
+
+// Barriers worth repairing that can be worked from a safe tile, weakest first: what a repairer turns
+// to when its target cannot be (W1N9: repairers kept heading for a ring rampart inside a quad's
+// reach, fled, and came back, never picking another). Unworkable ones are skipped BLOCKED_TICKS.
+const ALT_SCAN = 20;
+const BLOCKED_TICKS = 25;
+const blockedRepairs = Object.create(null);
+function reachableRepair(creep, danger, exclude) {
+    const room = creep.room;
+    const b = blockedRepairs[room.name] || (blockedRepairs[room.name] = Object.create(null));
+    if (exclude) b[exclude] = Game.time + BLOCKED_TICKS;
+    for (const id in b) if (b[id] <= Game.time) delete b[id];
+    const barriers = runtimeCache.find(room, FIND_STRUCTURES)
+        .filter(s => ((s.structureType === STRUCTURE_RAMPART && s.my) || s.structureType === STRUCTURE_WALL) && s.hits < s.hitsMax && !b[s.id])
+        .sort((x, y) => x.hits - y.hits)
+        .slice(0, ALT_SCAN);
+    for (const s of barriers) {
+        const tile = safeWorkTile(creep, s, REPAIR_RANGE, danger);
+        if (tile) return { structure: s, tile };
+        b[s.id] = Game.time + BLOCKED_TICKS;
+    }
+    return null;
+}
+
+// Returns true when the creep stood in reach and has stepped out this tick: the caller does nothing
+// else (W1N9: a builder stood beside a site 2 tiles from the quad, shot to its last WORK part).
+// Its repairs: the structure asked for when a safe tile is in range of it, else the weakest barrier
+// that has one (reachableRepair), worked from that tile; the walk there keeps out of reach (the same
+// reach, not the wider flee range: a tile 4 from a ranger was safe to stand on but not to path to).
+function guardRepairs(creep) {
+    if (creep._guardRepairs || !creep.room || typeof creep.repair !== 'function') return false;
+    // Hostiles in the room now or in the last SEEN_TICKS (border hoppers out for a tick count).
+    const danger = hitTiles(creep.room);
+    if (!danger.size) return false;
+    creep._guardRepairs = true;
+    const repair = creep.repair, travelTo = creep.travelTo;
+    const here = () => danger.has(creep.pos.x * 50 + creep.pos.y);
+    if (here() && escape(creep)) return true;
+    let plan = null;     // { for: asked id, structure, tile }
+    const planFor = structure => {
+        if (plan && plan.for === structure.id) return plan;
+        const tile = safeWorkTile(creep, structure, REPAIR_RANGE, danger);
+        const alt = tile ? { structure, tile } : reachableRepair(creep, danger, structure.id);
+        plan = Object.assign({ for: structure.id }, alt || {});
+        return plan;
+    };
+    creep.repair = (structure, ...rest) => {
+        if (!structure || structure.structureType === STRUCTURE_ROAD || structure.progressTotal !== undefined) return repair.call(creep, structure, ...rest);
+        const p = planFor(structure);
+        if (!p.structure || here()) return ERR_NOT_IN_RANGE;
+        return repair.call(creep, p.structure, ...rest);
+    };
+    creep.travelTo = (dest, options = {}) => {
+        if (!plan || !dest || dest.id !== plan.for) return travelTo.call(creep, dest, options);
+        if (!plan.tile) {
+            // Nothing it can repair out of reach: leave it for now, out of reach.
+            if (creep.memory) delete creep.memory.structureTarget;
+            if (here()) escape(creep);
+            return ERR_NO_PATH;
+        }
+        if (creep.pos.x === plan.tile.x && creep.pos.y === plan.tile.y) return OK;
+        return travelTo.call(creep, new RoomPosition(plan.tile.x, plan.tile.y, creep.room.name), Object.assign({}, options, {
+            range: 0,
+            roomCallback: (name, matrix) => {
+                const m = options.roomCallback ? options.roomCallback(name, matrix) || matrix : matrix;
+                if (name !== creep.room.name || !m) return m;
+                for (const k of danger) if (k !== plan.tile.x * 50 + plan.tile.y) m.set(Math.floor(k / 50), k % 50, 0xff);
+                return m;
+            },
+        }));
+    };
+    return false;
+}
+
+// While armed hostiles are in the creep's room, every travelTo this tick keeps out of their reach
+// (markDanger) and is planned afresh, as they move: a cached path planned before they came led back
+// into them. Workers then go around attackers instead of only running from them.
+function routeAround(creep) {
+    if (creep._routeAround) return;
+    const travelTo = creep.travelTo;
+    if (typeof travelTo !== 'function') return;
+    creep._routeAround = true;
+    creep.travelTo = (target, options = {}) => travelTo.call(creep, target, Object.assign({}, options, {
+        repath: 1,
+        roomCallback: (name, matrix) => avoidReach(name, options.roomCallback ? options.roomCallback(name, matrix) || matrix : matrix),
+    }));
 }
 
 // ---------------------------------------------------------------- damaged creeps
@@ -383,4 +552,4 @@ function seekRepair(creep) {
     return true;
 }
 
-module.exports = { threatsAround, escape, avoidReach, unsafeToEnter, armedThreats, markDanger, fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };
+module.exports = { threatsAround, escape, avoidReach, routeAround, guardRepairs, safeWorkTile, unsafeToEnter, armedThreats, markDanger, fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };

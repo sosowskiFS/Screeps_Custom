@@ -78,6 +78,10 @@ function updateRoomStructureLists(thisRoom) {
     for (let link of otherLinks) {
         Memory.linkList[roomName].push(link.id);
     }
+    // Link roles (system.links): the two receivers by purpose, every other link a sender.
+    if (!Memory.linkRoles) Memory.linkRoles = {};
+    Memory.linkRoles[roomName] = require('system.links').classify(links,
+        storageLinks.length ? storageLinks[0].id : null, controllerLinks.length ? controllerLinks[0].id : null);
 
     const labs = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
         filter: { structureType: STRUCTURE_LAB }
@@ -85,12 +89,18 @@ function updateRoomStructureLists(thisRoom) {
     // Planned rooms: boost labs, then the two reagent labs, then outputs (labWorker and
     // manageLabOperations read roles by index). Only when every lab is a planned one.
     const labOrder = baseBuilder.labOrder(roomName);
+    let planned = false;
     if (labOrder) {
         const rank = new Map(labOrder.map((tile, n) => [tile, n]));
         const key = lab => lab.pos.x * 50 + lab.pos.y;
-        if (labs.every(lab => rank.has(key(lab)))) labs.sort((a, b) => rank.get(key(a)) - rank.get(key(b)));
+        if (labs.every(lab => rank.has(key(lab)))) {
+            labs.sort((a, b) => rank.get(key(a)) - rank.get(key(b)));
+            planned = true;
+        }
     }
-    Memory.labList[roomName] = labs.map(lab => lab.id);
+    // The reagent pair that reaches the most outputs (system.labLayout.arrange): unplanned rooms'
+    // find order had pairs no output could react from.
+    Memory.labList[roomName] = require('system.labLayout').arrange(labs, planned).map(lab => lab.id);
 
     const powerSpawns = runtimeCache.find(thisRoom, FIND_MY_STRUCTURES, {
         filter: { structureType: STRUCTURE_POWER_SPAWN }
@@ -134,70 +144,9 @@ function updateRoomStructureLists(thisRoom) {
     }
 }
 
+// Link transfers by role (system.links.runLinks): any sender to whichever receiver has room.
 function manageLinkOperations(thisRoom) {
-    const roomName = thisRoom.name;
-    const linkIds = Memory.linkList[roomName];
-
-    if (!linkIds || linkIds.length < 2) return;
-
-    // Get all active links using the ordered memory array
-    const links = linkIds.map(id => Game.getObjectById(id)).filter(link => link);
-
-    if (links.length < 2) return;
-
-    // Links are ordered as:
-    // Index 0: First source link
-    // Index 1: Controller link
-    // Index 2: Second source link
-    // Index 3: Storage link
-    // Index 4+: Other links
-
-    const sourceLink1 = links[0]; // Index 0: First source link
-    const controllerLink = links[1]; // Index 1: Controller link
-    const sourceLink2 = links[2]; // Index 2: Second source link (if exists)
-    const storageLink = links[3]; // Index 3: Storage link (if exists)
-
-    // Transfer from first source link (index 0)
-    if (sourceLink1 && sourceLink1.energy >= 400 && sourceLink1.cooldown == 0) {
-        let targetLink = null;
-
-        // Priority 1: Controller link if it needs energy
-        if (controllerLink && controllerLink.energy < 400) {
-            targetLink = controllerLink;
-        }
-        // Priority 2: Storage link if controller link is full
-        else if (storageLink && storageLink.energy < 400) {
-            targetLink = storageLink;
-        }
-
-        if (targetLink) {
-            const result = sourceLink1.transferEnergy(targetLink);
-            if (Game.time % 100 === 0 && result === OK) {
-                console.log(`${roomName}: Source link 1 -> ${targetLink === controllerLink ? 'controller' : 'storage'} link`);
-            }
-        }
-    }
-
-    // Transfer from second source link (index 2) if it exists
-    if (sourceLink2 && sourceLink2.energy >= 400 && sourceLink2.cooldown == 0) {
-        let targetLink = null;
-
-        // Priority 1: Controller link if it needs energy
-        if (controllerLink && controllerLink.energy < 400) {
-            targetLink = controllerLink;
-        }
-        // Priority 2: Storage link if controller link is full
-        else if (storageLink && storageLink.energy < 400) {
-            targetLink = storageLink;
-        }
-
-        if (targetLink) {
-            const result = sourceLink2.transferEnergy(targetLink);
-            if (Game.time % 100 === 0 && result === OK) {
-                console.log(`${roomName}: Source link 2 -> ${targetLink === controllerLink ? 'controller' : 'storage'} link`);
-            }
-        }
-    }
+    return require('system.links').runLinks(thisRoom);
 }
 
 function manageLabOperations(thisRoom) {
@@ -218,7 +167,9 @@ function manageLabOperations(thisRoom) {
     const inputLabs = labs.slice(3, 5); // Labs 4 and 5 (indices 3 and 4)
     const boostLease = id => require('system.guardBoosts').assignment(roomName, id);
     if (inputLabs.some(lab => boostLease(lab.id))) return;
-    const outputLabs = labs.slice(5).filter(lab => !boostLease(lab.id));   // Labs 6+ (indices 5+)
+    // Outputs in reach of both reagent labs, and boost labs reacting while their boost is not wanted
+    // (system.labLayout); none leased for guard boosts.
+    const outputLabs = require('system.labLayout').reactionLabs(roomName);
 
     // Check if input labs have correct resources
     const input1 = job.a;

@@ -36,9 +36,22 @@ test('special spawns (harassers, flag commands) are not spawned for an unreachab
     g.Memory.CurrentRoomEnergy = [5000];
     g.setSpawnBusy = () => {};
     const instruction = h.load('spawn.BuildInstruction');
-    instruction.run(spawn, 'harasser', 'E3N1', 0, 'E1N1');
+    instruction.run(spawn, 'supportHauler', 'E3N1', 0, 'E1N1');   // harassers are paused (below)
     assert.deepEqual(spawned, []);
     assert.ok(g.Memory.unreachable['E1N1>E3N1']);
+});
+
+test('harassers and highway patrols are paused on every shard', () => {
+    const { h, g } = setup();
+    const spawned = [];
+    const spawn = { name: 'S', room: { name: 'E1N1', energyCapacityAvailable: 5000, storage: { store: { energy: 500000 } } },
+        spawnCreep: (body, name, opts) => { spawned.push(opts.memory.priority); return g.OK; } };
+    g.Memory.CurrentRoomEnergy = [50000];
+    g.setSpawnBusy = () => {};
+    const instruction = h.load('spawn.BuildInstruction');
+    instruction.run(spawn, 'harasser', 'E1N2', 0, 'E1N1');
+    instruction.run(spawn, 'highwayPatrol', '', 0, 'E1N1');
+    assert.deepEqual(spawned, []);
 });
 
 test('expired entries are pruned by the memory cleanup', () => {

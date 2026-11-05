@@ -162,3 +162,14 @@ test('room staffing ignores a leftover RoomOperator flag when no operator is pre
     assert.equal(c.distributorMax, 0, 'operator present (level 5 extensions): no distributor');
     assert.equal(c.muleMax, 0);
 });
+
+test('the operator regenerates sources only while the storage holds under 500k', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.RESOURCE_ENERGY = 'energy';
+    const op = h.load('creep.baseOp');
+    assert.equal(op.regenWanted({ storage: { store: { energy: 1070000 } } }), false, 'shard1 E19N59: overflowing');
+    assert.equal(op.regenWanted({ storage: { store: { energy: 300000 } } }), true);
+    assert.equal(op.regenWanted({}), true, 'no storage');
+});

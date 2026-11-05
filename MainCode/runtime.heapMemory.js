@@ -10,8 +10,8 @@
 // Memory, and are rebuilt by their owners on first use (room scans run before creeps act).
 const HEAP_KEYS = ['labList', 'linkList', 'sourceList', 'mineralList', 'extractorList', 'powerSpawnList',
     'factoryList', 'nukerList', 'observerList', 'roomConfigs', 'structureScanTick', 'repairTarget',
-    'towerTargetTick', 'towerPickedTarget', 'towerNeedEnergy', 'mineralTotals', 'remotePlan', 'roomCPU',
-    'isSpawning'];
+    'towerTargetTick', 'towerPickedTarget', 'towerNeedEnergy', 'mineralTotals', 'remotePlan', 'roomCPU', 'linkRoles',
+    'isSpawning', 'labFlex'];
 
 const heap = Object.create(null);
 

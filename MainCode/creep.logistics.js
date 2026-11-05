@@ -24,12 +24,50 @@ function transferEnergy(creep, target, opts = {}) {
 function getStorageTarget(creep) {
     let storageTarget = creep.room.storage;
     if (!storageTarget) return creep.room.terminal || null;
-    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 100000 && creep.room.terminal.store[RESOURCE_ENERGY] > 0) {
-        storageTarget = creep.room.terminal;
-    } else if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > 31000) {
+    if (homeEnergy(creep.room, 1) === creep.room.terminal) return creep.room.terminal;
+    if (creep.room.terminal && storageTarget.store[RESOURCE_ENERGY] < 250000 && creep.room.terminal.store[RESOURCE_ENERGY] > require('system.siegeWatch').terminalEnergyGoal(creep.room) + 1000) {
         storageTarget = creep.room.terminal;
     }
     return storageTarget;
+}
+
+function energyIn(s) {
+    return s && s.store ? s.store[RESOURCE_ENERGY] || 0 : 0;
+}
+
+// The room's store to draw energy from, holding at least min: the terminal first while the room is
+// under attack (what other rooms shipped in, system.energyAid) or its storage runs below
+// TERMINAL_FIRST_BELOW; the storage otherwise. Young-room workers only ever looked at the storage:
+// shardX W1N9 under attack drained 120 from it with 18k aid untouched in the terminal.
+const TERMINAL_FIRST_BELOW = 100000;
+function homeEnergy(room, min = 1) {
+    const storage = room.storage, terminal = room.terminal;
+    const attacked = (Memory.roomsUnderAttack || []).includes(room.name);
+    if (energyIn(terminal) >= min && (attacked || !storage || energyIn(storage) < TERMINAL_FIRST_BELOW)) return terminal;
+    if (energyIn(storage) >= min) return storage;
+    return energyIn(terminal) >= min ? terminal : null;
+}
+
+// Energy moved between the storage and the terminal: a move straight back the other way within
+// REVERSE_TICKS is refused (reverses), so two rules that disagree cannot ship the same energy back
+// and forth. The lab worker topped the terminal up from a storage under 100k, went on loan as a
+// distributor, took that energy out of the terminal again (the terminal first below 100k) and put
+// it back in the storage, over and over. Heap: room -> { from, to, t }.
+const REVERSE_TICKS = 300;
+const lastMove = Object.create(null);
+function noteEnergyMove(room, from, to) {
+    if (from && to) lastMove[room.name] = { from: from.id, to: to.id, t: Game.time };
+}
+function reverses(room, from, to) {
+    const m = lastMove[room.name];
+    return !!(m && from && to && m.from === to.id && m.to === from.id && Game.time - m.t < REVERSE_TICKS);
+}
+
+// The storage needs topping up from the terminal: the supplier feeds the towers (and its spawn) from
+// the storage only, standing out of reach of the terminal (W1N9: Supply at 17,8, terminal 18,6).
+const STORAGE_FLOOR = 5000;
+function storageShort(room) {
+    return !!(room.storage && room.terminal && energyIn(room.storage) < STORAGE_FLOOR && energyIn(room.terminal) >= 1000);
 }
 
 const SPAWN_ENERGY_SINKS = [STRUCTURE_EXTENSION, STRUCTURE_SPAWN, STRUCTURE_LAB];
@@ -72,8 +110,34 @@ function loadAfterTransfer(creep, target) {
     return creep.store.getUsedCapacity() - Math.min(energy, Math.max(0, free));
 }
 
-// Where a home hauler refills: its link when that holds a load, else storage (or terminal).
+// The hub link (system.links storage receiver, mid-base), where the
+// source links send. Every creep that collects energy at home takes from it first, whatever it holds
+// (overflowSource). Haulers only took from it at 600+ and the source links only sent to it under
+// 400: shardX W1N9's sat at 589 for good, both source links filled up and the upgrade miner dropped
+// its energy on the floor.
+const OVERFLOW_MIN = 1;
+function overflowLink(room) {
+    return require('system.links').storageLink(room);   // the storage receiver
+}
+function overflowSource(creep) {
+    const link = creep.room && overflowLink(creep.room);
+    const free = creep.store ? creep.store.getFreeCapacity(RESOURCE_ENERGY) : 0;
+    const have = link ? link.store[RESOURCE_ENERGY] || 0 : 0;
+    return link && free > 0 && have > 0 && have >= Math.min(free, OVERFLOW_MIN) ? link : null;
+}
+// Withdraw from it (walking there if needed); true when the creep is busy with it.
+function takeOverflow(creep, opts = {}) {
+    const link = overflowSource(creep);
+    if (!link) return false;
+    if (creep.withdraw(link, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(link, Object.assign({ maxRooms: 1 }, opts));
+    return true;
+}
+
+// Where a home hauler refills: the hub link, its own link when that holds a load, else
+// storage (or terminal).
 function refillSource(creep) {
+    const overflow = overflowSource(creep);
+    if (overflow) return overflow;
     const link = creep.memory.linkSource ? Game.getObjectById(creep.memory.linkSource) : undefined;
     if (link && link.store[RESOURCE_ENERGY] >= 600) return link;
     return getStorageTarget(creep);
@@ -169,4 +233,4 @@ function depositBeforeDeath(creep) {
 }
 
 module.exports = { depositBeforeDeath, withdrawEnergy, transferEnergy, getStorageTarget, findEnergySink, findAndMoveToDistributionTarget, handleMovementCoordination,
-    loadAfterTransfer, refillSource, returnIfEmptied, loadForTrip };
+    loadAfterTransfer, refillSource, returnIfEmptied, loadForTrip, overflowLink, overflowSource, takeOverflow, homeEnergy, storageShort, STORAGE_FLOOR, TERMINAL_FIRST_BELOW, noteEnergyMove, reverses };

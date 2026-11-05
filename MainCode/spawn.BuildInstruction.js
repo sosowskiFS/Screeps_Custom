@@ -3,10 +3,14 @@ const reachability = require('system.reachability');
 
 // Instructions without a single target room (params): no route to check.
 const UNROUTED = new Set(['vandalize', 'farScout', 'highwayPatrol']);
+// Paused on every shard (2026-11-03): their CPU goes to pixel generation instead. Ones already out
+// finish their lives. Take a role out of the set to resume it.
+const PAUSED = new Set(['harasser', 'highwayPatrol']);
 const ROOM_NAME = /^[WE]\d+[NS]\d+$/;
 
 var spawn_BuildInstruction = {
     run: function(spawn, instruction, params, energyIndex, thisRoom = '', params2 = '') {
+        if (PAUSED.has(instruction)) return;
         // Cache frequently used values
         const roomName = spawn.room.name;
         // Never spawn for a room it cannot reach without crossing a claimed room.

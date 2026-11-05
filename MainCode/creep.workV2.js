@@ -6,6 +6,8 @@ var creep_workV2 = {
 
     /** @param {Creep} creep **/
     run: function(creep, moveRecalc) {
+        // Under attack: repairs only from tiles no attacker can hit (combat.tactics.guardRepairs).
+        if (require('combat.tactics').guardRepairs(creep)) return;   // stepped out of an attacker's reach
         // Workers and upgraders: up to the controller or a site only as far as working range (3),
         // and parked (onPoint) on a tick they worked there, so others path round them and can't
         // swap them aside. Two workers in a line to the controller used to swap places every few
@@ -156,8 +158,8 @@ var creep_workV2 = {
                     creep.travelTo(Game.flags[creep.room.name + "Supply"]);
                 } else if (_.sum(creep.carry) == 0) {
                     creep.memory.atSpot = true;
-                    //Get from storage
-                    var storageTarget = creep.room.storage;
+                    //Get from storage (the terminal first when it is in reach and homeEnergy picks it)
+                    var storageTarget = supplierSource(creep);
                     if (storageTarget) {
                         if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                             creep.travelTo(storageTarget);
@@ -229,6 +231,12 @@ var creep_workV2 = {
                     let needSearch = true;
                     if (creep.memory.structureTarget) {
                         let thisStructure = Game.getObjectById(creep.memory.structureTarget);
+                        // A site ranged attackers outside the walls could shoot once built: dropped
+                        // while they are here (system.safeMode.buildHeld).
+                        if (thisStructure && thisStructure.progressTotal !== undefined &&
+                            require('system.safeMode').buildHeld(creep.room, thisStructure.pos, thisStructure.structureType)) {
+                            thisStructure = null;
+                        }
                         if (thisStructure) {
                             needSearch = false;
                             if (creep.build(thisStructure) == ERR_NOT_IN_RANGE || creep.repair(thisStructure) == ERR_NOT_IN_RANGE) {
@@ -252,7 +260,12 @@ var creep_workV2 = {
                                 creep.suicide();
                             }
                         } else {
-                            target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES);
+                            const safeMode = require('system.safeMode');
+                            target = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, {
+                                filter: site => !safeMode.buildHeld(creep.room, site.pos, site.structureType)
+                            });
+                            const held = !target && require('system.maintenance').attackHold(creep.room);
+                            const wall = held && Memory.repairTarget && Memory.repairTarget[creep.room.name] && Game.getObjectById(Memory.repairTarget[creep.room.name]);
                             if (target) {
                                 creep.memory.structureTarget = target.id;
                                 if (creep.build(target) == ERR_NOT_IN_RANGE) {
@@ -260,6 +273,10 @@ var creep_workV2 = {
                                 } else if (creep.build(target) == ERR_NO_BODYPART) {
                                     creep.suicide();
                                 }
+                            } else if (held) {
+                                // Under attack nothing safe to build: the walls being hit (the room's
+                                // repair target), not the controller (maintenance.attackHold).
+                                if (wall && wall.hits < wall.hitsMax && creep.repair(wall) == ERR_NOT_IN_RANGE) creep.travelTo(wall, { range: 3, maxRooms: 1 });
                             } else if (creep.upgradeController(creep.room.controller) == ERR_NOT_IN_RANGE) {
                                 if (Game.flags[creep.room.name + "Controller"]) {
                                     creep.travelTo(Game.flags[creep.room.name + "Controller"], {
@@ -305,6 +322,8 @@ var creep_workV2 = {
                 if (creep.ticksToLive <= creep.memory.deathWarn && creep.memory.priority != 'distributorNearDeath') {
                     creep.memory.priority = 'distributorNearDeath';
                 }
+                // The boost lab's XKHO2 and energy (system.defenseBoost).
+                if (require('system.defenseBoost').loadLab(creep)) break;
 
                 if (_.sum(creep.carry) == 0) {
                     //Get from storage
@@ -318,6 +337,7 @@ var creep_workV2 = {
                                 creep.travelTo(thisTarget);
                             } else if (withdrawResult == OK) {
                                 creep.memory.storageTarget = undefined;
+                                creep.memory.tookFrom = thisTarget.id;
                             }
                         } else {
                             let newContainer = findContainerWithEnergy(creep, 100);
@@ -338,6 +358,8 @@ var creep_workV2 = {
                             if (takeEnergy(creep, newSource) === OK) creep.memory.storageTarget = undefined;
                         }
                     }
+                } else if (stockStorage(creep)) {
+                    // Terminal energy into the storage the supplier (towers) draws from.
                 } else if (creep.room.energyAvailable < creep.room.energyCapacityAvailable || !creep.room.storage || creep.room.name != creep.memory.homeRoom) {
                     var savedTarget = Game.getObjectById(creep.memory.structureTarget);
                     var getNewStructure = false;
@@ -622,13 +644,39 @@ function repairCompare(a, b) {
 // Energy for a worker or distributor before links: the nearest of dropped energy (a pile at least
 // energyMin, or one that fills it), a container or the storage with energyMin. Dropped first when
 // it is as close: it decays. Returns the object (a Resource is picked up, a store withdrawn from).
+// The supplier's source from its tile: the terminal when it stands next to it and the room draws on
+// it first (creep.logistics.homeEnergy), else the storage (kept stocked by stockStorage).
+function supplierSource(creep) {
+    const home = require('creep.logistics').homeEnergy(creep.room, 1);
+    if (home && home === creep.room.terminal && creep.pos.isNearTo(home)) return home;
+    return creep.room.storage;
+}
+
+// A load taken from the terminal goes to the storage while it is short (creep.logistics.storageShort):
+// under attack first (the towers' energy comes through the storage), else once spawns and extensions
+// are full. Only terminal energy, so a load never goes back where it came from.
+function stockStorage(creep) {
+    const room = creep.room;
+    if (room.name !== (creep.memory.homeRoom || room.name) || !room.terminal || creep.memory.tookFrom !== room.terminal.id) return false;
+    if (!require('creep.logistics').storageShort(room)) return false;
+    const attacked = (Memory.roomsUnderAttack || []).includes(room.name);
+    if (!attacked && room.energyAvailable < room.energyCapacityAvailable) return false;
+    if (creep.transfer(room.storage, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(room.storage, { maxRooms: 1, range: 1 });
+    return true;
+}
+
 function findEnergy(creep, energyMin) {
     const room = creep.room;
+    // The upgrade miner's overflow link first (creep.logistics).
+    const overflow = require('creep.logistics').overflowSource(creep);
+    if (overflow) return overflow;
     const need = Math.min(energyMin, creep.store ? creep.store.getFreeCapacity(RESOURCE_ENERGY) : energyMin);
     const piles = runtimeCache.find(room, FIND_DROPPED_RESOURCES).filter(r => r.resourceType === RESOURCE_ENERGY && r.amount >= Math.max(50, need));
     const stores = runtimeCache.find(room, FIND_STRUCTURES, { filter: { structureType: STRUCTURE_CONTAINER } })
         .filter(s => (s.store[RESOURCE_ENERGY] || 0) >= energyMin);
-    if (room.storage && (room.storage.store[RESOURCE_ENERGY] || 0) >= energyMin) stores.push(room.storage);
+    // The terminal first under attack or with the storage low (creep.logistics.homeEnergy).
+    const home = require('creep.logistics').homeEnergy(room, energyMin);
+    if (home) stores.push(home);
     const pile = piles.length ? creep.pos.findClosestByRange(piles) : null;
     const store = stores.length ? creep.pos.findClosestByRange(stores) : null;
     if (pile && (!store || creep.pos.getRangeTo(pile) <= creep.pos.getRangeTo(store) + 5)) return pile;
@@ -637,6 +685,7 @@ function findEnergy(creep, energyMin) {
 // Take energy from what findEnergy returned (pickup or withdraw), walking there if needed.
 function takeEnergy(creep, target) {
     const result = target.resourceType ? creep.pickup(target) : creep.withdraw(target, RESOURCE_ENERGY);
+    if (result === OK) creep.memory.tookFrom = target.id;
     // Range 1 given: workTracking sends a worker only to range 3 of a structure, and workers stood
     // 2-3 tiles from the storage for good, empty (shardSeason W24N8, 105k stored).
     if (result === ERR_NOT_IN_RANGE) creep.travelTo(target, { maxRooms: 1, range: 1 });
@@ -651,9 +700,8 @@ function findContainerWithEnergy(thisCreep, energyMin) {
     const candidates = runtimeCache.find(room, FIND_STRUCTURES, {
         filter: { structureType: STRUCTURE_CONTAINER }
     }).filter(structure => _.sum(structure.store) >= energyMin);
-    if (room.storage && _.sum(room.storage.store) >= energyMin) {
-        candidates.push(room.storage);
-    }
+    const home = require('creep.logistics').homeEnergy(room, energyMin);
+    if (home) candidates.push(home);
     const storageContainer = candidates.length ? thisCreep.pos.findClosestByRange(candidates) : undefined;
     if (storageContainer) {
         delete thisCreep.memory.energySearchAt;

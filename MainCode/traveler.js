@@ -260,6 +260,27 @@ class Traveler {
          * @param pos
          * @returns {boolean}
          */
+    static withExitCost(roomName, matrix) {
+            let edges = Traveler._edges[roomName];
+            if (!edges) {
+                if (!Game.map || typeof Game.map.getRoomTerrain !== 'function') return matrix;
+                edges = [];
+                const terrain = Game.map.getRoomTerrain(roomName);
+                for (let i = 0; i < 50; i++) {
+                    for (const [x, y] of [[i, 0], [i, 49], [0, i], [49, i]]) {
+                        if (!(terrain.get(x, y) & TERRAIN_MASK_WALL)) edges.push(x * 50 + y);
+                    }
+                }
+                Traveler._edges[roomName] = edges;
+            }
+            if (!edges.length) return matrix;
+            const m = matrix ? matrix.clone() : new PathFinder.CostMatrix();
+            for (const t of edges) {
+                const x = Math.floor(t / 50), y = t % 50;
+                if (m.get(x, y) === 0) m.set(x, y, EXIT_COST);
+            }
+            return m;
+        }
     static isExit(pos) {
             return pos.x === 0 || pos.y === 0 || pos.x === 49 || pos.y === 49;
         }
@@ -390,6 +411,11 @@ class Traveler {
                         }
                     }
                 }
+                // Exit tiles cost EXIT_COST: a creep on one is moved to the next room, so a path along a
+                // border cannot be walked. PathFinder took one (shardX E27N39: two decoy creeps sent west
+                // along E27N40's bottom row to reach a tile in E27N39, bouncing over the border for good).
+                // Crossing a border costs a little more; running along one costs a lot.
+                matrix = Traveler.withExitCost(roomName, matrix);
                 if (options.roomCallback) {
                     if (!matrix) {
                         matrix = new PathFinder.CostMatrix();
@@ -843,6 +869,7 @@ function travelerVisualize() {
 // need to repath to often or they aren't finding valid paths, it can sometimes point to problems elsewhere in your code
 const REPORT_CPU_THRESHOLD = 1000;
 const DEFAULT_MAXOPS = 20000;
+const EXIT_COST = 10;               // path cost of an exit tile (plain 2): see withExitCost
 const DEFAULT_STUCK_VALUE = 5;
 // Internal caches (reset each tick)
 Traveler._topologyCache = Object.create(null);
@@ -858,6 +885,7 @@ Traveler._moved = Object.create(null);
 const PARKED_ROLES = new Set(['supplier', 'supplierNearDeath', 'miner', 'minerNearDeath', 'mineralMiner',
     'mineralMinerNearDeath', 'farMiner', 'farMinerNearDeath']);
 Traveler._structureMatrixCache = {};
+Traveler._edges = {};               // heap: room -> non-wall edge tiles (terrain never changes)
 Traveler._creepMatrixCache = {};
 const STATE_PREV_X = 0;
 const STATE_PREV_Y = 1;

@@ -70,11 +70,13 @@ test('staffing: a hardened room repairers take up to half its budget; spent out,
     assert.equal(s.repairMax, 1);
     assert.equal(s.upgraderModules, 0, 'no extra upgrade module from what is left (4.2)');
     assert.equal(s.upgraders, undefined, 'never fewer than the one upgrader below RCL8');
+    assert.ok(Math.abs(s.spare - 4.2) < 1e-9, 'what is left over for the upgrade supplier: ' + s.spare);
     // Collapsed (storage at 80, 50k short): nothing.
     g.Memory.energyFlow.W1N9.bank = 80;
     s = flow.staffing(r, { upgrade: 12, repair: 4 }, { upgraderMax: 2, repairMax: 1 });
     assert.equal(s.repairMax, 0);
     assert.equal(s.upgraders, undefined, 'spent out: still its one upgrader');
+    assert.equal(s.spare, 0, 'spent out: nothing for the upgrade supplier to upgrade with');
     // An RCL8 room with 450k stored (200k above its 250k reserve): repairers spend it, up to 2.
     const big = room('E18N22', { controller: { my: true, level: 8, ticksToDowngrade: 190000 } });
     g.Memory.energyFlow.E18N22 = { n: 40, in: 110, up: 0, bu: 0, re: 8, sp: 16, nb: 0, bank: 450000 };
@@ -115,4 +117,45 @@ test('the wrapped creep actions count only what succeeds, for the creep\'s home 
     g.Game.rooms = { HOME: { name: 'HOME', controller: { my: true, level: 3 }, find: t => (t === g.FIND_MY_SPAWNS ? [{}] : []) } };
     flow.sample();
     assert.equal(g.Memory.energyFlow.HOME.in, 0.2, 'one successful 2-energy harvest over 10 ticks');
+});
+
+// shard1 E19N59: RCL8, 1.07M stored, +112.7 a tick to spend, two repairers and no upgrader; the
+// storage overflowed.
+test('RCL8 with energy to spare and CPU to spare: one 15-a-tick upgrader, then up to 6 repairers; no CPU to spare: 2, no upgrader', () => {
+    const { g, room, flow } = setup();
+    const r = room('E19N59', { controller: { my: true, level: 8, ticksToDowngrade: 190000 } });
+    g.Memory.energyFlow = { E19N59: { n: 29794, in: 51.3, up: 0, bu: 0, re: 28.5, sp: 14.5, nb: 1.66, bank: 1075368 } };
+    g.Game.cpu.limit = 40;
+    g.Memory.cpuGov = { ema: 28.6, shed: 0 };
+    let s = flow.staffing(r, { rcl8Upgrade: true, repair: 20 });
+    assert.ok(Math.abs(s.budget - 112.7) < 0.1, 'budget ' + s.budget);
+    assert.equal(s.rcl8Upgrader, true);
+    assert.equal(s.repairMax, 6, '112.7 - 12 for the upgrader pays six 20-WORK repairers (16 each)');
+    // shard2-like: shedding work.
+    g.Memory.cpuGov = { ema: 137, shed: 3 };
+    g.Game.cpu.limit = 145;
+    s = flow.staffing(r, { rcl8Upgrade: true, repair: 20 }, { repairMax: 2 });
+    assert.equal(s.rcl8Upgrader, undefined, 'no CPU to spare: no upgrader');
+    assert.equal(s.repairMax, 2, 'and at most 2 repairers');
+    // Below its reserve: no surplus to burn.
+    g.Memory.cpuGov = { ema: 20, shed: 0 };
+    g.Game.cpu.limit = 40;
+    g.Memory.energyFlow.E19N59 = { n: 29794, in: 20, up: 0, bu: 0, re: 5, sp: 10, nb: -5, bank: 200000 };
+    s = flow.staffing(r, { rcl8Upgrade: true, repair: 20 });
+    assert.equal(s.rcl8Upgrader, undefined);
+});
+
+test('lean spawning: stores falling under the reserve until they are back at it (shardX E32N45)', () => {
+    const { g, room, flow } = setup();
+    const r = room('E32N45');                                     // RCL6: 50k reserve
+    g.Memory.energyFlow = { E32N45: { n: 40, in: 24.9, up: 4.2, bu: 9.1, re: 9.6, sp: 10.3, nb: -7.9, bank: 33714 } };
+    assert.equal(flow.lean(r), true, 'falling 7.9 a tick at 34k');
+    g.Memory.energyFlow.E32N45.nb = 3;
+    g.Memory.energyFlow.E32N45.bank = 45000;
+    assert.equal(flow.lean(r), true, 'rising again, still short of 50k: stays lean');
+    g.Memory.energyFlow.E32N45.bank = 50000;
+    assert.equal(flow.lean(r), false, 'back at the reserve: full-size creeps');
+    g.Memory.energyFlow.E32N45.nb = -0.5;
+    g.Memory.energyFlow.E32N45.bank = 40000;
+    assert.equal(flow.lean(r), false, 'a slow drift is not a deficit');
 });

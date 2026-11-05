@@ -99,7 +99,7 @@ test('towers skip drain bait at the exit but shoot what they can kill or what is
     assert.equal(tower.isDrainBait(hostile(1, 20, { work: 4 }), 400), false, 'dismantling a wall');
 });
 
-test('defenders claim the rampart nearest the target and never path through exposed tiles', () => {
+test('defenders claim the rampart nearest the target and path through exposed tiles only when they can take the hit', () => {
     const { h, g, room, structures, pos } = setup();
     g.Memory.roomsUnderAttack = ['A'];
     g.Memory.towerPickedTarget = {};
@@ -130,10 +130,16 @@ test('defenders claim the rampart nearest the target and never path through expo
 
     defender.run(first);
     assert.deepEqual([travel.x, travel.y], [10, 10], 'closest post to the enemy');
-    const matrix = { set: (x, y, v) => { matrix.cells[x + ',' + y] = v; }, cells: {} };
+    const newMatrix = () => { const m = { cells: {}, set: (x, y, v) => { m.cells[x + ',' + y] = v; }, get: (x, y) => m.cells[x + ',' + y] || 0 }; return m; };
+    let matrix = newMatrix();
     travel.opts.roomCallback('A', matrix);
-    assert.equal(matrix.cells['9,9'], 255, 'open tile in the enemy\'s reach is blocked');
+    assert.equal(matrix.cells['9,9'], 30, '1,000 hits take 2 ticks of 10 damage easily: crossed, at a cost');
     assert.equal(matrix.cells['10,10'], undefined, 'the rampart itself stays walkable');
+    first.hits = 30;
+    matrix = newMatrix();
+    travel.opts.roomCallback('A', matrix);
+    assert.equal(matrix.cells['9,9'], 255, 'a defender that cannot take it never steps into the enemy\'s reach');
+    first.hits = 1000;
 
     defender.run(second);
     assert.deepEqual([travel.x, travel.y], [10, 11], 'second defender takes the next post, not the same one');

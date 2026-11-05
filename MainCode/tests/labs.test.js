@@ -107,3 +107,26 @@ test('combat boosts first, lowest stock first; upgrade and repair wait; spare ro
     assert.ok(after.some(j => j.p === R('CATALYZED_LEMERGIUM_ACID')) && after.some(j => j.p === R('CATALYZED_GHODIUM_ACID')),
         JSON.stringify(after.map(j => j.p)));
 });
+
+// Memory.mineralTotals read 0 everywhere on a fresh global instance until the next 50-tick
+// recount (and counted terminals only): the room view's mineral panel showed zeros now and then.
+test('mineral totals: whole on any tick of a fresh instance, terminal and storage both, kept 50 ticks', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.RESOURCE_ENERGY = 'energy';
+    g.Game.time = 1234567;   // not a multiple of 50
+    const room = { name: 'A', controller: { my: true }, terminal: { store: { H: 1000, energy: 5 } }, storage: { store: { H: 500, XGHO2: 300 } } };
+    g.Game.rooms = { A: room };
+    g.Memory.labList = {};
+    const labs = h.load('system.labs');
+    let t = labs.stockCached();
+    assert.equal(t.H, 1500);
+    assert.equal(t.XGHO2, 300);
+    assert.equal(t.energy, undefined);
+    room.terminal.store.H = 9000;
+    g.Game.time += 10;
+    assert.equal(labs.stockCached().H, 1500, 'cached');
+    g.Game.time += 50;
+    assert.equal(labs.stockCached().H, 9500, 'refreshed');
+});

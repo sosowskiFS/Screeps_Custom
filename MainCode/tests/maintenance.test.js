@@ -129,3 +129,16 @@ test('established rooms remote-mine only when energy is short', () => {
     room.storage.store.energy = 90000;
     assert.equal(maintenance.remoteMiningWanted(room), true);
 });
+
+// shard1 E19N59: RCL8, 1.07M stored, 141 of 247 ramparts under 25M (so never established): remote
+// mining planning and scouting went on, and the operator regenerated its sources.
+test('an RCL8 room holding 300k+ wants no remote mining, established or not', () => {
+    const { room, maintenance } = setup({ energy: 1070000, rampartHits: 2000000 });
+    assert.equal(maintenance.isEstablished('A'), false, 'weak ramparts: not established');
+    assert.equal(maintenance.remoteMiningWanted(room), false);
+    room.storage.store.energy = 200000;
+    assert.equal(maintenance.remoteMiningWanted(room), true, 'under 300k and not established: mines');
+    room.controller.level = 7;
+    room.storage.store.energy = 900000;
+    assert.equal(maintenance.remoteMiningWanted(room), true, 'below RCL8 it always may');
+});

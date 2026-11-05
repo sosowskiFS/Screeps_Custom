@@ -32,7 +32,16 @@ var creep_farMining = {
                     } else {
                         let reserveResult = creep.reserveController(creep.room.controller);
                         if (reserveResult == ERR_NOT_IN_RANGE) {
-                            creep.travelTo(creep.room.controller, {
+                            // Walls or someone's ramparts closing the controller off: noted for the next
+                            // reserver (spawned with an ATTACK part, spawn.BuildFarCreeps), and broken
+                            // through with what this one has (creep.breach).
+                            const breach = require('creep.breach');
+                            const busy = breach.breach(creep, creep.room.controller, 1);
+                            if (creep.memory.breachId) {
+                                const intel = Memory.remoteIntel || (Memory.remoteIntel = {});
+                                (intel[creep.room.name] || (intel[creep.room.name] = { t: Game.time, s: [], c: 1 })).cw = Game.time;
+                            }
+                            if (!busy) creep.travelTo(creep.room.controller, {
                                 ignoreRoads: true
                             });
                         } else if (reserveResult == ERR_INVALID_TARGET) {

@@ -67,6 +67,10 @@ function manageRoomStructures(thisRoom) {
     // A retiring room's terminal only ships out (system.retire): no requests, no sales.
     const isRetiring = require('system.retire').retiring(thisRoom.name);
 
+    // A room under a player attack running dry gets energy from every room that can spare it
+    // (system.energyAid), every 10 ticks, before the queue below.
+    if (thisRoom.terminal) require('system.energyAid').aid(thisRoom);
+
     // Manage energy need rooms - check if room needs energy assistance
     if (Game.time % 50 == 0 && thisRoom.terminal && thisRoom.storage && !isRetiring) {
         const siege = !!require('system.guardBoosts').roomState(thisRoom.name);
@@ -83,6 +87,12 @@ function manageRoomStructures(thisRoom) {
             let tempIndex = Memory.energyNeedRooms.indexOf(thisRoom.name);
             Memory.energyNeedRooms.splice(tempIndex, 1);
         }
+        // Under attack and running dry: first in the queue.
+        const queued = Memory.energyNeedRooms.indexOf(thisRoom.name);
+        if (queued > 0 && require('system.energyAid').emergency(thisRoom)) {
+            Memory.energyNeedRooms.splice(queued, 1);
+            Memory.energyNeedRooms.unshift(thisRoom.name);
+        }
     }
 
     // Review market data, sell to buy orders, and catalog mineral stockpiles
@@ -93,14 +103,6 @@ function manageRoomStructures(thisRoom) {
             Memory.LastNotification = Game.time.toString() + ' : ' + thisRoom.name + " terminal is overloaded!"
         }
 
-        var roomMinerals = _.keys(thisRoom.terminal.store);
-        for (let p = 0; p < roomMinerals.length; p++) {
-            if (roomMinerals[p] == RESOURCE_ENERGY || roomMinerals[p] == RESOURCE_POWER) {
-                //Not caring about this
-                continue;
-            }
-            Memory.mineralTotals[roomMinerals[p]] += thisRoom.terminal.store[roomMinerals[p]]
-        }
     }
 
     // Update structure lists every 50 ticks or if lists are empty

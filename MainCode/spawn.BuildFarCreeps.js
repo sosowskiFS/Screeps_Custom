@@ -214,7 +214,7 @@ var spawn_BuildFarCreeps = {
 
             if (prioritizedRole != '') {
                 if (prioritizedRole == 'farClaimer') {
-                    var farClaimerConfig = getClaimerBuild(thisRoom.energyCapacityAvailable);
+                    var farClaimerConfig = getClaimerBuild(thisRoom.energyCapacityAvailable, controllerWalled(roomTarget));
                     let configCost = calculateConfigCost(farClaimerConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -364,8 +364,20 @@ function nodeJob(thisRoom, controlledCreeps, Flag25, Flag50) {
     return null;
 }
 
-function getClaimerBuild(energyCap) {
+// A remote whose controller a reserver found walled off (creep.farMining notes remoteIntel cw):
+// the next reserver comes with an ATTACK part to break through (creep.breach). Kept WALLED_TTL.
+const WALLED_TTL = 20000;
+function controllerWalled(roomName) {
+    const intel = Memory.remoteIntel && Memory.remoteIntel[roomName];
+    return !!(intel && intel.cw && Game.time - intel.cw < WALLED_TTL);
+}
+
+function getClaimerBuild(energyCap, walled) {
     var thisConfig = [];
+    if (walled && energyCap >= BODYPART_COST[ATTACK] + BODYPART_COST[MOVE] + BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]) {
+        thisConfig.push(ATTACK, MOVE);
+        energyCap -= BODYPART_COST[ATTACK] + BODYPART_COST[MOVE];
+    }
 
     // CLAIM/MOVE pairs only: the old trailing MOVE + ATTACK was never used (claimers avoid fights).
     var ConfigCost = BODYPART_COST[CLAIM] + BODYPART_COST[MOVE]
@@ -374,7 +386,7 @@ function getClaimerBuild(energyCap) {
         thisConfig.push(CLAIM);
         thisConfig.push(MOVE);
         energyCap = energyCap - ConfigCost;
-        if (thisConfig.length >= 16) {
+        if (thisConfig.length >= (walled ? 18 : 16)) {
             break;
         }
     }

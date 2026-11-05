@@ -5,6 +5,9 @@ const maintenance = require('system.maintenance');
 const labPlanner = require('system.labs');
 const essentials = require('spawn.essentials');
 const mineralBudget = require('system.mineralBudget');
+const UP_SUPPLIER_CARRY = 8;           // 400 carried: half an upgrade link
+const UP_SUPPLIER_WORK_MAX = 10;
+const UP_SUPPLIER_WORK_DEFAULT = 2;     // until the room's energy budget is trusted
 var spawn_BuildCreeps5 = {
     run: function (spawn, thisRoom, RoomCreeps, energyIndex) {
         // Cache frequently used values
@@ -40,6 +43,11 @@ var spawn_BuildCreeps5 = {
         const structures = this.getCachedStructures(roomName);
         const { strSources, strLinks, strMineral, strTerminal, strExtractor } = structures;
         this.rebalanceMiners(creepCounts, strSources, strLinks, roomName);
+        // Links by purpose (system.links): the storage (hub) receiver for haulers, the upgrade
+        // receiver for upgraders, and the sender by the upgrade miner's source.
+        const hubLinkId = this.linkId(thisRoom, 'store');
+        const upLinkId = this.linkId(thisRoom, 'up');
+        const minerLinkId = this.minerLinkFor(thisRoom, strSources[1]);
         let readyForMineral = false;
         let mineralType = '';
         
@@ -114,8 +122,10 @@ var spawn_BuildCreeps5 = {
         const repairTargetObj = Memory.repairTarget[thisRoom.name] && Game.getObjectById(Memory.repairTarget[thisRoom.name]);
         const repairCapped = !!(Game.flags[thisRoom.name + "25mCap"] || Game.flags[thisRoom.name + "50mCap"] ||
             (repairTargetObj && repairTargetObj.structureType === STRUCTURE_RAMPART && repairTargetObj.hits > 290000000));
+        // Stores falling under the reserve: spenders spawn small (system.energyFlow.lean).
+        const lean = require('system.energyFlow').lean(thisRoom);
         const flow = require('system.energyFlow').staffing(thisRoom,
-            { upgrade: 12, repair: this.repairWork(thisRoom), repairCapped }, { upgraderMax, repairMax });
+            { upgrade: 12, rcl8Upgrade: true, repair: this.repairWork(thisRoom), repairCapped }, { upgraderMax, repairMax });
         if (flow) {
             if (flow.upgraderModules !== undefined) upgraderMax = flow.upgraderModules;
             repairMax = flow.repairMax;
@@ -127,9 +137,13 @@ var spawn_BuildCreeps5 = {
             let upgraderConfig = upgraderResults[1]
 
         // RCL8 controller upkeep and maintenance-mode staffing (see lowCpuStaffing).
-        const lowCpu = this.lowCpuStaffing(thisRoom, { upgraderMax, upgraderConfig, upSupplierMax, minerMax, repairMax, salvagerMax, muleMax, distributorMax, pNeedDist });
+        const lowCpu = this.lowCpuStaffing(thisRoom, { upgraderMax, upgraderConfig, upSupplierMax, minerMax, repairMax, salvagerMax, muleMax, distributorMax, pNeedDist,
+            surplusUpgrade: !!(flow && flow.rcl8Upgrader) });
         ({ upgraderMax, upgraderConfig, upSupplierMax, minerMax, repairMax, salvagerMax, muleMax, distributorMax } = lowCpu);
+        // Under attack: no upgrader (upkeep included) unless the controller's timer is critical.
+        if (maintenance.attackHold(thisRoom)) upgraderMax = 0;
         const controllerUpkeep = lowCpu.controllerUpkeep;
+        const surplusUpgrade = lowCpu.surplusUpgrade;
             let bareMinConfig = [MOVE, WORK, WORK, CARRY];
         // Supplier spawn directions (see supplierDirections).
         let { buildDirections, supplierDirection } = this.supplierDirections(thisRoom, spawn);
@@ -141,10 +155,7 @@ var spawn_BuildCreeps5 = {
                     Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
                     //In case of complete destruction, make a minimum viable worker
                     //Make sure 5+ work code has harvester backup path
-                    let connectedLink = undefined;
-                    if (strLinks.length >= 4) {
-                        connectedLink = strLinks[3];
-                    }
+                    let connectedLink = hubLinkId;
                     spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'dist_' + spawn.name + '_' + Game.time, {
                         memory: {
                             priority: 'distributor',
@@ -181,7 +192,8 @@ var spawn_BuildCreeps5 = {
                     global.setSpawnBusy(spawn);
                 }
             }
-        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 && defenders.length < 6 && !defenseWatch.isDraining(thisRoom.name)) {
+        } else if (Memory.roomsUnderAttack.indexOf(thisRoom.name) != -1 && !thisRoom.controller.safeMode && Memory.roomsPrepSalvager.indexOf(thisRoom.name) == -1 &&
+            defenders.length < this.defendersWanted(thisRoom) && !defenseWatch.isDraining(thisRoom.name)) {
             // Skipped while a border drainer is bouncing: no defenders for it and no economy lockout.
             let Foe = runtimeCache.find(thisRoom, FIND_HOSTILE_CREEPS, {
                 filter: (eCreep) => ((eCreep.getActiveBodyparts(ATTACK) > 0 || eCreep.getActiveBodyparts(RANGED_ATTACK) > 0 || eCreep.getActiveBodyparts(WORK) > 0) && !Memory.whiteList.includes(eCreep.owner.username))
@@ -215,8 +227,10 @@ var spawn_BuildCreeps5 = {
                 }
             } else if (Memory.CurrentRoomEnergy[energyIndex] >= 650 && (Foe.length || defenders.length < 1)) {
                 // Optimized defender creation
-                const defenderConfig = this.buildOptimalDefender(thisRoom.energyCapacityAvailable);
+                const defenderConfig = this.buildOptimalDefender(thisRoom.energyCapacityAvailable, thisRoom);
                 const configCost = calculateConfigCost(defenderConfig);
+                // The MOVE-light body (XZHO2 ready in a lab): it boosts its MOVE first (creep.combat).
+                const moveBoost = defenderConfig.filter(p => p === MOVE).length * 2 < defenderConfig.length;
                 
                 if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                     Memory.CurrentRoomEnergy[energyIndex] -= configCost;
@@ -224,7 +238,8 @@ var spawn_BuildCreeps5 = {
                         memory: {
                             priority: 'defender',
                             fromSpawn: spawn.id,
-                            homeRoom: thisRoom.name
+                            homeRoom: thisRoom.name,
+                            moveBoost: moveBoost || undefined
                         },
                         directions: buildDirections
                     });
@@ -275,9 +290,7 @@ var spawn_BuildCreeps5 = {
 
             if (missingEssentials.includes('refill') && !blockedRole.includes('distributor')) {
                 prioritizedRole = 'distributor';
-                if (strLinks.length >= 4) {
-                    connectedLink = strLinks[3];
-                }
+                connectedLink = hubLinkId;
             } else if (missingEssentials.includes('supplier') && !blockedRole.includes('supplier') && supplierDirection.length > 0) {
                 prioritizedRole = 'supplier';
             } else if (missingEssentials.includes('miner') && !blockedSubRole.includes('storageMiner')) {
@@ -288,11 +301,7 @@ var spawn_BuildCreeps5 = {
             } else if (miners.length >= 1 && mules.length == 0 && !blockedRole.includes('mule') && !operatorPresent(thisRoom.name)) {
                 prioritizedRole = 'mule';
                 storageID = thisRoom.storage.id;
-                if (strLinks.length >= 4) {
-                    connectedLink = strLinks[3];
-                } else {
-                    connectedLink = undefined;
-                }
+                connectedLink = hubLinkId;
                 creepSource = strTerminal;
             } else if (miners.length < minerMax) {
                 // The miner a source lacks: the storage one first, then the upgrade one. Chosen by
@@ -306,17 +315,12 @@ var spawn_BuildCreeps5 = {
                 } else if (!upgradeMiners.length && strSources.length > 1 && !blockedSubRole.includes('upgradeMiner')) {
                     prioritizedRole = 'miner';
                     creepSource = strSources[1];
-                    connectedLink = strLinks[0];
-                    if (strLinks.length >= 3) {
-                        backupLink = strLinks[2];
-                    }
+                    connectedLink = minerLinkId;   // it stores in any link beside it (creep.miner)
                     jobSpecificPri = 'upgradeMiner';
                 }
             } else if (distributors.length < distributorMax && !blockedRole.includes('distributor')) {
                 prioritizedRole = 'distributor';
-                if (strLinks.length >= 4) {
-                    connectedLink = strLinks[3];
-                }
+                connectedLink = hubLinkId;
             } else if (suppliers.length < supplierMax && !blockedRole.includes('supplier') && supplierDirection.length > 0) {
                 prioritizedRole = 'supplier';
                 if (Game.time % 50 === 0) {
@@ -325,9 +329,7 @@ var spawn_BuildCreeps5 = {
             } else if (mules.length < muleMax && !blockedRole.includes('mule')) {
                 prioritizedRole = 'mule';
                 storageID = thisRoom.storage.id;
-                if (strLinks.length >= 4) {
-                    connectedLink = strLinks[3];
-                }
+                connectedLink = hubLinkId;
                 creepSource = strTerminal;
             } else if (builders.length < builderMax && !blockedRole.includes('builder')) {
                 prioritizedRole = 'builder';
@@ -335,11 +337,11 @@ var spawn_BuildCreeps5 = {
                 prioritizedRole = 'upgrader';
                 storageID = thisRoom.storage.id;
                 // Upkeep upgraders draw from storage; the controller link is no longer topped up.
-                connectedLink = controllerUpkeep ? thisRoom.storage.id : strLinks[1];
+                connectedLink = controllerUpkeep ? thisRoom.storage.id : upLinkId;
             } else if (upSuppliers.length < upSupplierMax && !blockedRole.includes('upSupplier')) {
                 prioritizedRole = 'upSupplier';
                 storageID = thisRoom.storage.id;
-                connectedLink = strLinks[1];
+                connectedLink = upLinkId;
             } else if (repairers.length < repairMax && !blockedRole.includes('repair')) {
                 prioritizedRole = 'repair';
                 storageID = thisRoom.storage.id;
@@ -353,7 +355,7 @@ var spawn_BuildCreeps5 = {
                 storageID = strTerminal;
             } else if (scrapers.length < scraperMax && !blockedRole.includes('scraper')) {
                 prioritizedRole = 'scraper';
-                connectedLink = strLinks[0];
+                connectedLink = minerLinkId;
             } else if (salvagers.length < salvagerMax && !blockedRole.includes('salvager')) {
                 prioritizedRole = 'salvager';
             }
@@ -404,7 +406,7 @@ var spawn_BuildCreeps5 = {
                     }
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
-                        if (jobSpecificPri == 'upgradeMiner' && strLinks.length >= 4) {
+                        if (jobSpecificPri == 'upgradeMiner' && backupLink) {
                             spawn.spawnCreep(minerConfig, 'miner_' + spawn.name + '_' + Game.time, {
                                 memory: {
                                     priority: prioritizedRole,
@@ -473,6 +475,8 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'upgrader') {
                     global.setSpawnBusy(spawn);
+                    // Lean (system.energyFlow.lean): a 4-WORK upgrader while the stores recover.
+                    if (lean && thisRoom.controller.level < 8 && !controllerUpkeep) upgraderConfig = [MOVE, MOVE, WORK, WORK, WORK, WORK, CARRY];
                     let configCost = calculateConfigCost(upgraderConfig);
                     if (configCost > thisRoom.energyCapacityAvailable) {
                         //Took severe damage, assume cap of 300
@@ -487,7 +491,7 @@ var spawn_BuildCreeps5 = {
                                 linkSource: connectedLink,
                                 storageSource: storageID,
                                 upkeep: controllerUpkeep || undefined,
-                                hasBoosted: controllerUpkeep || undefined, // no lab boost for a 1-WORK upkeep run
+                                hasBoosted: controllerUpkeep || surplusUpgrade || undefined, // no lab boost for upkeep or for burning surplus
                                 deathWarn: _.size(upgraderConfig) * 6,
                                 fromSpawn: spawn.id,
                                 homeRoom: thisRoom.name
@@ -498,10 +502,10 @@ var spawn_BuildCreeps5 = {
                     }
                 } else if (prioritizedRole == 'upSupplier') {
                     global.setSpawnBusy(spawn);
-                    let upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-                    if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 265000 && thisRoom.energyCapacityAvailable >= 2500 && thisRoom.controller.level != 8) {
-                        upSupplierConfig = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
-                    }
+                    // Hauls and upgrades below RCL8 (upSupplierBody); at RCL8 it only runs power.
+                    let upSupplierConfig = thisRoom.controller.level >= 8
+                        ? [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE]
+                        : this.upSupplierBody(thisRoom.energyCapacityAvailable, this.upSupplierWork(flow));
                     let configCost = calculateConfigCost(upSupplierConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -522,7 +526,8 @@ var spawn_BuildCreeps5 = {
                 } else if (prioritizedRole == 'builder') {
                     // A worker (creep.workV2 'builder'): builds the sites, upgrades when none are left.
                     global.setSpawnBusy(spawn);
-                    const builderConfig = require('spawn.BuildCreeps').getWorkerConfig(thisRoom.energyCapacityAvailable, 'worker');
+                    const builderConfig = require('spawn.BuildCreeps').getWorkerConfig(
+                        lean ? Math.max(300, thisRoom.energyCapacityAvailable * require('system.energyFlow').LEAN_SHARE) : thisRoom.energyCapacityAvailable, 'worker');
                     const configCost = calculateConfigCost(builderConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -547,6 +552,8 @@ var spawn_BuildCreeps5 = {
                     } else if (thisRoom.storage && thisRoom.storage.store[RESOURCE_ENERGY] >= 300000 && thisRoom.energyCapacityAvailable >= 1800) {
                         repairConfig = [WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
                     }
+                    // Lean (system.energyFlow.lean): half the usual repairer while the stores recover.
+                    if (lean) repairConfig = [WORK, WORK, CARRY, CARRY, MOVE, MOVE];
                     let configCost = calculateConfigCost(repairConfig);
                     if (configCost <= Memory.CurrentRoomEnergy[energyIndex]) {
                         Memory.CurrentRoomEnergy[energyIndex] = Memory.CurrentRoomEnergy[energyIndex] - configCost;
@@ -830,7 +837,7 @@ var spawn_BuildCreeps5 = {
                     spawn.spawnCreep([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY], 'mule_' + spawn.name + '_' + Game.time, {
                         memory: {
                             priority: 'mule',
-                            linkSource: strLinks[1],
+                            linkSource: this.linkId(thisRoom, 'store'),
                             storageSource: thisRoom.storage.id,
                             terminalID: strTerminal,
                             deathWarn: _.size([MOVE, MOVE, CARRY, CARRY, CARRY, CARRY]) * 4,
@@ -900,6 +907,58 @@ Object.assign(spawn_BuildCreeps5, {
         return left > 20000 && stored >= 50000 ? 2 : 1;
     },
 
+    // The upgrade supplier below RCL8: UP_SUPPLIER_CARRY CARRY to fill the upgrade link's gaps, the
+    // WORK the room can afford (upSupplierWork), MOVE for full speed on roads loaded. It was 10
+    // blocks of WORK/CARRY/CARRY/MOVE/MOVE at RCL7 (50 parts, up to 10 a tick upgrading): shardX
+    // W1N9, earning 20 a tick, could not pay for that on top of its upgrader and repairer.
+    upSupplierBody: function(energyCap, work = UP_SUPPLIER_WORK_DEFAULT) {
+        let w = Math.max(0, Math.min(UP_SUPPLIER_WORK_MAX, work)), c = UP_SUPPLIER_CARRY;
+        const moves = () => Math.ceil((w + c) / 2);
+        const cost = () => w * BODYPART_COST[WORK] + c * BODYPART_COST[CARRY] + moves() * BODYPART_COST[MOVE];
+        while (cost() > energyCap && w > 0) w--;
+        while (cost() > energyCap && c > 1) c--;
+        const body = [];
+        for (const [type, n] of [[WORK, w], [CARRY, c], [MOVE, moves()]]) for (let i = 0; i < n; i++) body.push(type);
+        return body;
+    },
+
+    // WORK for the upgrade supplier from the room's energy budget (system.energyFlow staffing): what
+    // is left once its upgraders and repairers are paid for, at DUTY. Without a trusted budget,
+    // UP_SUPPLIER_WORK_DEFAULT.
+    upSupplierWork: function(flow) {
+        if (!flow || flow.spare === undefined) return UP_SUPPLIER_WORK_DEFAULT;
+        return Math.max(0, Math.min(UP_SUPPLIER_WORK_MAX, Math.floor(flow.spare / require('system.energyFlow').DUTY)));
+    },
+
+    // A link's id by purpose (system.links roles: 'up' or 'store'), or undefined.
+    linkId: function(room, purpose) {
+        const links = require('system.links');
+        const link = purpose === 'up' ? links.upgradeLink(room) : links.storageLink(room);
+        return link ? link.id : undefined;
+    },
+
+    // The sender link by the upgrade miner's source (else the upgrade receiver): its default store.
+    minerLinkFor: function(room, sourceId) {
+        const links = require('system.links');
+        const source = sourceId && Game.getObjectById(sourceId);
+        const near = source ? links.sendersNear(room, source.pos, 2) : [];
+        if (near.length) return near[0].id;
+        const up = links.upgradeLink(room);
+        return up ? up.id : undefined;
+    },
+
+    // Dropped energy worth a scraper: 500 or more within 3 of the sender links.
+    scraperWanted: function(room) {
+        const links = require('system.links');
+        const near = links.senders(room);
+        if (!near.length) return false;
+        let dropped = 0;
+        for (const r of runtimeCache.find(room, FIND_DROPPED_RESOURCES)) {
+            if (r.resourceType === RESOURCE_ENERGY && near.some(l => l.pos.inRangeTo(r.pos, 3))) dropped += r.amount;
+        }
+        return dropped >= 500;
+    },
+
     // WORK parts of the repairer this room would spawn now (the repair body below).
     repairWork: function(room) {
         const energy = room.storage ? room.storage.store[RESOURCE_ENERGY] || 0 : 0;
@@ -914,8 +973,9 @@ Object.assign(spawn_BuildCreeps5, {
     rebalanceMiners: function(counts, strSources, strLinks, roomName) {
         if (counts.storageMiners.length < 2 || counts.upgradeMiners.length || !strSources || strSources.length < 2 || !strLinks || !strLinks.length) return null;
         const extra = counts.storageMiners.slice().sort((a, b) => (b.ticksToLive || 0) - (a.ticksToLive || 0))[0];
-        Object.assign(extra.memory, { jobSpecific: 'upgradeMiner', mineSource: strSources[1], linkSource: strLinks[0], atSpot: false });
-        if (strLinks.length >= 3) extra.memory.linkSource2 = strLinks[2]; else delete extra.memory.linkSource2;
+        const room = Game.rooms[roomName];
+        Object.assign(extra.memory, { jobSpecific: 'upgradeMiner', mineSource: strSources[1], linkSource: room ? this.minerLinkFor(room, strSources[1]) : strLinks[0], atSpot: false });
+        delete extra.memory.linkSource2;   // any link beside it is used (creep.miner)
         delete extra.memory._trav;
         counts.storageMiners.splice(counts.storageMiners.indexOf(extra), 1);
         counts.upgradeMiners.push(extra);
@@ -1009,11 +1069,11 @@ Object.assign(spawn_BuildCreeps5, {
             mineralConfig: {}, regenPower: 0, pNeedDist: false
         };
 
-        // Determine scraper max based on links
-        const strLinks = Memory.linkList[roomName] || [];
-        if (strLinks.length < 4) {
-            config.scraperMax = 1;
-        }
+        // A scraper only while energy lies dropped by the upgrade miner's links (scraperWanted). It
+        // was kept in every room with under 4 links: the upgrade miner dropped what its one link
+        // could not send on (system.links now sends to either receiver with room).
+        const scraperRoom = Game.rooms[roomName];
+        if (scraperRoom && this.scraperWanted(scraperRoom)) config.scraperMax = 1;
 
         // Configure lab worker and mineral config if terminal exists
         if (terminal && Memory.labList[roomName] && Memory.labList[roomName].length >= 3) {
@@ -1217,6 +1277,14 @@ Object.assign(spawn_BuildCreeps5, {
             result.controllerUpkeep = true;
             result.upgraderMax = maintenance.upkeepDue(room.controller) ? 1 : 0;
             result.upgraderConfig = maintenance.upkeepBody();
+            // Energy to spare (system.energyFlow rcl8Upgrader): one full upgrader burns the
+            // controller's 15 a tick into GCL instead of the storage overflowing (shard1 E19N59).
+            if (limits.surplusUpgrade && !maintenance.inMaintenance(room.name)) {
+                result.controllerUpkeep = false;
+                result.surplusUpgrade = true;
+                result.upgraderMax = 1;
+                result.upgraderConfig = GetUpgraderConfig(1, room.energyCapacityAvailable, 8)[1];
+            }
             const powerSpawnIds = Memory.powerSpawnList[room.name] || [];
             const powerStock = (room.storage ? room.storage.store[RESOURCE_POWER] || 0 : 0) + (room.terminal ? room.terminal.store[RESOURCE_POWER] || 0 : 0);
             const powerToProcess = powerSpawnIds.length > 0 && powerStock >= 100;
@@ -1289,22 +1357,42 @@ Object.assign(spawn_BuildCreeps5, {
         return body;
     },
 
+    // Defenders wanted (defense.staffing): enough of this room's full-size defender, with the towers,
+    // to beat the healing of the easiest armed hostile; not a fixed 6 for anything hostile.
+    defendersWanted: function(room) {
+        const staffing = require('defense.staffing');
+        return staffing.needed(room, staffing.rangedDamage(this.buildOptimalDefender(room.energyCapacityAvailable, room)));
+    },
+
     // Build optimal defender configuration
-    buildOptimalDefender: function(energyCapacity) {
-        const config = [];
-        let remainingEnergy = energyCapacity;
-        const moduleEnergy = 650; // Cost for 1 MOVE + 4 RANGED_ATTACK
-        let totalParts = 0;
-
-        // Calculate number of complete modules we can afford
-        while (remainingEnergy >= moduleEnergy && totalParts + 5 <= 50) {
-            config.push(MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK);
-            remainingEnergy -= moduleEnergy;
-            totalParts += 5;
+    // 1 MOVE per 4 RANGED_ATTACK (650 energy a block) only when a lab holds the XZHO2 to boost every
+    // MOVE part (moveBoostReady): boosted, one MOVE carries four parts at full speed. Otherwise
+    // RANGED_ATTACK/MOVE pairs (200 each, up to 25), full speed on any ground unboosted. The MOVE-light
+    // body used to be built whatever the labs held: shardX W1N9's 20-ranged, 5-move defenders had
+    // only ranged boosts, crawled at a quarter speed off-road and never reached their ramparts.
+    buildOptimalDefender: function(energyCapacity, room) {
+        const heavy = [];
+        for (let n = 0; n < Math.min(10, Math.floor(energyCapacity / 650)); n++) {
+            heavy.push(MOVE, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK, RANGED_ATTACK);
         }
-
+        if (room && heavy.length && this.moveBoostReady(room, heavy.filter(p => p === MOVE).length)) {
+            return require('combat.bodies').order(heavy);
+        }
+        const pairs = Math.max(1, Math.min(25, Math.floor(energyCapacity / 200)));
+        const config = [];
+        for (let i = 0; i < pairs; i++) config.push(RANGED_ATTACK, MOVE);
         // Ranged parts in front of the MOVE parts (combat.bodies.order).
         return require('combat.bodies').order(config);
+    },
+
+    // A lab with the XZHO2 and energy to boost this many MOVE parts, not leased for guard squads; or null.
+    moveBoostReady: function(room, moveParts) {
+        const guardBoosts = require('system.guardBoosts');
+        const mineral = moveParts * (typeof LAB_BOOST_MINERAL !== 'undefined' ? LAB_BOOST_MINERAL : 30);
+        const energy = moveParts * (typeof LAB_BOOST_ENERGY !== 'undefined' ? LAB_BOOST_ENERGY : 20);
+        return runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } })
+            .find(lab => lab.mineralType === RESOURCE_CATALYZED_ZYNTHIUM_ALKALIDE && (lab.mineralAmount || 0) >= mineral &&
+                (lab.store ? lab.store[RESOURCE_ENERGY] || 0 : lab.energy || 0) >= energy && !guardBoosts.assignment(room.name, lab.id)) || null;
     }
 });
 

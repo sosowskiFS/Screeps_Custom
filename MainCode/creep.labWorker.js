@@ -14,7 +14,9 @@ Overflow breakpoints
 - Terminal stock refill from storage (inside handleTerminalOverflow): run when terminal free > 15,000.
 - Pre-lab storage -> terminal transfer (run order step): run when terminal free >= 20,000.
 - General storage -> terminal transfer helper default: min terminal free = 25,000.
-- Factory overflow handling: trigger when factory free < 2,000 OR factory energy > 10,000.
+- Factory overflow handling: trigger when factory free < 2,000 OR factory energy > 15,000 (taken down
+  to 10,000). Filling the factory stops 2,000 short of the free-space line, and mules and the operator
+  fill energy to 10,000: the two used to share one line and moved the same load in and out for good.
 - Factory overflow destination: send to terminal first if terminal free > 20,000, else storage.
 
 Carry rules (no flip-flops)
@@ -98,11 +100,8 @@ var creep_labWorker = {
 
         syncReaction(creep);
 
-        creep.memory.storeProduced = (
-            labView(creep).mineral1 == labView(creep).mineral6 ||
-            labView(creep).mineral2 == labView(creep).mineral6 ||
-            labView(creep).mineral3 == labView(creep).mineral6
-        );
+        creep.memory.storeProduced = [1, 2, 3].some(i => !labView(creep).react.has(labView(creep)['lab' + i]) &&
+            labView(creep)['mineral' + i] == labView(creep).mineral6);
 
         const ctx = buildLabContext(creep);
         let foundWork = false;
@@ -268,6 +267,7 @@ function balanceTerminal(creep) {
     if (result === OK) {
         clearInstructions(creep);
         m.balanceTo = move.to.id;
+        if (move.resource === RESOURCE_ENERGY) require('creep.logistics').noteEnergyMove(creep.room, move.from, move.to);
         return true;
     }
     return false;
@@ -395,6 +395,13 @@ function handleTerminalOverflow(creep) {
     return false;
 }
 
+// Factory lines (no flip-flops): the overflow cleanup and the fillers keep apart. Mules and the operator
+// fill energy while under FACTORY_ENERGY_CAP; the cleanup only starts above FACTORY_ENERGY_OVERFLOW and
+// takes it back to the cap. manageFactory loads the room mineral only when the factory keeps
+// FACTORY_OVERFLOW_FREE after the load.
+const FACTORY_OVERFLOW_FREE = 2000;
+const FACTORY_ENERGY_CAP = 10000;
+const FACTORY_ENERGY_OVERFLOW = 15000;
 function handleFactoryOverflow(creep, terminal, storage) {
     const thisFactory = creep.memory.factory ? Game.getObjectById(creep.memory.factory) : undefined;
     if (!thisFactory) {
@@ -403,7 +410,7 @@ function handleFactoryOverflow(creep, terminal, storage) {
 
     const factoryFree = thisFactory.store.getFreeCapacity();
     const energyInFactory = thisFactory.store[RESOURCE_ENERGY] || 0;
-    if (factoryFree >= 2000 && energyInFactory <= 10000) {
+    if (factoryFree >= FACTORY_OVERFLOW_FREE && energyInFactory <= FACTORY_ENERGY_OVERFLOW) {
         return false;
     }
 
@@ -465,7 +472,7 @@ function handleFactoryOverflow(creep, terminal, storage) {
         }
     }
 
-    if (!targetResource && energyInFactory > 10000) {
+    if (!targetResource && energyInFactory > FACTORY_ENERGY_CAP) {
         targetResource = RESOURCE_ENERGY;
     }
 
@@ -473,7 +480,10 @@ function handleFactoryOverflow(creep, terminal, storage) {
         return false;
     }
 
-    const withdrawResult = creep.withdraw(thisFactory, targetResource);
+    // Energy only down to the cap the fillers stop at.
+    const withdrawResult = targetResource === RESOURCE_ENERGY
+        ? creep.withdraw(thisFactory, RESOURCE_ENERGY, Math.min(creep.carryCapacity, energyInFactory - FACTORY_ENERGY_CAP))
+        : creep.withdraw(thisFactory, targetResource);
     if (withdrawResult == ERR_NOT_IN_RANGE) {
         creep.travelTo(thisFactory, { maxRooms: 1, ignoreRoads: true });
     } else if (withdrawResult == OK) {
@@ -593,7 +603,9 @@ function evacuate(creep, target, storage) {
 // Lab ids and minerals are not stored in creep memory (they were ~20 fields per lab worker, and
 // went stale when base migration rebuilt labs). Each tick they come from the room:
 //   lab1..lab10       Memory.labList[room] (boost labs 0-2, reagents 3-4, outputs 5+)
-//   mineral1..3       the room's boost minerals (Memory.roomConfigs[room].mineralConfig)
+//   mineral1..3       the room's boost minerals (Memory.roomConfigs[room].mineralConfig), or the
+//                     reaction's product for a flex boost lab reacting now (system.labLayout)
+//   react / flex      ids of boost labs reacting now / of every flex boost lab
 //   mineral4/5, 6..10 the planner's reaction for the room: inputs, product (system.labs)
 // Labs that do not exist read as 'XXX' (the old placeholder), so the checks below are unchanged.
 const labViews = Object.create(null);
@@ -609,6 +621,16 @@ function labView(creep) {
     view.mineral1 = config.min1 || RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
     view.mineral2 = config.min2 || RESOURCE_CATALYZED_GHODIUM_ACID;
     view.mineral3 = config.min3 || RESOURCE_CATALYZED_LEMERGIUM_ACID;
+    view.react = new Set();
+    view.flex = new Set();
+    if (job) {
+        const layout = require('system.labLayout');
+        const reacting = layout.reacting(roomName);
+        for (const i of layout.flexIndices(roomName)) {
+            view.flex.add(ids[i]);
+            if (reacting.has(i)) { view.react.add(ids[i]); view['mineral' + (i + 1)] = job.p; }
+        }
+    }
     view.mineral4 = job ? job.a : '';
     view.mineral5 = job ? job.b : '';
     for (let i = 6; i <= 10; i++) view['mineral' + i] = job ? job.p : '';
@@ -846,7 +868,8 @@ function findLabWork(creep, ctx, terminal) {
             continue;
         }
 
-        if (lab.id == labView(creep).lab6 || lab.id == labView(creep).lab7 || lab.id == labView(creep).lab8 || lab.id == labView(creep).lab9 || lab.id == labView(creep).lab10) {
+        if (lab.id == labView(creep).lab6 || lab.id == labView(creep).lab7 || lab.id == labView(creep).lab8 || lab.id == labView(creep).lab9 || lab.id == labView(creep).lab10 ||
+            labView(creep).react.has(lab.id)) {
             if (handleResultLab(creep, ctx, lab, mineral, terminal)) {
                 return true;
             }
@@ -863,15 +886,20 @@ function findLabWork(creep, ctx, terminal) {
     return false;
 }
 
+// A flex boost lab (system.labLayout) switched to its boost loads FLEX_FILL, one trip: it goes back
+// to reacting once the creep that wanted it is boosted.
 function handleBoostLab(creep, lab, mineral, terminal) {
+    const flex = labView(creep).flex.has(lab.id) && !Game.flags[creep.room.name + "WarBoosts"];
+    const fill = flex ? require('system.labLayout').FLEX_FILL : 2500;
+    const low = flex ? lab.mineralAmount < fill : lab.mineralAmount <= fill;
     if (_.sum(creep.carry) == 0 && creep.memory.priority != 'labWorkerNearDeath') {
         const source = mineralSource(creep, terminal, mineral);
-        const minLab = lab.mineralAmount;
-        if (minLab <= 2500 && source) {
+        if (low && source) {
             creep.memory.structureTarget = source.id;
             creep.memory.direction = 'Withdraw';
             creep.memory.mineralToMove = mineral;
-            const withdrawResult = creep.withdraw(source, mineral);
+            const amount = flex ? Math.min(creep.carryCapacity, fill - lab.mineralAmount, source.store[mineral] || 0) : undefined;
+            const withdrawResult = amount ? creep.withdraw(source, mineral, amount) : creep.withdraw(source, mineral);
             if (withdrawResult == ERR_NOT_IN_RANGE) {
                 creep.travelTo(source, { maxRooms: 1, ignoreRoads: true });
             } else if (withdrawResult == OK) {
@@ -884,7 +912,7 @@ function handleBoostLab(creep, lab, mineral, terminal) {
     }
 
     const carryAmount = creep.carry[mineral] || 0;
-    if (carryAmount > 0 && lab.mineralAmount <= 2500) {
+    if (carryAmount > 0 && low) {
         creep.memory.structureTarget = lab.id;
         creep.memory.direction = 'Transfer';
         creep.memory.mineralToMove = mineral;
@@ -961,13 +989,34 @@ function handleResultLab(creep, ctx, lab, mineral, terminal) {
         return false;
     }
 
+    // Room left after this pickup: take the same product from the other outputs before the
+    // terminal trip (one trip for several labs: the outputs stand together).
+    const free = creep.carryCapacity - _.sum(creep.carry);
+    if (free >= TOP_UP_MIN) {
+        const more = resultLabs(creep, ctx).find(l => l.mineralType === mineral && l.mineralAmount >= TOP_UP_MIN);
+        if (more) {
+            creep.memory.structureTarget = more.id;
+            creep.memory.direction = 'Withdraw';
+            creep.memory.mineralToMove = mineral;
+            const withdrawResult = creep.withdraw(more, mineral);
+            if (withdrawResult == ERR_NOT_IN_RANGE) {
+                creep.travelTo(more, { maxRooms: 1, ignoreRoads: true });
+            } else {
+                clearInstructions(creep);
+                clearTravelMemory(creep);
+            }
+            return true;
+        }
+    }
+
     if (creep.memory.storeProduced) {
         let labAmount = 9999;
-        if (mineral == labView(creep).mineral1 && ctx.lab1) {
+        const boosting = n => !labView(creep).react.has(labView(creep)['lab' + n]);
+        if (mineral == labView(creep).mineral1 && ctx.lab1 && boosting(1)) {
             labAmount = ctx.lab1.mineralAmount;
-        } else if (mineral == labView(creep).mineral2 && ctx.lab2) {
+        } else if (mineral == labView(creep).mineral2 && ctx.lab2 && boosting(2)) {
             labAmount = ctx.lab2.mineralAmount;
-        } else if (mineral == labView(creep).mineral3 && ctx.lab3) {
+        } else if (mineral == labView(creep).mineral3 && ctx.lab3 && boosting(3)) {
             labAmount = ctx.lab3.mineralAmount;
         }
         if (labAmount <= 2500) {
@@ -1004,6 +1053,14 @@ function handleResultLab(creep, ctx, lab, mineral, terminal) {
         clearTravelMemory(creep);
     }
     return true;
+}
+
+const TOP_UP_MIN = 100;
+// Output labs this tick: 6-10 and the reacting boost labs.
+function resultLabs(creep, ctx) {
+    const view = labView(creep);
+    return [ctx.lab1, ctx.lab2, ctx.lab3].filter(l => l && view.react.has(l.id))
+        .concat([ctx.lab6, ctx.lab7, ctx.lab8, ctx.lab9, ctx.lab10].filter(Boolean));
 }
 
 function shouldStoreOverflowInStorage(creep, resourceType) {
@@ -1196,7 +1253,8 @@ function manageFactory(creep, terminal) {
 
     const factoryFree = thisFactory.store.getFreeCapacity();
     if (terminal.store[roomMineral] && terminal.store[roomMineral] > terminalLimit && NotOverLimit(terminal) && thisFactory.store[RESOURCE_ENERGY] >= 200) {
-        if (factoryFree < 1500) {
+        // Room for the load with FACTORY_OVERFLOW_FREE left: the overflow cleanup would take it out.
+        if (factoryFree - creep.carryCapacity < FACTORY_OVERFLOW_FREE) {
             return false;
         }
         creep.memory.structureTarget = terminal.id;

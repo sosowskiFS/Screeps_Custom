@@ -4,7 +4,32 @@ const defenseWatch = require('defense.watch');
 const tower_Operate = require('tower.Operate');
 const roomCpu = require('runtime.roomCpu');
 
+// Rooms come off Memory.roomsUnderAttack (and roomsPrepSalvager) only through their own towers
+// (handleHostileDetection), so a room lost while listed stayed listed for good: shardX's list held a
+// dozen rooms no longer ours, which held back pixels and more. Every tick: ours (visible, controller
+// ours) or off the lists.
+// A room of ours without a tower is never looked at by handleHostileDetection either (shardX's RCL2
+// decoys stayed listed): it stays listed only while an armed hostile is in it.
+function pruneAttackLists() {
+    const ours = name => {
+        const r = Game.rooms[name];
+        if (!r || !r.controller || !r.controller.my) return false;
+        if (runtimeCache.find(r, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } }).length) return true;
+        return runtimeCache.find(r, FIND_HOSTILE_CREEPS).some(c => !(Memory.whiteList || []).includes(c.owner && c.owner.username) && armedHostile(c));
+    };
+    if (Memory.roomsUnderAttack && Memory.roomsUnderAttack.some(n => !ours(n))) Memory.roomsUnderAttack = Memory.roomsUnderAttack.filter(ours);
+    if (Memory.roomsPrepSalvager && Memory.roomsPrepSalvager.some(n => !ours(n))) Memory.roomsPrepSalvager = Memory.roomsPrepSalvager.filter(ours);
+}
+
+// A hostile that can hurt us: live ATTACK, RANGED_ATTACK or WORK parts. A 1-MOVE scout hopping on
+// E32N45's border kept the room "under attack" (and its pixels back); scouts, claimers-only and
+// healers alone no longer do (towers still shoot them when one volley kills: tower.Operate).
+function armedHostile(creep) {
+    return (creep.body || []).some(p => p.hits > 0 && (p.type === ATTACK || p.type === RANGED_ATTACK || p.type === WORK));
+}
+
 function handleTowersAndRooms() {
+    pruneAttackLists();
     var towers = _.filter(Game.structures, (structure) => structure.structureType == STRUCTURE_TOWER);
     if (towers.length) {
         var roomIntel = {};
@@ -46,8 +71,11 @@ function processTowerRoom(tower) {
         filter: (eCreep) => (!Memory.whiteList.includes(eCreep.owner.username))
     });
 
-    defenseWatch.update(tower.room, hostiles.concat(pHostiles));
-    RampartDirection = handleHostileDetection(tower.room, hostiles, pHostiles);
+    // Under attack (and the drain watch) by armed hostiles only (armedHostile); every hostile still
+    // closes the ramparts and is a tower target.
+    const armed = hostiles.filter(armedHostile);
+    defenseWatch.update(tower.room, armed.concat(pHostiles));
+    RampartDirection = handleHostileDetection(tower.room, armed, pHostiles);
     handleRampartControl(tower.room, hostiles, pHostiles);
     controlRamparts(RampartDirection, tower);
 
@@ -216,4 +244,4 @@ function determineCreepThreat(eCreep, totalHostiles) {
     return eCreep.body.some(thisPart => thisPart.boost);
 }
 
-module.exports = { handleTowersAndRooms, processTowerRoom, handleHostileDetection, handleRampartControl, controlRamparts, determineCreepThreat };
+module.exports = { pruneAttackLists, armedHostile, handleTowersAndRooms, processTowerRoom, handleHostileDetection, handleRampartControl, controlRamparts, determineCreepThreat };

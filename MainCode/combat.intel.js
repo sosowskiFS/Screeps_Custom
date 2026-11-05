@@ -235,13 +235,22 @@ function score(target, intel) {
     const threat = (stats.dps + 2 * stats.heal) * 1000 / Math.max(stats.ehp, 1);
     const ticks = killTime(target, intel);
     let value = ticks === Infinity ? threat - 100000 : 100000 / Math.max(ticks, 0.01) + threat;
-    if (stats.ehp <= intel.us.dps - supportHealing(target, intel)) value += 10000;
+    const killable = stats.ehp <= intel.us.dps - supportHealing(target, intel);
+    if (killable) value += 10000;
+    // On an exit tile it hops out next tick (a quad's back half parked on W1N9's border): only worth
+    // focusing if it dies this tick; damage on it is otherwise healed or lost as it leaves.
+    else if (onExit(target.pos)) value -= 50000;
     let nearest = 50;
     for (const friend of intel.friends) nearest = Math.min(nearest, friend.pos.getRangeTo(target));
     value -= 10 * (intel.friends.length ? nearest : 0);
     if (target.name && target.name.includes('TANK')) value -= 5000; // bait
     cache[target.id] = value;
     return value;
+}
+
+// On a room exit tile: a creep there leaves the room by stepping (or is moved over) next tick.
+function onExit(pos) {
+    return !!pos && (pos.x <= 0 || pos.x >= 49 || pos.y <= 0 || pos.y >= 49);
 }
 
 function bestOf(candidates, intel) {
@@ -268,6 +277,6 @@ function focusTarget(room) {
 
 module.exports = {
     COMBAT_ROLES, MASS_FACTOR,
-    assess, roomIntel, verdictFor, focusTarget, bestOf, onRampart, killTime,
+    assess, roomIntel, verdictFor, focusTarget, bestOf, onRampart, killTime, supportHealing, onExit,
     isDangerous, markOutmatched, isOutmatched, remoteThreat,
 };

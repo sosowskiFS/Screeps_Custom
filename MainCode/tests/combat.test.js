@@ -182,3 +182,18 @@ test('against ranged-only attackers a winning ranged fighter closes to range 1 i
     b.tactics.fight(me2);
     assert.ok(!me2.intents.some(i => i[0] === 'move' || i[0] === 'travelTo'));
 });
+
+test('against a healed focus: a single shot from range 2-3, mass attack from range 1 (full damage on it, some on the rest)', () => {
+    const { unit, tactics, parts: { R, H, M } } = battlefield();
+    const me = unit('me', [[R, 10], [M, 10]], 20, 20, { memory: { priority: 'defender', homeRoom: 'HOME' } });
+    const focus = unit('foe', [[R, 2], [M, 2]], 22, 20);
+    unit('foe', [[H, 10], [M, 10]], 23, 20);        // its healer beside it
+    tactics.act(me, me.room, focus);
+    assert.deepEqual(plain(me.intents).filter(i => i[0].startsWith('ranged')), [['rangedAttack', focus.id]], 'range 2: all of it on the focus');
+    const near = battlefield();
+    const me1 = near.unit('me', [[R, 10], [M, 10]], 21, 20, { memory: { priority: 'defender', homeRoom: 'HOME' } });
+    const focus1 = near.unit('foe', [[R, 2], [M, 2]], 22, 20);
+    near.unit('foe', [[H, 10], [M, 10]], 23, 20);
+    near.tactics.act(me1, me1.room, focus1);
+    assert.deepEqual(plain(me1.intents).filter(i => i[0].startsWith('ranged')).map(i => i[0]), ['rangedMassAttack'], 'range 1: mass attack');
+});

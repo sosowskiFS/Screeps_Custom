@@ -29,6 +29,9 @@ const DRAW_TICKS = 10000;               // stored energy above the reserve is sp
 const RECOVER_TICKS = 3000;             // and stored energy below it is rebuilt over this long
 const REPAIR_MAX = 3;
 const REPAIR_MAX_RCL8 = 2;              // shard2 is short of CPU: a surplus never raises more than this
+const REPAIR_MAX_SURPLUS = 6;           // ...unless the shard has CPU to spare (cpuSpare): shard1 E19N59 overflowed
+const RCL8_UPGRADE = 15;                // energy a tick an RCL8 controller takes at most (one 15-WORK upgrader)
+const CPU_SPARE = 0.8;                  // shard CPU average under this share of the limit, nothing shed
 const LOSS_SHARE = 0.2;                 // more than this share of income unaccounted: a hauler short
 const DUTY = 0.8;                       // share of its life a working creep spends working
 const RESERVE = level => (level >= 8 ? 250000 : level >= 6 ? 50000 : level >= 4 ? 20000 : 0);
@@ -187,7 +190,9 @@ function budget(room) {
     if (!e || e.n < MIN_SAMPLES) return null;
     const level = room.controller ? room.controller.level : 0;
     if (!room.storage) return e.in - e.sp;
-    const gap = (e.bank || 0) - RESERVE(level);
+    // A shard on watch after a safe mode (system.siegeWatch): a higher reserve, stockpiled for the
+    // attacked room.
+    const gap = (e.bank || 0) - RESERVE(level) - require('system.siegeWatch').extraReserve(room);
     return e.up + e.bu + e.re + e.nb + gap / (gap >= 0 ? DRAW_TICKS : RECOVER_TICKS);
 }
 
@@ -202,7 +207,7 @@ function losses(room) {
 // Creep counts from the budget. units: energy per tick one creep of each kind spends while working
 // ({ upgrade: per 12-WORK upgrader module, repair: per repairer, worker: per worker }); current: the
 // counts the spawner had. Returns null without a trusted budget, else
-// { budget, upgraderModules, upgraders (0 or undefined: as the spawner decides), repairMax, workers }.
+// { budget, upgraderModules, upgraders (0 or undefined: as the spawner decides), repairMax, workers, spare }.
 //   - Hardened rooms (system.shardX.hardened): repairers take up to half the budget, at most 3.
 //   - Below RCL8: upgraders get what is left (at most 4 modules); none at all when the budget is
 //     spent and the controller is not near downgrading.
@@ -228,21 +233,57 @@ function staffing(room, units, current = {}) {
         out.upgraderModules = Math.min(4, Math.floor(left / cost(units.upgrade)));
         left -= out.upgraderModules * cost(units.upgrade);
     }
+    // RCL8 with energy to spare: one upgrader burning the controller's 15 a tick (GCL), first.
+    // Only while the shard has CPU to spare (shard2 sheds work: no new creeps there).
+    if (level >= 8 && units.rcl8Upgrade && cpuSpare() && left >= cost(RCL8_UPGRADE)) {
+        out.rcl8Upgrader = true;
+        left -= cost(RCL8_UPGRADE);
+    }
     // Repairers: what is left, up to REPAIR_MAX, unless the spawner says ramparts are capped
     // (units.repairCapped: 25M/50M flags, 290M). At RCL8 the whole budget (upgrading is upkeep), at
     // most REPAIR_MAX_RCL8 there.
     if (units.repair && !require('system.shardX').hardened(room)) {
-        repair = units.repairCapped ? 0 : Math.min(level >= 8 ? REPAIR_MAX_RCL8 : REPAIR_MAX, Math.floor(left / cost(units.repair)));
+        const cap = level >= 8 ? (cpuSpare() ? REPAIR_MAX_SURPLUS : REPAIR_MAX_RCL8) : REPAIR_MAX;
+        repair = units.repairCapped ? 0 : Math.min(cap, Math.floor(left / cost(units.repair)));
         // Short of CPU (the governor shedding): the budget may cut repairers, never add any.
         if (require('runtime.cpuGovernor').shedLevel() > 0) repair = Math.min(repair, current.repairMax || 0);
+        left -= repair * cost(units.repair);
     }
     out.repairMax = repair;
+    // What none of the counts above could use (less than one more of anything): the upgrade
+    // supplier's WORK is sized from it (spawn.BuildCreeps5.upSupplierWork).
+    out.spare = Math.max(0, left);
     // Workers: the budget less the dedicated upgrader's share (units.reserved, energy a tick).
     if (units.worker) out.workers = Math.max(1, Math.min(8, Math.floor(Math.max(0, b - (units.reserved || 0)) / cost(units.worker))));
     // Rooms without a storage losing income on the ground: one more distributor (at most 3).
     const lost = losses(room);
     out.extraDistributor = !room.storage && lost !== null && lost > LOSS_SHARE;
     return out;
+}
+
+// Lean spawning: a room whose stores keep falling (nb under LEAN_ENTER a tick) while it holds less
+// than its reserve (plus a watch stockpile, system.siegeWatch) spawns its spenders (upgraders,
+// builders, repairers) at LEAN_SHARE of their usual size until the stores are back at the reserve.
+// Fewer parts cost less to spawn and burn less while working. shardX E32N45 earned 25 a tick and
+// spent 33 (10 of it spawning 4-12 WORK workers), its storage running down from 50k. Miners and
+// haulers keep their size: they bring the energy in. Memory.energyFlow[room].lean: since when.
+const LEAN_ENTER = -1;
+const LEAN_SHARE = 0.5;
+function lean(room) {
+    const e = state()[room.name];
+    if (!e || e.n < MIN_SAMPLES || !room.storage || !room.controller) return false;
+    const reserve = RESERVE(room.controller.level || 0) + require('system.siegeWatch').extraReserve(room);
+    if (!e.lean && e.nb < LEAN_ENTER && (e.bank || 0) < reserve) e.lean = Game.time;
+    else if (e.lean && (e.bank || 0) >= reserve) delete e.lean;
+    return !!e.lean;
+}
+
+// The shard has CPU to spare for more spenders: governor average under CPU_SPARE of the limit and
+// nothing being shed.
+function cpuSpare() {
+    const gov = Memory.cpuGov;
+    if (!gov || gov.shed > 0 || !(gov.ema > 0)) return false;
+    return gov.ema < Game.cpu.limit * CPU_SPARE;
 }
 
 // Console: energyFlow() prints each room's averages and budget.
@@ -264,4 +305,4 @@ function report() {
     return Object.keys(state()).filter(n => n !== '_cpu').length + ' rooms';
 }
 
-module.exports = { losses, RECOVER_TICKS, sample, budget, staffing, report, noteSpawn, install, count, AMOUNT, SAMPLE_EVERY, MIN_SAMPLES, DUTY, RESERVE, DRAW_TICKS };
+module.exports = { lean, LEAN_SHARE, cpuSpare, RCL8_UPGRADE, REPAIR_MAX_SURPLUS, losses, RECOVER_TICKS, sample, budget, staffing, report, noteSpawn, install, count, AMOUNT, SAMPLE_EVERY, MIN_SAMPLES, DUTY, RESERVE, DRAW_TICKS };

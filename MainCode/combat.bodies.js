@@ -58,10 +58,11 @@ function quadMember(energyCapacity) {
 }
 
 // Room defender (spawn.BuildCreeps, young rooms without ramparts): it has to reach what attacks,
-// so RANGED_ATTACK/MOVE pairs (full speed off-road), and one HEAL from 800 energy.
-function youngDefender(energy) {
+// so RANGED_ATTACK/MOVE pairs (full speed off-road), and one HEAL from 800 energy unless withHeal
+// is false (the room has towers, which heal it: shardX W1N9's defender gave up 2 ranged parts for it).
+function youngDefender(energy, withHeal = true) {
     const e = Number(energy) || 0;
-    const heal = e >= 800 ? 1 : 0;
+    const heal = withHeal && e >= 800 ? 1 : 0;
     const pairs = Math.max(1, Math.min(20, Math.floor((e - heal * 300) / 200)));
     return order([].concat(Array(pairs).fill(RANGED_ATTACK), Array(pairs + heal).fill(MOVE), Array(heal).fill(HEAL)));
 }

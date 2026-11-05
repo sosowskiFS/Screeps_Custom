@@ -104,8 +104,13 @@ function isEstablished(roomName) {
     return !!(entry && entry.e);
 }
 
-// Remote mining for this home: established rooms only when energy is actually short.
+// Remote mining for this home: established rooms only when energy is actually short; any RCL8
+// room not while it holds ENTER_ENERGY (its far creeps stop spawning there anyway, system.spawning),
+// so planning and scouting stop too. An RCL8 room is rarely established (every rampart at 25M):
+// shard1 E19N59 kept planning with 1.07M stored.
 function remoteMiningWanted(room) {
+    const stored = room.storage && room.storage.store ? room.storage.store[RESOURCE_ENERGY] || 0 : 0;
+    if (room.controller && room.controller.level >= 8 && stored >= ENTER_ENERGY) return false;
     if (!isEstablished(room.name)) return true;
     return !!room.storage && room.storage.store[RESOURCE_ENERGY] < REMOTE_MINING_BELOW;
 }
@@ -117,6 +122,21 @@ function upkeepDue(controller) {
 function upkeepDone(controller) {
     const max = typeof CONTROLLER_DOWNGRADE !== 'undefined' ? CONTROLLER_DOWNGRADE[controller.level] : 200000;
     return controller.ticksToDowngrade >= max - UPKEEP_DONE_MARGIN;
+}
+
+// Under attack, no energy goes into the controller (no upgraders spawned, none upgrading, the
+// upgrade supplier only hauls) unless its timer is critical: under half its maximum. Safe mode
+// cannot be activated below half less 5,000 (CONTROLLER_DOWNGRADE_SAFEMODE_THRESHOLD), so
+// upgrading resumes just above that to keep it available. shardX W1N9 kept upgrading through an
+// attack with 80 energy stored.
+function controllerCritical(controller) {
+    const max = typeof CONTROLLER_DOWNGRADE !== 'undefined' && CONTROLLER_DOWNGRADE[controller.level] || 200000;
+    return controller.ticksToDowngrade < max / 2;
+}
+function attackHold(room) {
+    if (!room || !room.controller || !room.controller.my) return false;
+    if (!(Memory.roomsUnderAttack || []).includes(room.name)) return false;
+    return !controllerCritical(room.controller);
 }
 
 // Small upgrader that refills the downgrade timer from storage: 1 WORK (the timer restore is
@@ -164,5 +184,5 @@ function diagnose(room) {
 
 module.exports = {
     diagnose, update, inMaintenance, isEstablished, remoteMiningWanted, gclFocus,
-    upkeepDue, upkeepDone, upkeepBody, ENTER_ENERGY, EXIT_ENERGY, MIN_RAMPART,
+    upkeepDue, upkeepDone, upkeepBody, attackHold, controllerCritical, ENTER_ENERGY, EXIT_ENERGY, MIN_RAMPART,
 };

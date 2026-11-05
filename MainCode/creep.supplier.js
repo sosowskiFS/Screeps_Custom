@@ -48,8 +48,10 @@ var creep_supplier = {
         }
 
         if (_.sum(creep.carry) == 0) {
-            //Get from storage
-            var storageTarget = creep.room.storage;
+            //Get from storage; the terminal first when it is in reach and the room draws on it first
+            // (creep.logistics.homeEnergy). Otherwise distributors keep the storage stocked.
+            const home = require('creep.logistics').homeEnergy(creep.room, 1);
+            var storageTarget = home && home === creep.room.terminal && creep.pos.isNearTo(home) ? home : creep.room.storage;
             if (storageTarget) {
                 if (creep.withdraw(storageTarget, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.travelTo(storageTarget);

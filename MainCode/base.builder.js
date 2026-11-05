@@ -43,9 +43,10 @@ const CORE_RAMPART_RCL = 8;
 const RING_RCL = 7;
 const RING_DEPTH_RCL = 8;
 const RING_DEPTH = 2;
+const RING_REFRESH = 5000;       // ticks between ring recomputations (picks up rule changes without a replan)
 const CORE_RAMPART_TYPES = () => [STRUCTURE_SPAWN, STRUCTURE_TOWER, STRUCTURE_STORAGE];
 const RING_RANGE = 13;           // planned tiles this far from the core (or nearer) make the base footprint
-const RAMPART_UPKEEP = 10;       // rampart hits per tick a ring rampart takes to hold and grow (decay is 3)             // ramparts over every planned structure (previous generator)
+const WALL_SWAP_MIN_HITS = 100000;   // ring ramparts at least this strong before the next wall is swapped
 const PATH_CHECK_EVERY = 100;      // ticks between checks for sites that seal a path
 const OFFSET = 48;
 
@@ -67,6 +68,9 @@ const PASSABLE = new Set([STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART
 // Ones already built stay; sites not yet started are removed.
 const LATE_RCL = 8;
 const LATE_KINDS = new Set(['lab', 'factory']);
+// ...except EARLY_LABS boost lab(s) once the room has a terminal: XKHO2 for its defenders
+// (system.defenseBoost). The plan lists the boost labs first, so the first is a boost lab.
+const EARLY_LABS = 1;
 const LATE_TYPES = () => [STRUCTURE_LAB, STRUCTURE_FACTORY, STRUCTURE_EXTRACTOR];
 
 function pack(tiles) {
@@ -325,7 +329,7 @@ function clearLeftovers(room) {
 
 // Where a rampart of ours may stand (anything else is removed, clearStrays): over a structure of ours
 // (built, or a site for one), the Supply tile (the tower supplier's spot), and the ring with its
-// depth (ringTiles: outer tiles, alternate walls, and the 2 tiles in) in a ring room from RCL7.
+// depth (ringTiles: outer tiles and the 2 tiles in) in a ring room from RCL7.
 const NOT_COVERED = () => new Set([STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART, STRUCTURE_WALL, STRUCTURE_CONTROLLER]);
 function rampartTiles(room, plan) {
     const allowed = new Set();
@@ -337,8 +341,8 @@ function rampartTiles(room, plan) {
     if (plan.flags && plan.flags.Supply !== undefined) allowed.add(plan.flags.Supply);
     const hardened = require('system.shardX').hardened(room);
     if (room.controller.level >= RING_RCL && (stage.established(room) || hardened)) {
-        const ring = ringTiles(room, plan, hardened ? Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP) : Infinity);
-        for (const t of ring.r.concat(ring.w, ring.d || [])) allowed.add(t);
+        const ring = ringTiles(room, plan);
+        for (const t of ring.r.concat(ring.d || [])) allowed.add(t);
     }
     return allowed;
 }
@@ -428,8 +432,50 @@ function releaseSealed(room, live) {
     return 0;
 }
 
+// Behind a terrain wall: a base structure's tile whose walk from the base (storage, else the plan's
+// anchor; terrain only) is longer than DETOUR_FACTOR x its range plus DETOUR_SLACK. Close as the crow
+// flies, but the long way round, outside the base and its defences: shardX E19N44's second spawn was
+// relocated to 36,30, in a pocket north of a wall band with the base south of it, reachable only
+// round the west side. Links (at sources and the controller), containers, roads and barriers are
+// not checked: they go where their job is.
+const DETOUR_FACTOR = 1.5;
+const DETOUR_SLACK = 4;
+const BASE_KINDS = () => new Set([STRUCTURE_SPAWN, STRUCTURE_EXTENSION, STRUCTURE_TOWER, STRUCTURE_STORAGE, STRUCTURE_TERMINAL,
+    STRUCTURE_FACTORY, STRUCTURE_POWER_SPAWN, STRUCTURE_NUKER, STRUCTURE_OBSERVER, STRUCTURE_LAB]);
+const walkCache = Object.create(null);
+function terrainWalk(room, from) {
+    const key = room.name + ':' + from;
+    const c = walkCache[key];
+    if (c && c.t === Game.time) return c.dist;
+    const terrain = Game.map.getRoomTerrain(room.name);
+    const dist = new Int16Array(2500).fill(-1);
+    const queue = [from];
+    dist[from] = 0;
+    for (let head = 0; head < queue.length; head++) {
+        const t = queue[head], x = (t / 50) | 0, y = t % 50;
+        for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+            const nx = x + dx, ny = y + dy;
+            if (nx < 0 || ny < 0 || nx > 49 || ny > 49) continue;
+            const n = nx * 50 + ny;
+            if (dist[n] !== -1 || terrain.get(nx, ny) & TERRAIN_MASK_WALL) continue;
+            dist[n] = dist[t] + 1;
+            queue.push(n);
+        }
+    }
+    walkCache[key] = { t: Game.time, dist };
+    return dist;
+}
+function behindWall(room, plan, tile, type) {
+    if (type && !BASE_KINDS().has(type)) return false;
+    const anchor = room.storage ? tileOf(room.storage.pos) : plan.anchor;
+    if (anchor === undefined || tile === anchor) return false;
+    const walk = terrainWalk(room, anchor)[tile];
+    const range = Math.max(Math.abs(((tile / 50) | 0) - ((anchor / 50) | 0)), Math.abs(tile % 50 - anchor % 50));
+    return walk < 0 || walk > range * DETOUR_FACTOR + DETOUR_SLACK;
+}
+
 // A planned tile of this kind a site could go on right now without cutting a path (base.migrate
-// only moves a structure when its replacement can be placed).
+// only moves a structure when its replacement can be placed). Never one behind a terrain wall.
 function replacementTile(room, plan, kind) {
     const live = liveState(room);
     const before = connectivity.status(live.walkable, live.req);
@@ -443,7 +489,7 @@ function replacementTile(room, plan, kind) {
     let unusable;
     for (const tile of (plan.structures[kind] || [])) {
         if (occupied.has(tile)) continue;
-        if (!connectivity.blocks(live.walkable, live.req, before, tile, access)) return tile;
+        if (!behindWall(room, plan, tile, type) && !connectivity.blocks(live.walkable, live.req, before, tile, access)) return tile;
         if (unusable === undefined) unusable = tile;
     }
     // Every free planned tile is unusable (shard3 E29N43: the power spawn's only free neighbour
@@ -468,8 +514,9 @@ function relocate(room, plan, kind, from, live, before, occupied) {
     for (let x = Math.max(2, ax - RELOCATE_RANGE); x <= Math.min(47, ax + RELOCATE_RANGE); x++) {
         for (let y = Math.max(2, ay - RELOCATE_RANGE); y <= Math.min(47, ay + RELOCATE_RANGE); y++) {
             const t = x * 50 + y;
-            if (!live.walkable[t] || occupied.has(t) || reserved.has(t)) continue;
-            tiles.push([Math.max(Math.abs(x - ax), Math.abs(y - ay)), t]);
+            if (!live.walkable[t] || occupied.has(t) || reserved.has(t) || behindWall(room, plan, t, type)) continue;
+            // Nearest by walking, not by range (a tile behind a terrain wall is near by range).
+            tiles.push([terrainWalk(room, anchor)[t], t]);
         }
     }
     tiles.sort((a, b) => a[0] - b[0]);
@@ -532,6 +579,14 @@ function buildRoom(room, plan) {
     let refused = false;   // a planned tile was refused this kind: it would cut a path or be unreachable
     const site = (tile, type) => {
         if (budget <= 0) return false;
+        // Not behind a terrain wall: the tile moves (replacementTile) instead.
+        if (behindWall(room, plan, tile, type)) {
+            refused = true;
+            return false;
+        }
+        // Under fire, nothing placed where ranged attackers outside the walls can shoot it
+        // (system.safeMode.buildHeld); it is placed once they have gone.
+        if (underAttack && require('system.safeMode').buildHeld(room, { x: (tile / 50) | 0, y: tile % 50 }, type)) return false;
         const blocksMovement = !PASSABLE.has(type);
         if (blocksMovement && reachable && connectivity.blocks(live.walkable, live.req, reachable, tile, SERVICED.has(type) && type)) {
             refused = true;
@@ -564,10 +619,8 @@ function buildRoom(room, plan) {
     // No new ring sites while the room has nothing to spare (system.energyFlow): they and their
     // repairs are what emptied W1N9.
     const ringBudget = ringRoom ? require('system.energyFlow').budget(room) : null;
-    const ringPlan = ringRoom && !(ringBudget !== null && ringBudget <= 0) ?
-        ringTiles(room, plan, isHardened ? Math.floor(require('spawn.BuildCreeps').repairCapacity(room) / RAMPART_UPKEEP) : Infinity) : null;
+    const ringPlan = ringRoom && !(ringBudget !== null && ringBudget <= 0) ? ringTiles(room, plan) : null;
     const ring = new Set(ringPlan ? ringPlan.r : []);
-    const ringWalls = ringPlan ? ringPlan.w : [];
     // From RCL8 the ring is RING_DEPTH tiles deeper: ramparts over whatever stands there.
     const ringDepth = new Set(ringPlan && rcl >= RING_DEPTH_RCL ? ringPlan.d || [] : []);
     // The Supply tile (the tower supplier's spot) once the storage stands.
@@ -605,9 +658,10 @@ function buildRoom(room, plan) {
     }
 
     // Below RCL8: unstarted lab, factory and extractor sites go (LATE_RCL).
+    const earlyLab = rcl < LATE_RCL && !!room.terminal;
     if (rcl < LATE_RCL) {
         for (const s of runtimeCache.find(room, FIND_MY_CONSTRUCTION_SITES)) {
-            if (s.progress === 0 && LATE_TYPES().includes(s.structureType)) s.remove();
+            if (s.progress === 0 && LATE_TYPES().includes(s.structureType) && !(earlyLab && s.structureType === STRUCTURE_LAB)) s.remove();
         }
     }
 
@@ -633,9 +687,10 @@ function buildRoom(room, plan) {
     const skipLabs = plan.mode === 'adopt' && foreignLabs(room, plan);
     for (const kind of kinds) {
         const type = TYPES[kind];
-        const allowed = (CONTROLLER_STRUCTURES[type] && CONTROLLER_STRUCTURES[type][rcl]) || 0;
+        let allowed = (CONTROLLER_STRUCTURES[type] && CONTROLLER_STRUCTURES[type][rcl]) || 0;
         if (kind === 'lab' && skipLabs) continue;
-        if (rcl < LATE_RCL && LATE_KINDS.has(kind)) continue;
+        if (rcl < LATE_RCL && LATE_KINDS.has(kind) && !(kind === 'lab' && earlyLab)) continue;
+        if (rcl < LATE_RCL && kind === 'lab') allowed = Math.min(allowed, EARLY_LABS);
         for (const tile of plan.structures[kind] || []) {
             if ((counts[type] || 0) >= allowed || budget <= 0) break;
             const here = occupied.get(tile) || [];
@@ -734,11 +789,25 @@ function buildRoom(room, plan) {
     // Every ring tile needs its barrier, whatever stands there: a rampart over a structure or road,
     // and on a wall tile that holds anything (a wall needs an empty tile). W1N9's ring had gaps on
     // wall tiles a road was built on later and on edge tiles under its extensions.
-    const barrier = here => here.includes(STRUCTURE_RAMPART) || here.includes(STRUCTURE_WALL);
+    // Ramparts only. A constructed wall left on a ring tile (W1N9's alternating ring: defenders cannot
+    // stand on walls, and it left them no posts) is replaced, one a pass, while the room is quiet and
+    // every ring rampart already holds WALL_SWAP_MIN_HITS: destroyed now, its rampart placed next pass.
+    let swapped = false;
+    const swapReady = () => !swapped && !underAttack && !require('system.safeMode').underFire(room) &&
+        runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_RAMPART } })
+            .every(s => !ring.has(tileOf(s.pos)) || s.hits >= WALL_SWAP_MIN_HITS);
     for (const tile of ring) {
         if (budget <= 0) break;
         const here = occupied.get(tile) || [];
-        if (barrier(here)) continue;
+        if (here.includes(STRUCTURE_RAMPART)) continue;
+        if (here.includes(STRUCTURE_WALL)) {
+            if (swapReady()) {
+                const wallObj = runtimeCache.find(room, FIND_STRUCTURES, { filter: { structureType: STRUCTURE_WALL } })
+                    .find(s => tileOf(s.pos) === tile);
+                if (wallObj && wallObj.destroy() === OK) { swapped = true; again = true; }
+            }
+            continue;
+        }
         site(tile, STRUCTURE_RAMPART);
     }
     for (const tile of ringDepth) {
@@ -746,12 +815,6 @@ function buildRoom(room, plan) {
         const here = occupied.get(tile) || [];
         if (here.includes(STRUCTURE_RAMPART)) continue;
         site(tile, STRUCTURE_RAMPART);
-    }
-    for (const tile of ringWalls) {
-        if (budget <= 0) break;
-        const here = occupied.get(tile) || [];
-        if (barrier(here)) continue;                  // a rampart already there stays
-        site(tile, here.length ? STRUCTURE_RAMPART : STRUCTURE_WALL);
     }
 
     if (!established) controllerWalls(room, plan, rcl, site, occupied, fortified);
@@ -812,16 +875,17 @@ function ensureExtractor(room, rcl, budget) {
 //     moves inward onto the footprint tiles next to it (ramparts on its roads and structures), and
 //     further in while those are that close too. W1N9's base runs up to its north exits and its
 //     ring had gaps there.
-//   - Walls: when the outer tiles outnumber the ramparts its repairers keep up (maxRamparts), every
-//     other one is a wall (no decay; planned road tiles stay ramparts for traffic). Once chosen it
-//     stays.
+//   - Ramparts only: an alternating wall ring (every other outer tile a wall when the ramparts
+//     outnumbered what the repairers kept up) left W1N9's defenders no posts; it is gone.
 //   - Depth (d): the tiles inside the ring within RING_DEPTH of it (not next to an exit),
 //     ramparted from RCL8 over whatever stands there.
-// Returns { r: rampart tiles, w: wall tiles, d: depth tiles, alt }; kept with the plan (plan.ring).
-function ringTiles(room, plan, maxRamparts = Infinity) {
-    if (plan.ring && plan.ring.r && plan.ring.d && (plan.ring.alt || plan.ring.n <= maxRamparts)) return plan.ring;
+// Returns { r: rampart tiles, w: [] (no walls), d: depth tiles }; kept with the plan (plan.ring).
+function ringTiles(room, plan) {
+    // Kept with the plan; recomputed every RING_REFRESH ticks (and a ring kept from the wall days).
+    const fresh = plan.ring && plan.ring.at !== undefined && Game.time - plan.ring.at < RING_REFRESH && Game.time >= plan.ring.at;
+    if (fresh && plan.ring.r && plan.ring.d && !plan.ring.alt) return plan.ring;
     const anchor = plan.anchor;
-    if (anchor === undefined) return (plan.ring = { r: [], w: [], d: [], alt: false, n: 0 });
+    if (anchor === undefined) return (plan.ring = { r: [], w: [], d: [], n: 0 });
     const terrain = room.getTerrain ? room.getTerrain() : Game.map.getRoomTerrain(room.name);
     const ax = (anchor / 50) | 0, ay = anchor % 50;
     const near = t => Math.max(Math.abs(((t / 50) | 0) - ax), Math.abs(t % 50 - ay)) <= RING_RANGE;
@@ -838,13 +902,13 @@ function ringTiles(room, plan, maxRamparts = Infinity) {
     const blocked = new Set(room.find(FIND_SOURCES).concat(room.find(FIND_MINERALS)).map(o => o.pos.x * 50 + o.pos.y));
     if (c) blocked.add(c.x * 50 + c.y);
     const wall = t => terrain.get((t / 50) | 0, t % 50) === TERRAIN_MASK_WALL;
-    const inside = t => { const x = (t / 50) | 0, y = t % 50; return x >= 1 && y >= 1 && x <= 48 && y <= 48; };
-    const open = t => inside(t) && !wall(t) && !blocked.has(t) && !footprint.has(t);
     const around = t => {
         const x = (t / 50) | 0, y = t % 50, out = [];
         for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (dx || dy) out.push((x + dx) * 50 + y + dy);
         return out;
     };
+    const inside = t => { const x = (t / 50) | 0, y = t % 50; return x >= 1 && y >= 1 && x <= 48 && y <= 48; };
+    const open = t => inside(t) && !wall(t) && !blocked.has(t) && !footprint.has(t);
     // No building next to an exit (an open edge tile).
     const exitNear = t => {
         const x = (t / 50) | 0, y = t % 50;
@@ -873,16 +937,24 @@ function ringTiles(room, plan, maxRamparts = Infinity) {
             for (const n of around(f)) if (footprint.has(n) && !done.has(n)) { done.add(n); stack.push(n); }
         }
     }
-    const alt = !!(plan.ring && plan.ring.alt) || outer.length > maxRamparts;
-    const roads = new Set((plan.roads || []).concat(plan.paths || []));
-    const r = [...inner], w = [];
-    for (const t of outer) {
-        const x = (t / 50) | 0, y = t % 50;
-        if (alt && (x + y) % 2 === 0 && !roads.has(t)) w.push(t); else r.push(t);
+    // Only ring tiles an enemy can reach from an exit without crossing another ring tile: the rest sit
+    // behind the ring already (a corridor between the base and the room's edge walls, sealed at its
+    // mouth: shard2 E3N18's west side had ramparts all along it).
+    const ringAll = new Set(outer.concat([...inner]));
+    const reach = new Set(), q2 = [];
+    const passable = t => { const x = (t / 50) | 0, y = t % 50; return x >= 0 && y >= 0 && x <= 49 && y <= 49 && !wall(t) && !blocked.has(t) && !footprint.has(t) && !ringAll.has(t); };
+    for (let i = 0; i <= 49; i++) for (const t of [i, 49 * 50 + i, i * 50, i * 50 + 49]) {
+        if (!reach.has(t) && passable(t)) { reach.add(t); q2.push(t); }
     }
+    for (let q = 0; q < q2.length; q++) for (const n of around(q2[q])) if (!reach.has(n) && passable(n)) { reach.add(n); q2.push(n); }
+    // No exit found (a closed test room): nothing to prune against.
+    const exposed = t => !q2.length || around(t).some(n => reach.has(n));
+    for (let i = outer.length - 1; i >= 0; i--) if (!exposed(outer[i])) outer.splice(i, 1);
+    for (const t of [...inner]) if (!exposed(t)) inner.delete(t);
+    const r = [...inner].concat(outer);
     // Depth: tiles inside the ring (not reachable from the exits) within RING_DEPTH of it (Chebyshev):
     // planned structures and roads, and open ground between them where defenders stand.
-    const ringSet = new Set(r.concat(w));
+    const ringSet = new Set(r);
     const d = new Set();
     for (const t of ringSet) {
         const x = (t / 50) | 0, y = t % 50;
@@ -893,7 +965,7 @@ function ringTiles(room, plan, maxRamparts = Infinity) {
             d.add(n);
         }
     }
-    return (plan.ring = { r: r.sort((a, b) => a - b), w: w.sort((a, b) => a - b), d: [...d].sort((a, b) => a - b), alt, n: outer.length });
+    return (plan.ring = { r: r.sort((a, b) => a - b), w: [], d: [...d].sort((a, b) => a - b), n: outer.length, at: Game.time });
 }
 
 function enabled(roomName) {
@@ -1041,4 +1113,4 @@ function visualizeFlagged() {
     vis.text(`base plan (${plan.mode}${labs.length ? '' : ', no lab stamp fits'})`, 25, 1, { color: '#ffffff', font: 0.7 });
 }
 
-module.exports = { ringTiles, rampartTiles, clearStrays, misplacedStructure, STRAY_KEEP_HITS, run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };
+module.exports = { behindWall, ringTiles, rampartTiles, clearStrays, misplacedStructure, STRAY_KEEP_HITS, run, planRoom, planMigration, buildRoom, liveState, removeBlockingSites, releaseSealed, clearLeftovers, replacementTile, planOf, replan, optOut, labOrder, roadTiles, contextFor, pack, unpack, VERSION, KIND_OF };

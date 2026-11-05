@@ -192,6 +192,7 @@ function terminalBalance(room) {
     for (const res in t.store) {
         const excess = (t.store[res] || 0) - keep(res);
         if (excess < MIN_MOVE) continue;
+        if (res === RESOURCE_ENERGY && require('creep.logistics').reverses(room, t, s)) continue;
         const amount = Math.min(excess, storageRoom(res));
         if (amount >= MIN_MOVE && (!best || amount > best.amount)) best = { from: t, to: s, resource: res, amount };
     }
@@ -203,9 +204,16 @@ function terminalBalance(room) {
     for (const res of order) {
         if (res === RESOURCE_POWER || (tradeGood(res) && !market)) continue;
         const have = t.store[res] || 0;
-        const low = res === RESOURCE_ENERGY ? TERMINAL_ENERGY_LOW : TERMINAL_STOCK / 2;
-        const target = res === RESOURCE_ENERGY ? TERMINAL_ENERGY_LOW + 10000 : TERMINAL_STOCK;
+        // Energy: TERMINAL_ENERGY_LOW + 10000 ready to send, more while the shard is on watch
+        // (system.siegeWatch.terminalEnergyGoal: the distributors leave that much in the terminal).
+        const energyGoal = require('system.siegeWatch').terminalEnergyGoal(room);
+        const low = res === RESOURCE_ENERGY ? energyGoal - 10000 : TERMINAL_STOCK / 2;
+        const target = res === RESOURCE_ENERGY ? energyGoal : TERMINAL_STOCK;
         if (have >= low) continue;
+        // Energy only from a storage at TERMINAL_FIRST_BELOW or more: under it every role draws on
+        // the terminal first, so a top-up only went straight back out (creep.logistics.reverses).
+        if (res === RESOURCE_ENERGY && (s.store[RESOURCE_ENERGY] || 0) < require('creep.logistics').TERMINAL_FIRST_BELOW) continue;
+        if (res === RESOURCE_ENERGY && require('creep.logistics').reverses(room, s, t)) continue;
         const amount = Math.min(s.store[res] || 0, target - have, free(t) - TERMINAL_FREE_TARGET / 2);
         if (amount >= MIN_MOVE) return { from: s, to: t, resource: res, amount };
     }

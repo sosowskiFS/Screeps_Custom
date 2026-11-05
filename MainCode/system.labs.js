@@ -88,6 +88,17 @@ function empireStock() {
     return stock;
 }
 
+// empireStock(), at most STOCK_TTL ticks old, kept in heap. Each global instance builds its own
+// on first use, so a tick on a fresh instance (after a global reset, or one of several running)
+// never sees empty totals: Memory.mineralTotals used to read 0 everywhere until the next 50-tick
+// recount, and counted terminals only.
+const STOCK_TTL = 50;
+let stockCache = null;
+function stockCached() {
+    if (!stockCache || Game.time - stockCache.t >= STOCK_TTL || Game.time < stockCache.t) stockCache = { t: Game.time, stock: empireStock() };
+    return stockCache.stock;
+}
+
 function targets(roomCount) {
     const out = {};
     const n = Math.max(1, roomCount);
@@ -274,4 +285,4 @@ function surplus(resource, stock) {
 
 const SELLABLE = Object.keys(TARGET_PER_ROOM).filter(res => res !== RESOURCE_GHODIUM);
 
-module.exports = { run, plan, jobFor, surplus, recipeOf, candidates, targets, empireStock, labRooms, SELLABLE, TARGET_PER_ROOM, COMBAT, AFTER_COMBAT };
+module.exports = { run, plan, jobFor, surplus, recipeOf, candidates, targets, empireStock, stockCached, labRooms, SELLABLE, TARGET_PER_ROOM, COMBAT, AFTER_COMBAT };

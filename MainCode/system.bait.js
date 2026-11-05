@@ -36,7 +36,9 @@ const GAP = 200;                 // between orders for one room
 const GCL_BACKOFF = 5000;
 const TICKS_PER_ROOM = 50;
 const CLAIM_MARGIN = 50;         // ticks a claimer needs at the controller
-const CLAIM_BODY = [CLAIM, WORK, CARRY, MOVE, MOVE, MOVE];
+// The ATTACK part (and the WORK part) break a way in when the controller is walled off
+// (creep.breach): the attacker left our own old walls up round lost decoys' controllers.
+const CLAIM_BODY = [CLAIM, WORK, CARRY, ATTACK, MOVE, MOVE, MOVE, MOVE];
 const KEEP_BODY = [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
 
 function state() {

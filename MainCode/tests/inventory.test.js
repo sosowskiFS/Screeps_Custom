@@ -75,3 +75,20 @@ test('trade goods are sold first chance: into the best bid above half the averag
     v.h.load('system.market').sellTradeGoods();
     assert.deepEqual(v.calls[0], ['order', 'silicon', 30000, 'R'], 'no bid: listed');
 });
+
+test('no flip-flop: the terminal is not topped up from a storage under 100k, nor right after energy left it for the storage', () => {
+    // Under 100k every role draws on the terminal first: a top-up only went straight back out.
+    const w = world({ terminal: { energy: 5000 }, storage: { energy: 90000 } });
+    w.g.Game.time = 1000;
+    assert.equal(w.budget.terminalBalance(w.room), null, 'storage under 100k: no energy top-up');
+    w.room.storage.store.energy = 150000;
+    const logistics = w.h.load('creep.logistics');
+    logistics.noteEnergyMove(w.room, w.room.terminal, w.room.storage);      // a distributor just moved energy out
+    assert.equal(w.budget.terminalBalance(w.room), null, 'not straight back');
+    w.g.Game.time = 1000 + 300;
+    assert.equal(w.budget.terminalBalance(w.room).resource, 'energy', '300 ticks later the top-up is fine');
+    // And the other way: just topped up, the distributor does not move it back out.
+    logistics.noteEnergyMove(w.room, w.room.storage, w.room.terminal);
+    assert.equal(logistics.reverses(w.room, w.room.terminal, w.room.storage), true);
+    assert.equal(logistics.reverses(w.room, w.room.storage, w.room.terminal), false, 'the same way again is fine');
+});
