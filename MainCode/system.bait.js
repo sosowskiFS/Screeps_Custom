@@ -4,11 +4,12 @@
 // that nobody else owns or reserves gets one cheap creep (creep.xBait): it claims the controller
 // (1-source rooms too), then upgrades it. At RCL3 it builds a tower and keeps it supplied, then the
 // room's whole planned base, one site at a time (base.builder.decoyNext): an empty decoy stopped
-// drawing the attacker. Its spawns make no creep and it counts as nobody's home (isBait checks in
-// system.spawning, remoteMining, roads, badRooms, guardSquads, energyFlow), to keep its CPU near
-// nothing. No other creep is sent: no helpers, guards or quads, no safe mode (it would take the
-// one-per-shard safe mode from the real targets).
-//   - One creep per room at a time. A claimer (CLAIM_BODY, 600 ticks of life) is sent only where the
+// drawing the attacker. Its spawns make only its own bait creep (keepLocal), one at a time, and it counts
+// as nobody's home (isBait checks in system.spawning, remoteMining, roads, badRooms, guardSquads,
+// energyFlow), to keep its CPU near nothing. No other creep is sent: no helpers, guards or quads, no
+// safe mode (it would take the one-per-shard safe mode from the real targets).
+//   - One creep per room at a time from its sponsor, and one from the room's own spawn: if both are
+//     there they work side by side. A claimer (CLAIM_BODY, 600 ticks of life) is sent only where the
 //     trip fits in its life; once the room is ours, replacements are KEEP_BODY (1,500 ticks).
 //   - No creep while the controller's upgrade block (after an attack) outlasts the trip: it could
 //     do nothing there.
@@ -42,6 +43,16 @@ const CLAIM_MARGIN = 50;         // ticks a claimer needs at the controller
 // (creep.breach): the attacker left our own old walls up round lost decoys' controllers.
 const CLAIM_BODY = [CLAIM, WORK, CARRY, ATTACK, MOVE, MOVE, MOVE, MOVE];
 const KEEP_BODY = [WORK, WORK, WORK, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE];
+// From the room's own spawn, as large as the energy in the room pays for: its workers keep the spawns and
+// extensions filled up to LOCAL_FULL (creep.xBait), and a spawn regains up to 300 by itself. 5 WORK empties
+// a source as fast as it refills, so more would be wasted.
+const LOCAL_UNIT = [WORK, CARRY, MOVE, MOVE];
+const LOCAL_UNIT_COST = 250;
+const LOCAL_MAX_UNITS = 5;
+const LOCAL_FULL = LOCAL_UNIT_COST * LOCAL_MAX_UNITS;
+const LOCAL_MIN = 300;           // what the room always gets back to
+const LOCAL_CHECK = 10;          // ticks between looks at a decoy's spawns
+const LOCAL_BUCKET = 1000;
 
 function state() {
     const s = Memory.bait || (Memory.bait = {});
@@ -213,6 +224,33 @@ function due(bt, free, here, homes, inFlight, queued, last, busy = []) {
     return out;
 }
 
+// A decoy's spawn keeps one creep of its own going, on the same job. Not while armed hostiles are in the
+// room (it would be shot leaving the spawn; the creep flees them anyway). A sponsor's creep does not
+// count: they work alongside each other. True when one was ordered.
+const localOrdered = Object.create(null);    // room -> tick: a new creep is not in Game.creeps until next tick
+function keepLocal(spawn) {
+    if (Game.time % LOCAL_CHECK !== 0 || spawn.spawning) return false;
+    const room = spawn.room, name = room.name;
+    if (localOrdered[name] === Game.time || Game.cpu.bucket < LOCAL_BUCKET || !spawn.isActive()) return false;
+    if (baitCreeps().some(c => c.memory.destination === name && c.memory.baitLocal)) return false;
+    if (require('combat.tactics').armedThreats(room).length) return false;
+    if (room.energyAvailable < LOCAL_MIN) return false;
+    const mark = state().rooms[name];
+    const memory = { priority: 'xBait', destination: name, baitFor: mark && mark.t, homeRoom: name, claim: 0, baitLocal: 1 };
+    if (spawn.spawnCreep(localBody(room.energyAvailable), 'xb' + name + Game.time, { memory }) !== OK) return false;
+    localOrdered[name] = Game.time;
+    return true;
+}
+
+// The body this much energy pays for; what is left over from the last unit adds a CARRY and a MOVE.
+function localBody(energy) {
+    const units = Math.min(LOCAL_MAX_UNITS, Math.floor(energy / LOCAL_UNIT_COST));
+    const parts = [];
+    for (let n = 0; n < units; n++) parts.push(...LOCAL_UNIT);
+    if (units < LOCAL_MAX_UNITS && energy - units * LOCAL_UNIT_COST >= 100) parts.push(CARRY, MOVE);
+    return parts;
+}
+
 function noteBlock(roomName, until) {
     state().block[roomName] = until;
 }
@@ -225,5 +263,5 @@ function claimed(roomName, target) {
     state().rooms[roomName] = { t: target, since: Game.time };
 }
 
-module.exports = { isBait, report, freeSlots, due, body, noteBlock, noteGcl, claimed, controllerRoom, state,
+module.exports = { isBait, keepLocal, localBody, LOCAL_FULL, LOCAL_MIN, LOCAL_CHECK, report, freeSlots, due, body, noteBlock, noteGcl, claimed, controllerRoom, state,
     CLAIM_BODY, KEEP_BODY, RADIUS, GAP, WIDE_MAX, BUCKET_MIN };

@@ -22,6 +22,14 @@ var creep_miner = {
         // flag, stop short of its tile and stand in the way for the rest of its life).
         const job = String(creep.memory.jobSpecific || '').replace(/NearDeath$/, '');
         let minerFlag = Game.flags[creep.room.name + job];
+        // A second miner for a tile with a healthy miner on it can only stand in the way (shardX E19N44's
+        // blocked the one corridor through the base, and every creep behind it, for hundreds of ticks).
+        // A replacement waits for one near death as before.
+        if (creep.memory.surplus || (minerFlag && !creep.memory.atSpot && creep.memory.priority === 'miner' && tileTaken(creep, minerFlag))) {
+            creep.memory.surplus = 1;
+            require('creep.recall').recall(creep);
+            return;
+        }
         if (minerFlag && !creep.memory.atSpot) {
             creep.memory.ignoreTravel = true;
             if (creep.pos.x != minerFlag.pos.x || creep.pos.y != minerFlag.pos.y) {
@@ -65,6 +73,14 @@ var creep_miner = {
         }
     }
 };
+
+// Another miner with the same job, at work on the tile, and not near death.
+function tileTaken(creep, flag) {
+    if (creep.pos.x === flag.pos.x && creep.pos.y === flag.pos.y) return false;
+    const job = creep.memory.jobSpecific;
+    return flag.pos.lookFor(LOOK_CREEPS).some(c => c !== creep && c.my && c.memory && c.memory.atSpot &&
+        c.memory.priority === 'miner' && c.memory.jobSpecific === job);
+}
 
 // Links within 1 of the miner on its spot (ids cached ADJ_TTL ticks).
 const ADJ_TTL = 500;

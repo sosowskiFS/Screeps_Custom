@@ -38,7 +38,7 @@ function boostOf(part, action) {
 function assess(creep) {
     const cache = tickCache().creeps;
     if (cache[creep.id]) return cache[creep.id];
-    const stats = { melee: 0, ranged: 0, heal: 0, rangedHeal: 0, ehp: 0, move: 0, parts: 0 };
+    const stats = { melee: 0, ranged: 0, heal: 0, rangedHeal: 0, ehp: 0, move: 0, parts: 0, dismantle: 0 };
     for (const part of creep.body) {
         if (part.hits <= 0) continue; // destroyed parts do nothing
         stats.parts++;
@@ -50,6 +50,7 @@ function assess(creep) {
                 stats.rangedHeal += 4 * boostOf(part, 'rangedHeal');
                 break;
             case MOVE: stats.move++; break;
+            case WORK: stats.dismantle += 50 * boostOf(part, 'dismantle'); break;
         }
         // Boosted TOUGH takes only `damage` (0.3–0.7) of each hit while it survives.
         stats.ehp += part.type === TOUGH ? part.hits / boostOf(part, 'damage') : part.hits;
@@ -122,7 +123,10 @@ function roomIntel(room) {
         const towerDps = hostileTowerDps(room);
         if (!towerDps) return (cache[room.name] = Object.assign({ room: room.name }, QUIET));
     }
-    const threats = hostiles.filter(c => assess(c).combat);
+    // At home a dismantler is a threat too: WORK takes ramparts down 50 hits a part a tick (x4 boosted),
+    // though it deals no damage to creeps. Elsewhere a creep with WORK is as likely a harvester.
+    const home = !!(room.controller && room.controller.my);
+    const threats = hostiles.filter(c => assess(c).combat || (home && assess(c).dismantle > 0));
     const friends = runtimeCache.find(room, FIND_MY_CREEPS, { filter: c => !c.spawning && COMBAT_ROLES.has(c.memory.priority) });
     const them = sideTotals(threats);
     them.dps += hostileTowerDps(room);
@@ -244,9 +248,71 @@ function score(target, intel) {
     for (const friend of intel.friends) nearest = Math.min(nearest, friend.pos.getRangeTo(target));
     value -= 10 * (intel.friends.length ? nearest : 0);
     if (target.name && target.name.includes('TANK')) value -= 5000; // bait
+    const breaking = intel.room && Game.rooms[intel.room] ? wallThreat(target, Game.rooms[intel.room]) : 0;
+    if (breaking) value += WALL_FIRST + breaking * 1000;
     cache[target.id] = value;
     return value;
 }
+
+// Hits a tick a hostile is taking off our ramparts and walls: its dismantling and melee while it stands
+// next to one (both work at range 1). 0 away from them. Barrier tiles cached per room per tick.
+function barrierTiles(room) {
+    const cache = tickCache();
+    const all = cache.barriers || (cache.barriers = Object.create(null));
+    if (all[room.name]) return all[room.name];
+    const tiles = new Set();
+    for (const s of runtimeCache.find(room, FIND_STRUCTURES)) {
+        if ((s.structureType === STRUCTURE_RAMPART && s.my) || s.structureType === STRUCTURE_WALL) tiles.add(s.pos.x * 50 + s.pos.y);
+    }
+    return (all[room.name] = tiles);
+}
+function wallThreat(creep, room) {
+    if (!room) return 0;
+    const seen = wallDamageSeen(room, creep.id);
+    const stats = assess(creep);
+    const rate = stats.dismantle + stats.melee;
+    if (!rate) return seen;
+    const tiles = barrierTiles(room);
+    const { x, y } = creep.pos;
+    for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+        if ((dx || dy) && tiles.has((x + dx) * 50 + y + dy)) return Math.max(rate, seen);
+    }
+    return seen;
+}
+
+// Damage each hostile has actually been doing to our ramparts and walls lately, from the room's event log:
+// rangers firing at the walls count by what they hit (shardX E23N31's ranged squad parked by the walls
+// while its wall-breakers were pushed off). An average that halves every WALL_HALF ticks without hits,
+// kept in heap per room; read once per room per tick.
+const WALL_HALF = 3;
+const wallSeen = Object.create(null);     // room -> { t, rates: { id: average } }
+function wallDamageSeen(room, id) {
+    let w = wallSeen[room.name];
+    if (!w || w.t !== Game.time) {
+        const before = w && w.t < Game.time ? w : { t: Game.time, rates: Object.create(null) };
+        const decay = Math.pow(0.5, Math.max(1, Game.time - before.t) / WALL_HALF);
+        const rates = Object.create(null);
+        for (const key in before.rates) { const v = before.rates[key] * decay; if (v >= 1) rates[key] = v; }
+        let log = [];
+        // Our rooms only: a remote fight has no walls of ours, and the log costs CPU to read.
+        try { log = room.controller && room.controller.my && typeof room.getEventLog === 'function' ? room.getEventLog() : []; } catch (e) { log = []; }
+        const tiles = barrierTiles(room);
+        const hit = Object.create(null);
+        for (const entry of log || []) {
+            if (entry.event !== EVENT_ATTACK) continue;
+            const target = Game.getObjectById(entry.data && entry.data.targetId);
+            if (!target || !target.pos || !tiles.has(target.pos.x * 50 + target.pos.y)) continue;
+            hit[entry.objectId] = (hit[entry.objectId] || 0) + ((entry.data && entry.data.damage) || 0);
+        }
+        for (const key in hit) rates[key] = Math.max(rates[key] || 0, hit[key]);
+        w = wallSeen[room.name] = { t: Game.time, rates };
+    }
+    return w.rates[id] || 0;
+}
+// Ahead of every other consideration: a creep taking a wall down comes first, the fastest breaker first
+// (shardX E23N31's second squad, mostly WORK, was the danger to the ramparts while its rangers did
+// the damage the focus went after).
+const WALL_FIRST = 1e8;
 
 // On a room exit tile: a creep there leaves the room by stepping (or is moved over) next tick.
 function onExit(pos) {
@@ -277,6 +343,6 @@ function focusTarget(room) {
 
 module.exports = {
     COMBAT_ROLES, MASS_FACTOR,
-    assess, roomIntel, verdictFor, focusTarget, bestOf, onRampart, killTime, supportHealing, onExit,
+    assess, roomIntel, verdictFor, focusTarget, bestOf, onRampart, killTime, supportHealing, onExit, wallThreat, WALL_FIRST,
     isDangerous, markOutmatched, isOutmatched, remoteThreat,
 };

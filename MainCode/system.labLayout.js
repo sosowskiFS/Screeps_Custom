@@ -95,8 +95,11 @@ const WANTS = {
     [RESOURCE_CATALYZED_LEMERGIUM_ACID]: (room, creeps) => Memory.roomsUnderAttack && Memory.roomsUnderAttack.includes(room.name) &&
         playerHostiles(room).length > 0 &&
         creeps.some(c => c.memory.priority === 'repair' && !c.memory.hasBoosted && (c.spawning || (c.ticksToLive || 0) >= 750)),
-    [RESOURCE_CATALYZED_KEANIUM_ALKALIDE]: room => playerHostiles(room).some(t => (t.body || []).some(p => p.boost)),
 };
+// Ranged boosts, any tier (defense.rangedBoost): only while the defenders as they are lose to the
+// enemy's healing (defense.staffing.boostShortfall).
+const rangedWanted = room => playerHostiles(room).length > 0 && require('defense.staffing').boostShortfall(room) > 0;
+for (const t of require('defense.rangedBoost').tiers()) WANTS[t.res] = rangedWanted;
 
 let wantCache = { t: -1, rooms: {} };
 function boostWanted(room, mineral) {
@@ -112,10 +115,14 @@ function boostWanted(room, mineral) {
     return (memo[mineral] = wanted);
 }
 
+// The ranged slot (XKHO2 by default) holds the best ranged boost the room has (defense.rangedBoost).
 function boostMineral(roomName, i) {
     const config = (Memory.roomConfigs && Memory.roomConfigs[roomName] && Memory.roomConfigs[roomName].mineralConfig) || {};
     const defaults = [RESOURCE_CATALYZED_KEANIUM_ALKALIDE, RESOURCE_CATALYZED_GHODIUM_ACID, RESOURCE_CATALYZED_LEMERGIUM_ACID];
-    return config['min' + (i + 1)] || defaults[i];
+    const mineral = config['min' + (i + 1)] || defaults[i];
+    const rangedBoost = require('defense.rangedBoost');
+    if (mineral === rangedBoost.best() && Game.rooms[roomName]) return rangedBoost.forRoom(Game.rooms[roomName]);
+    return mineral;
 }
 
 // Boost lab indices (0-2) reacting this tick. Not with WarBoosts staging, a guard boost lease, or

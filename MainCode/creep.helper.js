@@ -225,6 +225,12 @@ function canUpgrade(controller) {
     return !!(controller && controller.my && !(controller.upgradeBlocked > 0));
 }
 
+// A wall left in a room that fell below the level walls need has hitsMax 0: repair() answers OK and does
+// nothing, and shardX W1N9's helpers stood full beside one for hundreds of ticks.
+function repairable(s) {
+    return !(s.hitsMax <= s.hits);
+}
+
 // Carry out a job: true while it can still be done (memory.job = { k: kind, id, to }).
 function doJob(creep, job) {
     const controller = creep.room.controller;
@@ -240,7 +246,7 @@ function doJob(creep, job) {
     if (!target) return false;
     if (job.k === 'fill') return target.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && fill(creep, target);
     if (job.k === 'build') return workAt(creep, target, creep.build(target));
-    if (job.k === 'repair') return target.hits < job.to && workAt(creep, target, creep.repair(target));
+    if (job.k === 'repair') return target.hits < job.to && repairable(target) && workAt(creep, target, creep.repair(target));
     return false;
 }
 
@@ -261,14 +267,14 @@ function* jobs(creep) {
     // The young room's rampart shell, to its cap (higher once the room has been attacked).
     {
         const cap = guards.rampartCap(room);
-        const ramparts = cap === Infinity ? [] : mine.filter(s => s.structureType === STRUCTURE_RAMPART && s.hits < cap &&
+        const ramparts = cap === Infinity ? [] : mine.filter(s => s.structureType === STRUCTURE_RAMPART && s.hits < cap && repairable(s) &&
             guards.protectedRampart(room, s));
         if (ramparts.length) yield { k: 'repair', id: creep.pos.findClosestByRange(ramparts).id, to: cap };
     }
     if (controller && controller.my) {
         const to = CONTROLLER_WALL_HITS * controller.level;
         const walls = runtimeCache.find(room, FIND_STRUCTURES).filter(s =>
-            s.structureType === STRUCTURE_WALL && s.pos.inRangeTo(controller.pos, 1) && s.hits < to);
+            s.structureType === STRUCTURE_WALL && s.pos.inRangeTo(controller.pos, 1) && s.hits < to && repairable(s));
         if (walls.length) yield { k: 'repair', id: creep.pos.findClosestByRange(walls).id, to };
     }
     // A young room without a tower: the controller comes first (to RCL3 and a tower); only the

@@ -41,6 +41,9 @@ var creep_supplier = {
             }
         }
 
+        // Parked only on its tile: on foot it has to give way like anyone (a lane past the core runs beside it).
+        if (flag && creep.memory.spot === spot) creep.memory.atSpot = creep.pos.x === flag.pos.x && creep.pos.y === flag.pos.y;
+
         // Out on foot (a stray tower took it off its tile) while a tower beside the Supply tile needs energy:
         // back to the tile, where storage and those towers are in reach without a step.
         if (flag && creep.memory.spot === spot && (creep.pos.x !== flag.pos.x || creep.pos.y !== flag.pos.y) && Game.time >= (creep.memory.spotBlockedUntil || 0)) {

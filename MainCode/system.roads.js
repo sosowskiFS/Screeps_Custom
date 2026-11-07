@@ -198,12 +198,15 @@ function buildMissing(room) {
     for (const structure of runtimeCache.find(room, FIND_STRUCTURES)) occupied.add(structure.pos.x * 50 + structure.pos.y);
     for (const site of runtimeCache.find(room, FIND_CONSTRUCTION_SITES)) occupied.add(site.pos.x * 50 + site.pos.y);
     const terrain = Game.map.getRoomTerrain(room.name);
+    const safeMode = require('system.safeMode');
+    const underFire = safeMode.underFire(room);
     let placed = 0;
     for (const index of unpack(plan.b)) {
         if (placed >= SITES_PER_PASS || siteCount + placed >= SITE_HEADROOM) break;
         if (occupied.has(index)) continue;
         const x = Math.floor(index / 50), y = index % 50;
         if (terrain.get(x, y) & TERRAIN_MASK_WALL) continue;
+        if (underFire && safeMode.buildHeld(room, { x, y }, STRUCTURE_ROAD)) continue;   // outside the ring under attack
         if (room.createConstructionSite(x, y, STRUCTURE_ROAD) === OK) placed++;
     }
     return placed;

@@ -6,6 +6,8 @@ const labPlanner = require('system.labs');
 const essentials = require('spawn.essentials');
 const mineralBudget = require('system.mineralBudget');
 const UP_SUPPLIER_CARRY = 8;           // 400 carried: half an upgrade link
+const ATTACK_REPAIRERS = 3;            // repairers at least, under attack by a player (wallRepairDue)
+const ATTACK_REPAIR_ENERGY = 20000;     // ...with this much in storage: below it the towers get the energy
 const UP_SUPPLIER_WORK_MAX = 10;
 const UP_SUPPLIER_WORK_DEFAULT = 2;     // until the room's energy budget is trusted
 var spawn_BuildCreeps5 = {
@@ -142,6 +144,11 @@ var spawn_BuildCreeps5 = {
         ({ upgraderMax, upgraderConfig, upSupplierMax, minerMax, repairMax, salvagerMax, muleMax, distributorMax } = lowCpu);
         // Under attack: no upgrader (upkeep included) unless the controller's timer is critical.
         if (maintenance.attackHold(thisRoom)) upgraderMax = 0;
+        // Under attack by a player, the walls are what the fight is about: at least ATTACK_REPAIRERS
+        // repairers whatever the energy flow says (it cut them to fit the economy), and they spawn right
+        // after the defenders and the room's essentials (the order below).
+        const wallRepair = this.wallRepairDue(thisRoom, repairCapped);
+        if (wallRepair) repairMax = Math.max(repairMax, ATTACK_REPAIRERS);
         const controllerUpkeep = lowCpu.controllerUpkeep;
         const surplusUpgrade = lowCpu.surplusUpgrade;
             let bareMinConfig = [MOVE, WORK, WORK, CARRY];
@@ -303,6 +310,10 @@ var spawn_BuildCreeps5 = {
                 storageID = thisRoom.storage.id;
                 connectedLink = hubLinkId;
                 creepSource = strTerminal;
+            } else if (wallRepair && repairers.length < repairMax && !blockedRole.includes('repair')) {
+                // The defenders are all out (their block above holds the spawn until then): repairers next.
+                prioritizedRole = 'repair';
+                storageID = thisRoom.storage.id;
             } else if (miners.length < minerMax) {
                 // The miner a source lacks: the storage one first, then the upgrade one. Chosen by
                 // count it never got past two storage miners (E29N43, shard3: two storage miners
@@ -1358,6 +1369,14 @@ Object.assign(spawn_BuildCreeps5, {
         for (let i = 0; i < units; i++) body.push(CARRY, CARRY);
         for (let i = 0; i < units; i++) body.push(MOVE);
         return body;
+    },
+
+    // Repairers first after the defenders: a player attacking (not in safe mode), walls not at their
+    // hard cap, and the storage able to pay for them without starving the towers.
+    wallRepairDue: function(room, repairCapped) {
+        if (repairCapped || !room.storage || (room.storage.store[RESOURCE_ENERGY] || 0) < ATTACK_REPAIR_ENERGY) return false;
+        if (!(Memory.roomsUnderAttack || []).includes(room.name) || (room.controller && room.controller.safeMode)) return false;
+        return !!require('combat.intel').roomIntel(room).players;
     },
 
     // Defenders wanted (defense.staffing): enough of this room's full-size defender, with the towers,

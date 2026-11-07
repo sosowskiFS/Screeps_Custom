@@ -19,6 +19,10 @@
 //         stops spawning for an escalating back-off, and only resumes after it has been
 //         seen clear (observer, passing creep, or scout) once the back-off has passed.
 //         Strikes expire after STRIKE_DECAY quiet ticks once the back-off is over, seen or not.
+//         A shardX decoy of ours is always in sight, and the cheapest remote there is (no reservation
+//         to pay for): DECOY_QUIET ticks with no attack and it is back in the plan, whatever its
+//         strikes. shardX E22N31, reclaimed, had 8,700 ticks of back-off left 39,000 ticks after its
+//         last attack, and E23N32's and E24N32's 85 and 141 strikes kept them out as well.
 const runtimeCache = require('runtime.cache');
 const combatIntel = require('combat.intel');
 const { getRoomAtOffset } = require('util.common');
@@ -51,6 +55,7 @@ const BASE_BACKOFF = 1500;         // first strike: about one creep lifetime
 const MAX_BACKOFF = 50000;
 const STRIKE_DECAY = 30000;        // quiet this long: strikes reset
 const MAX_STRIKES = 4;             // planner drops the room until strikes decay
+const DECOY_QUIET = 500;           // a decoy of ours with no attack for this long is mined again
 
 function enabled(homeName) {
     if (Memory.settings && Memory.settings.autoRemote === false) return false;
@@ -188,6 +193,14 @@ function inspectRoom(room) {
         return;
     }
     const st = status(room.name);
+    if (st && controller && controller.my && Game.time - st.last >= DECOY_QUIET && require('system.bait').isBait(room.name)) {
+        delete mem('remoteStatus')[room.name];
+        replanNear(room.name);
+        const message = Game.time + ' : decoy ' + room.name + ' mined again (' + st.strikes + ' strikes cleared)';
+        Memory.LastNotification = message;
+        console.log(message);
+        return;
+    }
     if (st && Game.time >= st.until && !(st.clear >= st.until)) {
         st.clear = Game.time; // back-off over and seen clear: resume
         const message = Game.time + ' : remote ' + room.name + ' re-enabled after strike ' + st.strikes;
@@ -197,6 +210,30 @@ function inspectRoom(room) {
     if (st && st.clear >= st.until && Game.time - st.last > STRIKE_DECAY) {
         delete mem('remoteStatus')[room.name];
     }
+}
+
+// Homes in range look at their plan again on their next turn, not at the end of PLAN_INTERVAL.
+function replanNear(roomName) {
+    const plans = mem('remotePlan');
+    for (const home of Object.keys(plans)) {
+        if (Game.map.getRoomLinearDistance(home, roomName) <= REMOTE_RANGE) plans[home].t = Game.time - PLAN_INTERVAL;
+    }
+}
+
+// Memory.FarRoomsUnderAttack is otherwise cleared only by a guard walking in. A room in sight with no hostile
+// in it needs none: shardX's list held 160 rooms, among them decoys long quiet, and E23N31 spent
+// energy on a far guard for each decoy as soon as it could mine it again.
+function clearQuietAttacks() {
+    const list = Memory.FarRoomsUnderAttack;
+    if (!list) return 0;
+    let cleared = 0;
+    for (let i = list.length - 1; i >= 0; i--) {
+        const room = Game.rooms[list[i]];
+        if (!room || runtimeCache.find(room, FIND_HOSTILE_CREEPS).length) continue;
+        list.splice(i, 1);
+        cleared++;
+    }
+    return cleared;
 }
 
 // Rooms we mine or plan to mine (any home), refreshed every APPLY_INTERVAL ticks.
@@ -264,20 +301,21 @@ function haul(energyCapacity, trip) {
 // Energy per tick a source returns after its creeps: the miner, its mules and its share of the
 // room's reserver. A reserver (CLAIM/MOVE pairs as spawn.BuildFarCreeps builds them) adds a tick
 // of reservation per CLAIM per working tick, so one covers CLAIM x RESERVER_WORK ticks (up to the
-// refill window) before the next is due: about 1.4 energy/tick per room at any size.
-function netGain(energyCapacity, trip, sourcesInRoom) {
+// refill window) before the next is due: about 1.4 energy/tick per room at any size. A room of ours
+// (a shardX decoy, noReserver) needs none.
+function netGain(energyCapacity, trip, sourcesInRoom, noReserver) {
     const h = haul(energyCapacity, trip);
     const pair = cost(CLAIM) + cost(MOVE);
     const claims = Math.max(1, Math.min(8, Math.floor(energyCapacity / pair)));
     const reserverPerTick = claims * pair / Math.min(RESERVE_REFILL + RESERVER_WORK, claims * RESERVER_WORK);
     const life = typeof CREEP_LIFE_TIME === 'number' ? CREEP_LIFE_TIME : 1500;
     const spend = MINER_COST / life + h.mules * h.pairs * (cost(CARRY) + cost(MOVE)) / life +
-        reserverPerTick / Math.max(1, sourcesInRoom);
+        (noReserver ? 0 : reserverPerTick / Math.max(1, sourcesInRoom));
     return SOURCE_RATE - spend;
 }
 
-function worthMining(energyCapacity, trip, sourcesInRoom) {
-    return haul(energyCapacity, trip).mules <= MAX_MULES && netGain(energyCapacity, trip, sourcesInRoom) >= SOURCE_RATE * MIN_NET_SHARE;
+function worthMining(energyCapacity, trip, sourcesInRoom, noReserver) {
+    return haul(energyCapacity, trip).mules <= MAX_MULES && netGain(energyCapacity, trip, sourcesInRoom, noReserver) >= SOURCE_RATE * MIN_NET_SHARE;
 }
 
 function muleCapacity(energyCapacity) {
@@ -372,7 +410,7 @@ function planHome(home) {
                 cached = trips[id] = { t: Game.time, trip: roundTrip(home.storage.pos, new RoomPosition(x, y, roomName)) || null };
             }
             const trip = cached.trip === null ? undefined : cached.trip;
-            if (trip === undefined || !worthMining(home.energyCapacityAvailable, trip, intel[roomName].s.length)) continue;
+            if (trip === undefined || !worthMining(home.energyCapacityAvailable, trip, intel[roomName].s.length, !!intel[roomName].b)) continue;
             list.push({ r: roomName, id, x, y, trip });
         }
     }
@@ -468,6 +506,7 @@ function observeRequest(homeName) {
 function run() {
     if (Game.time % 100 === 0) refreshVisibleIntel();
     if (Game.time % 1000 === 0) expireStrikes();
+    if (Game.time % APPLY_INTERVAL === 0) clearQuietAttacks();
 
     for (const roomName of interestRooms()) {
         const room = Game.rooms[roomName];
@@ -508,7 +547,7 @@ function run() {
     }
 }
 
-module.exports = { expireStrikes,
+module.exports = { expireStrikes, clearQuietAttacks,
     run, recordIntel, noteIncident, isDisabled, reachable, cutOff, needsProbe, needsScout, scoutTargets, observeRequest,
     planHome, applyPlan, roundTrip, muleCapacity, inspectRoom, tripFor, SOURCE_RATE, nodes, target, nodeRef, guardRef, rescoutAge,
     haul, haulFor, netGain, worthMining,

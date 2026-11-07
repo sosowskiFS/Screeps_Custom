@@ -440,11 +440,12 @@ test('a decoy creep drops building to upgrade when the controller timer runs low
     assert.equal(r2.calls[r2.calls.length - 1], 'upgrade');
 });
 
-test('a decoy spawn makes no creep and runs no room upkeep; the room is nobody\'s home', () => {
+test('a decoy runs no room upkeep; the room is nobody\'s home', () => {
     const s = decoyRoom(3);
     const spawning = s.h.load('system.spawning');
     let touched = 0;
     const roomGuard = new Proxy({}, { get: () => { touched++; return undefined; } });
+    s.g.Game.time = 1001;     // between looks at its spawn
     s.g.Game.spawns = { Spawn1: { name: 'Spawn1', room: { name: 'D', get controller() { touched++; return roomGuard; } } } };
     s.g.Memory.settings = s.g.Memory.settings || {};
     spawning.handleSpawning();
@@ -455,4 +456,129 @@ test('a decoy spawn makes no creep and runs no room upkeep; the room is nobody\'
     s.g.Game.rooms.D = room;
     assert.equal(s.h.load('system.energyFlow').budget(room), null);
     assert.equal(s.h.load('system.bait').isBait('D'), true);
+});
+
+const { plain } = require('./harness');
+// A decoy's own spawn keeps one creep of its own going.
+function localSpawn(energy = 300, { threats = [] } = {}) {
+    const s = decoyRoom(3);
+    const { g } = s;
+    s.h.load('combat.tactics').armedThreats = () => threats;
+    g.Game.time = 1000;
+    g.Game.cpu.bucket = 5000;
+    g.Game.creeps = {};
+    s.room.energyAvailable = energy;
+    const orders = [];
+    const spawn = { name: 'S', room: s.room, spawning: null, isActive: () => true,
+        spawnCreep: (body, name, opts) => { orders.push({ body, name, memory: opts.memory }); return g.OK; } };
+    return Object.assign(s, { spawn, orders, keep: s.h.load('system.bait').keepLocal });
+}
+
+test('a decoy spawn orders one creep with the bait job for its room', () => {
+    const s = localSpawn();
+    assert.equal(s.keep(s.spawn), true);
+    assert.equal(s.orders.length, 1);
+    const m = s.orders[0].memory;
+    assert.deepEqual([m.priority, m.destination, m.baitFor, m.homeRoom, m.baitLocal], ['xBait', 'D', 'T', 'D', 1]);
+    assert.equal(m.xShard, undefined, 'it is already there');
+    assert.deepEqual(plain(s.orders[0].body), plain(s.h.load('system.bait').localBody(300)));
+    assert.equal(s.keep(s.spawn), false, 'a second spawn the same tick orders none');
+    assert.equal(s.orders.length, 1);
+});
+
+test('only one of its own at a time; a creep from the sponsor does not count', () => {
+    const s = localSpawn();
+    s.g.Game.creeps = { ext: { memory: { priority: 'xBait', destination: 'D', xShard: { c: 'X' } } } };
+    assert.equal(s.keep(s.spawn), true, 'works alongside the sponsor creep');
+    s.g.Game.time += 10;
+    s.g.Game.creeps.own = { memory: { priority: 'xBait', destination: 'D', baitLocal: 1 } };
+    assert.equal(s.keep(s.spawn), false);
+    delete s.g.Game.creeps.own;
+    assert.equal(s.keep(s.spawn), true, 'the next once it is gone');
+});
+
+test('no order short of energy, between looks, spawning, inactive, on a low bucket or with armed hostiles in the room', () => {
+    let s = localSpawn(299);
+    assert.equal(s.keep(s.spawn), false, 'under 300');
+    s = localSpawn(1250);
+    assert.equal(s.keep(s.spawn), true);
+    assert.equal(plain(s.orders[0].body).filter(p => p === s.g.WORK).length, 5, 'the largest body when the room has it');
+    s = localSpawn();
+    s.g.Game.time = 1003;
+    assert.equal(s.keep(s.spawn), false, 'between looks');
+    s = localSpawn();
+    s.spawn.spawning = { name: 'x' };
+    assert.equal(s.keep(s.spawn), false, 'busy');
+    s = localSpawn();
+    s.spawn.isActive = () => false;
+    assert.equal(s.keep(s.spawn), false, 'over its level allows');
+    s = localSpawn();
+    s.g.Game.cpu.bucket = 500;
+    assert.equal(s.keep(s.spawn), false, 'low bucket');
+    s = localSpawn(300, { threats: [{}] });
+    assert.equal(s.keep(s.spawn), false, 'it would be shot');
+});
+
+test('the next decoy worker is as large as the room\'s energy pays for, up to 5 WORK', () => {
+    const { g, h } = localSpawn();
+    const { localBody } = h.load('system.bait');
+    const cost = parts => parts.reduce((n, p) => n + (p === g.WORK ? 100 : 50), 0);
+    const works = e => plain(localBody(e)).filter(p => p === g.WORK).length;
+    assert.equal(works(300), 1);
+    assert.equal(works(550), 2);
+    assert.equal(works(800), 3);
+    assert.equal(works(1250), 5);
+    assert.equal(works(5000), 5, 'more would be wasted on one source');
+    for (const e of [300, 350, 449, 550, 800, 1249, 1250, 5000]) {
+        assert.ok(cost(plain(localBody(e))) <= e, 'affordable at ' + e);
+        assert.ok(plain(localBody(e)).includes(g.CARRY) && plain(localBody(e)).includes(g.MOVE));
+    }
+});
+
+function fillCase({ energyAvailable = 300, ext = [], builtTower = true } = {}) {
+    const s = decoyRoom(5);
+    const { g, room, creep, structures } = s;
+    g.CONTROLLER_STRUCTURES[g.STRUCTURE_TOWER][5] = 2;
+    g.CONTROLLER_STRUCTURES[g.STRUCTURE_WALL][5] = 0;
+    g.CONTROLLER_DOWNGRADE[5] = 80000;
+    g.RESOURCE_ENERGY = 'energy';
+    room.energyAvailable = energyAvailable;
+    room.controller.ticksToDowngrade = 79000;
+    if (builtTower) structures.push({ structureType: g.STRUCTURE_TOWER, my: true, pos: s.posAt(40, 40), store: { energy: 1000, getCapacity: () => 1000 } });
+    const list = ext.map(([x, y, free, active = true]) => ({ id: 'e' + x, structureType: g.STRUCTURE_EXTENSION, my: true, pos: s.posAt(x, y), store: { getFreeCapacity: () => free }, isActive: () => active }));
+    structures.push(...list);
+    const realFind = room.find;
+    room.find = (type, opts) => {
+        const all = realFind(type);
+        if (!opts) return all;
+        return all.filter(typeof opts.filter === 'function' ? opts.filter : o => o.structureType === opts.filter.structureType);
+    };
+    const gave = [];
+    creep.transfer = t => { gave.push(t.id); return g.OK; };
+    creep.pos.findClosestByRange = l => l[0] || null;
+    s.g.Game.time += 101;
+    return Object.assign(s, { gave, list });
+}
+
+test('a decoy worker fills built extensions before building on; none left or the room full, it builds', () => {
+    let c = fillCase({ ext: [[30, 30, 50], [31, 30, 0]] });
+    c.role.run(c.creep);
+    assert.deepEqual(c.gave, ['e30'], 'the one with room');
+    c = fillCase({ ext: [[31, 30, 0]] });
+    c.role.run(c.creep);
+    assert.deepEqual(c.gave, [], 'all full');
+    c = fillCase({ energyAvailable: 1250, ext: [[30, 30, 50]] });
+    c.role.run(c.creep);
+    assert.deepEqual(c.gave, [], 'enough for the largest next worker');
+    c = fillCase({ ext: [[30, 30, 50, false]] });
+    c.role.run(c.creep);
+    assert.deepEqual(c.gave, [], 'not an inactive one: it would never count');
+});
+
+test('a low controller timer still comes first', () => {
+    const c = fillCase({ ext: [[30, 30, 50]] });
+    c.room.controller.ticksToDowngrade = 100;
+    c.role.run(c.creep);
+    assert.deepEqual(c.gave, []);
+    assert.equal(c.calls[c.calls.length - 1], 'upgrade');
 });

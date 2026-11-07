@@ -24,8 +24,9 @@
 //     the rebuild
 //   - terminal/factory: only if the storage can take everything they hold
 // Order in a room (ranker):
-//   1. towers, what stands on a tower's planned tile, and what stands on the Supply tile: a room's towers
-//      depend on them (shard2 E26N32: a stray tower on the Supply tile left the others unfed)
+//   1. towers, what stands on a tower's planned tile, what stands on the Supply tile (a room's towers
+//      depend on them: shard2 E26N32's stray tower there left the others unfed), and what stands on a lane
+//      past the core (base.corePass)
 //   2. until a spawn stands on the first planned spawn tile, beside the Supply tile: spawns, and what
 //      stands on that tile (the supplier is made there)
 //   3. what stands across a terrain wall from the core (behind: tile -> bool)
@@ -88,6 +89,7 @@ function chooseStep(s) {
     for (const kind in s.plan.structures) for (const tile of s.plan.structures[kind]) planned.set(tile, kind);
     const mustBeClear = new Set(s.plan.paths || []);
     for (const name in s.plan.flags || {}) mustBeClear.add(s.plan.flags[name]);
+    for (const tile of s.plan.lane || []) mustBeClear.add(tile);
     const solid = new Map();
     const counts = {};
     for (const b of s.built) {
@@ -146,8 +148,9 @@ function ranker(s) {
     const supply = s.plan.flags && s.plan.flags.Supply;
     const coreSpawn = (s.plan.structures.spawn || [])[0];
     const coreStands = coreSpawn === undefined || s.built.some(b => b.kind === 'spawn' && b.tile === coreSpawn);
+    const lane = new Set(s.plan.lane || []);
     return b => {
-        if (b.kind === 'tower' || planned.get(b.tile) === 'tower' || (supply !== undefined && b.tile === supply)) return RANK_TOWER;
+        if (b.kind === 'tower' || planned.get(b.tile) === 'tower' || (supply !== undefined && b.tile === supply) || lane.has(b.tile)) return RANK_TOWER;
         if (!coreStands && (b.kind === 'spawn' || b.tile === coreSpawn)) return RANK_SPAWN;
         if (s.behind && b.kind !== 'container' && s.behind(b.tile)) return RANK_BEHIND;
         if (s.labsFirst && isLabWork(b, planned)) return RANK_LAB;

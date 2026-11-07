@@ -24,11 +24,14 @@ function handleSpawning() {
     const spawnRoleCache = null; // Build census only on ticks when a spawn can act.
     const roomSpawnCache = {};
 
-    // A decoy room's spawns (system.bait) are for show: no creeps, no room upkeep, no CPU.
+    // A decoy room's spawns (system.bait) make only its own bait creep: no room upkeep, next to no CPU.
     const bait = require('system.bait');
     for (const spawnName in Game.spawns) {
         const roomName = Game.spawns[spawnName].room.name;
-        if (bait.isBait(roomName)) continue;
+        if (bait.isBait(roomName)) {
+            bait.keepLocal(Game.spawns[spawnName]);
+            continue;
+        }
         if (!roomSpawnCache[roomName]) {
             roomSpawnCache[roomName] = [];
         }

@@ -75,3 +75,28 @@ test('the MOVE-light defender (1 MOVE per 4 ranged) only with enough XZHO2 ready
     body = s5.buildOptimalDefender(5600, room);
     assert.deepEqual([moves(body), body.length - moves(body)], [8, 32], 'boostable: 8 MOVE carry 32 ranged');
 });
+
+// shardX E23N31: whole bodies boosted against any boosted attacker, though it ran when outgunned.
+test('ranged boosts: none while defenders and towers already beat the healing; just enough parts when they do not', () => {
+    const { g, room, staffing, h } = setup();
+    g.BOOSTS.ranged_attack = { XKHO2: { rangedAttack: 4 } };
+    g.BOOSTS[g.RANGED_ATTACK] = { XKHO2: { rangedAttack: 4 } };
+    g.RESOURCE_CATALYZED_KEANIUM_ALKALIDE = 'XKHO2';
+    const defender = (id, ranged, boosted = 0) => ({ id, my: true, memory: { priority: 'defender' },
+        body: [].concat(Array(boosted).fill({ type: g.RANGED_ATTACK, hits: 100, boost: 'XKHO2' }), Array(ranged - boosted).fill({ type: g.RANGED_ATTACK, hits: 100 })) });
+    const find = room.find;
+    let ours = [];
+    room.find = (type, opts) => (type === g.FIND_MY_CREEPS ? ours : find(type, opts));
+    const short = () => { g.Game.time++; return staffing.boostShortfall(room); };
+    ours = [];
+    const none = short();
+    assert.ok(none > 0, 'no defenders: the quad out-heals the towers');
+    // Easiest target heals about 1,920 x 1.3 = 2,496; three towers do some of it.
+    ours = Array.from({ length: 12 }, (_, n) => defender('d' + n, 25));   // 3,000 unboosted
+    assert.equal(short(), 0, 'already out-damaging: no boost');
+    ours = [defender('da', 25), defender('db', 25)];                        // 500
+    const parts = short();
+    assert.ok(parts > 0 && parts < 50, 'some of their 50 parts, not all: ' + parts);
+    ours = [defender('da', 25, parts > 25 ? 25 : parts), defender('db', 25, Math.max(0, parts - 25))];
+    assert.equal(short(), 0, 'once those parts are boosted: no more');
+});

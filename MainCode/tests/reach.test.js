@@ -4,7 +4,7 @@ const { harness } = require('./harness');
 
 // shard1 E19N59: energy at 38,43 under the parked supplier, ringed by towers, a link, a power spawn
 // and the storage. A distributor and a salvager waited for it on the storage's only free tiles.
-function room({ openTile } = {}) {
+function room({ openTile, onTile = 'supplier' } = {}) {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
     g.TERRAIN_MASK_WALL = 1;
@@ -13,7 +13,7 @@ function room({ openTile } = {}) {
     for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
         if (dx || dy) put(38 + dx, 43 + dy, { s: [{ structureType: g.STRUCTURE_TOWER }], c: [] });
     }
-    put(38, 43, { s: [{ structureType: g.STRUCTURE_RAMPART, my: true }], c: [{ my: true, memory: { priority: 'supplier', atSpot: true } }] });
+    put(38, 43, { s: [{ structureType: g.STRUCTURE_RAMPART, my: true }], c: [{ my: true, memory: { priority: onTile, atSpot: true } }] });
     if (openTile) put(openTile[0], openTile[1], { s: [{ structureType: g.STRUCTURE_ROAD }], c: [] });
     g.RoomPosition = function (x, y, roomName) {
         Object.assign(this, { x, y, roomName });
@@ -27,8 +27,10 @@ function room({ openTile } = {}) {
 test('a pile nobody can stand next to is unreachable; one free tile beside it makes it reachable', () => {
     let r = room();
     assert.equal(r.reach.reachable(r.pile, r.creep), false, 'structures all round, a parked supplier on it');
-    r = room({ openTile: [39, 42] });
+    r = room({ openTile: [39, 42], onTile: 'miner' });
     assert.equal(r.reach.reachable(r.pile, r.creep), true, 'a road tile beside it');
+    r = room({ openTile: [39, 42] });
+    assert.equal(r.reach.reachable(r.pile, r.creep), false, 'under a parked supplier: its own, whatever is beside it');
     r = room();
     r.creep.pos.inRangeTo = () => true;
     assert.equal(r.reach.reachable(r.pile, r.creep), true, 'already beside it');

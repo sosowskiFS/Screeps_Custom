@@ -7,6 +7,10 @@ const runtimeCache = require('runtime.cache');
 // - CPU unlocks: buy outright from asks when that is no dearer than our bid would be after its
 //   5% fee, otherwise keep the top bid. Both are capped against the recent average price so a
 //   bidding war or a spoofed listing cannot drag us up.
+// - Credits: nothing is bought with the last SPEND_FLOOR (system.mineralBuy, system.defenseBoost and CPU
+//   unlocks stop there): listing what we sell costs 5% of its value up front. The defenders' XKHO2 buying
+//   took the account from 27M to 5,252 in two deals, too little to list its pixels. Below the
+//   floor, pixels are sold straight into bids (recoverCredits): a deal has no fee.
 const labPlanner = require('system.labs');
 
 const FEE = 0.05;                 // MARKET_FEE
@@ -18,6 +22,9 @@ const FLOOR_FRACTION = 0.7;       // never list below 70% of the recent average 
 const MIN_SELL_PRICE = 0.5;       // absolute floor for compounds (previous behaviour)
 const HISTORY_TTL = 1000;         // ticks between Game.market.getHistory refreshes
 const CREDIT_RESERVE = 5000;      // keep for listing fees
+const SPEND_FLOOR = 5000000;      // purchases stop here: a 40,000-unit T3 listing at 2,500 costs this much
+const RECOVER_DEALS = 5;          // pixel deals per run while under the floor (10/tick game limit)
+const RECOVER_MARGIN = 500000;    // sold a little past the floor, so it is not back under at once
 const UNLOCK_CEILING = 1.05;      // never bid/buy unlocks above 105% of their recent average
 const UNLOCK_LOT = 5;             // unlocks per buy order
 const MAX_UNLOCK_DEALS = 3;       // deals per run (10/tick game limit shared with room sales)
@@ -26,20 +33,22 @@ const PIXEL_TAKE_BID = 0.95;      // a bid this close to our ask is sold into di
 
 const historyCache = {};          // heap: resource -> { at, price }
 
-// Volume-weighted average of the market history (last ~14 days), or undefined.
+// Volume-weighted median of the market history's daily prices (last ~14 days), or undefined. Not the
+// average: a few trades at an absurd price put pixels' at 424,000 with real trades near 45,000, so the
+// floor under our ask (FLOOR_FRACTION of this) stood far above every buyer and 501 pixels sat unsold.
 function referencePrice(resource) {
     const cached = historyCache[resource];
     if (cached && Game.time - cached.at < HISTORY_TTL) return cached.price;
     let price;
     try {
         const history = Game.market.getHistory ? Game.market.getHistory(resource) : [];
-        let volume = 0;
-        let value = 0;
-        for (const day of history || []) {
-            volume += day.volume;
-            value += day.avgPrice * day.volume;
+        const days = (history || []).filter(day => day.volume > 0).sort((a, b) => a.avgPrice - b.avgPrice);
+        const half = days.reduce((n, day) => n + day.volume, 0) / 2;
+        let seen = 0;
+        for (const day of days) {
+            seen += day.volume;
+            if (seen >= half) { price = day.avgPrice; break; }
         }
-        price = volume > 0 ? value / volume : undefined;
     } catch (e) {
         price = undefined;
     }
@@ -158,7 +167,7 @@ function cleanupOrders() {
 // ---------------------------------------------------------------- CPU unlocks
 
 function buyCpuUnlocks() {
-    const spendable = Game.market.credits - CREDIT_RESERVE;
+    const spendable = Game.market.credits - SPEND_FLOOR;
     if (spendable <= 0) return;
     const ref = referencePrice(CPU_UNLOCK);
     const ceiling = ref ? ref * UNLOCK_CEILING : Infinity;
@@ -209,6 +218,35 @@ function buyCpuUnlocks() {
 
 // ---------------------------------------------------------------- selling
 
+// Under SPEND_FLOOR: pixels straight into the best bids, enough to get back over it. A deal costs nothing
+// to make. Bids under the floor price we would list at are left: a sell order does better once one can
+// be paid for. Returns the pixels sold.
+function recoverCredits() {
+    if (Game.market.credits >= SPEND_FLOOR) return 0;
+    let owned = Game.resources[PIXEL] || 0;
+    if (owned < 1) return 0;
+    const ref = referencePrice(PIXEL);
+    const floor = ref ? ref * FLOOR_FRACTION : 0;
+    const bids = competitors(PIXEL, ORDER_BUY, 1).filter(o => o.price >= floor).sort((a, b) => b.price - a.price);
+    let short = SPEND_FLOOR + RECOVER_MARGIN - Game.market.credits, sold = 0, deals = 0;
+    for (const bid of bids) {
+        if (short <= 0 || owned < 1 || deals >= RECOVER_DEALS) break;
+        const qty = Math.min(owned, bid.amount, Math.ceil(short / bid.price));
+        if (Game.market.deal(bid.id, qty) !== OK) continue;
+        deals++;
+        owned -= qty;
+        sold += qty;
+        short -= qty * bid.price;
+    }
+    if (sold) console.log('[market] credits low (' + Math.floor(Game.market.credits) + '): sold ' + sold + ' pixels into bids');
+    return sold;
+}
+
+// As many as the fee can be paid for: the whole stock's fee, all or nothing, listed none at all.
+function listable(ask, wanted) {
+    return Math.min(wanted, Math.floor(Math.max(0, Game.market.credits) / (ask * FEE)));
+}
+
 function sellPixels() {
     const owned = Game.resources[PIXEL] || 0;
     const order = myOrders(PIXEL, ORDER_SELL)[0];
@@ -226,11 +264,11 @@ function sellPixels() {
 
     if (order) {
         reprice(order, ask, raiseBudget());
-        if (owned - order.remainingAmount >= PIXEL_MIN_LOT) {
-            Game.market.extendOrder(order.id, owned - order.remainingAmount);
-        }
-    } else if (owned >= PIXEL_MIN_LOT && Game.market.credits >= ask * owned * FEE) {
-        Game.market.createOrder({ type: ORDER_SELL, resourceType: PIXEL, price: ask, totalAmount: owned });
+        const more = listable(order.price, owned - order.remainingAmount);
+        if (more >= PIXEL_MIN_LOT) Game.market.extendOrder(order.id, more);
+    } else {
+        const amount = listable(ask, owned);
+        if (amount >= PIXEL_MIN_LOT) Game.market.createOrder({ type: ORDER_SELL, resourceType: PIXEL, price: ask, totalAmount: amount });
     }
 }
 
@@ -339,7 +377,10 @@ function handleMarketOperations() {
     sellTradeGoods();   // first chance, every run
     cleanupOrders();
     const intershard = managesIntershard();
-    if (intershard) buyCpuUnlocks();
+    if (intershard) {
+        recoverCredits();
+        buyCpuUnlocks();
+    }
     if (Game.time % 100 === 0) {
         if (intershard) sellPixels();
         sellCompounds();   // room resources: every shard sells its own
@@ -363,4 +404,4 @@ function handleCPUUnlocking() {
     }
 }
 
-module.exports = { sellTradeGoods, MARKET_SHARD,managesIntershard, isIntershard, cleanupOrders, handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice, competitors };
+module.exports = { SPEND_FLOOR, recoverCredits, referencePrice, sellTradeGoods, MARKET_SHARD,managesIntershard, isIntershard, cleanupOrders, handleMarketOperations, handleCPUUnlocking, sellPrice, competitiveLevel, reprice, buyCpuUnlocks, sellPixels, sellCompounds, referencePrice, competitors };

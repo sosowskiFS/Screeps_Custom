@@ -32,20 +32,44 @@ function fleeRange(stats) {
     return stats.ranged > 0 ? 5 : 3;
 }
 
+// Terrain costs for this creep's own body: ticks a step takes on plain and swamp ground. A fixed 2/10
+// sent creeps with few MOVE parts, or loaded haulers, fleeing into swamp, where each step took several
+// ticks and they were caught there. Fatigue a step: 2 (plain) or 10 (swamp) per part that weighs (not
+// MOVE, not an empty CARRY); each MOVE part takes off 2 a tick (x its boost).
+const MAX_COST = 250;
+function terrainCosts(creep) {
+    let weight = 0, move = 0;
+    let carrying = creep.store && typeof creep.store.getUsedCapacity === 'function' ? creep.store.getUsedCapacity() : 0;
+    for (const part of creep.body || []) {
+        if (part.type === MOVE) {
+            if (part.hits > 0) {
+                const b = part.boost && typeof BOOSTS !== 'undefined' && BOOSTS[MOVE] && BOOSTS[MOVE][part.boost];
+                move += (b && b.fatigue) || 1;
+            }
+            continue;
+        }
+        if (part.type === CARRY) {
+            if (carrying <= 0) continue;
+            carrying -= (typeof CARRY_CAPACITY === 'number' ? CARRY_CAPACITY : 50);
+        }
+        weight++;
+    }
+    const ticks = factor => (move > 0 ? Math.max(1, Math.ceil(weight * factor / (move * 2))) : MAX_COST);
+    return { plainCost: Math.min(MAX_COST, ticks(2) * 2), swampCost: Math.min(MAX_COST, ticks(10) * 2) };
+}
+
 // Flee from every given threat at once (not just the nearest), staying inside the room.
 function flee(creep, threats) {
     const goals = threats.map(threat => ({ pos: threat.pos, range: fleeRange(intel.assess(threat)) }));
-    const result = PathFinder.search(creep.pos, goals, {
+    const result = PathFinder.search(creep.pos, goals, Object.assign({
         flee: true,
         maxRooms: 1,
-        plainCost: 2,
-        swampCost: 10,
         roomCallback: roomName => {
             const room = Game.rooms[roomName];
             // Read-only use of Traveler's per-tick matrix (structures + creeps).
             return room ? Traveler.getCreepMatrix(room) : undefined;
         },
-    });
+    }, terrainCosts(creep)));
     if (result.path.length) {
         creep.move(creep.pos.getDirectionTo(result.path[0]));
         return true;
@@ -128,7 +152,7 @@ function escape(creep) {
         .concat(runtimeCache.find(room, FIND_MY_CREEPS).filter(c => c.memory && (c.memory.guardSquad || c.memory.priority === 'roomGuard')))
         .map(h => ({ pos: h.pos, range: 2 }));
     if (havens.length) {
-        const safe = PathFinder.search(creep.pos, havens, { maxRooms: 1, plainCost: 2, swampCost: 10, maxOps: 2000, roomCallback: matrixFor(255) });
+        const safe = PathFinder.search(creep.pos, havens, Object.assign({ maxRooms: 1, maxOps: 2000, roomCallback: matrixFor(255) }, terrainCosts(creep)));
         if (!safe.incomplete && safe.path.length) {
             creep.move(creep.pos.getDirectionTo(safe.path[0]));
             return true;
@@ -136,7 +160,7 @@ function escape(creep) {
     }
     // PathFinder measures goals in other rooms across the border itself.
     const goals = around.map(v => ({ pos: v.t.pos, range: fleeRange(intel.assess(v.t)) + 1 }));
-    const away = PathFinder.search(creep.pos, goals, { flee: true, maxRooms: 2, plainCost: 2, swampCost: 10, roomCallback: matrixFor(50) });
+    const away = PathFinder.search(creep.pos, goals, Object.assign({ flee: true, maxRooms: 2, roomCallback: matrixFor(50) }, terrainCosts(creep)));
     if (away.path.length) {
         creep.move(creep.pos.getDirectionTo(away.path[0]));
         return true;
@@ -552,4 +576,4 @@ function seekRepair(creep) {
     return true;
 }
 
-module.exports = { threatsAround, escape, avoidReach, routeAround, guardRepairs, safeWorkTile, unsafeToEnter, armedThreats, markDanger, fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };
+module.exports = { terrainCosts, threatsAround, escape, avoidReach, routeAround, guardRepairs, safeWorkTile, unsafeToEnter, armedThreats, markDanger, fight, act, flee, avoidDanger, regroup, startRegroup, incomingDamage, crippled, healerNear, stranded, repaired, seekRepair };

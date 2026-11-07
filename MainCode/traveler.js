@@ -241,7 +241,9 @@ class Traveler {
             const memory = blocker.memory || {};
             // A worker of a parked role still on its way to its tile (atSpot false) can be swapped: a
             // miner short of its tile blocked the only way to it (E29N43's storage corridor).
-            if (memory.atSpot || memory.onPoint || (PARKED_ROLES.has(memory.priority) && memory.atSpot !== false)) return false;
+            // Likewise one walking to its flag (ignoreTravel set on the way, atSpot only on arrival).
+            const onTheWay = memory.ignoreTravel && !memory.atSpot;
+            if (memory.atSpot || memory.onPoint || (PARKED_ROLES.has(memory.priority) && memory.atSpot !== false && !onTheWay)) return false;
             if (blocker.move(blocker.pos.getDirectionTo(creep.pos)) !== OK) return false;
             Traveler._pushed[blocker.name] = Game.time;
             return true;

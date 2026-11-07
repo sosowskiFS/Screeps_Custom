@@ -903,3 +903,58 @@ test('a young RCL6 room keeps its ring ramparts at the shell cap: they count as 
     const off = [X(ring[0]) * 50 + 1].find(t => !ring.includes(t));
     assert.equal(guards.protectedRampart(room, rampart(off, 100)), false, 'a stray rampart is not');
 });
+
+test('a ring three-quarters built is finished whatever the storage holds; a new one, or a finished one, is not', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.Game.time = 5000;
+    const tiles = Array.from({ length: 8 }, (_, i) => (10 + i) * 50 + 10);
+    const plan = { anchor: 25 * 50 + 25, structures: {}, roads: [], paths: [], flags: {}, ring: { r: tiles, w: [], d: [], n: tiles.length, at: g.Game.time } };
+    let ramparts = [];
+    const room = { name: 'R', controller: { my: true, level: 7 }, find: (type, opts) => (type === g.FIND_MY_STRUCTURES ? ramparts : []) };
+    const builder = h.load('base.builder');
+    const at = n => tiles.slice(0, n).map((t, i) => ({ id: 'r' + i, structureType: g.STRUCTURE_RAMPART, my: true, pos: { x: (t / 50) | 0, y: t % 50 } }));
+    const check = n => { ramparts = at(n); g.Game.time++; plan.ring.at = g.Game.time; return builder.ringNearlyDone(room, plan); };
+    assert.equal(check(2), false, 'a quarter: the energy rule decides');
+    assert.equal(check(6), true, 'three-quarters: finish it');
+    assert.equal(check(7), true);
+    assert.equal(check(8), false, 'complete: nothing to do');
+});
+
+test('swamp tiles of the ring get roads; plain ones do not; they count as the base\'s roads', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.TERRAIN_MASK_SWAMP = 2;
+    g.Game.time = 7000;
+    const tiles = [10 * 50 + 10, 11 * 50 + 10, 12 * 50 + 10];
+    g.Game.map.getRoomTerrain = () => ({ get: (x, y) => (x === 11 && y === 10 ? 2 : 0) });
+    const plan = { anchor: 25 * 50 + 25, structures: {}, roads: [99], paths: [], flags: {}, ring: { r: tiles, w: [], d: [12 * 50 + 11], n: 3, at: g.Game.time } };
+    const room = { name: 'R', controller: { my: true, level: 7 }, find: () => [] };
+    const builder = h.load('base.builder');
+    assert.deepEqual(plain(builder.ringSwampRoads(room, plan)), [11 * 50 + 10]);
+    room.controller.level = 5;
+    assert.deepEqual(plain(builder.ringSwampRoads(room, plan)), [], 'no ring yet');
+});
+
+test('below RCL8: structures inside the ring that ranged attackers outside it reach get ramparts; deeper ones and roads do not', () => {
+    const { harness } = require('./harness');
+    const h = harness(), g = h.context;
+    h.load('runtime.memory').ensureInitialized();
+    g.TERRAIN_MASK_WALL = 1;
+    g.Game.time = 9000;
+    // A ring: the square x/y 10..30.
+    const r = [];
+    for (let i = 10; i <= 30; i++) r.push(i * 50 + 10, i * 50 + 30, 10 * 50 + i, 30 * 50 + i);
+    const plan = { anchor: 20 * 50 + 20, structures: {}, roads: [], flags: {}, ring: { r: [...new Set(r)], w: [], d: [], n: 0, at: 1 } };
+    const s = (type, x, y) => ({ structureType: type, pos: { x, y } });
+    const E = g.STRUCTURE_EXTENSION;
+    const structures = [s(E, 12, 20), s(E, 12, 13), s(E, 14, 20), s(g.STRUCTURE_SPAWN, 20, 20), s(g.STRUCTURE_ROAD, 11, 20), s(E, 5, 5)];
+    const room = { name: 'R', controller: { my: true, level: 7 }, getTerrain: () => ({ get: () => 0 }),
+        find: type => (type === g.FIND_MY_STRUCTURES ? structures : []) };
+    const builder = h.load('base.builder');
+    const tile = (x, y) => x * 50 + y;
+    // 12,20 and 12,13: 3 from the outside (x 9). 14,20: 5 from it. 5,5: outside the ring. The road: bare.
+    assert.deepEqual(plain(builder.ringCover(room, plan, plan.ring)), [tile(12, 20), tile(12, 13)].sort((a, b) => a - b));
+});

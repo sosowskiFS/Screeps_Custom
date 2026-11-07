@@ -197,3 +197,74 @@ test('against a healed focus: a single shot from range 2-3, mass attack from ran
     near.tactics.act(me1, me1.room, focus1);
     assert.deepEqual(plain(me1.intents).filter(i => i[0].startsWith('ranged')).map(i => i[0]), ['rangedMassAttack'], 'range 1: mass attack');
 });
+
+// shardX E23N31: a second squad, mostly WORK, on the ramparts; the rangers doing the damage elsewhere.
+test('a creep taking our walls down is the focus, ahead of the easier, harder-hitting targets', () => {
+    const b = battlefield();
+    const { unit, room, intel, g, parts: { W, R, M, H } } = b;
+    room.controller = { my: true };
+    const rampart = { structureType: g.STRUCTURE_RAMPART, my: true, pos: b.pos(30, 30) };
+    room.find = (type => (type === g.FIND_STRUCTURES ? [rampart] : type === g.FIND_HOSTILE_CREEPS ? b.theirs : type === g.FIND_MY_CREEPS ? b.mine : []));
+    unit('me', [[R, 10], [M, 10]], 20, 20, { memory: { priority: 'farGuard', homeRoom: 'HOME' } });
+    const ranger = unit('foe', [[R, 10], [M, 5]], 22, 20);                       // fragile, hits hard
+    const breaker = unit('foe', [[W, 20, 'XZH2O'], [H, 4], [M, 10]], 31, 31);    // next to the rampart
+    g.BOOSTS.work = { XZH2O: { dismantle: 4 } };
+    assert.equal(intel.wallThreat(breaker, room) > 0, true);
+    assert.equal(intel.focusTarget(room).id, breaker.id);
+    assert.equal(intel.wallThreat(ranger, room), 0, 'rangers do not count');
+});
+
+test('a dismantler away from the walls is not put first; with no weapon it is still a threat at home, not elsewhere', () => {
+    const b = battlefield();
+    const { unit, room, intel, g, parts: { W, R, M } } = b;
+    room.controller = { my: true };
+    const rampart = { structureType: g.STRUCTURE_RAMPART, my: true, pos: b.pos(30, 30) };
+    room.find = (type => (type === g.FIND_STRUCTURES ? [rampart] : type === g.FIND_HOSTILE_CREEPS ? b.theirs : type === g.FIND_MY_CREEPS ? b.mine : []));
+    unit('me', [[R, 10], [M, 10]], 20, 20, { memory: { priority: 'farGuard', homeRoom: 'HOME' } });
+    const ranger = unit('foe', [[R, 10], [M, 5]], 22, 20);
+    const walker = unit('foe', [[W, 20], [M, 10]], 40, 40);
+    assert.equal(intel.wallThreat(walker, room), 0);
+    assert.equal(intel.focusTarget(room).id, ranger.id);
+    assert.ok(intel.roomIntel(room).threats.includes(walker), 'at home: a threat');
+    const away = battlefield();
+    away.unit('foe', [[away.parts.W, 5], [away.parts.M, 5]], 10, 10);
+    assert.equal(away.intel.roomIntel(away.room).threats.length, 0, 'a remote harvester is not');
+});
+
+test('fleeing costs swamp by the creep\'s own legs: a slow or loaded creep keeps out of it', () => {
+    const { tactics, g, parts: { W, M } } = battlefield();
+    const C = g.CARRY;
+    const body = list => list.flatMap(([t, n]) => Array.from({ length: n }, () => ({ type: t, hits: 100 })));
+    const fast = { body: body([[W, 5], [M, 5]]), store: { getUsedCapacity: () => 0 } };
+    const slow = { body: body([[W, 10], [M, 2]]), store: { getUsedCapacity: () => 0 } };
+    const emptyHauler = { body: body([[C, 10], [M, 5]]), store: { getUsedCapacity: () => 0 } };
+    const fullHauler = { body: body([[C, 10], [M, 5]]), store: { getUsedCapacity: () => 500 } };
+    assert.deepEqual(plain(tactics.terrainCosts(fast)), { plainCost: 2, swampCost: 10 }, '1:1 MOVE: a tick on plain, 5 on swamp');
+    const s = tactics.terrainCosts(slow);
+    assert.ok(s.swampCost >= 50 && s.plainCost >= 10, 'few MOVE: swamp far dearer: ' + JSON.stringify(plain(s)));
+    assert.deepEqual(plain(tactics.terrainCosts(emptyHauler)), { plainCost: 2, swampCost: 2 }, 'empty CARRY weighs nothing');
+    assert.ok(tactics.terrainCosts(fullHauler).swampCost > 2, 'a full load does');
+    const boosted = { body: body([[W, 10]]).concat([{ type: M, hits: 100, boost: 'XZHO2' }, { type: M, hits: 100, boost: 'XZHO2' }]), store: { getUsedCapacity: () => 0 } };
+    g.BOOSTS[M] = { XZHO2: { fatigue: 4 } };
+    assert.ok(tactics.terrainCosts(boosted).swampCost < s.swampCost, 'boosted MOVE counts for more');
+});
+
+test('wall damage seen in the event log counts: a ranger firing at the ramparts is a wall threat, and it fades once it stops', () => {
+    const b = battlefield();
+    const { unit, room, intel, g, parts: { R, M } } = b;
+    room.controller = { my: true };
+    g.EVENT_ATTACK = 1;
+    const rampart = { id: 'ramp', structureType: g.STRUCTURE_RAMPART, my: true, pos: b.pos(30, 30) };
+    room.find = (type => (type === g.FIND_STRUCTURES ? [rampart] : type === g.FIND_HOSTILE_CREEPS ? b.theirs : type === g.FIND_MY_CREEPS ? b.mine : []));
+    const ranger = unit('foe', [[R, 10], [M, 5]], 33, 30);
+    g.Game.getObjectById = id => (id === 'ramp' ? rampart : null);
+    let log = [{ event: g.EVENT_ATTACK, objectId: ranger.id, data: { targetId: 'ramp', damage: 400 } }];
+    room.getEventLog = () => log;
+    g.Game.time = 100;
+    assert.equal(intel.wallThreat(ranger, room), 400);
+    log = [];
+    g.Game.time = 103;
+    assert.ok(Math.abs(intel.wallThreat(ranger, room) - 200) < 1, 'halved after 3 quiet ticks');
+    g.Game.time = 130;
+    assert.equal(intel.wallThreat(ranger, room), 0, 'gone');
+});

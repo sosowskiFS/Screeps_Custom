@@ -123,7 +123,10 @@ var tower_Operate = {
                     if (engaged) engagedDamage = Math.max(engagedDamage, defenderDamage);
                     if (!(net > 0 || engaged) || isDrainBait(hostile, net)) return;
                     if (!(net > 0) && !jointFireAllowed(thisRoom.name, defenderDamage)) return;
-                    const score = net > 0 ? 1e6 - hostile.hits / net : net;
+                    // A creep taking our walls down comes first (combat.intel.wallThreat), the fastest breaker
+                    // first; then the quickest kill.
+                    const breaking = require('combat.intel').wallThreat(hostile, thisRoom);
+                    const score = (breaking ? 1e7 + breaking * 100 : 0) + (net > 0 ? 1e6 - hostile.hits / net : net);
                     if (score > damageRecord) {
                         damageRecord = score;
                         targetToShoot = hostile;
@@ -352,6 +355,13 @@ var tower_Operate = {
                 }
                 noteJointFire(thisRoom.name, allHostiles, !!targetToShoot && !(targetNet > 0), engagedDamage);
             }
+            // Against Harabi, read by his squads' speech while it keeps matching (combat.harabi): a burst
+            // big enough to make his squad retreat, or no shot at all.
+            const harabiOrder = require('combat.harabi').towerOrder(thisRoom);
+            if (harabiOrder) {
+                closestHostile = harabiOrder.target || null;
+                if (!closestHostile) Memory.towerPickedTarget[thisRoom.name] = '';
+            }
 
             // Heal with no target to shoot, or for one of ours under HEAL_CRITICAL of its hits. It healed
             // whenever the target was near full hits: a quad tops its members up every tick, so the
@@ -430,7 +440,9 @@ var tower_Operate = {
                 intel.criticalRoad = leastHits(runtimeCache.find(tower.room, FIND_STRUCTURES, {
                     // Planned roads only: unused roads are left to decay.
                     filter: structure => structure.structureType == STRUCTURE_ROAD && structure.hits < structure.hitsMax / 2 &&
-                        roads.isPriority(structure.pos.roomName, structure.pos.x, structure.pos.y)
+                        roads.isPriority(structure.pos.roomName, structure.pos.x, structure.pos.y) &&
+                        // Not the ones out where attackers keep breaking them (system.safeMode.buildHeld).
+                        !require('system.safeMode').buildHeld(tower.room, structure.pos, STRUCTURE_ROAD)
                 })) || null;
             }
             if (intel.criticalRoad) {

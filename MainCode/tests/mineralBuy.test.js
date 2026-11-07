@@ -4,7 +4,7 @@ const { harness } = require('./harness');
 
 // One lab room (A) with a terminal. Recipes for the move boost only:
 // XZHO2 = X + ZHO2, ZHO2 = ZO + OH, ZO = Z + O, OH = O + H  =>  X1 Z1 O2 H1 per unit.
-function world({ stock = {}, asks = [], history = { avg: 1, volume: 100000 }, credits = 100000 } = {}) {
+function world({ stock = {}, asks = [], history = { avg: 1, volume: 100000 }, credits = 5100000 } = {}) {
     const h = harness(), g = h.context;
     h.load('runtime.memory').ensureInitialized();
     g.RESOURCE_ENERGY = 'energy';

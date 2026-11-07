@@ -63,8 +63,40 @@ function needed(room, perDefender) {
     return Math.min(MAX_DEFENDERS, Math.max(floor, best));
 }
 
+// Boosted ranged parts the defenders need right now: what the easiest target's healing still out-lasts,
+// after the towers and every defender in the room as it is (boosted parts counted boosted), at the extra
+// damage a part gets from the room's ranged boost (defense.rangedBoost.forRoom: 30 for XKHO2, 20 KHO2,
+// 10 KO). 0 when they already win: a quad that is outgunned runs, and shardX E23N31's defenders
+// boosted whole bodies whenever any attacker was boosted at all. Cached per tick.
+function boostGain(room) {
+    const rangedBoost = require('defense.rangedBoost');
+    return RANGED_POWER * rangedBoost.multOf(rangedBoost.forRoom(room)) - RANGED_POWER;
+}
+function boostShortfall(room) {
+    const tick = runtimeCache.current();
+    const cache = tick.boostShortfall || (tick.boostShortfall = Object.create(null));
+    if (cache[room.name] !== undefined) return cache[room.name];
+    const intel = combatIntel.roomIntel(room);
+    const threats = intel.threats || [];
+    let parts = 0;
+    if (threats.length) {
+        const towers = runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } })
+            .filter(t => !t.store || (t.store[RESOURCE_ENERGY] || 0) >= 10);
+        const ours = runtimeCache.find(room, FIND_MY_CREEPS).filter(c => c.memory && c.memory.priority === 'defender')
+            .reduce((n, c) => n + combatIntel.assess(c).ranged, 0);
+        let short = Infinity;
+        for (const target of threats) {
+            const required = combatIntel.supportHealing(target, intel) * MARGIN / toughFactor(target);
+            const tower = towers.reduce((n, t) => n + towerDamage(rangeBetween(t.pos, target.pos)), 0);
+            short = Math.min(short, required - tower - ours);
+        }
+        parts = short > 0 ? Math.ceil(short / boostGain(room)) : 0;
+    }
+    return (cache[room.name] = parts);
+}
+
 function rangedDamage(body) {
     return body.filter(p => p === RANGED_ATTACK).length * RANGED_POWER;
 }
 
-module.exports = { needed, towerDamage, toughFactor, rangedDamage, MARGIN, MAX_DEFENDERS };
+module.exports = { needed, boostShortfall, towerDamage, toughFactor, rangedDamage, MARGIN, MAX_DEFENDERS };

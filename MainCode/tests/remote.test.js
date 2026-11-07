@@ -348,3 +348,61 @@ test('a far creep cut off from its work goes home to recycle; one that can reach
     assert.equal(remote.cutOff(creep('Z', 'Z')), false, 'already inside');
     assert.equal(recalled, 1);
 });
+
+// shardX E22N31: declaimed, reclaimed, and still out of the plan 39,000 ticks after its last attack.
+function decoyCase(strikes = 6) {
+    const w = world();
+    const { g } = w;
+    g.Game.shard = { name: 'shardX' };
+    g.Memory.bait = { rooms: { E6N5: { t: 'E5N5' } } };
+    g.Game.time = 100000;
+    g.Memory.remoteStatus = { E6N5: { strikes, last: 99000, until: 148000, reason: 'attacked by rival' } };
+    g.Memory.remotePlan = { E5N5: { t: 99990, list: [] }, E9N9: { t: 99990, list: [] } };
+    const room = { name: 'E6N5', controller: { my: true }, find: () => [] };
+    g.Game.rooms.E6N5 = room;
+    return Object.assign(w, { room });
+}
+
+test('a decoy of ours quiet for 500 ticks is mined again, whatever its strikes, and homes in range replan at once', () => {
+    const { g, room, remote, intel, home } = decoyCase(141);
+    assert.equal(remote.isDisabled('E6N5'), true);
+    remote.inspectRoom(room);
+    assert.equal(remote.isDisabled('E6N5'), false);
+    assert.equal(g.Memory.remoteStatus.E6N5, undefined);
+    assert.ok(g.Game.time - g.Memory.remotePlan.E5N5.t >= 2000, 'its neighbour replans on its next turn');
+    assert.equal(g.Memory.remotePlan.E9N9.t, 99990, 'a home out of range does not');
+    intel('E6N5', [['a', 10, 10]], { b: 1 });
+    remote.planHome(home);
+    assert.deepEqual(plain(g.Memory.remotePlan.E5N5.list).map(e => e.id), ['a']);
+});
+
+test('not while the attack is recent, and not for a room that is not a decoy of ours', () => {
+    let c = decoyCase();
+    c.g.Memory.remoteStatus.E6N5.last = c.g.Game.time - 100;
+    c.remote.inspectRoom(c.room);
+    assert.ok(c.g.Memory.remoteStatus.E6N5, 'attacked 100 ticks ago');
+    c = decoyCase();
+    c.g.Memory.bait = { rooms: {} };
+    c.room.controller = {};
+    c.remote.inspectRoom(c.room);
+    assert.ok(c.g.Memory.remoteStatus.E6N5, 'a neutral remote keeps its back-off');
+    c = decoyCase();
+    c.room.controller = { owner: { username: 'rival' } };
+    c.remote.inspectRoom(c.room);
+    assert.ok(c.g.Memory.remoteStatus.E6N5, 'declaimed and taken: not ours');
+});
+
+test('a decoy is not charged for a reserver in the worth-mining sum', () => {
+    const { remote } = world();
+    assert.ok(remote.netGain(2300, 150, 1, true) > remote.netGain(2300, 150, 1, false));
+});
+
+test('a room in sight with no hostile leaves the under-attack list; one with hostiles, or out of sight, stays', () => {
+    const { g, remote } = world();
+    g.Game.time = 500;
+    g.Memory.FarRoomsUnderAttack = ['QUIET', 'HOT', 'UNSEEN'];
+    g.Game.rooms.QUIET = { name: 'QUIET', find: () => [] };
+    g.Game.rooms.HOT = { name: 'HOT', find: () => [{ owner: { username: 'rival' } }] };
+    assert.equal(remote.clearQuietAttacks(), 1);
+    assert.deepEqual(plain(g.Memory.FarRoomsUnderAttack), ['HOT', 'UNSEEN']);
+});

@@ -32,6 +32,7 @@ const phases = [
     ['defense', defense.handleTowersAndRooms],
     ['spawningAndRooms', spawning.handleSpawning],
     ['market', market.handleMarketOperations],
+    ['boostRescue', () => { if (Game.time % 10 === 3) require('system.defenseBoost').rescue(); }],   // ranged boosts to rooms under attack
     ['shardX', shardX.run],   // before creeps: creeps arriving on shardX get their memory first
     ['creeps', creeps.handleCreepOperations],
     ['energyFlow', () => require('system.energyFlow').sample()],   // after creeps: this tick's events

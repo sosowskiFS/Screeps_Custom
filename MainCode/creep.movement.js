@@ -65,6 +65,9 @@ function tryCreateRoadAt(pos, nextPosAfterTarget) {
     if (Game.map.getRoomTerrain(pos.roomName).get(pos.x, pos.y) & TERRAIN_MASK_WALL) {
         return;
     }
+    // Not out where attackers are breaking things (system.safeMode.buildHeld).
+    const here = Game.rooms[pos.roomName];
+    if (here && here.controller && here.controller.my && require('system.safeMode').buildHeld(here, pos, STRUCTURE_ROAD)) return;
 
     // In a built-up base nearly every step is already a road: stop after one lookup.
     let structures = pos.lookFor(LOOK_STRUCTURES);

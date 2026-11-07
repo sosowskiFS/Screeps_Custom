@@ -160,3 +160,22 @@ test('supplier on its tile: towers first, then the spawn beside it (not one furt
     supplier.run(creep);
     assert.deepEqual(calls.splice(0), [], 'never walks to the far spawn; all full: waits');
 });
+
+test('repairers come right after the defenders while a player attacks the walls, with storage to pay for them', () => {
+    const { h, g, room, spawns } = setup();
+    room.controller = { my: true, level: 8 };
+    room.storage = { store: { energy: 200000 } };
+    g.Memory.roomsUnderAttack = ['A'];
+    let players = true;
+    h.load('combat.intel').roomIntel = () => ({ players, threats: [] });
+    assert.equal(spawns.wallRepairDue(room, false), true);
+    assert.equal(spawns.wallRepairDue(room, true), false, 'walls at their hard cap');
+    players = false;
+    assert.equal(spawns.wallRepairDue(room, false), false, 'invaders only');
+    players = true;
+    room.storage.store.energy = 5000;
+    assert.equal(spawns.wallRepairDue(room, false), false, 'the towers need what little there is');
+    room.storage.store.energy = 200000;
+    room.controller.safeMode = 500;
+    assert.equal(spawns.wallRepairDue(room, false), false, 'safe mode');
+});

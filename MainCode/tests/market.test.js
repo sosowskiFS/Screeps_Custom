@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { harness, plain } = require('./harness');
 
-function market({ orders = [], mine = {}, history = {}, credits = 100000, resources = {} } = {}) {
+function market({ orders = [], mine = {}, history = {}, credits = 5100000, resources = {} } = {}) {
     const h = harness(), g = h.context, calls = [];
     h.load('runtime.memory').ensureInitialized();
     Object.assign(g.Game.market, {
@@ -27,9 +27,9 @@ test('sell price sits just under the cheapest listing that is not ours, ignoring
     assert.equal(m.sellPrice('X', 100, 0.5), 1.499, 'our own 1.0 listing is not a competitor');
 });
 
-test('sell price never drops below 70% of the recent average', () => {
+test('sell price never drops below 70% of the recent median', () => {
     const { m } = market({ orders: [sell('dump', 0.1)], history: { X: [{ avgPrice: 2, volume: 10 }, { avgPrice: 4, volume: 30 }] } });
-    assert.equal(m.sellPrice('X', 100, 0.5), 2.45, '0.7 x volume-weighted 3.5');
+    assert.equal(m.sellPrice('X', 100, 0.5), 2.8, '0.7 x the volume-weighted median, 4');
 });
 
 test('repricing: cuts are free, raises only when worth the fee', () => {
@@ -47,7 +47,7 @@ test('CPU unlocks: asks at or under bid+fee or the average are bought outright, 
     const bid = buy('myBid', 100, 5);
     const { m, calls } = market({
         orders: [bid, sell('cheap', 103, 4, 'cpuUnlock'), sell('dear', 130, 9, 'cpuUnlock')],
-        mine: { myBid: bid }, history: { cpuUnlock: [{ avgPrice: 100, volume: 10 }] }, credits: 5000 + 1000,
+        mine: { myBid: bid }, history: { cpuUnlock: [{ avgPrice: 100, volume: 10 }] }, credits: 5000000 + 1000,
     });
     m.buyCpuUnlocks();
     assert.deepEqual(plain(calls), [['deal', 'cheap', 4]], '103 <= 100 x 1.05 bid cost; 130 is above it');
@@ -56,7 +56,7 @@ test('CPU unlocks: asks at or under bid+fee or the average are bought outright, 
 test('CPU unlocks: otherwise outbid once, capped by the cheapest ask and the average', () => {
     const { m, calls } = market({
         orders: [buy('rival', 95), sell('ask', 120, 3, 'cpuUnlock')],
-        history: { cpuUnlock: [{ avgPrice: 100, volume: 10 }] }, credits: 5000 + 2000,
+        history: { cpuUnlock: [{ avgPrice: 100, volume: 10 }] }, credits: 5000000 + 2000,
     });
     m.buyCpuUnlocks();
     assert.deepEqual(plain(calls), [['create', { type: 'ORDER_BUY', resourceType: 'cpuUnlock', price: 95.001, totalAmount: 5 }]]);
@@ -141,7 +141,7 @@ test('intershard items (CPU unlocks, pixels) are only managed from shard2; room 
         roomDone.remainingAmount = 0;
         const env = market({ orders: [bid, buy('rival', 120), sell('ask', 90, 3, 'cpuUnlock'), sell('px', 2400, 5000, 'pixel')],
             mine: { myBid: bid, pxDone: done, xDone: roomDone }, history: { cpuUnlock: [{ avgPrice: 100, volume: 10 }] },
-            credits: 1000000, resources: { pixel: 500 } });
+            credits: 6000000, resources: { pixel: 500 } });
         env.g.Game.shard.name = shard;
         env.g.Game.time = 100;
         env.m.handleMarketOperations();
@@ -153,4 +153,47 @@ test('intershard items (CPU unlocks, pixels) are only managed from shard2; room 
     assert.ok(main.some(c => c[0] === 'cancel' && c[1] === 'pxDone'), 'shard2 cleans intershard orders');
     assert.ok(main.some(c => c[0] === 'deal' && c[1] === 'ask'), 'shard2 buys unlocks');
     assert.ok(main.some(c => c[0] === 'create' && c[1].resourceType === 'pixel') || main.some(c => c[1] === 'px'), 'shard2 sells pixels');
+});
+
+// 27M of XKHO2 left 5,252 credits: too little to list even 2 of 501 pixels at 55,000 (a 2,790 fee each).
+test('under the floor pixels are sold into the best bids until back over it, and no further', () => {
+    const { g, m, calls } = market({ orders: [buy('low', 40000, 500, 'pixel'), buy('top', 50000, 60, 'pixel'), buy('next', 49000, 500, 'pixel')], resources: { pixel: 501 } });
+    g.Game.market.credits = 5252;
+    assert.equal(m.recoverCredits(), 111);
+    assert.deepEqual(plain(calls).filter(c => c[0] === 'deal').map(c => [c[1], c[2]]), [['top', 60], ['next', 51]], 'best first; enough for 5.5M');
+});
+
+test('over the floor, with no pixels, or with only lowball bids nothing is sold', () => {
+    let s = market({ orders: [buy('top', 50000, 60, 'pixel')], resources: { pixel: 501 } });
+    s.g.Game.market.credits = 6000000;
+    assert.equal(s.m.recoverCredits(), 0);
+    s = market({ orders: [buy('top', 50000, 60, 'pixel')], resources: { pixel: 0 } });
+    s.g.Game.market.credits = 5252;
+    assert.equal(s.m.recoverCredits(), 0);
+    s = market({ orders: [buy('lowball', 1000, 60, 'pixel')], resources: { pixel: 501 }, history: { pixel: [{ avgPrice: 45000, volume: 100 }] } });
+    s.g.Game.market.credits = 5252;
+    assert.equal(s.m.recoverCredits(), 0, 'under 70% of the recent price');
+});
+
+test('a few absurd trades do not set the reference price', () => {
+    const { m } = market({ history: { pixel: [{ avgPrice: 43000, volume: 18000 }, { avgPrice: 48000, volume: 26000 }, { avgPrice: 28000, volume: 74000 },
+        { avgPrice: 41000, volume: 30000 }, { avgPrice: 9000000, volume: 2000 }] } });
+    const median = m.referencePrice('pixel');
+    assert.ok(median < 50000, 'median: ' + median);
+});
+
+test('pixels are listed as far as the fee can pay, not all or none', () => {
+    const { g, m, calls } = market({ orders: [sell('other', 2000, 500, 'pixel')], resources: { pixel: 501 } });
+    g.Game.market.credits = 1000;
+    m.sellPixels();
+    const made = plain(calls).find(c => c[0] === 'create');
+    assert.ok(made, JSON.stringify(plain(calls)));
+    assert.equal(made[1].totalAmount, 10, '1,000 credits / (1,999.999 x 5%)');
+});
+
+test('CPU unlocks are not bought below the floor', () => {
+    const { g, m, calls } = market({ orders: [sell('ask', 100, 5, 'cpuUnlock')], history: { cpuUnlock: [{ avgPrice: 100, volume: 10 }] } });
+    g.Game.market.credits = 4000000;
+    m.buyCpuUnlocks();
+    assert.deepEqual(plain(calls), []);
 });

@@ -11,7 +11,7 @@
 //   Fair price: never above FAIR_CEILING x the volume-weighted average of the market history (the
 //     last ~14 days), and only with MIN_HISTORY_VOLUME traded in that window, so a thin or
 //     spoofed market is left alone. Cheapest asks first, up to MAX_DEALS deals and SPEND_SHARE of
-//     the credits above CREDIT_RESERVE per run.
+//     the credits above system.market.SPEND_FLOOR per run.
 // Memory.mineralBuys: the last 20 purchases { t, r, n, p, room }.
 const CRITICAL_PER_ROOM = 3000;
 const REFILL_PER_ROOM = 10000;
@@ -20,7 +20,6 @@ const MIN_HISTORY_VOLUME = 20000;
 const MIN_LOT = 500;
 const MAX_DEALS = 3;
 const SPEND_SHARE = 0.25;
-const CREDIT_RESERVE = 5000;
 const TERMINAL_ENERGY_RESERVE = 10000;
 const HISTORY_TTL = 1000;
 
@@ -114,7 +113,7 @@ function run() {
     if (!rooms.length) return 0;
     const stock = labs.empireStock();
     const goal = labs.targets(rooms.length);
-    let budget = Math.max(0, (Game.market.credits - CREDIT_RESERVE) * SPEND_SHARE);
+    let budget = Math.max(0, (Game.market.credits - market.SPEND_FLOOR) * SPEND_SHARE);
     let deals = 0;
     const used = new Set();
     for (const want of wants(stock, goal, rooms.length)) {

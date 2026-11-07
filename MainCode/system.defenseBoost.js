@@ -7,11 +7,21 @@
 //   - supply(), with the market every 100 ticks: tops its XKHO2 up to READY (terminal, storage, lab).
 //     From another room of ours on the shard that keeps READY itself after sending; when none can,
 //     bought: the cheapest asks within FAIR_CEILING x the market's volume-weighted average, with at
-//     least MIN_HISTORY_VOLUME traded (system.mineralBuy.history), a deal per run.
+//     least MIN_HISTORY_VOLUME traded (system.mineralBuy.history), a deal per run, and at most
+//     SPEND_SHARE of the credits above the floor (it once spent 27M on shardX, near all there was).
 //   - loadLab(creep): its distributors keep the lab at LAB_FILL XKHO2 and LAB_ENERGY energy (no lab
 //     worker for one lab), emptying any other mineral first. creep.combat boosts from it.
 // Memory.mineralBuys logs the purchases with the base mineral ones.
+//
+// Any ranged tier counts (defense.rangedBoost): XKHO2, KHO2 (x3), KO (x2, invaders drop it). Stock is
+// the tiers together; donors send their best tier first; buying takes the tier whose extra damage is
+// cheapest (price / (multiplier - 1)) within its fair ceiling, so dear XKHO2 loses to cheap KHO2 or KO.
+//
+// rescue(), every 10 ticks: a room of ours under attack by a player (any lab count) and below READY
+// gets ranged boosts by terminal from our rooms not under attack, each keeping DONOR_KEEP; with none to
+// spare, bought as above. The labs in a full lab room only make XKHO2 over time, and the fight is now.
 const runtimeCache = require('runtime.cache');
+const rangedBoost = require('defense.rangedBoost');
 
 const READY = 3000;             // enough for five 20-ranged defenders (30 a part)
 const LAB_FILL = 1500;
@@ -21,14 +31,9 @@ const FAIR_CEILING = 1.2;
 const MIN_HISTORY_VOLUME = 2000;
 const MIN_LOT = 100;
 const TERMINAL_ENERGY_RESERVE = 2000;
-const BOOST = () => RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+const SPEND_SHARE = 0.1;         // of the credits above system.market.SPEND_FLOOR, per deal
+const DONOR_KEEP = 1000;          // a donor's own reserve, all tiers, when sending to a room under attack
 
-function stockOf(room, res) {
-    let n = 0;
-    for (const s of [room.storage, room.terminal]) if (s && s.store) n += s.store[res] || 0;
-    for (const lab of labs(room)) n += (lab.store && lab.store[res]) || 0;
-    return n;
-}
 function labs(room) {
     return runtimeCache.find(room, FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_LAB } });
 }
@@ -51,35 +56,71 @@ function ownRooms() {
 }
 
 function supply() {
-    const res = BOOST();
+    fill(ownRooms().filter(wantsBoost), new Set(), () => READY);
+}
+
+// A player in the room and the attack flag on it.
+function underAttack(room) {
+    if (!(Memory.roomsUnderAttack || []).includes(room.name)) return false;
+    return !!require('combat.intel').roomIntel(room).players;
+}
+function rescue() {
+    const rooms = ownRooms();
+    const hit = rooms.filter(underAttack);
+    // Rooms the supply keeps stocked keep READY themselves; full lab rooms make more, DONOR_KEEP.
+    if (hit.length) fill(hit, new Set(hit.map(r => r.name)), r => (wantsBoost(r) ? READY : DONOR_KEEP));
+}
+
+// Tops each room up to READY (all tiers): from a room of ours first, else bought (one deal a run).
+// banned: rooms that never donate (under attack themselves); keepFor(donor): its floor after sending.
+function fill(targets, banned, keepFor) {
     const rooms = ownRooms();
     const sent = new Set();
     let bought = false;
-    for (const room of rooms.filter(wantsBoost)) {
-        const need = READY - stockOf(room, res);
+    for (const room of targets) {
+        const need = READY - rangedBoost.totalStock(room);
         if (need < MIN_LOT) continue;
-        // A room of ours that keeps READY after sending (lab rooms make it).
-        const donor = rooms.find(r => r !== room && !sent.has(r.name) && !r.terminal.cooldown &&
-            (r.terminal.store[res] || 0) >= need && stockOf(r, res) - need >= READY);
-        if (donor) {
-            if (donor.terminal.send(res, need, room.name, 'XKHO2 for ' + room.name + ' defenders') === OK) sent.add(donor.name);
-            continue;
-        }
+        if (give(room, need, rooms, sent, banned, keepFor)) continue;
         if (bought || !require('runtime.world').market()) continue;
-        bought = buy(room, res, need);
+        bought = buy(room, need);
     }
 }
 
-// Buy for one room within the fair ceiling. True when a deal went through.
-function buy(room, res, need) {
-    const h = require('system.mineralBuy').history(res);
-    if (!h.avg || h.volume < MIN_HISTORY_VOLUME) return false;
-    const ceiling = h.avg * FAIR_CEILING;
+// One send, best tier first, from a room that keeps its floor (keepFor) afterwards.
+function give(room, need, rooms, sent, banned, keepFor) {
+    for (const t of rangedBoost.tiers()) {
+        for (const donor of rooms) {
+            if (donor === room || sent.has(donor.name) || banned.has(donor.name) || donor.terminal.cooldown) continue;
+            const spare = Math.min(donor.terminal.store[t.res] || 0, rangedBoost.totalStock(donor) - keepFor(donor));
+            const n = Math.min(need, spare);
+            if (n < MIN_LOT) continue;
+            if (donor.terminal.send(t.res, n, room.name, t.res + ' for ' + room.name + ' defenders') !== OK) continue;
+            sent.add(donor.name);
+            return true;
+        }
+    }
+    return false;
+}
+
+// Buy for one room: the tier with the cheapest extra damage, within its fair ceiling. True when a deal
+// went through.
+function buy(room, need) {
     const t = room.terminal;
     if (t.cooldown) return false;
-    const asks = require('system.market').competitors(res, ORDER_SELL, 1).filter(o => o.price <= ceiling).sort((a, b) => a.price - b.price);
-    for (const ask of asks) {
-        let qty = Math.min(need, ask.amount, Math.floor((Game.market.credits - 5000) / ask.price), t.store.getFreeCapacity());
+    const budget = (Game.market.credits - require('system.market').SPEND_FLOOR) * SPEND_SHARE;
+    if (budget <= 0) return false;
+    const asks = [];
+    for (const tier of rangedBoost.tiers()) {
+        const h = require('system.mineralBuy').history(tier.res);
+        if (!h.avg || h.volume < MIN_HISTORY_VOLUME) continue;
+        const ceiling = h.avg * FAIR_CEILING;
+        for (const o of require('system.market').competitors(tier.res, ORDER_SELL, 1)) {
+            if (o.price <= ceiling) asks.push({ o, res: tier.res, ceiling, per: o.price / (tier.mult - 1) });
+        }
+    }
+    asks.sort((a, b) => a.per - b.per);
+    for (const { o: ask, res, ceiling } of asks) {
+        let qty = Math.min(need, ask.amount, Math.floor(budget / ask.price), t.store.getFreeCapacity());
         const energy = (t.store[RESOURCE_ENERGY] || 0) - TERMINAL_ENERGY_RESERVE;
         const cost = require('runtime.world').transactionCost(qty, room.name, ask.roomName);
         if (cost > energy) qty = Math.floor(qty * Math.max(0, energy) / Math.max(1, cost));
@@ -101,7 +142,7 @@ function loadLab(creep) {
     if (room.name !== (creep.memory.homeRoom || room.name)) return false;
     const lab = boostLab(room);
     const terminal = room.terminal;
-    const res = BOOST();
+    const res = rangedBoost.forRoom(room);
     const carrying = Object.keys(creep.store).find(r => creep.store[r] > 0);
     const go = (target, act) => { if (act() === ERR_NOT_IN_RANGE) creep.travelTo(target, { range: 1, maxRooms: 1 }); return true; };
     if (creep.memory.boostLoad) {
@@ -131,4 +172,4 @@ function loadLab(creep) {
     return false;
 }
 
-module.exports = { supply, loadLab, boostLab, wantsBoost, READY, LAB_FILL, MAX_LABS };
+module.exports = { supply, rescue, loadLab, boostLab, wantsBoost, READY, LAB_FILL, MAX_LABS, DONOR_KEEP };

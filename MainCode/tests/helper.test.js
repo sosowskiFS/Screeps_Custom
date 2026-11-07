@@ -300,3 +300,26 @@ test('a helper waits outside, off the border, while its room holds an armed host
     s.run();
     assert.ok(s.calls.some(c => c[0] === 'travelTo' && c[2] !== 20), 'clear again: heads in');
 });
+
+// shardX W1N9, fallen to RCL1: a wall from before reports hitsMax 0, and repair() answers OK and does nothing.
+test('a wall that cannot be repaired is passed over: the helper upgrades instead of standing beside it', () => {
+    const s = setup({ carry: { energy: 400 } });
+    const wall = { id: 'wall', structureType: s.g.STRUCTURE_WALL, hits: 1, hitsMax: 0, pos: { x: 25, y: 26, inRangeTo: () => true } };
+    const room = s.creep.room;
+    const find = room.find;
+    room.find = type => (type === s.g.FIND_STRUCTURES ? [wall] : find(type));
+    const get = s.g.Game.getObjectById;
+    s.g.Game.getObjectById = id => (id === 'wall' ? wall : get(id));
+    s.creep.repair = t => { s.calls.push(['repair', t.id]); return s.g.OK; };
+    s.creep.memory.currentState = 2;
+    s.creep.memory.job = { k: 'repair', id: 'wall', to: 10000 };   // already locked on, as they were
+    s.run();
+    assert.ok(!plain(s.calls).some(c => c[0] === 'repair'), 'no repair');
+    assert.notEqual(s.creep.memory.job && s.creep.memory.job.id, 'wall', 'the job is dropped');
+    wall.hitsMax = 300000000;
+    s.creep.memory.job = undefined;
+    s.calls.length = 0;
+    s.g.Game.time++;
+    s.run();
+    assert.ok(plain(s.calls).some(c => c[0] === 'repair'), 'a normal wall is still repaired');
+});

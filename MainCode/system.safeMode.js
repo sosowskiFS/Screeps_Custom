@@ -201,8 +201,11 @@ function exposed(room, x, y) {
 function underFire(room) {
     return armedPlayers(room).length > 0;
 }
-// Not worth building at this tile now: under fire and exposed (ramparts and walls excepted: they
-// are the cover).
+// Not worth building (or repairing) at this tile now: under fire and exposed (ramparts and walls
+// excepted: they are the cover). Exposed covers everything outside the ring, so this holds back roads
+// and structures out there too: base.builder, system.roads, roads laid by walking creeps (creep.movement),
+// tower road repairs and sites placed before the attack (base.builder removes them). Energy went into
+// rebuilding what the attackers outside kept breaking.
 function buildHeld(room, pos, structureType) {
     if (structureType === STRUCTURE_RAMPART || structureType === STRUCTURE_WALL) return false;
     return underFire(room) && exposed(room, pos.x, pos.y);

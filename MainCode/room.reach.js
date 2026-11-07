@@ -4,7 +4,9 @@
 // wall, no structure that blocks movement (roads, containers and our or public ramparts don't),
 // and no creep of ours parked there (atSpot/onPoint: they never move aside). A pile under a parked
 // supplier ringed by towers, link and storage (shard1 E19N59) held a distributor and a salvager
-// on the storage's only two free tiles for good, and its repairers could not refill.
+// on the storage's only two free tiles for good, and its repairers could not refill. A pile under a
+// parked supplier is its own in any case (it picks it up when it has room): shardX E19N44's drew
+// distributors into the dead-end tile behind the supplier, the spawn's way out.
 const runtimeCache = require('runtime.cache');
 
 const PASSABLE = () => new Set([STRUCTURE_ROAD, STRUCTURE_CONTAINER, STRUCTURE_RAMPART]);
@@ -34,6 +36,8 @@ function reachable(target, creep) {
     const key = pos.roomName + ':' + pos.x + ':' + pos.y;
     if (memo[key] !== undefined && !(creep && creep.pos.inRangeTo(pos, 1))) return memo[key];
     if (creep && creep.pos.roomName === pos.roomName && creep.pos.inRangeTo(pos, 1)) return true;
+    const under = new RoomPosition(pos.x, pos.y, pos.roomName).lookFor(LOOK_CREEPS);
+    if (under.some(c => c !== creep && parked(c) && /^supplier/.test(c.memory.priority || ''))) return (memo[key] = false);
     const terrain = room.getTerrain();
     let ok = false;
     for (let dx = -1; dx <= 1 && !ok; dx++) {

@@ -619,7 +619,7 @@ function labView(creep) {
     const job = ids.length >= 6 ? labPlanner.jobFor(roomName) : null;
     view = { t: Game.time };
     for (let i = 1; i <= 10; i++) view['lab' + i] = ids[i - 1] || 'XXX';
-    view.mineral1 = config.min1 || RESOURCE_CATALYZED_KEANIUM_ALKALIDE;
+    view.mineral1 = require('system.labLayout').boostMineral(roomName, 0);   // the best ranged boost on hand (defense.rangedBoost)
     view.mineral2 = config.min2 || RESOURCE_CATALYZED_GHODIUM_ACID;
     view.mineral3 = config.min3 || RESOURCE_CATALYZED_LEMERGIUM_ACID;
     view.react = new Set();

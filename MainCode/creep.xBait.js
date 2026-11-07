@@ -1,4 +1,4 @@
-// creep.xBait — the one creep of a shardX decoy room (system.bait).
+// creep.xBait — a shardX decoy room's creep (system.bait).
 //
 // Flees armed hostiles (combat.tactics.escape) and waits outside its room while they are there.
 // In the room: claims the controller (a CLAIM body), then harvests and upgrades. From RCL2 it walls
@@ -9,7 +9,9 @@
 // From RCL3 it builds the room's whole planned base, one site at a time (buildBase,
 // base.builder.decoyNext), so it looks like a full room: the attacker went past bare decoys for
 // the primary rooms. It upgrades when there is nothing more its level allows, and sooner when the
-// controller's timer runs low (TIMER_LOW). Its spawns never make a creep (system.spawning).
+// controller's timer runs low (TIMER_LOW). A built spawn makes the room's next one (system.bait keepLocal),
+// as large as the room's energy pays for, so it keeps the spawns and extensions filled before building on
+// (fillSpawning). Any creep arriving from the sponsor works alongside it.
 // A controller it can do nothing with (owned or reserved by someone else, upgrade-blocked) is noted
 // for system.bait (not sent to again until the block ends) and the creep is recycled.
 const combat = require('combat.tactics');
@@ -114,7 +116,7 @@ function walls(creep) {
         if (creep.build(site) === ERR_NOT_IN_RANGE) creep.travelTo(site, { range: 3 });
         return true;
     }
-    const weak = require('system.claimDefense').controllerWalls(room).filter(w => w.hits < WALL_HITS).sort((a, b) => a.hits - b.hits)[0];
+    const weak = require('system.claimDefense').controllerWalls(room).filter(w => w.hits < WALL_HITS && !(w.hitsMax <= w.hits)).sort((a, b) => a.hits - b.hits)[0];
     if (!weak) return false;
     if (creep.repair(weak) === ERR_NOT_IN_RANGE) creep.travelTo(weak, { range: 3 });
     return true;
@@ -177,6 +179,19 @@ function timerLow(creep) {
     return !!creep.memory.upkeep;
 }
 
+// Spawns and extensions, nearest first, until the room holds what the largest next creep costs (the
+// energy stays there for it). Returns true when it used the tick.
+function fillSpawning(creep) {
+    const room = creep.room;
+    if (room.energyAvailable >= bait.LOCAL_FULL) return false;
+    const hungry = room.find(FIND_MY_STRUCTURES).filter(s => (s.structureType === STRUCTURE_EXTENSION || s.structureType === STRUCTURE_SPAWN) &&
+        s.store.getFreeCapacity(RESOURCE_ENERGY) > 0 && s.isActive());
+    const target = creep.pos.findClosestByRange(hungry);
+    if (!target) return false;
+    if (creep.transfer(target, RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) creep.travelTo(target, { range: 1 });
+    return true;
+}
+
 // The room's planned base, one site at a time. False with nothing to build this tick: below RCL3 the
 // controller comes first (the tower is the point), and with all its level allows standing it goes up.
 function buildBase(creep) {
@@ -203,6 +218,7 @@ function work(creep) {
         if (walls(creep)) return;
         if (spawnBait(creep)) return;
         if (tower(creep)) return;
+        if (fillSpawning(creep)) return;
         if (buildBase(creep)) return;
     }
     if (creep.upgradeController(c) === ERR_NOT_IN_RANGE) creep.travelTo(c, { range: 3 });
